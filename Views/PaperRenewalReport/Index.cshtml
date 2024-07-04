@@ -1,0 +1,170 @@
+﻿
+
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="renewalreport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+<script type="text/javascript">
+        var RenewalreportTransMode = '';
+
+        const $formContainer = $('#renewalreport-form');
+
+        $(document).ready(function () {
+            RenewinitialLoad();
+          // RenewreportInitialLoadAddForm();
+            $('#jq-sidemenu').hide();
+        });
+        function fn_showFilter() {
+            $formContainer.find('.jq_leadgeneration_body').toggleClass('.d-none');
+        }
+
+        var HeadName = '';
+        function  RenewinitialLoad() {
+            RenewalreportTransMode = '@ViewBag.TransMode';
+            HeadName = '@ViewBag.headlog';
+            console.log('HeadName', HeadName);
+            console.log('HeadName1', '@ViewBag.headlog');
+            //alert(HeadName);
+
+            RenewreportInitialLoadAddForm();
+
+
+        }
+
+
+
+
+
+
+        function RenewreportInitialLoadAddForm() {
+
+         $formContainer.load('@Url.Action("LoadFormpaperrenewalReport", "PaperRenewalReport")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode',  function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+             $('[name=DemandDays]').val(30);
+            $thisForm.attr('perfect-onFormSuccess', 'RenewinitialLoad');
+            $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').addClass('d-none');
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                'AsonDate': $('[name=AsonDate]').val(),
+                'DemandDays': $('[name=DemandDays]').val(),
+                'FK_Papper': $('[name=FK_Paper]').val(),
+                'FK_Provider': $('[name=FK_Provider]').val(),
+                'PmdPaperNo': $('[name=PmdPaperNo]').val(),
+                'FK_ModuleType': $('[name=ID_FIELD]').val(),
+                'TransMode': RenewalreportTransMode,
+                'Mode': 0,
+            };
+            $.ajax({
+                url: "@Url.Action("GetRenewListOnLoad", "PaperRenewalReport")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterID <= 0) {
+                        $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top}, 1000);
+                    }
+                    else if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterID > 0) {
+                        $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                        $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                        $('#upcomingbadge').html("" + ajaxOutput.Data[2].Value + "");
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status == "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Data Found' });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+                }
+             });
+
+             $('#Todolist').trigger('click');
+        });
+    };
+
+        function fn_showFilter() {
+            $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+        }
+
+    @*var tableOptions = {
+
+
+        onlyShowColumn: ['ID', 'NAME', 'VehRegDate', 'PapperName', 'PapperNo', 'ProviderName', 'IssueDate', 'ExpireDATE', 'Amount','RemainingDays'],
+        hideColumn: [],
+        serialNo: false,
+        renameHeader: { "ID": "SL NO", "NAME": '@ViewBag.headlog', "VehRegDate": "Registration Date", "PapperName": "Paper Name", "PapperNo": "Paper Number", "ProviderName": "Provider Name", "ExpireDATE": "Expiry Date", "IssueDate": "Issue Date", "Amount": "Net Amount1R", " RemainingDays":"RemainingDays"},
+        isDateType: ['ExpireDATE', 'IssueDate', 'VehRegDate'],
+        rowClickAction: fn_directtoRenewal,
+    };*@
+
+    var upComOpt = {
+
+
+        onlyShowColumn: ['ID', 'NAME', 'VehRegDate', 'PapperName', 'PapperNo', 'ProviderName', 'IssueDate', 'ExpireDATE', 'Amount','RemainingDays'],
+        hideColumn: [],
+        serialNo: false,
+        renameHeader: { "ID": "SL NO", "NAME": '@ViewBag.headlog', "VehRegDate": "Registration Date", "PapperName": "Paper Name", "PapperNo": "Paper Number", "ProviderName": "Provider Name", "ExpireDATE": "Expiry Date", "IssueDate": "Issue Date", "Amount": "Net Amount1R", "RemainingDays":"RemainingDays"},
+        isDateType: ['ExpireDATE', 'IssueDate', 'VehRegDate'],
+        rowClickAction: fn_directtoRenewal,
+    };
+
+    var overDueOpt = {
+
+
+        onlyShowColumn: ['ID', 'NAME', 'VehRegDate', 'PapperName', 'PapperNo', 'ProviderName', 'IssueDate', 'ExpireDATE', 'Amount','RemainingDays'],
+        hideColumn: [],
+        serialNo: false,
+        renameHeader: { "ID": "SL NO", "NAME": '@ViewBag.headlog', "VehRegDate": "Registration Date", "PapperName": "Paper Name", "PapperNo": "Paper Number", "ProviderName": "Provider Name", "ExpireDATE": "Expiry Date", "IssueDate": "Issue Date", "Amount": "Net Amount1R", "RemainingDays":"Overdue"},
+        isDateType: ['ExpireDATE', 'IssueDate', 'VehRegDate'],
+        rowClickAction: fn_directtoRenewal,
+    };
+
+    var toDoTabOpt = {
+
+
+        onlyShowColumn: ['ID', 'NAME', 'VehRegDate', 'PapperName', 'PapperNo', 'ProviderName', 'IssueDate', 'ExpireDATE', 'Amount'],
+        hideColumn: [],
+        serialNo: false,
+        renameHeader: { "ID": "SL NO", "NAME": '@ViewBag.headlog', "VehRegDate": "Registration Date", "PapperName": "Paper Name", "PapperNo": "Paper Number", "ProviderName": "Provider Name", "ExpireDATE": "Expiry Date", "IssueDate": "Issue Date", "Amount": "Net Amount1R"},
+        isDateType: ['ExpireDATE', 'IssueDate', 'VehRegDate'],
+        rowClickAction: fn_directtoRenewal,
+    };
+
+
+
+
+
+      function fn_directtoRenewal() {
+        debugger
+        let row = $(this).closest('tr');
+          let Saveddata = row.data('pData');        
+         window.location.href = '@Url.Action("LoadRenews", "Paper")?mtd=' + '@ViewBag.mtd' + '&TransMode=' + '@ViewBag.TransMode' + '&FK_Master=' + Saveddata.FK_Master+ '&vname=' + Saveddata.NAME + '&vpaper=' + Saveddata.ID_Papper + '&vpano=' + Saveddata.PapperNo + '&vpro=' + Saveddata.ID_Provider + '&vissue=' + Saveddata.IssueDate + '&viexpir=' + Saveddata.ExpireDATE;
+
+     }
+
+</script>
+}
+
+
+
+    
+
+

@@ -1,0 +1,404 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="DepreciationProcess-form">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#DepreciationProcess-form');
+    $(document).ready(function () {
+        DepreciationProcessInitialLoad();
+    });
+    var validationMessage = {
+
+
+        'Fromdate': {
+            'required': 'Please Select From Date',
+        },
+        'Todate': {
+            'required': 'Please Select To Date',
+        },
+        'FK_Category': {
+            'required': 'Please select Category'
+
+        },
+        'Mode': {
+            'required': 'Please select Mode'
+        }
+
+    };
+    function DepreciationProcessInitialLoad()
+    {
+      
+            fn_DepreciationProcessInitialLoads();
+            @if (ViewBag.PagedAccessRights.UsrrlStView)
+            {
+                <text>fn_DepreciationProcess_LoadList(this);</text>
+            }
+        $("#saveclear").css("display", "none");
+        }
+       
+    function fn_DepreciationProcessInitialLoads()
+        {
+             $formContainer.load('@Url.Action("LoadFormDepreciationProcess", "DepreciationProcess")', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+                 $thisForm.find('[name="ProcessDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="Fromdate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="Todate"]').val(moment().format('YYYY-MM-DD'));
+
+                 $thisForm.validate({ messages: validationMessage });
+                 //var today = new Date().toISOString().split('T')[0];
+                 //document.getElementsByName("ProcessDate")[0].setAttribute('max', today);
+                 //document.getElementsByName("Fromdate")[0].setAttribute('max', today);
+
+
+                 $thisForm.attr('perfect-onFormSuccess', 'DepreciationProcessInitialLoad');
+                 $("#DepreciationDetails").hide();
+
+            });
+        }
+
+    function fn_DepreciationProcess_LoadList(ele) {
+            debugger
+
+        let $sidemenu = $sideMenuOptions.body;
+       
+      
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        //console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Depreciation Process List');
+          let pageUrl = '@Url.Action("GetDepreciationProcessList", "DepreciationProcess")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    debugger
+                          if (ajaxOutput.Process.IsProcess) {
+                              //console.log('ProductRateSettings', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("DepreciationProcess");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_DepreciationProcess_LoadList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("DepreciationProcess");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_DepreciationProcess_LoadList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+        }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+      var tableOptions = {
+            dropdown: {
+                buttons: [
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editDepreciationProcess },</text>
+                   }
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteDepreciationProcess },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+                }, 
+                
+          onlyShowColumn: ["SlNo", "DepreProcessDate", "Fromdate", "Todate", "ModeName","CatName"],
+        hideColumn: [],
+          rowClickAction: editDepreciationProcess ,
+          isDateType: ["DepreProcessDate", "Fromdate","Todate"],
+          renameHeader: {
+              "DepreProcessDate": "Process Date", "Fromdate": "From Date", "Todate": "To Date","CatName":"Category Name" }
+
+    };
+    function editDepreciationProcess()
+        {          
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');            
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+       
+                DepreProcessDate: moment(savedData.ProcessDate).format('DD-MM-YYYY'),
+                DepreToDate: moment(savedData.Todate).format('DD-MM-YYYY'),
+                DepreFromDate: moment(savedData.Fromdate).format('DD-MM-YYYY'),
+                FK_Category: savedData.FK_Category,
+                Mode: savedData.Mode,
+                FK_Product: savedData.FK_Product,
+                ID_DepreciationProcess: savedData.ID_DepreciationProcess,
+
+            };
+
+            $.ajax({
+                url: '@Url.Action("GetDepreciationProcessedInfo", "DepreciationProcess")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+                    if (ajaxOutput) {
+                        debugger
+                        
+                       
+                        $formContainer.load('@Url.Action("LoadFormDepreciationProcess", "DepreciationProcess")', function () {
+                            $(this).find('[perfect-class=formTitle]').text('update')
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.find('[name=ID_DepreciationProcess]').val(ajaxOutput.mptableInfo.Data[0].ID_DepreciationProcess);
+                            $thisForm.find('[name="ProcessDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].DepreProcessDate).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="Fromdate"]').val(moment(ajaxOutput.mptableInfo.Data[0].DepreFromdate).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="Todate"]').val(moment(ajaxOutput.mptableInfo.Data[0].DepreTodate).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="Mode"]').val(ajaxOutput.mptableInfo.Data[0].Mode).selectpicker('refresh');
+                            $thisForm.find('[name="Mode"]').trigger('change');
+                          
+                            $thisForm.find('[name="FK_Category"]').attr('perfect-onloadSelect', ajaxOutput.mptableInfo.Data[0].FK_ItemCategory);
+
+                        
+                            $thisForm.find('[name=Product]').val(ajaxOutput.mptableInfo.Data[0].FK_ItemMaster);
+                            $TicketHtml = '';
+                            if (ajaxOutput.subtable.Process.IsProcess) {
+                                var $ProductHtml = '';
+                              
+                                $thisForm.find('button[name=reset]').removeClass('d-none');
+                              
+                               
+                                if (ajaxOutput.subtable.Data != null) {
+                                    $('#DepreciationDetailsTbody').empty();
+                                    if (ajaxOutput.subtable.Data.length > 0) {                                      
+                                        $.each(ajaxOutput.subtable.Data, function (i, value) {  
+                                           
+
+                                            let rowCount = (i + 1);
+                                            $ProductHtml += "<tr id=" + rowCount + ">";
+                                            $ProductHtml += "<td class='jdFK_ItemCategory' Style='Display:none'>" + value.FK_ItemCategory + "</td>";
+                                            $ProductHtml += "<td class='jdCategoryName' style='width: 600px';>" + value.CatName + "</td>";
+                                            $ProductHtml += "<td class='jdFK_ItemMaster' Style='Display:none'>" + value.FK_ItemMaster + "</td>";
+
+                                            $ProductHtml += "<td class='jdItemName' style='width: 600px;'>" + value.ItemName + "</td>";
+                                            $ProductHtml += "<td class='jdFK_ItemStock' Style='Display:none'>" + value.FK_ItemStock + "</td>";
+
+                                            $ProductHtml += "<td class='jdModeName' style='width: 600px;'>" + value.ModeName + "</td>";
+                                            $ProductHtml += "<td class='jdFK_DepreciationSettings' Style='Display:none'>" + value.FK_DepreciationSettings + "</td>";
+
+                                            $ProductHtml += "<td class='jdItemQty' style='width: 600px;'>" + value.ItemQty + "</td>";
+                                            $ProductHtml += "<td class='jdDeprePeriod' style='width: 600px; text-align: center;'>" + value.DeprePeriod + "</td>";
+
+                                            $ProductHtml += "<td class='jdDepreAmt' style='width: 600px; text-align: center;'>" + value.DepreAmt + "</td>";
+                                            $ProductHtml += "<td class='jdDepreMaxAmt' style='width: 600px; text-align: center;'>" + value.DepreMaxAmt + "</td>";
+                                            $ProductHtml += "</tr>";
+                                        });
+                                    }
+                                }
+                                else {
+                                    $('#DepreciationDetailsTbody').empty();
+                                    $ProductHtml += "<tr id='0'><td colspan='8' style'text-align:center'>No Records..</td></tr>";
+                                }
+
+                                $("#DepreciationDetails").show();
+                                $('#DepreciationDetailsTbody').append($ProductHtml);
+
+                            }
+
+                            $("#DepreciationDetails").show();
+                            $('#DepreciationDetailsTbody').append(ajaxOutput.subtable);
+                            $sideMenuOptions.close();
+                            $thisForm.attr('perfect-onFormSuccess', 'DepreciationProcessInitialLoad');
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            //$thisForm.find('button[name=update]').removeClass('d-none');
+
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            $('.dataTable tr').removeClass("SelectForDelete");
+                        });
+                    }
+
+                }
+                });
+
+    }
+    function deleteDepreciationProcess()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            console.log('saved', Saveddata)
+          
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            debugger
+               $.ajax({
+                   url: "@Url.Action("GetDepreciationProcessDeleteReasonList", "DepreciationProcess")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                 
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_DepreciationProcess: Saveddata.ID_DepreciationProcess,
+                                       
+                                        FK_Reason: selectedOption
+                                    };
+                                 
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteDepreciationProcess", "DepreciationProcess")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                DepreciationProcessInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        
+ </script>
+}

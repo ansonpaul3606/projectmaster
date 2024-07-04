@@ -1,0 +1,83 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+@*<h2>FinalAccountIndex</h2>*@
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="accountgeneralreport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#accountgeneralreport-form');
+        var selectedOption;
+
+        $(document).ready(function () {
+
+           FinalAccountreportInitialLoadAddForm();
+            $('#jq-sidemenu').hide();
+        });
+
+        function fn_showFiltersearch() {
+            let $thisForm = $('[perfect-class="form"]');
+            $thisForm.closest('.Accountreport').find('.accountreportsearch-body').toggleClass('d-none');
+         }
+
+        function FinalAccountreportInitialLoadAddForm() {
+            $formContainer.load('@Url.Action("FinalAccountreportForm", "FinalAccountReport")?mtd=@ViewBag.mtd' , function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.closest('.Accountreport').find('.accountreportsearch-body').addClass('d-none');
+
+               // Getdepartmentbranchnamedefault();
+
+
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="BranchID"]').val('@ViewBag.FK_Branch').selectpicker('refresh');
+                selectedOption = $(this).find('option:selected').text();
+                selectedOption = selectedOption.replace("Please select", "");
+
+                fn_showFiltersearch();
+                $thisForm.attr('perfect-onFormSuccess', 'AccountGeneralreportInitialLoadAddForm');
+            });
+
+        };
+
+        var validationMessage = {
+
+
+            'BranchID': {
+                'required': 'Please Select Branch',
+                'digits': 'Please Enter valid Branch'
+
+            },
+            'EmployeeID': {
+                'required': 'Please Select Employee',
+                'digits': 'Please Enter valid Employee'
+
+            },
+            'FromDate': {
+                'required': 'Please select From Date',
+
+            },
+            'ToDate': {
+                'required': 'Please select To Date',
+
+            },
+
+        };
+
+
+    </script>
+
+}

@@ -1,0 +1,544 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Kavya K
+    Created On	: 19/12/2022
+    Purpose		: Job Card Creation
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*@
+
+@{
+    ViewBag.Title = "Job Card Creation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_JobCard_formContainer">
+
+        </div>
+    </div>
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        var JobCardTransMode = "";
+        const LastIDSessionKey = 'JobCardLastID';
+        var LastID_JobCard;
+
+        const $formContainer = $('#jq_JobCard_formContainer');
+        var validationMessage = {
+            'Priority': {
+                'required': 'Please Select Priority',
+                'stringonly': 'Invalid Priority selected',
+            },
+            'JobCardNo': {
+                'required': 'Please Enter Job Card No',
+                'stringonly': 'Invalid Job Card Entered',
+            },            
+            'StartDate': {
+                'required': 'Please Select Start Date',
+                'max':"Please Select a Date less than or equal to 01-01-2050."
+            }, 'EndDate': {
+                'required': 'Please Select Target Date',
+
+            },
+        }
+
+        $(document).ready(function () {
+            fn_LoadJobCard();
+            $(".divdisableonupdate").removeProp("disabled"); 
+        });
+
+        function fn_LoadJobCard() {
+          
+                JobCardTransMode = '@ViewBag.TransMode';
+                fn_loadJobCardList(this);
+                fn_LoadJobCardForm();
+        }
+
+    function fn_LoadJobCardForm() {
+      
+        var _TransDate = moment().format('YYYY-MM-DD');
+                   
+        $formContainer.load('@Url.Action("LoadFormJobCard", "JobCardCreation")' + '?TransMode=' + JobCardTransMode + '&&TransDate=' + _TransDate, function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+        $("#divProjectdetails").css('display', 'none');
+            $("#divjobcarddetails").css('display', 'block');
+            $("#divSalOrderdetails").css('display', 'none');
+            $thisForm.find('[name="StartDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="TypeEndDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'fn_LoadJobCard');
+            getNumberGeneration(JobCardTransMode, 0, $thisForm, 'JobCardNo')
+            getSessionValue(LastIDSessionKey, function (result) {
+                LastID_JobCard = result;
+            });
+            })
+        };
+
+        function fn_loadJobCardList(ele) {
+
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Job Card List');
+             let pageUrl = '@Url.Action("GetJobCardList", "JobCardCreation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransMode: JobCardTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        $sidemenu.find('.jq_sidemenu_title').text("Job Card List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadJobCardList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: JobCardTransMode }, tableOptions, $table)
+                              });
+                          }
+                          else
+                          {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            setSessionValue(LastIDSessionKey,0);
+                                $sidemenu.find('.jq_sidemenu_title').text("Job Card List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadJobCardList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: JobCardTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page,TransMode: ajaxInfo.TransMode};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editJobCard },</text>
+                }
+                { type: "divider" },
+               @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteJobCard },</text>
+                 }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "CardType","JobCardNo", "Priorty", "StartDate",  "TargetDate"],
+        hideColumn: [],
+        rowClickAction: fn_editJobCard,
+        renameHeader: {
+            "SlNo": "Sl No", "CardType": "Job Card Type", "JobCardNo":"Job Card No", "Priorty": "Priority", "StartDate": "Start Date", "TargetDate": "Target Date"},
+        isDateType: ["StartDate", "TargetDate"],
+        serialNo: false,
+        };
+
+        function fn_editJobCard(ele) {
+
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+
+          
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                GroupID: Saveddata.GroupID,
+                TransMode: JobCardTransMode
+            };
+            fn_fillJobCardDetails(inputData);
+          
+        }
+
+        function fn_fillJobCardDetails(inputData) {
+            $.ajax({
+                url: '@Url.Action("GetJobCardInfo", "JobCardCreation")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.JobCardInfo.Process.IsProcess)
+                            {
+                                var id = "";
+                                $sideMenuOptions.close();
+                                //alert(JobCardTransMode);
+                                $formContainer.load('@Url.Action("LoadFormJobCard", "JobCardCreation")' + '?TransMode=' + JobCardTransMode + '&&TransDate=' + moment(ajaxOutput.JobCardInfo.Data[0]['StartDate']).format('YYYY-MM-DD'), function () {
+
+              
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                     $(this).find('[perfect-class=formTitle]').text('update');
+                                   
+                                    $thisForm.find('[name="ID_JobCard"]').val(ajaxOutput.JobCardInfo.Data[0]['ID_JobCard']);
+                                    $thisForm.find('[name="ddlTypeID"]').val(ajaxOutput.JobCardInfo.Data[0]['JobCardType']);
+                                    $thisForm.find('[name="Priority"]').val(ajaxOutput.JobCardInfo.Data[0]['Priority']);
+                                    $thisForm.find('[name="StartDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['StartDate']).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="JobCardTargetDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                  
+                                    if (ajaxOutput.JobCardInfo.Data[0]['JobCardType'] == "1") {
+                                        $thisForm.find('[name="JobCardNo"]').val(ajaxOutput.JobCardInfo.Data[0]['JobCardNo']);
+
+                                        $thisForm.find('[name="TypeEndDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                        $("#divProjectdetails").css('display', 'none');
+                                        $("#divjobcarddetails").css('display', 'block');
+                                        $("#divSalOrderdetails").css('display', 'none');
+                                    }
+                                    else if (ajaxOutput.JobCardInfo.Data[0]['JobCardType'] == "3") {
+                                        $thisForm.find('[name="SoNo"]').val(ajaxOutput.JobCardInfo.Data[0]['SoNo']);
+                                        $thisForm.find('[name="OrderNo"]').val(ajaxOutput.JobCardInfo.Data[0]['FK_Master']);
+                                        //$thisForm.find('[name="SalOrderStartDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['StartDate']).format('YYYY-MM-DD'));
+                                        //$thisForm.find('[name="SODate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                        //$thisForm.find('[name="TypeEndDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                        $("#divProjectdetails").css('display', 'none');
+                                        $("#divjobcarddetails").css('display', 'none');
+                                        $("#divSalOrderdetails").css('display', 'block');
+                                    }
+                                    else {
+                                        $thisForm.find('[name="ProjectName"]').val(ajaxOutput.JobCardInfo.Data[0]['ProjectName']);
+                                        $thisForm.find('[name="FK_Project"]').val(ajaxOutput.JobCardInfo.Data[0]['FK_Master']);
+                                        $("#divProjectdetails").css('display', 'block');
+                                        $("#divjobcarddetails").css('display', 'none');
+                                        $("#divSalOrderdetails").css('display', 'none');
+                                        //console.log("date",moment(ajaxOutput.JobCardInfo.Data[0]['StartDate']).format('YYYY-MM-DD'))
+                                        //$thisForm.find('[name="ProjectStartDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['StartDate']).format('YYYY-MM-DD'));
+                                        //$thisForm.find('[name="EndDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                        //$thisForm.find('[name="TypeEndDate"]').val(moment(ajaxOutput.JobCardInfo.Data[0]['TargetDate']).format('YYYY-MM-DD'));
+                                    }
+
+                                        if (ajaxOutput.JobCardItem.Process.IsProcess) {
+
+                                        $thisForm.data({ pData: ajaxOutput.JobCardItem.Data[0]});
+                                        console.log("Details", ajaxOutput.JobCardItem.Data[0]);
+
+                                        //if (ajaxOutput.JobCardInfo.Data[0]['JobCardType'] == 1) {
+                                            fn_fillJobCardItem($thisForm, 'JobCard', ajaxOutput.JobCardItem.Data, JobCardtableOptionsTempOut)
+                                            $thisForm.find('[perfect-tempTable="JobCard"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+
+                                        //}
+                                        //else if (ajaxOutput.JobCardInfo.Data[0]['JobCardType'] == 2) {
+
+                                        //    fn_fillJobCardItem($thisForm, 'Project', ajaxOutput.JobCardItem.Data, JobCardtableOptionsTempOut)
+                                        //    $thisForm.find('[perfect-tempTable="Project"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                        //}
+                                        //else {
+                                        //    fn_fillJobCardItem($thisForm, 'SalOrder', ajaxOutput.JobCardItem.Data, JobCardtableOptionsTempOut)
+                                        //    $thisForm.find('[perfect-tempTable="SalOrder"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                        //}
+
+                                    }
+
+                                     $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'GetJobCardList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                    $(".divdisableonupdate").prop("disabled", true);
+                                    
+                                   // $(".filter-option").prop("tabindex",-1);
+                                   
+                                });
+                            }
+
+                },
+
+            });
+        }
+
+        function fn_fillJobCardItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];                               
+                            }
+                            else if (inputType == 'hidden') {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        }
+
+
+        //var JobCardTempOut = {
+        //    iconButton: {
+        //        buttons: [
+
+        //            {
+        //                icon: "fa fa-pencil btnPerfectGridEdit",
+        //                action: function () {
+
+        //                    let savedData = $(this).closest('tr').data('pData')
+
+        //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                    let tableKey = $tablecontainer.attr('perfect-tempTable');
+        //                    let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+        //                    //index attribute name in table row
+        //                    let indexname = tableKey + 'index';
+
+        //                    //index number in table row
+        //                    let rindex = $(this).closest('tr').attr(indexname);
+
+        //                    $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+        //                    console.log('Editclick', savedData);
+        //                    //filling data in available inputs
+        //                    $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+        //                        let $thisNode = $(this);
+        //                        let pf_name = $thisNode.attr('name');
+        //                        if ($thisNode.is('select')) {
+
+        //                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+        //                        }
+        //                        else if ($thisNode.is('input')) {
+        //                            let inputType = $thisNode.attr('type').toLocaleLowerCase();
+        //                            if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+        //                                $thisNode.prop('checked', savedData[pf_name]);
+        //                            }
+        //                            else if ($thisNode.attr('type').toLocaleLowerCase() == 'date') {
+        //                                savedData[pf_name];
+        //                            }
+        //                            else {
+
+        //                                $thisNode.val(savedData[pf_name]);
+        //                            }
+
+        //                        }
+
+        //                        else {
+        //                            $thisNode.val(savedData[pf_name]);
+        //                        }
+
+
+        //                    });
+
+
+
+        //                }
+        //            },
+        //            {
+        //                icon: "fa fa-trash btnPerfectGridDelete",
+        //                action: function () {
+        //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                    let $thistbl = $(this).closest('table');
+        //                    let table = $thistbl.DataTable();
+        //                    table.destroy();
+        //                    if ($(this).closest('tbody').find('tr').length > 1) {
+        //                        $(this).closest('tr').remove();
+        //                        pft_table_slreset($thistbl);
+        //                    }
+        //                    else {
+        //                        $thistbl.remove();
+        //                    }
+
+
+        //                }
+        //            },
+        //        ]
+        //    },
+        //    onlyShowColumn: ["ProductName", "Quantity"],
+        //    hideColumn: ['FK_Product'],
+        //    serialNo: true,
+        //    renameHeader: { "ProductName": "Product", "Quantity": "Quantity" },
+        //    rowAttribute: [],
+        //    isCheckType: ["StartDate","TargetDate"],
+        //};
+
+
+        function fn_deleteJobCard() {
+
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            let TransMode = JobCardTransMode;
+
+            let inputReason = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                GroupID: Saveddata.GroupID,
+            };
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetJobCardReasonList", "JobCardCreation")",
+                   type: "POST",
+                   data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this Job Card :Job Card No " + Saveddata.JobCardNo + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_Reason: selectedOption,
+                                        TransMode: TransMode,
+                                        GroupID: Saveddata.GroupID
+
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteJobCard", "JobCardCreation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_LoadJobCard();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+    </script> @*testing*@
+}

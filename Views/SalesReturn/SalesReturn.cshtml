@@ -1,0 +1,489 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Kavya K
+    Created On	: 23/01/2023
+    Purpose		: Sales Return
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*@
+
+    @{
+        ViewBag.Title = "SalesReturn";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-lg-12" id="jq_SalesReturn_formContainer">
+
+            </div>
+        </div>
+
+
+    </div>
+    @section scripts{
+
+        <script type="text/javascript">
+
+            const $formContainer = $('#jq_SalesReturn_formContainer');
+
+            var validationMessage = {
+                'SalInvoiceNo': {
+                    'required': 'Enter Invoice No',
+                },
+                'SalReferenceNo': {
+                    'required': 'Enter Reference No',
+                },
+                'SalBillDate': {
+                    'required': 'Enter Invoice Date',
+                },
+                'CustomeName': {
+                    'required': 'Enter Customer name',
+                },
+                'Returntype': {
+                    'required': 'Select Return Type',
+                },
+                'ReturnDate': {
+                    'required': 'Enter Return Date',
+                },
+                
+            }
+ //on load functions
+            $(document).ready(function () {
+                fn_SalesReturn_initialLoad();
+            });
+
+            const LastIDSessionKey = 'SalesReturnLastID';
+            var SalesReturnTransMode = '';
+            var LastID_SalesReturn;
+            var Transmode;
+            var LastId;
+            var tax = [];
+            var Multiunitsettings = '';
+            function fn_SalesReturn_initialLoad() {
+                debugger;
+                SalesReturnTransMode = "";
+                SalesReturnTransMode = '@ViewBag.TransMode';
+                Multiunitsettings = '@ViewBag.Multiunitsettings' == 'True' ?'1':'0';
+              
+                fn_SalesReturnList(this, fn_SalesReturnLoadForm);
+
+              
+              //  fn_SalesReturnList(this)
+              //  fn_SalesReturnLoadForm();
+              
+            }
+
+            function fn_SalesReturnLoadForm() {
+                console.log("5", 5);
+                $formContainer.load('@Url.Action("LoadSalesReturnForm", "SalesReturn")?mtd=@ViewBag.mtd', function () {
+                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                    $thisForm.find('[name="ReturnDate"]').val(moment().format('YYYY-MM-DD'));
+                    $thisForm.attr('perfect-onFormSuccess', 'fn_SalesReturn_initialLoad');
+                    $thisForm.validate({ messages: validationMessage });
+                    getSessionValue(LastIDSessionKey, function (result) {
+                        LastID_SalesReturn = result;
+                    });
+                });
+            }
+
+            var serchpdfname;
+    
+            function fn_SalesReturnList(ele, callback) {
+                console.log("1", 1);
+                let $sidemenu = $sideMenuOptions.body;
+                // let $thisForm = $(ele).closest('.Search-Control');
+
+                let $thisForm = $(ele).closest('.testSearchBox');
+                let SearchName = $thisForm.find('input').val();
+                serchpdfname = SearchName;
+                console.log("GH", SearchName)
+                if (SearchName == undefined) {
+                    SearchName = "";
+                }
+                $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle' + ' ' + 'List');
+                let pageUrl = '@Url.Action("GetSalesReturnList", "SalesReturn")';
+                $.ajax({
+                    url: pageUrl,
+                    type: "POST",
+                    data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: SalesReturnTransMode },
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (ajaxOutput) {
+
+                        debugger;
+                        if (ajaxOutput.Process.IsProcess) {
+                            setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                            $sidemenu.find('.jq_sidemenu_title').text("Sales Return List");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_SalesReturnList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: SalesReturnTransMode }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            setSessionValue(LastIDSessionKey, 0);
+                            if (ajaxOutput.Process.Status = "NoData") {
+
+                                $sidemenu.find('.jq_sidemenu_title').text("Sales Return");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_SalesReturnList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                    "lengthMenu": [0],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: SalesReturnTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                        }
+                    },
+                    complete: function () {
+                        console.log("2", 2);
+                        if (callback) {
+                            console.log("3", 3);
+                            callback();
+                        }
+                    }
+                });
+            }
+
+        
+
+            function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+                //{ apiurl, pageSize }
+                return {
+                    url: ajaxInfo.apiurl,
+                    type: "post",
+                    data: function () {
+                        var info = tableid.DataTable().page.info();
+                        console.log('RETURN AJAX', info)
+
+                        let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                        if (ajaxInfo.searchkey) {
+                            input["Name"] = ajaxInfo.searchkey;
+                        }
+                        return input
+                    },
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (dtajaxOutput) {
+
+                        let table = tableid.DataTable();
+                        table.destroy();
+                        pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                        tableid.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": dtajaxOutput.totalrecord,
+                            "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                            "pageLength": dtajaxOutput.pageSize,
+                            "recordsFiltered": dtajaxOutput.pageSize,
+                            "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                        })
+
+                    },
+
+                }
+            }
+            var tableOptions = {
+                dropdown: {
+                    buttons: [
+                        { displayName: "View", action: EditSalesReturn },
+                        { type: "divider" },
+                        {
+                            displayName: "Delete", action: deleteSalesReturn
+                        }
+                    ],
+                    class: "btn btn-success light sharp"
+                },
+                onlyShowColumn: ["SlNo", "CustomerName", "ReturnType", "SrReferenceNo", /*"SrBillNo",*/ "SrBillTotal", "SrReturnDate"],
+                serialNo: false,
+                hideColumn: ["ID_SalesReturn", "FK_Customer", "ProductCriteria"],
+                rowClickAction: EditSalesReturn,
+                renameHeader: { "Customer": "CustomerName", "SrReferenceNo": "Reference No", "SrBillTotal": "Net Amount1R", "SrBillNo": "Invoice No", "SrReturnDate": "Return Date", "ReturnType": "Return Type" },
+                isDateType: ["SrReturnDate"],
+            }
+
+            function EditSalesReturn() {
+                debugger;
+
+                let $thisRow = $(this).closest('tr');
+                let saveddata = $thisRow.data('pData');
+
+                $('.dataTable tr').removeClass("SelectForDelete");
+                $(this).closest('tr').addClass('SelectForDelete');
+
+                let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                let $thisForm = $(this).closest('[perfect-class="form"]');
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    'ID_SalesReturn': saveddata.ID_SalesReturn,
+                    'TransMode': SalesReturnTransMode
+                };
+
+                $.ajax({
+                    url: "@Url.Action("GetSalesReturnInfo", "SalesReturn")",
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+                        console.log('sss', ajaxOutput)
+                        $formContainer.load('@Url.Action("LoadSalesReturnForm", "SalesReturn")?mtd=@ViewBag.mtd', function () {
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            if (ajaxOutput.SalRetInfo.Process.IsProcess) {
+
+                                $sideMenuOptions.close();
+                                $thisForm.data({ prtData: ajaxOutput.SalRetInfo.Data[0] });
+
+                                console.log('sss4new', ajaxOutput.SalRetInfo.Data[0]);
+                                $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.SalRetInfo.Data[0]['SrInvoiceNo']);
+                                $thisForm.find('[name="ReturnDate"]').val(moment(ajaxOutput.SalRetInfo.Data[0]['SrReturnDate']).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="ID_SalesReturn"]').val(ajaxOutput.SalRetInfo.Data[0]['ID_SalesReturn']);
+                                $thisForm.find('[name="Returntype"]').val(ajaxOutput.SalRetInfo.Data[0]['SrReturnType']).selectpicker('refresh');
+                                $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.SalRetInfo.Data[0]['FK_Customer']);
+                                $thisForm.find('[name="SalesID"]').val(ajaxOutput.SalRetInfo.Data[0]['FK_Sales']);
+                                $thisForm.find('[name="CustomeName"]').val(ajaxOutput.SalRetInfo.Data[0]['CustomerName']);
+                                $thisForm.find('[name="SalInvoiceNo"]').val(ajaxOutput.SalRetInfo.Data[0]['SrBillNo']);
+                                $thisForm.find('[name="SalBillDate"]').val(moment(ajaxOutput.SalRetInfo.Data[0]['SrBillDate']).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="SalReferenceNo"]').val(ajaxOutput.SalRetInfo.Data[0]['SrReferenceNo']);
+                                $thisForm.find('[name="SalBillTotal"]').val((ajaxOutput.SalRetInfo.Data[0]['SrBillTotal']).toFixed(2));
+                                $thisForm.find('[name="OtherCharge"]').val(ajaxOutput.SalRetInfo.Data[0]['SrOthercharges']);
+                                $thisForm.find('[name="SalDiscount"]').val(ajaxOutput.SalRetInfo.Data[0]['SrDiscount']);
+                                $thisForm.find('[name="SalRoundOff"]').val(ajaxOutput.SalRetInfo.Data[0]['SrRoundoff']);
+                                $thisForm.find('[name="Remarks"]').val(ajaxOutput.SalRetInfo.Data[0]['SrRemarks']);
+                                $thisForm.find('[name="SalNetAmount"]').val(ajaxOutput.SalRetInfo.Data[0]['SrNetAmount']);
+
+                                ////disabled fields 
+                                $thisForm.find('[name="SalInvoiceDate"]').attr("readonly", true);
+                                $thisForm.find('[name="Returntype"]').attr("disabled", "disabled");
+                                $('#addcountry-jq-searchButton3').attr("disabled", "disabled");
+                                $('#invoicebutton').attr("disabled", "disabled");
+                                popupempty = 1;
+
+                                $("#srreset").html("Reset");
+                                debugger;
+                                if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                    let othechg = ajaxOutput.OtherCharge.Data;
+                                    console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                    othrchargelst = [];
+                                    othrchargelst = othrchargelst.concat(othechg);
+                                    console.log('OTH INFOT>', othrchargelst);
+                                    $thisForm.data({ prtothchgData: othrchargelst });
+                                }
+
+                                if (ajaxOutput.TaxDetails.Process.IsProcess) {
+
+                                    let taxinfos = ajaxOutput.TaxDetails.Data;
+                                    console.log('AJAX TAX OUTTPUT>', ajaxOutput.TaxDetails.Data)
+                                    tax1 = [];
+                                    tax = tax.concat(taxinfos);
+                                    console.log('TAXINFOT>', tax)
+                                    $thisForm.data({ prtTaxData: tax });
+                                }
+
+                                if (ajaxOutput.SrRetProducts.Process.IsProcess) {
+                                    let table = JSON.parse(ajaxOutput.SrRetProducts.Data);
+
+                                    if ($thisForm.find('[name="Returntype"]').val() == 2) {
+                                        fillgrid('Sales', tableOptionsTempOutss, $thisForm, table.dtable);
+                                    }
+                                    else if ($thisForm.find('[name="Returntype"]').val() == 1) {
+                                        debugger;
+                                        $thisForm.data({ srtproductsData: table });
+                                        $('#Salreturn').css('display', 'block');
+                                        if (table.dtable.length > 0) {
+                                            $.each(table.dtable, function (i, value) {
+                                                CheckListHTML += "<tr class='jq_ID_tr'>";
+                                                CheckListHTML += "<td Class='' style='text-align:center'>" + value.SLNo + "</td>";
+                                                CheckListHTML += "<td Class='jq_productId' Style='Display:none'>" + value.ProductID + "</td>";
+                                                CheckListHTML += "<td Class='jq_Type_td' style='text-align:center'>" + value.ProName + "</td>";
+                                                if (Multiunitsettings == '1') {
+                                                    CheckListHTML += "<td class='jq_Unit_td' style='text-align:right'><div class='input-group'><select class='form-control remove-top-bottom-margin valid productselectClass' id='opdrp_" + value.ID_SalesReturnDetails + "' name='Unit' productID='" + value.ProductID + "' onchange='fncheckUnit(this)' >  </select> <div class='input-group-append'> </div></div></td></td>";
+                                                }
+                                                else {
+                                                    CheckListHTML += "<td class='jq_Unit_td' style='text-align:right;display:none'><div class='input-group'><select class='form-control remove-top-bottom-margin valid productselectClass' id='opdrp_" + value.ID_SalesReturnDetails + "' name='Unit' productID='" + value.ProductID + "' onchange='fncheckUnit(this)' >  </select> <div class='input-group-append'> </div></div></td></td>";
+                                                }
+                                                    CheckListHTML += "<td class='jq_quantity_td' style='text-align:right'><input type='text' class='form-control text-right' name='qty' id='quantity' onchange='fncheckquantity(this)' oninput='decimalpnt(this,SpdSalQuantity,4,1)' onkeypress='return isNumberKey(event)'  value='" + (value.SpdSalQuantity).toFixed(3) + "' min='0'  maxlength='13'' /></td></td>";
+                                               
+                                                CheckListHTML += "<td class='jq_MRP_td' style='text-align:right'>" + parseFloat(value.MRP).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td class='jq_salesprice_td' style='text-align:right'>" + parseFloat(value.SalePrice).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td class='jq_salesdiscount_td' style='text-align:right'>" + parseFloat(value.Discountamt).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td Class='jq_FK_Sales_td' Style='Display:none'>" + value.FK_Sales + "</td>";
+                                                CheckListHTML += "<td class='jq_Tax_td' style='text-align:right'><div class='input-group'><input type='text'  class='form-control text-right' perfect-class='formGroupControl'   value='" + (value.SpdSalTaxAmount).toFixed(2) + "' maxlength='13' readonly><div class='input-group-append'><button type='button' class='btn btn-primary fa fa-search' onclick='ShowTaxDetails(this,1)'></button> </div></div></td></td>";
+                                                CheckListHTML += "<td Class='jq_quantity_td_hid' Style='Display:none'>" + parseFloat(value.SpdSalQuantity).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td Class='jq_Tax_td_hid' Style='Display:none'>" + parseFloat(value.SpdSalTaxAmount).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td Class='jq_TotalAmount_td_hid'  Style='Display:none'>" + parseFloat(value.NetSales).toFixed(2) + "</td>";
+                                                CheckListHTML += "<td Class='jq_TotalAmount_td'  style='text-align:right'>" + parseFloat(value.NetSales).toFixed(2) + "</td>";
+                                                //CheckListHTML += "<td class='jq_Unit_td' style='text-align:right'><div class='input-group'><input type='text'  class='form-control text-right' perfect-class='formGroupControl'   value='" + (value.ID_Unit) + "' maxlength='13' readonly><div class='input-group-append'><button type='button' id='showMasterUnitbutton' class='btn btn-primary fa fa-search' onclick='ShowMasterUnitDetails(this,1)'></button> </div></div></td></td>";
+                                               
+                                                CheckListHTML += "<td style='text-align:center;'><div class='d-flex'><a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1'onclick='RemoveProductdetails(this)' title='Delete'><i class='fa fa-trash btnPerfectGridDelete'></i></a>";
+                                                CheckListHTML += "<td Class='jq_UID'  Style='Display:none'>" + value.SLNo + "</td>";
+                                              
+
+                                                //CheckListHTML += $("<select class='form-control remove-top-bottom-margin jq_Unit_td'name='ID_Unit' style='display:none'  id='" + $ddl + "'>"), {
+                                                //}
+                                                CheckListHTML += "</tr>";
+                                                const tbunitElements = document.querySelectorAll('.tbunit');
+
+                                                if (Multiunitsettings == '1') {
+                                                    tbunitElements.forEach(element => {
+                                                        element.style.display = 'block';
+                                                    });
+
+                                                } else {
+                                                    tbunitElements.forEach(element => {
+                                                        element.style.display = 'none';
+                                                    });
+
+                                                }
+                                            });
+
+                                        }
+                                        else {
+
+                                            CheckListHTML += "<div class='form-group col-md-6'>";
+                                            CheckListHTML += "<div class='form-check mb-2'>";
+                                            CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                                            CheckListHTML += "</div></div>"
+                                        }
+                                        $("#SalesReturntbody").html(CheckListHTML)
+                                        console.log('PRDATS>', ajaxOutput.SrRetProducts.Data);
+                                        calculateTotals($thisForm);
+                                        RoundOffCalcs($thisForm);
+                                        SRBUnitDropdown('#SalesReturntbody',1);
+                                    }
+                                }
+
+                                var CheckListHTML = '';
+                                let sum = 0;
+                                $sideMenuOptions.close();//<---  Close side menu
+                                $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                                //$thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                                $thisForm.attr('perfect-onFormSuccess', 'fn_SalesReturn_initialLoad');
+                            }
+                        });
+
+                    }
+                });
+            }
+
+            function deleteSalesReturn() {
+                let $row = $(this).closest('tr');
+
+
+                let Saveddata = $row.data('pData');
+
+                $('.dataTable tr').removeClass("SelectForDelete");
+                $(this).closest('tr').addClass('SelectForDelete');
+
+                console.log("Saved data", Saveddata);
+                $.ajax({
+                    url: "@Url.Action("GetPaymentMethodDeleteReasonList", "PaymentMethod")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to Delete Reference No: " + "<b>" + Saveddata.SrReferenceNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_SalesReturn: Saveddata.ID_SalesReturn,
+                                        TransMode: SalesReturnTransMode,
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteSalesReturn", "SalesReturn")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            $formContainer.load('@Url.Action("LoadSalesReturnForm", "SalesReturn")', function () {
+                                                if (ajaxOutput.Process.IsProcess) {
+                                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                        NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                    });
+                                                    //removing a data
+                                                    fn_SalesReturn_initialLoad()
+                                                    let table = $row.closest('table').DataTable()
+                                                    table.row($row).remove().draw();
+                                                }
+                                                else {
+                                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                    }
+                });
+
+            }
+
+
+        </script>
+
+    }

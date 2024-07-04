@@ -1,0 +1,694 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-sm-12" id="CustomerProduct-form">
+
+        </div>
+    </div>
+</div>
+
+
+    @section scripts{
+
+<script>
+    var gridWarrantyDetails = [];
+    var CustomerProductTransMode;
+    var $thisForm = "";
+    var warrantydetaildata = "";
+    var Imagedetaildata = "";
+    var Saveddata = "";
+    var GroupID = 0;
+    var ID_CustomerWiseProductDetails = 0;
+    var warrantydetails = "";
+    var imagedetails = "";
+            var validationMessage = {
+                'CusPhnNo': {
+                    'required': 'Please Enter Customer Mobile No.'
+                },
+                'CustomerName': {
+                    'required': 'Please Enter Customer Name.'
+                },
+                'ProductName': {
+                    'required': 'Please select Product'
+                },
+                'CWPDSalQuantity': {
+                    'required': 'Please enter Quantity'
+                },
+
+            }
+            const $formContainer = $('#CustomerProduct-form');
+
+            $(document).ready(function () {
+               // $('#jq-sidemenu').hide();
+
+                fn_CustomerProuctMap_initialLoad();
+            });
+
+            function fn_CustomerProuctMap_initialLoad() {
+                CustomerProductTransMode = "";
+              //  getSessionValue("rr5Wddu2buz5UA+G9dT9UellQ2V9mvtuD5mHYfVHje3DgtNioKXv+XLxJhg8P7yu", function (result) {
+                    CustomerProductTransMode = '@ViewBag.TransMode';  
+             
+
+                loadCustomerWiseProductList(this, fn_CustomerProductMap_AddForm);
+            }
+                function fn_CustomerProductMap_AddForm() {
+                   
+                    
+                    warrantydetails = [];
+                    $formContainer.load('@Url.Action("LoadCustomerProductForm", "CustomerProductMapping")?mtd=@ViewBag.mtd', function () {
+                        localStorage.removeItem("WarProductImage");
+                        WarProductImagelst = [];
+                        gridWarrantyDetails = [];
+                         $thisForm = $(this).find('[perfect-class="form"]');
+                        $thisForm.find('button[name=delete]').addClass('d-none');
+                        $thisForm.find('[name="InvDate"]').val(moment().format('YYYY-MM-DD'));
+                        $thisForm.validate({ messages: validationMessage });
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_CustomerProuctMap_initialLoad');
+                        $thisForm.data({ addpImageselect: null });
+                        $thisForm.data({ pImageselect: '' });
+                        $thisForm.data({ pEImageselect: null });
+                        $thisForm.data({ EaddpImageselect: null });
+                        $thisForm.data({ pEImageselect: null });
+                        $thisForm.data({ EaddpImageselect: null });
+                        GetDefaultBranchName();
+                         $("#CountryID").val('@ViewBag.ID_Country');
+                         $("#Country").val('@ViewBag.CountryName');
+                         $("#DistrictID").val('@ViewBag.ID_District');
+                         $("#District").val('@ViewBag.DistrictName');
+                         $("#StatesID").val('@ViewBag.ID_State');
+                         $("#States").val('@ViewBag.StateName');
+                    });
+                }
+
+
+
+            function loadCustomerWiseProductList(ele,callback) {
+
+            let $sidemenu = $sideMenuOptions.body;
+             $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+           
+                //$sideMenuOptions.title.find('h4').text('List');
+                  $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+            let pageUrl = '@Url.Action("GetCustomerWiseProductList", "CustomerProductMapping")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: CustomerProductTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                           
+                              $sidemenu.find('.jq_sidemenu_title').text("CustomeWiseProduct");
+                              console.log('ajaxOutput data:', ajaxOutput.Data[0].LastID);
+
+                              $thisForm.find('[name="LastID"]').val(ajaxOutput.Data[0].LastID);
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCustomerWiseProductList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("CustomerWiseProduct");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCustomerWiseProductList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+               
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: CustomerProductTransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        @*dropdown: {
+            buttons: [
+
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                <text> { displayName: "View", action: editCustomerProduct },</text>    }
+
+             { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteCustomerProduct },</text>
+              }
+                ],
+            class: "btn btn-success light sharp"
+        },*@
+        dropdown: {
+            buttons: [
+
+                { displayName: "View", action: editCustomerProduct }
+
+            ],
+
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "CWPDSalesDate", "BillNo","CustomerName",  "CusPhnNo"],
+        hideColumn: ["ProductID", "FK_Product","ID_CustomerWiseProductDetails","LastID"],
+        rowClickAction: editCustomerProduct,
+        serialNo: false,
+        renameHeader: { "SlNo": "SL NO", "CWPDSalesDate": "Invoice Date", "BillNo": "Bill No", "CustomerName": "Customer Name", "CusPhnNo":"Phone No" },
+        isDateType: ["CWPDSalesDate"],
+    };
+
+
+        function editCustomerProduct() {
+            debugger;
+
+                  let row = $(this).closest('tr');
+                    let  Saveddata = row.data('pData');
+                      GroupID = Saveddata.GroupID;
+                  var ID_CustomerWiseProductDetails = 0;
+                      $('.dataTable tr').removeClass("SelectForDelete");
+                      $(this).closest('tr').addClass('SelectForDelete');
+         
+                $formContainer.load('@Url.Action("LoadCustomerProductForm", "CustomerProductMapping")?mtd=@ViewBag.mtd', function () {
+                    $(this).find('[perfect-class=formTitle]').text('update ')
+
+                    $thisForm = $(this).find('[perfect-class="form"]');
+                    $thisForm.validate({ messages: validationMessage });
+                    initFunctions($thisForm);
+
+                    console.log('Saveddata', Saveddata);
+                    $thisForm.find('[name="InvDate"]').val(moment(Saveddata.CWPDSalesDate).format('YYYY-MM-DD'));
+                    $thisForm.find('[name="CusPhnNo"]').val(Saveddata.CusPhnNo);
+                    $thisForm.find('[name="CustomerName"]').val(Saveddata.CustomerName);
+                    $thisForm.find('[name="GroupID"]').val(Saveddata.GroupID);
+                    $thisForm.find('[name="CusReferenceNo"]').val(Saveddata.CusReferenceNo);
+                    $thisForm.find('[name="FK_Customer"]').val(Saveddata.FK_Customer);
+                    $thisForm.find('[name="CusAddress1"]').val(Saveddata.CusAddress1);
+                    $thisForm.find('[name="Company"]').val(Saveddata.Company);
+                    $thisForm.find('[name="CountryID"]').val(Saveddata.CountryID);
+                    $thisForm.find('[name="StatesID"]').val(Saveddata.StatesID);
+                    $thisForm.find('[name="DistrictID"]').val(Saveddata.DistrictID);
+                    $thisForm.find('[name="PostID"]').val(Saveddata.PostID);
+                    $thisForm.find('[name="Country"]').val(Saveddata.Country);
+                    $thisForm.find('[name="States"]').val(Saveddata.States);
+                    $thisForm.find('[name="District"]').val(Saveddata.District);
+                    $thisForm.find('[name="Post"]').val(Saveddata.Post);
+                    $thisForm.find('[name="PinCode"]').val(Saveddata.PinCode);
+                    $thisForm.find('[name="InvoiceNo"]').val(Saveddata.BillNo);
+                    $thisForm.find('[name="Landmark"]').val(Saveddata.Landmark);
+                    $thisForm.find('[name="BranchTypeID"]').val(Saveddata.BranchTypeID).selectpicker('refresh');
+                    $thisForm.find('[name="BranchTypeID"]').trigger('change');
+                   
+                   // $thisForm.find('[name="BranchID"]').val(Saveddata.BranchID).selectpicker('refresh');
+                   $thisForm.find('[name="BranchID"]').attr('perfect-onloadSelect', Saveddata.BranchID);
+                    $thisForm.find('[name="AreaID"]').val(Saveddata.AreaID);
+                    $thisForm.find('[name="AreaName"]').val(Saveddata.AreaName);
+                    $thisForm.find('[name="LastID"]').val(Saveddata.LastID);
+                    //$thisForm.find('[name="ID_LeadFrom"]').val(Saveddata.ID_LeadFrom).selectpicker('refresh');
+                    //$thisForm.find('[name="LeadBy"]').val(Saveddata.Branch);
+
+                    let inputData = {
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                        GroupID: GroupID,
+                        TransMode: CustomerProductTransMode
+                    };
+                 
+                   
+                    $.ajax({
+                        url: '@Url.Action("GetCustomerProductInfo", "CustomerProductMapping")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+                          
+                            if (ajaxOutput.ProductdataInfo.Process.IsProcess) {
+                                debugger
+                                //$thisForm.data({ pData: ajaxOutput.ProductdataInfo.Data });
+                              
+                                $thisForm.data({ pDataProduct: ajaxOutput.ProductInfo.Data });
+
+                             
+                               
+                                let imagesel = [];
+                                imagesel = ajaxOutput.warrantyselect.Data;
+                                if (imagesel != null) {
+                                    for (var i = 0; i < imagesel.length; i++) {
+
+                                        imagesel[i].Serwardt = moment(imagesel[i].Serwardt).format('YYYY-MM-DD');
+
+                                        imagesel[i].Replcwardt = moment(imagesel[i].Replcwardt).format('YYYY-MM-DD');
+                                    }
+                                } 
+                              
+                                gridWarrantyDetails = [];
+                                let tempArr = imagesel
+                                
+                                if (tempArr != null) {
+                                        tempArr.map(val => {
+                                            let warrantyInfo = {};
+                                            warrantyInfo['Replcwardt'] = val.Replcwardt;
+                                            warrantyInfo['Serwardt'] = val.Serwardt;
+                                            warrantyInfo['WarrantyType'] = val.WarrantyType;
+                                            warrantyInfo['WarrantyType_d'] = val.WarrantyType_d;
+                                            warrantyInfo['prodtid'] = val.prodtid;
+                                            warrantyInfo['subProName'] = val.subProName;
+                                            warrantyInfo['subProductID'] = val.subProductID;
+                                            gridWarrantyDetails.push(warrantyInfo);
+                                        });
+                                   
+                                }                               
+                               
+
+                                $thisForm.data({ pwarranty: imagesel });
+                                $thisForm.data({ pImageselect: ajaxOutput.Imageselect.Data });
+                                $thisForm.data({ addpImageselect: ajaxOutput.Imageselect.Data });
+
+                                $thisForm.data({ pEwarranty: imagesel });
+                                $thisForm.data({ pEImageselect: ajaxOutput.Imageselect.Data });
+                                $thisForm.data({ EaddpImageselect: ajaxOutput.Imageselect.Data });
+
+                                $thisForm.data({ pEImageselect: ajaxOutput.Imageselect.Data });
+                                $thisForm.data({ EaddpImageselect: ajaxOutput.Imageselect.Data });
+
+                                $thisForm.data({ AMCImageselect: ajaxOutput.Imageselect.Data });
+
+                            
+                                fn_fillProducts($thisForm, 'CustomerWiseProduct', ajaxOutput.ProductInfo.Data, ProducttableOptionsTempOut)
+                                $thisForm.find('[perfect-tempTable="CustomerWiseProduct"]').find('table').dataTable({ paging: false, ordering: false, searching: false, info: false });
+
+                            }
+                           // $thisForm.data({ pData: Saveddata });
+                            $thisForm.data({ ProductData: ajaxOutput.ProductInfo.Data });
+                         
+                            //fn_ProductDetails(this, Saveddata.GroupID, ID_CustomerWiseProductDetails);                               
+                         
+                           
+                            $sideMenuOptions.close();
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+
+                            $thisForm.attr('perfect-onFormSuccess', 'fn_CustomerProuctMap_initialLoad');
+                        }
+                    });  
+                   
+                });          
+         }
+
+
+              function fn_ProductDetails(ele, GroupID, ID_CustomerWiseProductDetails) {
+                  debugger;
+                   
+                 $thisForm = $(ele).find('[perfect-class="form"]');
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    GroupID: GroupID,
+                    ID_CustomerWiseProductDetails: ID_CustomerWiseProductDetails,
+                    TransMode: CustomerProductTransMode
+                };
+              
+                $.ajax({
+                    url: '@Url.Action("GetCustomerwiseProductInfo", "CustomerProductMapping")',
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                       
+                        if (ajaxOutput.warrantyselect.Process.IsProcess) {
+                            $thisForm.data({ pwarrantyselect: ajaxOutput.warrantyselect.Data });
+                            $thisForm.data({ pwarranty: ajaxOutput.warrantyselect.Data });
+                           
+                            let imagesel = [];
+                            imagesel = ajaxOutput.warrantyselect.Data;
+                            if (imagesel != null) {
+                                for (var i = 0; i < imagesel.length; i++) {
+
+                                    imagesel[i].Serwardt = moment(imagesel[i].Serwardt).format('YYYY-MM-DD');
+
+                                    imagesel[i].Replcwardt = moment(imagesel[i].Replcwardt).format('YYYY-MM-DD');
+                                }
+                            }
+
+                         
+                            imagedetails = ajaxOutput.Imageselect.Data;
+
+                             $thisForm.data({ pEwarranty: imagesel });
+                            $thisForm.data({ pEImageselect: ajaxOutput.Imageselect.Data });
+                            $thisForm.data({ EaddpImageselect: ajaxOutput.Imageselect.Data });
+                      
+                          
+                            warrantydetaildata = ajaxOutput.warrantyselect.Data;
+                            var warobject = [];
+                            warrantydetails = ajaxOutput.warrantyselect.Data;
+
+                            imagedetails = ajaxOutput.Imageselect.Data;
+
+                            let prdid = ajaxOutput.warrantyselect.Data[0].prodtid;
+
+                            if (warrantydetails) {
+
+                                if (warrantydetails.length > 0) {
+
+                                    warrantydetails = ajaxOutput.warrantyselect.Data;
+
+                                   
+                                }
+                            }
+
+                                if (imagedetails.length > 0) {
+                                    imagedetails = ajaxOutput.Imageselect.Data;
+                                  
+                                }
+
+                         
+
+                            if (warrantydetails != null) {
+                                warobject = warrantydetails.filter(obj => obj.prodtid.toString() === prdid.toString());
+                            }
+
+                            if (imagedetails != null) {
+                                warobject1 = imagedetails.filter(obj => obj.ProductID.toString() === prdid.toString());
+                            }
+                            if (warobject != null) {
+                                if (warobject.length > 0) {
+                                   
+                                    fillgrid('Warranty', wartableOptionsTempOut, $thisForm, ajaxOutput.warrantyselect);
+
+                                } else {
+                                    $thisForm.find('[perfect-tempTable= "Warranty"]').empty();;
+                                }
+                            }
+                            if (warobject1 != null) {
+                                if (warobject1.length > 0) {
+
+                                    fillgrid('Warranty', wartableOptionsTempOut, $thisForm, ajaxOutput.Imageselect);
+
+                                } else {
+                                    $thisForm.find('[perfect-tempTable= "Warranty"]').empty();;
+                                }
+                            }
+
+                            warrantydetaildata = ajaxOutput.warrantyselect.Data;
+                            Imagedetaildata = ajaxOutput.Imageselect.Data;
+                     
+                            
+                            $thisForm.find('[perfect-tempTable="CustomerWiseProduct"]').find('table').dataTable({ paging: false, ordering: false, searching: false, info: false });
+                        }
+
+
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                       
+
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_CustomerProuctMap_initialLoad');                       
+                    }
+                   
+                  });
+                 
+                 
+    }
+
+    function deleteCustomerProduct(ele) {
+
+           let $thisForms = $(ele).closest('[perfect-class="form"]');
+           let Saveddatas = $thisForms.data('pData');
+
+        console.log('Delete function', Saveddatas)
+
+                //$('.dataTable tr').removeClass("SelectForDelete");
+                //$(this).closest('tr').addClass('SelectForDelete');
+
+        console.log('Delete function', Saveddatas)
+           console.log('Delete function1', $thisForms.data('pData'));
+               $.ajax({
+                   url: "@Url.Action("GetCustomerProductReasonList", "CustomerProductMapping")",
+                   type: "GET",
+                   dataType: "json",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           //console.log('Saveddata.ID_CustomerProductDetails', Saveddata.ID_CustomerWiseProductDetails)
+                           //console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + $thisForm.find('[name="CustomerName"]').val() + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        GroupID: $thisForm.find('[name="GroupID"]').val(),
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCustomerProductInfo", "CustomerProductMapping")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                //let table = $row.closest('table').DataTable()
+                                                //table.row($row).remove().draw();
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                        });
+                                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                        if (onSuccess) {
+                                            window[onSuccess]();
+                                        }
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+                }
+                else {
+                }
+            }
+        });
+    };
+
+            //var ProducttableOptionsTempOut = {
+            //    iconButton: {
+            //        buttons: [
+
+            //            {
+            //                icon: "fa fa-pencil btnPerfectGridEdit",
+            //                action: function () {
+                               
+            //                    let Saveddata = $(this).closest('tr').data('pData');
+            //                    let ProductID = Saveddata.ProductID;
+            //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+            //                    let tableKey = $tablecontainer.attr('perfect-tempTable');
+            //                     $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+
+            //                    let indexname = tableKey + 'index';
+            //                    console.log('indexname', indexname);
+            //                    $thisForm.find('[name=prdbtn]').attr("disabled", "disabled")
+
+            //                    let rindex = $(this).closest('tr').attr(indexname);
+            //                    console.log('rindex', rindex);
+            //                    $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+            //                    console.log('Editclick', Saveddata);
+            //                    $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+            //                        let $thisNode = $(this);
+            //                        let pf_name = $thisNode.attr('name');
+            //                        if ($thisNode.is('select')) {
+
+            //                            $thisNode.val(Saveddata[pf_name]).selectpicker('refresh');
+
+            //                        }
+            //                        else if ($thisNode.is('input')) {
+            //                            let inputType = $thisNode.attr('type').toLocaleLowerCase();
+            //                            if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+            //                                $thisNode.prop('checked', Saveddata[pf_name]);
+            //                            }
+
+            //                            else {
+
+            //                                $thisNode.val(Saveddata[pf_name]);
+            //                            }
+
+            //                        }
+            //                        else {
+            //                            $thisNode.val(Saveddata[pf_name]);
+            //                        }
+            //                    });
+
+
+
+            //                }
+            //            },
+            //            {
+            //                icon: "fa fa-trash btnPerfectGridDelete",
+
+            //                action: function () {
+            //                    let Saveddata = $(this).closest('tr').data('pData')
+            //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+            //                    let $thistbl = $(this).closest('table');
+            //                    let table = $thistbl.DataTable();
+            //                    table.destroy();
+            //                    if ($(this).closest('tbody').find('tr').length > 1) {
+            //                        $(this).closest('tr').remove();
+            //                        pft_table_slreset($thistbl);
+            //                    }
+            //                    else {
+            //                        $thistbl.remove();
+            //                    }
+            //                    let tableKey = $tablecontainer.attr('perfect-tempTable');
+            //                     $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+            //                    let stckid;
+            //                    $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+            //                        let $thisNode = $(this);
+            //                        let pf_name = $thisNode.attr('name');
+            //                        if (pf_name == "ProductID") {
+            //                            stckid = Saveddata[pf_name];
+            //                        }
+            //                    });
+            //                    let dwarobject = [];
+
+            //                    if (warrantydetails != null) {
+            //                        dwarobject = warrantydetails.filter(obj => obj.prdid.toString() === prdid.toString());
+            //                        const dindexOfObject = warrantydetails.findIndex(object => {
+            //                            return object.prdid.toString() === prdid.toString();
+            //                        });
+
+            //                        warrantydetails.splice(dindexOfObject, dwarobject.length);
+            //                        $thisForm.data({ pwarranty: warrantydetails });
+            //                    }
+            //                    let dWarrantyProductImagelst = [];
+            //                    let dWarrantyProduct = [];
+            //                    dWarrantyProductImagelst = JSON.parse(localStorage.getItem('WarrantyProductImage'));
+
+            //                    if (dWarrantyProductImagelst != null) {
+            //                        dWarrantyProduct = dWarrantyProductImagelst.filter(obj => obj.prdid.toString() === prdid.toString());
+            //                        const dpindexOfObject = dWarrantyProductImagelst.findIndex(object => {
+            //                            return object.prdid.toString() === prdid.toString();
+            //                        });
+            //                        console.log('dWarrantyProduct', dWarrantyProduct)
+            //                        dWarrantyProductImagelst.splice(dpindexOfObject, dWarrantyProduct.length);
+
+            //                        localStorage.setItem('WarrantyProductImage', JSON.stringify(dWarrantyProductImagelst));
+
+            //                        $thisForm.data({ pImageselect: dWarrantyProductImagelst });
+            //                    }
+
+
+            //                }
+            //            },
+            //        ]
+            //    },
+
+            //    rowAttribute: [],
+            //    renameHeader: { "ProductName": "Product", "CWPDSalQuantity": "Quantity", "CWPDModelNo": "Model No" },
+            //    hideColumn: ['ProductID'],
+            //    serialNo: true,
+
+            //};
+
+
+</script>
+    }
+
+

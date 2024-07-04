@@ -1,0 +1,452 @@
+﻿
+@{
+    ViewBag.Title = "NumberGenerate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="numbergenerate-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#numbergenerate-form');    
+
+    $(document).ready(function () {
+        NumberGenerationCommonInitialLoad();
+    });
+
+    function NumberGenerationCommonInitialLoad() {
+        NumberGenerationCommonLoad();
+        @if (ViewBag.PagedAccessRights.UsrrlStView)
+         {
+           <text>fn_Numbergeneration_Load(this);</text>
+         }
+
+        }
+
+    function NumberGenerationCommonLoad() {
+            $formContainer.load('@Url.Action("NumberGenerationCommonLoadForm", "NumberGeneration")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'NumberGenerationCommonInitialLoad');
+            });
+    };
+
+    var validationMessage = {
+        'FK_Module': {
+            'required':'Please select Module',
+        },
+        'SubModule': {
+            'required':'Please select Sub module',
+        },
+        'GenerationCriteria': {
+            'required':'Please select generation criteria',
+        },
+        'EffectDate': {
+            'required':'Please select effect date',
+        },
+
+    };
+
+
+
+    function fn_Numbergeneration_Load(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Number Generation List');
+          let pageUrl = '@Url.Action("GetNumbergenerationList", "NumberGeneration")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Language', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Language");
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Numbergeneration_Load(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,                               
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  $sidemenu.find('.jq_sidemenu_title').text("Language");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Numbergeneration_Load(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))                       
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();               
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {               
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+            dropdown: {
+                buttons: [
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editNumberGenList },</text>
+                   }
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteNumberGen },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "SubModule", "Module", "CSNoGenCriteria", "CSNoResetPeriod","Effectdate"],
+        hideColumn: ["ID_CommonSettings"],
+        isDateType: ["Effectdate"],
+        rowClickAction: editNumberGenList,
+        serialNo: false,
+        renameHeader: { "SlNo": "Sl No", "Module": "Module", "SubModule": "Sub Module", "CSNoGenCriteria": "Criteria", "CSNoResetPeriod": "Reset Period", "Effectdate": "Effect Date" }
+
+    };
+
+
+        function deleteNumberGen()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetNumberGenerateReasonList", "NumberGeneration")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_CommonSettings: Saveddata.ID_CommonSettings,
+                                        FK_Reason: selectedOption
+                                    };
+                                  
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteNumbergen", "NumberGeneration")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                NumberGenerationCommonInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        function editNumberGenList()
+        {
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');     
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+           
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_CommonSettings: savedData.ID_CommonSettings
+            };
+            
+                $.ajax({
+                 url: '@Url.Action("GetNumgenenerationInfoByID", "NumberGeneration")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput.ngInfo.Process.IsProcess) {                           
+                            $formContainer.load("@Url.Action("NumberGenerationCommonLoadForm", "NumberGeneration")", function ()
+                            {                             
+                                $(this).find('[perfect-class=formTitle]').text('update : ' + savedData.SubModule)
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.ngInfo.Data[0] });
+                               
+                                $thisForm.find('[name=ID_CommonSettings]').val(ajaxOutput.ngInfo.Data[0].ID_CommonSettings);                               
+                                $thisForm.find('[name="FK_Module"]').val(ajaxOutput.ngInfo.Data[0].FK_Module).selectpicker('refresh');
+                                $thisForm.find('[name="FK_Module"]').trigger('change');   
+                                $thisForm.find('[name="SubModule"]').attr('perfect-onloadSelect', ajaxOutput.ngInfo.Data[0]['FK_SubModule']);  
+
+                                $thisForm.find('[name="GenerationCriteria"]').val(ajaxOutput.ngInfo.Data[0].CSNoGenCriteria).selectpicker('refresh');
+                                $thisForm.find('[name="ResetPeriod"]').val(ajaxOutput.ngInfo.Data[0].CSNoResetPeriod).selectpicker('refresh');
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.ngInfo.Data[0].Effectdate).format('YYYY-MM-DD'))
+
+                                if (ajaxOutput.ngDtlsInfo.Process.IsProcess) {
+                                    $thisForm.data({ pData: ajaxOutput.ngDtlsInfo.Data[0] });
+                                    fn_fillNumberGenItem($thisForm, 'NumberG', ajaxOutput.ngDtlsInfo.Data, tableOptionsNumberGen)
+                                    $thisForm.find('[perfect-tempTable="NumberG"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                }                               
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'NumberGenerationCommonLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });           
+           
+    }
+    var tableOptionsNumberGen = {
+        iconButton: {
+            buttons: [
+                
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        let indexname = tableKey + 'index';
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            }
+                            else {
+
+                                $thisNode.val(savedData[pf_name]);
+                            }
+                        });   
+                        fn_setSelectedData($thisForm);
+
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            $thistbl.dataTable({ paging: true });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                    }
+                },
+            ]
+        },
+        onlyShowColumn: [],
+        serialNo: true,
+        renameHeader: { "CSDetType": "Type", "CSDetPreference": "Preference", "CSDetMinLength": "Length", "CSDetValue": "Value" },
+        hideColumn: ['ID_CommonSettingsDetails','FK_CSDetValue'],
+        rowAttribute: [],
+        isCheckType: []
+    };
+
+
+    function fn_fillNumberGenItem(ele, tkey, data, tableOptionsTempOut) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        switch (headerName) {
+                            case "CSDetType":
+                                headerName = "Type";
+                                break;
+                            default:
+                                break;
+                        }
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                    else if ($this.is('input')) {
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        if (inputType == 'checkbox') {
+                            pData[nameAttr] = valOne[nameAttr];
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+                        }
+                        else if (inputType == 'hidden') {
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if (inputType == 'date') {
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                }
+            });
+
+            insertData.push(pData);
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+    }
+
+
+</script>}

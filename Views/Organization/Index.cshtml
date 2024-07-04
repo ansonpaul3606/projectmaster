@@ -1,0 +1,542 @@
+﻿@{
+    ViewBag.Title = "Organization";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="organization-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+
+     <script type="text/javascript">
+
+         const $formContainer = $('#organization-form');
+
+        $(document).ready(function () {
+           organizationInitialLoad();
+
+         });
+
+         var validationMessage = {
+
+
+             'Name': {
+                 'required': 'Please Enter Name',
+                 //'maxlength': jQuery.validator.format('Branch name should be less than {0} characters'),
+                 'specialChar': 'Special characters are not allowed in Branch name'
+             },
+
+             'ShortName': {
+                 'required': 'Please Enter a Short Name',
+                 'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                 'alphanumeric': 'Special characters are not allowed in short name'
+             },
+
+             'Address1': {
+                 'required': 'Please Enter Address ',
+                 'maxlength': jQuery.validator.format('Address 1 should be less than {0} characters'),
+                 'stringonly': 'Special characters are not allowed in Address 1'
+             },
+
+
+             'Code': {
+                 'required': 'Please Enter a Code',
+                
+                 'maxlength': jQuery.validator.format('Code should be less than {0} characters'),
+                 'alphanumeric': 'Special characters are not allowed in Code'
+             },
+             'RegisterNo': {
+                 'required': 'Please Enter Register Number',
+                 //'maxlength': jQuery.validator.format('Branch name should be less than {0} characters'),
+                 'specialChar': 'Special characters are not allowed in Register Number '
+             },
+
+             'ContactPerson': {
+                 'required': 'Please Enter a Contact Person Name',
+                 'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                 'stringonly': 'Special characters are not allowed in  Contact Person Name'
+
+             },
+             'ContactPMobile': {
+                 'required': 'Please Enter  Contact Person Mobile Number',
+                 'anyphonenumber': 'Please Enter valid Mobile Number',
+                 'minlength': jQuery.validator.format('Personal Mobile Number should be more than {0} Number'),
+                 'maxlength': jQuery.validator.format('Personal Mobile Number should be less than {0} Number')
+             },
+
+             'ContactPEmail': {
+             
+                 'emailRegex': 'Please Enter Valid Email'
+             },
+
+           
+             'Mobile': {
+                 'required': 'Please Enter  Mobile Number',
+                 'anyphonenumber': 'Please Enter valid Mobile Number',
+                 'minlength': jQuery.validator.format('Mobile Number should be more than {0} Number'),
+                 'maxlength': jQuery.validator.format('Mobile Number should be less than {0} Number')
+             },
+
+
+             'CountryID': {
+                 'required': 'Please Select a Country',
+                 'digits': 'Invalid Country selected'
+             },
+             'StatesID': {
+                 'required': 'Please Select a State',
+                 'digits': 'Invalid State selected'
+             },
+             'DistrictID': {
+                 'required': 'Please Select a District',
+                 'digits': 'Invalid District selected'
+             },
+             //'AreaID': {
+             //    'required': 'Please select an Area',
+             //    'digits': 'Invalid  Area selected'
+             //},
+             'PlaceID': {
+                
+                 'digits': 'Invalid Place selected'
+             },
+
+             'PostID': {
+                
+                 'digits': 'Invalid Post selected'
+             },
+
+             'Email': {
+                 'required': 'Please Enter Email',
+                 'emailRegex': 'Please Enter Valid Email'
+             },
+             'StartDate': {
+                 'required': 'Please Enter Start Date',
+                 'date': 'Invalid Date'
+             },
+         };
+
+
+         function organizationInitialLoad() {
+
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadorganizationList(); </text>
+              }
+        
+             loadorganizationAddForm();
+        }
+
+
+           // Fucntion to load Organization ADD form
+         function loadorganizationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormOrganization", "Organization")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+      
+                // ... Custom validation message
+                $thisForm.attr('perfect-onFormSuccess', 'organizationInitialLoad');
+            });
+
+         };
+
+         //side menu list showing
+
+         function loadorganizationList1() {
+            let $sidemenu = $sideMenuOptions.body;
+             $sideMenuOptions.title.find('h4').text('Organization List');
+
+
+            $.ajax({
+                url: "@Url.Action("GetOrganizationList", "Organization")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        console.log('Organization', ajaxOutput);
+                        $sidemenu.find('.jq_sidemenu_title').text("Organization List");
+
+                        $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sidemenu.find('table').dataTable({ paging: true });       
+                       
+                    }
+                     else {
+             if (ajaxOutput.Process.Status = "NoData") { }
+             else {
+                 $.each(ajaxOutput.Process.Message, function (key, value) {
+                     NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                 });
+             }
+         }
+
+
+                },
+         complete: function () {
+
+         }
+            });
+         }
+
+         
+         function loadorganizationList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+             $sideMenuOptions.title.find('h4').text('Organization List');
+          let pageUrl = '@Url.Action("GetOrganizationList", "Organization")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Company', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Company");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadorganizationList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Company");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="lloadorganizationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+//side table view  
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text>{ displayName: "View", action: editOrganization },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteOrganization},</text>
+
+              }
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","Name","Phone", "Email"],
+            hideColumn: [],
+            rowClickAction: editOrganization,
+           // serialNo: true,
+            renameHeader: { "SlNo":"SL No","OrgName": "Name", "OrgPhone": "Phone", "OrgEmail":"Email"}
+        };
+
+//edit organization
+
+         function editOrganization() {
+             let row = $(this).closest('tr');
+
+             let Saveddata = row.data('pData');
+             console.log("Saved data", Saveddata);
+
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+
+             let inputData = {
+                 __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                 ID_Organization: Saveddata.OrganizationID
+
+             };
+
+             $.ajax({
+                 url: '@Url.Action("GetOrganizationInfoByID", "Organization")',
+                 type: "POST",
+
+                 data: inputData,
+                 dataType: "json",
+                 contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                 success: function (ajaxOutput) {
+
+
+                     console.log("Return", ajaxOutput.Data[0]);
+                     if (ajaxOutput.Process.IsProcess) {
+
+                         console.log('>_ Inside GetOrganiztionInfo', ajaxOutput)
+
+                         $sideMenuOptions.close();
+
+                         $formContainer.load("@Url.Action("LoadFormOrganization", "Organization")", function () {
+
+                             $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Name)
+                             console.log('Inside load');
+
+                             let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                             // ... Custom validation message
+                             $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                             $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                             $thisForm.attr('perfect-onFormSuccess', 'organizationInitialLoad');
+
+                             $thisForm.find('button[name=add]').addClass('d-none');
+                             $thisForm.find('button[name=update]').removeClass('d-none');
+                             $thisForm.find('[name="Code"]').val(ajaxOutput.Data[0].Code),
+                                 $thisForm.find('[name="Name"]').val(ajaxOutput.Data[0].Name),
+                                 $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                 $thisForm.find('[name="ContactPerson"]').val(ajaxOutput.Data[0].ContactPerson),
+                                 $thisForm.find('[name="ContactPMobile"]').val(ajaxOutput.Data[0].ContactPMobile),
+                                 $thisForm.find('[name="ContactPEmail"]').val(ajaxOutput.Data[0].ContactPEmail),
+                                 $thisForm.find('[name="RegisterNo"]').val(ajaxOutput.Data[0].RegisterNo),
+                                 $thisForm.find('[name="Address1"]').val(ajaxOutput.Data[0].Address1),
+                                 $thisForm.find('[name="Address2"]').val(ajaxOutput.Data[0].Address2),
+                                 $thisForm.find('[name="Address3"]').val(ajaxOutput.Data[0].Address3),
+                                 $thisForm.find('[name="Email"]').val(ajaxOutput.Data[0].Email),
+                                 $thisForm.find('[name="WebSite"]').val(ajaxOutput.Data[0].WebSite),
+                                 $thisForm.find('[name="Mobile"]').val(ajaxOutput.Data[0].Mobile),
+                                 $thisForm.find('[name="Phone"]').val(ajaxOutput.Data[0].Phone),
+                                 $thisForm.find('[name="Fax"]').val(ajaxOutput.Data[0].Fax),
+                                // console.log(moment(ajaxOutput.Data[0].StartDate).format('YYYY-MM-DD'))
+                                 $thisForm.find('[name="StartDate"]').val(moment(ajaxOutput.Data[0].StartDate).format('YYYY-MM-DD')),
+                                 $thisForm.find('[name="SocialMediaWebsite1"]').val(ajaxOutput.Data[0].SocialMediaWebsite1),
+                                 $thisForm.find('[name="SocialMediaWebsite2"]').val(ajaxOutput.Data[0].SocialMediaWebsite2),
+                                 $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder),
+                                 $thisForm.find('[name="Country"]').val(ajaxOutput.Data[0].Country),
+                                 $thisForm.find('[name="CountryID"]').val(ajaxOutput.Data[0].CountryID),
+                                 $thisForm.find('[name="States"]').val(ajaxOutput.Data[0].States),
+                                 $thisForm.find('[name="StatesID"]').val(ajaxOutput.Data[0].StatesID),
+                                 $thisForm.find('[name="DistrictID"]').val(ajaxOutput.Data[0].DistrictID),
+                                 $thisForm.find('[name="District"]').val(ajaxOutput.Data[0].District),
+                                 $thisForm.find('[name="PinCode"]').val(ajaxOutput.Data[0].PinCode),
+                                 $thisForm.find('[name="Area"]').val(ajaxOutput.Data[0].Area),
+                                 $thisForm.find('[name="AreaID"]').val(ajaxOutput.Data[0].AreaID),
+                                 $thisForm.find('[name="Post"]').val(ajaxOutput.Data[0].Post),
+                                 $thisForm.find('[name="PostID"]').val(ajaxOutput.Data[0].PostID),
+                                 $thisForm.find('[name="Place"]').val(ajaxOutput.Data[0].Place),
+                                 $thisForm.find('[name="PlaceID"]').val(ajaxOutput.Data[0].PlaceID)
+
+                                       
+                                });
+                     }
+                     else {
+                         console.log('>_ Inside GetOrganizationInfo :false')
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                 },
+
+             });
+
+         }
+
+           // Function to delete Organization
+
+            function deleteOrganization() {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+                console.log("Saved data", Saveddata);
+
+                $('.dataTable tr').removeClass("SelectForDelete");
+                $(this).closest('tr').addClass('SelectForDelete');
+
+                $.ajax({
+                    url: "@Url.Action("GetOrganizationdDeleteReasonList", "Organization")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+                            
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_Organization: Saveddata.OrganizationID,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteOrganizationInfo", "Organization")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+
+
+
+
+
+    </script>   
+    
+    }
+

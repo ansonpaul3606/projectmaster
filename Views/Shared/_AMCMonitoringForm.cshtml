@@ -1,0 +1,1283 @@
+﻿@model PerfectWebERP.Models.AMCMonitoringModel.AMCMonitoringViewList
+
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+<style>
+
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_AMCMonitoringAddForm()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none   ">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body ">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select class="form-control exptbttontoogle" name="FK_Status" perfect-class="formGroupControl" placeholder="Select Status" perfect-ctype="select" perfect-css="select" onchange="changestatus(this)">
+                                <option value="">Please select</option>
+                                <option value="1">Collection</option>
+                                <option value="0" selected>Due List</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>AMC No</label>
+                            <input type="hidden" name="FK_BranchID" value="@ViewBag.FK_Branch" />
+                            <input type='text' class="form-control perfectValidate_string_nm exptbttontoogle" name="AMCNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="25" placeholder="Enter AMC No" />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Branch</label>
+                            <select class="form-control exptbttontoogle" name="FK_Branch" perfect-class="formGroupControl" placeholder="Select Branch" perfect-ctype="select" perfect-css="select">
+                                <option value="0">Please select</option>
+                                @if (!(Model.BranchList is null))
+                                {
+                                    foreach (var branch in Model.BranchList)
+                                    {
+                                        <option value="@branch.ID_Branch">@branch.BranchName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label id="frmdt">From Date</label>
+                            <label id="asondt">As On Date</label>
+                            <input type="hidden" name="LeadGenerateID" />
+                            <input type="date" class="form-control exptbttontoogle " name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3" id="Divtodate">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="hidden" name="LeadGenerateID" />
+                            <input type="date" class="form-control exptbttontoogle " name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group " perfect-class="formGroup">
+                            <label>Customer</label>
+                            <div class="input-group">
+                                <span perfect-class="formGroupLabel"></span>
+                                <input type="text" class="form-control exptbttontoogle" name="CustomerName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Customer" readonly />
+                                <input type="hidden" name="FK_Customer" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" name="ProdBtn" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,7,'Customer Details',[],['ID_Customer', 'CustomeName', 'MobileNo','State'])" Criterea1="0" Criterea2="0" BindName="CustomerName" BindVal="FK_Customer" Function="1"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select class="form-control exptbttontoogle" name="FK_Category" perfect-class="formGroupControl" placeholder="Select Catogory" perfect-ctype="select" perfect-css="select">
+
+                                <option value="0">Please select</option>
+                                @if (!(Model.CategoryList is null))
+                                {
+                                    foreach (var category in Model.CategoryList)
+                                    {
+                                        <option value="@category.ID_Catg">@category.CatgName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>AMC Type</label>
+                            <select class="form-control exptbttontoogle" name="FK_AmcType" perfect-class="formGroupControl" placeholder="Select AMC Type" perfect-ctype="select" perfect-css="select">
+                                <option value="0">Please select</option>
+                                @if (!(Model.AMCtype is null))
+                                {
+                                    foreach (var Amc in Model.AMCtype)
+                                    {
+                                        <option value="@Amc.AMCTypeID">@Amc.AMCName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group " perfect-class="formGroup">
+                            <label>Product</label>
+                            <div class="input-group">
+                                <span perfect-class="formGroupLabel"></span>
+                                <input type="text" class="form-control exptbttontoogle" name="ProdName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Product" readonly />
+                                <input type="hidden" name="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" name="ProdBtn" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,40,'Product Details',[])" Criterea1="0" Criterea2="0" BindName="ProdName" BindVal="FK_Product" Function="1"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Area</label>
+                            <div class="input-group">
+
+                                <input type="text" class="form-control exptbttontoogle" name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Area" disabled />
+                                <input type="hidden" name="FK_Area" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,14,'Area List',[])" Criterea1="0" Criterea2="0" BindName="Area" BindVal="FK_Area" Function="1"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Demand</label>
+                            <input type='text' class="form-control exptbttontoogle" placeholder="Demand in Days" name="Demand" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" maxlength="10" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-10">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-2">
+
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary" name="Search" perfect-css="button" onclick=" fn_showFilter(); fn_LeadSearchbyfilter(this);"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+
+                        <button type="button" id="clear" class="btn btn-light1" perfect-css="button" onclick="Clearintimation()">Clear</button>
+
+
+
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-xl-12">
+
+                    <div class="default-tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="Todolist" data-toggle="tab" href="#home" onclick="fn_LeadManagement_search(this,1)"><i class="las la-tasks  mr-2"></i> To-Do List &nbsp;&nbsp;<span><label id="todobadge" class="badge badge-circle badge-info">0</label></span> </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="OverdueList" data-toggle="tab" href="#profile" onclick="fn_LeadManagement_search(this,2)"><i class="las la-exclamation mr-2"></i> Outdated AMC&nbsp;&nbsp;<label id="overduebadge" class="badge badge-circle badge-primary">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="UpcomingList" data-toggle="tab" href="#contact" onclick="fn_LeadManagement_search(this,3)"><i class="las la-scroll mr-2"></i>Up Coming&nbsp;&nbsp;<label id="upcomingbadge" class="badge badge-circle badge-success">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="UpcomingList" data-toggle="tab" href="#intimation" onclick=""><i class="fa fa-bell mr-2"></i>Send Intimation&nbsp;&nbsp;<label id="Smsbadge" class=""></label></a>
+                            </li>
+
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="home" role="tabpanel">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="home" id="home"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="profile">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="profile" id="profile"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="contact">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="contact" id="contact"></div>
+
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="message">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="intimation" style="width:100%; height:300px;  align-items: center; justify-content: center; height: 100%;">
+                                <br />
+                                <div id="stage1">
+                                    <div class="row" style="margin:10px">
+
+
+
+
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group row" perfect-class="formGroup">
+                                                <label class="col-sm-4 col-form-label">
+                                                    <span perfect-class="formGroupLabel">Intimation Type</span>
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="col-sm-8">
+                                                    <select class="form-control" id="IntimationType" name="IntimationType" perfect-class="formGroupControl" onchange="" perfect-ctype="select" perfect-css="select">
+                                                        <option value=0>Please Select </option>
+                                                        @if (!(Model.ActionStatusList is null))
+                                                        {
+                                                            foreach (var FinPlan in Model.ActionStatusList)
+                                                            {
+                                                                <option value="@FinPlan.ID_Mode">@FinPlan.ModeName</option>
+                                                            }
+                                                        }
+
+                                                    </select>
+                                                    <span class="temptableError" id="IntimationTypeErr"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-4">
+                                            <div class="form-group row" perfect-class="formGroup">
+                                                <label class="col-sm-4 col-form-label">
+                                                    <span perfect-class="formGroupLabel">Send To</span>
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="col-sm-8">
+                                                    <select class="form-control" id="SendTo" name="SendTo" perfect-class="formGroupControl" onchange="" perfect-ctype="select" perfect-css="select">
+                                                        <option value="2">Over Due</option>
+                                                        <option value="3">Demand</option>
+
+
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-footer text-right" perfect-class="formFooter">
+
+
+                                            <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="SendIntimation(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Send</button>
+
+                                            <button type="button" class="btn btn-light" perfect-css="button" onclick="Clearintimation(this)" name="reset">Clear</button>
+                                        </div>
+
+
+
+
+                                    </div>
+                                </div>
+                                
+                                
+                        </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:none;" id="exportpdf"></div>
+
+            @*<div id="pssExportTable">
+                    <div class="table-responsive col-md-12 SearchLoadDiv" name="pssExportTable" id="pssExportTable"></div>
+                    <div class="row">
+
+                    </div>
+                </div>*@
+        </form>
+        <div class="jq_leadgeneration_followup_status">
+
+        </div>
+        <input type="hidden" id="ID_LeadGenerateActionhdn" />
+    </div>
+</div>
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+    var Data;
+    var AmcType;
+
+    $(document).ready(function () {
+        debugger
+        initFunctions('form');
+        var url = window.location.pathname;
+        var id = url.substring(url.lastIndexOf('/') + 1);
+        if (id != "AMCMonitoring") {
+            if (id != null && id != "") {
+
+                switch (id) {
+                    case "1": $("#Todolist").click(); break;
+                    case "2": $("#OverdueList").click(); break;
+                    case "3": $("#UpcomingList").click(); break;
+                }
+            }
+        } else {
+            $("#Todolist")[0].click();
+        }
+
+        $('[name=FK_Status]').val(0).selectpicker('refresh');
+        changestatus(this);
+    });
+    function changestatus(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $('#asondt').show();
+        if ($('[name=FK_Status]').val() == 1){
+            $('#asondt').hide();
+            $('#frmdt').show();
+            $('#Divtodate').show();
+        }
+        else if ($('[name=FK_Status]').val() == 0){
+            $('#asondt').show();
+            $('#frmdt').hide();
+            $('#Divtodate').hide();
+        }
+    }
+    function fn_LeadSearchbyfilter(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=home]').empty();
+        $thisForm.find('[name=profile]').empty();
+        $thisForm.find('[name=contact]').empty();
+
+        $(".nav-link").removeClass("active");
+        $('#Todolist').addClass('active');
+
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'AMCNo': $('[name=AMCNo]').val().trim(),
+            'FromDate': $('[name=FromDate]').val(),
+            'ToDate': $('[name=ToDate]').val(),
+            'FK_Branch': $('[name=FK_Branch]').val().trim(),
+            'FK_Area': $('[name=FK_Area]').val().trim(),
+            'FK_Category': $('[name=FK_Category]').val().trim(),
+            'FK_Product': $('[name=FK_Product]').val().trim(),
+            'FK_AMCType': $('[name=FK_AmcType]').val().trim(),
+            'fk_Customer': $('[name=FK_Customer]').val().trim(),
+            'Status': $('[name=FK_Status]').val().trim(),
+            'Demand': $('[name=Demand]').val().trim(),
+            'Mode': 0,
+        };
+
+           $.ajax({
+                url: "@Url.Action("GetLeadGenList", "AMCMonitoring")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid > 0) {
+                        debugger
+                        $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                        $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                        $('#upcomingbadge').html("" + ajaxOutput.Data[2].Value + "");
+                        $('#Todolist')[0].click();
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                },
+                complete: function () {
+
+                }
+           });
+
+    }
+
+
+
+    var titlepdf;
+
+    function fn_LeadManagement_search(ele, MasterID) {
+
+
+        debugger;
+        let $sidemenu = $sideMenuOptions.body;
+        //ClearModalInput();
+        // let $thisForm = $(ele).closest('.Search-Control');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $pssExportTable = $thisForm.find('[name=pssExportTable]');
+        $pssExportTable.empty();
+        let $formDivContainer;
+
+        if (MasterID == 1) {
+            titlepdf = "To-do List";
+            $formDivContainer = $thisForm.find('[name=home]');
+            $formDivContainer.empty();
+
+        }
+        else if (MasterID == 2) {
+            titlepdf = "Over Due";
+            $formDivContainer = $thisForm.find('[name=profile]');
+            $formDivContainer.empty();
+
+        }
+        else if (MasterID == 3) {
+            titlepdf = "Upcoming Tasks";
+            $formDivContainer = $thisForm.find('[name=contact]');
+            $formDivContainer.empty();
+        }
+
+            var InputData = {
+                'AMCNo': $('[name=AMCNo]').val().trim(),
+                'FromDate': $('[name=FromDate]').val(),
+                'ToDate': $('[name=ToDate]').val(),
+                'FK_Branch': $('[name=FK_Branch]').val().trim(),
+                'FK_Area': $('[name=FK_Area]').val().trim(),
+                'FK_Category': $('[name=FK_Category]').val().trim(),
+                'FK_Product': $('[name=FK_Product]').val().trim(),
+                'FK_AMCType': $('[name=FK_AmcType]').val().trim(),
+                'fk_Customer': $('[name=FK_Customer]').val().trim(),
+                'Status': $('[name=FK_Status]').val().trim(),
+                'Demand': $('[name=Demand]').val().trim(),
+                'PageSize': 10,
+                'PageIndex': 0,
+                'Mode': MasterID,
+            };
+
+            let pageUrl = '@Url.Action("GetLeadGenList", "AMCMonitoring")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid <= 0) {
+                        if (ajaxOutput.Data.length >= 1) {
+                            document.querySelector('#exppdf').style.display = 'block';
+                        } else {
+                            document.querySelector('#exppdf').style.display = 'none';
+                        };
+                        AmcType = titlepdf;
+                        MstrId = MasterID;
+                        console.log(ajaxOutput, "--ajaxOutput--");
+                        Data = ajaxOutput.Data;
+                        console.log(Data)
+                        debugger;
+                        $formDivContainer.append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        //$formDivContainer.append('<div class="d-flex justify-content-end mb-3 position-relative"><div class="col-md-1 position-absolute top-1 z-index1"><div class="input-group testSearchBox" id="pssExportButtons"></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = '';
+                        $table = $formDivContainer.find('table');
+
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [
+                                [10, 15, 20, 25, 50, 100, 0],
+                                ["10", "15", "20", "25", "50", "100", "All"]
+                            ],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,
+                            "pageLength": ajaxOutput.PageSize,
+                            "recordsFiltered": ajaxOutput.PageSize,
+                            "ajax": returnajaxPagination({
+                                apiurl: pageUrl,
+                                pageSize: ajaxOutput.PageSize,
+                                AMCNo: $('[name=AMCNo]').val().trim(),
+                                FromDate: $('[name=FromDate]').val(),
+                                ToDate: $('[name=ToDate]').val(),
+                                FK_Branch: $('[name=FK_Branch]').val().trim(),
+                                FK_Area: $('[name=FK_Area]').val().trim(),
+                                FK_Category: $('[name=FK_Category]').val().trim(),
+                                FK_Product: $('[name=FK_Product]').val().trim(),
+                                FK_AMCType: $('[name=FK_AmcType]').val().trim(),
+                                fk_Customer: $('[name=FK_Customer]').val().trim(),
+                                Status: $('[name=FK_Status]').val().trim(),
+                                Demand: $('[name=Demand]').val().trim(),
+                                Mode: MasterID
+                            }, tableOptions, $table, titlepdf)
+                        });
+                        fn_setExportTableHead($table, titlepdf, [0, 2, 3, 4, 5, 6], "portrait", $thisForm);
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            $formDivContainer.append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            let $table = '';
+                            $table = $formDivContainer.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,
+                                "pageLength": ajaxOutput.PageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({
+                                    apiurl: pageUrl, pageSize: ajaxOutput.PageSize,
+                                    AMCNo: $('[name=AMCNo]').val().trim(),
+                                    FromDate: $('[name=FromDate]').val(),
+                                    ToDate: $('[name=ToDate]').val(),
+                                    FK_Branch: $('[name=FK_Branch]').val().trim(),
+                                    FK_Area: $('[name=FK_Area]').val().trim(),
+                                    FK_Category: $('[name=FK_Category]').val().trim(),
+                                    FK_Product: $('[name=FK_Product]').val().trim(),
+                                    FK_AMCType: $('[name=FK_AmcType]').val().trim(),
+                                    fk_Customer: $('[name=FK_Customer]').val().trim(),
+                                    Status: $('[name=FK_Status]').val().trim(),
+                                    Demand: $('[name=Demand]').val().trim(),
+                                    Mode: MasterID
+                                }, tableOptions, $table, titlepdf)
+                            });
+
+                            fn_setExportTableHead($table, titlepdf, [0, 2, 3, 4, 5, 6], "portrait", $thisForm);
+                            $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                        }
+                        else {
+                            document.querySelector('#exppdf').style.display = 'none';
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                        document.querySelector('#exppdf').style.display = 'none';
+                    }
+
+                },
+                complete: function () {
+                    //$('[name=filt]').val(ids);
+                    //$('[name=md]').val(M);
+                }
+            });
+        
+    };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid, title) {
+            debugger
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+
+                    let input = {
+                        PageSize: info.length,
+                        PageIndex: info.page,
+                        AMCNo: ajaxInfo.AMCNo,
+                        FromDate: ajaxInfo.FromDate,
+                        ToDate: ajaxInfo.ToDate,
+                        FK_Branch: ajaxInfo.FK_Branch,
+                        FK_Area: ajaxInfo.FK_Area,
+                        FK_Category: ajaxInfo.FK_Category,
+                        FK_Product: ajaxInfo.FK_Product,
+                        FK_AMCType: ajaxInfo.FK_AMCType,
+                        fk_Customer: ajaxInfo.fk_Customer,
+                        Status: ajaxInfo.Status,
+                        Demand: ajaxInfo.Demand,
+                        Mode: ajaxInfo.Mode,
+                    };
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [[10, 15, 20, 25, 50, 100, 0], ["10", "15", "20", "25", "50", "100", "All"]],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.PageIndex * dtajaxOutput.PageSize,
+                        "pageLength": dtajaxOutput.PageSize,
+                        "recordsFiltered": dtajaxOutput.PageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid, title)
+                    })
+                    fn_setExportTableHead(tableid, title, [0, 2, 3, 4, 5, 6, 7, 8, 9])
+                },
+            }
+        }
+        function Cleardetailsfilter(ele) {
+
+            let $container = $(ele).closest('[perfect-class="form"]');
+
+
+            $container.find('[perfect-ctype="select"]').val(0).selectpicker('refresh');
+            $container.find('[perfect-ctype="date"]').val(moment().format('YYYY-MM-DD'));
+            $container.find('[perfect-ctype="hidden"]').val('');
+            $container.find('[perfect-ctype="input"]').val('');
+            $('[name=Demand]').val(30);
+            $container.find('[name="FK_Branch"]').val(@ViewBag.FK_Branch).selectpicker('refresh');
+        }
+
+
+
+        function generatePdf(ele) {
+            var cdata;
+
+            let $container = $(ele).closest('[perfect-class="form"]');
+            const obj = {
+                //  "@ViewBag.PageTitle": $(".form-valide option:selected").text(),
+
+
+
+                // Employee: $container.find('[name="FK_Employee"]').val(),
+                "Status": $('select[name="FK_Status"] option:selected').text(),
+                "AMC No": $('input[name="AMCNo"]').val(),
+                "Branch": $('select[name="FK_Branch"] option:selected').text(),
+                "As On Date": $('input[name=FromDate]').val() == "" ? $('input[name=FromDate]').val() : changeDateFormat($('input[name=FromDate]').val()),
+                Customer: $('select[name="FK_Category"] option:selected').text(),
+                "Category": $('select[name="FK_Category"] option:selected').text(),
+                "AMC Type": $('select[name="FK_AmcType"] option:selected').text(),
+                Product: $('select[name="ProdName"] option:selected').text(),
+                "Area": $('select[name="Area"] option:selected').text(),
+                "Demand": $('input[name="Demand"]').val(),
+
+
+
+
+
+            };
+            const obj2 = {
+                "From ": $('input[name="FromDate"]').val(),
+                "To": $('input[name="ToDate"]').val()
+            }
+
+
+
+            console.log(obj, '--obj--');
+            console.log(obj2, '--obj2--');
+
+
+            var str = "Filter By : ";
+            var str2 = "";
+
+            for (var i in obj) {
+                if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0 && obj[i] != "Please select") {
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+            };
+            for (var i in obj2) {
+                if (obj2[i] != "" && obj2[i] != undefined) {
+
+                    str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+                }
+
+            };
+
+
+            var upperhead = {
+
+
+                columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                body: [
+
+                    [
+
+                        AmcType + '   ' + str2
+
+
+                        //'\n' +
+
+
+                    ],
+                    [
+                        str
+                    ]
+
+
+
+                ],
+                theme: 'plain',
+                styles: {
+                    // fillColor: '#3366ff',
+                    color: 'black'
+                },
+                didDrawCell: function (data) {
+                    data.cell.styles.lineHeight = 0.8; // Adjust the line height value to your preference
+                }
+
+
+            };
+
+
+            Namehead = "AMC Monitoring"
+
+
+
+
+            if (AmcType == 'To-do List') {
+
+                Data.forEach((x) => {
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+                        let date = new Date(timestamp1);
+                        var formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+                        let date2 = new Date(timestamp2);
+                        var formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+
+                    ////console.log(x['AssignedDate'], "x");
+                    //// Create a Date object from the initial date string
+                    //let date = new Date(x['NextActionDate']);
+                    //let date2 = new Date(x['LgLeadDate']);
+
+                    //// Format the date to "dd/mm/yyyy" format
+                    //var formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                    //var formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+
+                    //x['NextActionDate'] = formattedDate;
+                    //x['LgLeadDate'] = formattedDate2;
+                    ////console.log(formattedDate);
+                });
+            }
+            if (AmcType == 'Over Due') {
+
+                Data.forEach((x) => {
+
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+
+                        const date = new Date(timestamp1);
+                        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+
+                        const date2 = new Date(timestamp2);
+                        const formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+
+
+                });
+            }
+            if (AmcType == 'Upcoming Tasks') {
+                Data.forEach((x) => {
+
+
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+
+                        const date = new Date(timestamp1);
+                        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+
+                        const date2 = new Date(timestamp2);
+                        const formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+
+
+
+                });
+            }
+
+
+
+            ///Test
+
+
+
+
+            ///Test
+
+            $.ajax({
+                url: '@Url.Action("GetCompanyDetails", "Home")',
+                type: "GET",
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    cdata = ajaxOutput;
+
+                },
+                complete: function () {
+
+                    //LeadType = 'My Leads';
+                    var head = [];
+                    var ptableData = {};
+                    debugger;
+                    if (AmcType == 'Todays Collection List') {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+                    } else if (AmcType == 'Over Due') {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+
+
+
+                    } else {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+                    }
+
+
+
+
+
+
+                    exportPdf(Namehead, [head], cdata, upperhead, "", ptableData, "", AmcType, "a4", "", "", "l");
+                    //abc('AccountGeneralReport', [head], cdata, upperhead, footerdata, ptableData, "Branch", "Report");
+
+                }
+            });
+        };
+
+        function onExell() {
+
+
+            var cdata;
+
+
+            Namehead = "AMC Monitoring"
+
+            if (AmcType == 'To-do List') {
+
+                Data.forEach((x) => {
+
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+                        let date = new Date(timestamp1);
+                        var formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+                        let date2 = new Date(timestamp2);
+                        var formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+
+                });
+            }
+            if (AmcType == 'Over Due') {
+
+                Data.forEach((x) => {
+
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+
+                        const date = new Date(timestamp1);
+                        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+
+                        const date2 = new Date(timestamp2);
+                        const formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+                });
+            }
+            if (AmcType == 'Upcoming Tasks') {
+                Data.forEach((x) => {
+
+                    const ticksRegex = /^\/Date\(\d+\)\/$/;
+
+                    if (ticksRegex.test(x['DueDate'])) {
+                        const dateString1 = x['DueDate'];
+                        const timestamp1 = parseInt(dateString1.match(/\d+/)[0]);
+
+                        const date = new Date(timestamp1);
+                        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                        x['DueDate'] = formattedDate;
+                    }
+                    if (ticksRegex.test(x['RenewDate'])) {
+
+                        const dateString2 = x['RenewDate'];
+                        const timestamp2 = parseInt(dateString2.match(/\d+/)[0]);
+
+                        const date2 = new Date(timestamp2);
+                        const formattedDate2 = `${date2.getDate()}/${date2.getMonth() + 1}/${date2.getFullYear()}`;
+                        x['RenewDate'] = formattedDate2;
+                    }
+
+
+
+                });
+            }
+
+            /////*****Test-start
+            let ReportName;
+
+            const obj = {
+                "@ViewBag.PageTitle": $("#LeadFrom option:selected").text(),
+
+
+
+                // Employee: $container.find('[name="FK_Employee"]').val(),
+                "Status": $('select[name="FK_Status"] option:selected').text(),
+                "AMC No": $('input[name="AMCNo"]').val(),
+                "Branch": $('select[name="FK_Branch"] option:selected').text(),
+                "As On Date": $('input[name=FromDate]').val() == "" ? $('input[name=FromDate]').val() : changeDateFormat($('input[name=FromDate]').val()),
+                Customer: $('select[name="FK_Category"] option:selected').text(),
+                "Category": $('select[name="FK_Category"] option:selected').text(),
+                "AMC Type": $('select[name="FK_AmcType"] option:selected').text(),
+                Product: $('select[name="ProdName"] option:selected').text(),
+                "Area": $('select[name="Area"] option:selected').text(),
+                "Demand": $('input[name="Demand"]').val(),
+
+
+
+
+
+            };
+            const obj2 = {
+                "From ": $('input[name="FromDate"]').val(),
+                "To": $('input[name="ToDate"]').val()
+            }
+
+
+
+
+            console.log(obj, '--obj--');
+            console.log(obj2, '--obj2--');
+
+
+            var str = "Filter By : ";
+            var str2 = "";
+
+            for (var i in obj) {
+                if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+            };
+            for (var i in obj2) {
+                if (obj2[i] != "" && obj2[i] != undefined) {
+
+                    str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+                }
+
+            };
+
+            console.log("str", str)
+            console.log("str2", str2)
+            $.ajax({
+                url: '@Url.Action("GetCompanyDetails", "Home")',
+                type: "GET",
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    cdata = ajaxOutput;
+
+                },
+                complete: function () {
+                    console.log(cdata, "---cdata----");
+
+
+
+                    if (AmcType == 'To-do List') {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+                    } else if (AmcType == 'Over Due') {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+                        };
+
+
+
+                    }
+                    else {
+                        head = ["SLNo", "Amc No", "Customer Name", "Mobile", "A M C Type", "Product", "Due Date", "Renew Date"];
+                        ptableData = {
+                            columns: [
+
+                                { title: "Amc No", dataKey: "AMCNo" },
+                                { title: "Customer Name", dataKey: "CusName" },
+                                { title: "Mobile", dataKey: "CusMobile" },
+                                { title: "A M C Type", dataKey: "AMCType" },
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Due Date", dataKey: "DueDate" },
+                                { title: "Renew Date", dataKey: "RenewDate" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+                    }
+
+                    ReportName = `${cdata.Company} \n${cdata.Branch}\n   ${Namehead}   \n  ${str2} \n ${str} `
+                    generateExell(ReportName, [head], ptableData, "", "", Namehead, str);
+
+                }
+            });
+
+        };
+        function changeDateFormat(date) {
+            var dateComponents = date.split('-');
+            var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+            console.log(formattedDate);
+            return formattedDate;
+        };
+        function exportbuttonhide() {
+            console.log('Input value changed:');
+        }
+
+        var inputElements = document.getElementsByClassName('exptbttontoogle');
+        for (var i = 0; i < inputElements.length; i++) {
+            inputElements[i].addEventListener('change', function (event) {
+                // Handle the change event here
+                // var inputValue = event.target.value;
+                document.querySelector('#exppdf').style.display = 'none';
+                console.log('Input value changed:');
+            });
+        }
+    function getfunction() {
+        document.querySelector('#exppdf').style.display = 'none';
+    }
+    function SendIntimation(ele) {
+        debugger
+        if ($('#IntimationType').val() != 0) {
+            $(ele).prop('disabled', true);
+            $('#IntimationTypeErr').text('');
+            var RefSMSMode = $('[name=IntimationType]').val();
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'AMCNo': $('[name=AMCNo]').val().trim(),
+                'FromDate': $('[name=FromDate]').val(),
+                'ToDate': $('[name=ToDate]').val(),
+                'FK_Branch': $('[name=FK_Branch]').val().trim(),
+                'FK_Area': $('[name=FK_Area]').val().trim(),
+                'FK_Category': $('[name=FK_Category]').val().trim(),
+                'FK_Product': $('[name=FK_Product]').val().trim(),
+                'FK_AMCType': $('[name=FK_AmcType]').val().trim(),
+                'fk_Customer': $('[name=FK_Customer]').val().trim(),
+                'Status': $('[name=FK_Status]').val().trim(),
+                'Demand': $('[name=Demand]').val().trim(),
+                'Mode': $('[name=SendTo]').val(),
+                'Intimation_Type': $('[name=IntimationType]').val(),
+                'SMSMode': $('[name=IntimationType]').val()
+            };
+
+            $.ajax({
+                url: "@Url.Action("SendIntimation", "AMCMonitoring")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                   
+                    if (ajaxOutput.Process) {
+                        Clearintimation();
+                        if (RefSMSMode != 3) {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': `${ajaxOutput.Count} Intimation Sent Successfully ` });
+
+                        } else {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': ` ${ajaxOutput.CountObj.SMSCount} SMS  & ${ajaxOutput.CountObj.EmailCount} Email \n Sent Successfully  ` });
+                        } 
+                        
+                    } else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'Intimation Sended Failed' });
+                    }
+                    
+                    
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+
+                }
+            });
+        } else {
+            $('#IntimationTypeErr').text('Please Select Intimation type');
+           
+        }
+
+    };
+ 
+    function Clearintimation(ele) {
+        debugger
+       // let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $('[name=IntimationType]').val(0).selectpicker('refresh');
+        $('[name="SendTo"]').val(2).selectpicker('refresh');
+        //$('selected[name="IntimationType"] option:Selected').val(0);
+        //$('#SendTo').val(2);
+    };
+   
+</script>
+

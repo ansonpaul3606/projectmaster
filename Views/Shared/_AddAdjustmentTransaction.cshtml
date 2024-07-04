@@ -1,0 +1,539 @@
+﻿
+@model PerfectWebERP.Models.AdjustmentTransactionModel.AdjustmentTransactionView
+
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body ">
+        <form id="form" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Process Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ProcessDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datencheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <input type="hidden" name="LastID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" name="ID_AdjustingHeadTransaction" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string" id="FK_Branch" name="FK_Branch" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                    <option value="">Please Select</option>
+                                    @if (!(Model.Branch is null))
+                                    {
+                                        foreach (var branchList in Model.Branch)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.Branch</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Account Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="hidden" name="ID_AccountHeadSubTransaction" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="AhstGroupID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="Voucher" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-Account="Voucher" />
+                                    <select class="form-control perfectValidate_numeric" name="AccountType"  perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_fillAccountHead(this)">
+                                        <option value="">Please Select </option>
+                                        @if (!(Model.ActTypes is null))
+                                        {
+                                            foreach (var act in Model.ActTypes)
+                                            {
+                                                <option value="@act.ID_Mode">@act.ModeName</option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                Account Head<span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="AccountHead" perfect-tempTable-Account="AccountHead" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_AccountHead"class="form-control perfectValidate_numeric"  perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+
+                                    <div class="input-group-append">
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,73,'Account Head List',['','','FK_AccountHeadSub','AccountSubHead','AhstParty'],['ID_AccountHead','SLNo'],AcTransTransMode)" Criterea1="AccountType" Criterea2="0" BindName="AccountHead" BindVal="FK_AccountHead"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Transaction Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_numeric" name="TransType"  perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" >
+                                        <option value="">Please Select </option>
+                                        <option value="1">Debit </option>
+                                        <option value="2">Credit </option>
+
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                Amount<span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_decimal right"  name="AdjAmount" maxlength="12" id="AdjAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'AdjAmount',3)" />
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             
+            </div>
+
+            <div class="card-footer text-right" perfect-class="formFooter">            
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_AcctTrn_update(this,'new')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+               
+                    <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_AcctTrn_update(this,'update')"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>
+              
+                    <button type="button" id="" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+
+                </div>
+        </form>
+
+    </div>
+
+</div>
+
+
+
+
+<script>
+
+   
+    function fn_fillAccountSubHead(ele)
+    {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $actionDropdown = $thisForm.find('[name="AccountSubHead"]');
+        $actionDropdown.empty();
+        $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'AccountHead': $thisForm.find('[name=AccountHead]').val()
+        };
+
+        $.ajax({
+            url: "@Url.Action("FillActSubhead", "AccountTransaction")",
+            type: "POST",
+            dataType: "json",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Data.length > 0) {
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        $actionDropdown.append($('<option/>', { value: value.ID_AccountHd }).text(value.AccountsHd)).selectpicker('refresh');
+                    });
+                    if ($actionDropdown.attr('perfect-onloadSelect')) {
+                        $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            }
+        });
+    }
+
+    function fn_fillAccountHead(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="FK_AccountHead"]').val(''); 
+        $thisForm.find('[name="AccountHead"]').val(''); 
+       
+        
+
+        let $actionDropdown = $thisForm.find('[name="AccountHead"]');
+
+        $actionDropdown.empty();
+        $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'Acctypval': $thisForm.find('[name=AccountType]').val()
+        };
+
+        $.ajax({
+            url: "@Url.Action("FillActhead", "AccountTransaction")",
+            type: "POST",
+            dataType: "json",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Data.length > 0) {
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        $actionDropdown.append($('<option/>', { value: value.ID_Account }).text(value.AccountHd)).selectpicker('refresh');
+                    });
+                    if ($actionDropdown.attr('perfect-onloadSelect')) {
+                        $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            }
+        });
+    }
+
+
+    @*function fn_loadAccountSubHead(ele)
+    {
+     
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+       
+      
+
+        let FK_AccountSubHead = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_AccountSubHead: $thisForm.find('[name=FK_AccountSubHead] option:selected').text()
+        };
+       
+        $.ajax({
+            url: '@Url.Action("GetAccountSubHead", "AccountTransaction")',
+            type: "POST",
+            data: FinancePlanName,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                console.log(ajaxOutput);
+                if (ajaxOutput.Data != null) {
+                    if (ajaxOutput.Data.length > 1) {
+                        console.log('len', ajaxOutput.Data.length);
+                        var stateModel = createSelectList({
+                            data: ajaxOutput.Data                            
+                        });
+                        stateModel.then(function (ret) {
+                            if (ret) {
+                                console.log('>_ Search button > list click', ret);
+                                $thisForm.find('[name=AhstParty]').text(ret.FK_AccountSubHead);
+                               
+                            }
+                            else {
+                                console.log(ret);
+                            }
+                        });
+                    }
+                    else {
+                        $thisForm.find('[name=AhstParty]').text(ajaxOutput.Data[0].FK_AccountSubHead).selectText;
+                    }
+                }
+            }
+        });
+
+
+    }*@
+    function datencheck(ele) {
+       
+      let  $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        //invalid-feedback
+        let EffectDate = $thisForm.find('[name="EffectDate"]').val();
+        let TransDate = $thisForm.find('[name="TransDate"]').val();
+
+        EffectDate = new Date(EffectDate);
+        EffectDate.setHours(0, 0, 0, 0)
+
+        TransDate = new Date(TransDate);
+        TransDate.setHours(0, 0, 0, 0)
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        console.log('EffectDate', EffectDate)
+        console.log('TransDate', TransDate)
+        console.log('today', today)
+
+        if (TransDate > today) {
+
+            $thisForm.find('[name="TransDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Transaction Date should be lessthan or equal to Todays date')
+            return false;
+        }       
+
+        else if (EffectDate > today) {
+
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Effect Date  should be lessthan or equal to Todays date')
+            return false;
+        }
+        else {
+            $thisForm.find('[name="TransDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            $thisForm.find('[name="TransDate"]').val();
+            $thisForm.find('[name="EffectDate"]').val();    
+            return true;
+        }
+    }
+
+    
+
+
+    function AccountTeansactionclear(ele, tablekey) {
+
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="date"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="hidden"]').val('');
+
+        let $tblcontainer = $thisform.find('[perfect-tempTable="' + tablekey + '"]');
+        $tblcontainer.attr('perfect-tempTable-action', 0);
+
+      
+    }
+
+
+    function BindTotalAmount(ele) {
+      
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let AmountArray = [];
+        $('#Accounttrans').find('tbody tr').each(function (index, ele) {
+            let type = $(ele).find('.TransType_d').text();
+            let Amount = $(ele).find('.AhstAmount').text();
+            let temp = {
+                "Type": $(ele).find('.TransType_d').text(),
+                "Amount": $(ele).find('.AhstAmount').text()
+            };
+            AmountArray.push(temp)
+        
+        });
+        console.log(AmountArray);
+        var paymentData = AmountArray.filter(obj => obj.Type === 'Debit');
+        var paymentamount = 0.00;
+        $.each(paymentData, function (keyOne, paymentData) {
+            paymentamount = paymentamount + parseFloat(paymentData.Amount);       
+        });
+
+        //let Amt = parseFloat(paymentamount.toFixed(2)).toLocaleString('en-IN') ;
+        //console.log("Amount", Amt)
+        $thisForm.find('[name=PaymentAmtTotal]').val(paymentamount.toFixed(2));
+
+       
+
+        var ReceiptData = AmountArray.filter(obj => obj.Type === 'Credit');
+        var Receiptamount = 0.00;
+        $.each(ReceiptData, function (keyOne, ReceiptData) {
+            Receiptamount = Receiptamount + parseFloat(ReceiptData.Amount);
+        });
+        $thisForm.find('[name=ReceiptAmtTotal]').val(Receiptamount.toFixed(2));
+       
+    }
+
+
+    var Transfer = false;
+    var EffectDate = "";
+    var TransDate = "";
+    function fn_AcctTrn_update(element, actionType) {  
+        
+            let $thisForm = $(element).closest('[perfect-class="form"]');          
+            if ($thisForm.valid()) {
+                $(element).prop('disabled', true);
+               
+                let AccountTransactionItems = [];
+                $thisForm.find('[perfect-tempTable="Account"]').find('tbody').find('tr').each(function () {
+                    AccountTransactionItems.push($(this).data('pData'));                   
+                })
+                 let ID_AdjustingHeadTransaction = 0;
+                        let _ActionUrl = "";
+
+
+                        if (actionType == "new") {
+                            ID_AdjustingHeadTransaction = 0;                       
+                            _ActionUrl = "@Url.Action("AddNewAdjustmentTransaction", "AdjustmentTransaction")";
+                        }
+                        else if (actionType == "update") {
+                            ID_AdjustingHeadTransaction = $thisForm.find('[name="ID_AdjustingHeadTransaction"]').val();                           
+                            _ActionUrl = "@Url.Action("UpdatAdjustmentTransaction", "AdjustmentTransaction")";
+                        }
+
+                        let inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),                           
+                            'ID_AdjustingHeadTransaction': ID_AdjustingHeadTransaction,
+                            'ProcessDate': $thisForm.find('[name="ProcessDate"]').val(),
+                            'TransType': $thisForm.find('[name="TransType"]').val(),
+                            'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+                            'AccountType': $thisForm.find('[name="AccountType"]').val(),                           
+                            'FK_AccountHead': $thisForm.find('[name="FK_AccountHead"]').val(), 
+                            'AdjAmount': $thisForm.find('[name="AdjAmount"]').val()
+                        }
+
+                       
+                        $.ajax({
+                            url: _ActionUrl,
+                            type: "POST",
+                            data: inputData,
+                            dataType: "json",
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                            success: function (ajaxOutput) {
+                                if (ajaxOutput.Process.IsProcess) {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                    });
+                                }
+                                else {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        $(element).prop('disabled', false);
+                                    });
+                                }
+                                fn_Actionindex_load();
+                                //$thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                //$thisForm.find('[perfect-ctype="input"]').val('');
+                                //$thisForm.find('[perfect-ctype="date"]').val('');
+                                //let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+                                //if (onSuccess) {
+                                //    window[onSuccess]();                                   
+                                //}
+                            },
+                            complete: function () {
+                                $(element).prop('disabled', false);
+                            }
+                        });
+            }
+            
+       
+
+    }
+
+    function decimalpnt(ele, id, range) {
+        debugger
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            else if (ele.value === '.' && (event.key === '.' || event.keyCode === 190)) {
+                ele.value = '0.00'; // Change the value to '0.00' if only a dot is entered
+                // Prevent the dot from being entered in the input field
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+
+   
+    function ResetButton(ele) {
+
+
+
+        fn_Actionindex_load();
+
+
+    }
+            //function decimalpntminus(ele, id, range) {
+
+            //    let input = $('#' + id);
+            //    ele.value = ele.value.replace(/[^0-9.-]/g, '').replace(/(\..*)\./g, '$1');
+            //    let t = ele.value;
+            //    ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+            //    input.on('keydown', function () {
+            //        if (ele.value.includes('.')) {
+
+            //        }
+            //        var key = event.keyCode || event.charCode;
+            //        if (key == 8 || key == 46) { }
+            //        else {
+            //            if (ele.value.length == 9) {
+            //                ele.value = ele.value + '.';
+            //            }
+            //        }
+
+            //    });
+
+            //}
+            //function minmax(min, max, ele,range) {
+            //    if (min != '' || max != '') {
+            //        let t = ele.value;
+            //        if (parseInt(ele.value) < min || isNaN(parseInt(ele.value))) { ele.value = min; }
+            //        else if (parseInt(ele.value) > max) { ele.value = max; }
+            //        else { ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t; }
+
+            //    }
+            //}
+
+
+            //$(document).ready(function () {
+
+
+            //    let $thisForm = $(this).find('[perfect-class="form"]');
+            //    var today = new Date();
+            //    var day1 = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+            //    var month1 = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+            //    var year1 = today.getFullYear();
+
+            //    $thisForm.find('[name="Serwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+            //    $thisForm.find('[name="Replcwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+
+            //});
+
+
+</script>
+
+

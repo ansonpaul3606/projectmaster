@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "Paper";
+ 
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="paperMaster-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+<script>
+        const $formContainer = $('#paperMaster-form');
+
+      
+        $(document).ready(function () {
+            paperMasterInitialLoad();
+        });
+
+        function paperMasterInitialLoad()
+      {
+        debugger
+          
+
+            @if (ViewBag.PagedAccessRights.UsrrlStView)
+            {
+                <text>  loadPaperMasterList(this, loadPaperMasterAddForm); </text>
+            }
+            loadPaperMasterAddForm();
+        }
+
+        var validationMessage = {
+            'PaperName': {
+                'required': 'Please Enter Paper Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Name'
+            },
+            'PaperShortName': {
+                'required': 'Please Enter Short Name',
+                'maxlength': jQuery.validator.format(' Short Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Short Name'
+            },
+            'SortNo': {
+                'required': 'Please Select Sort Number'
+            },
+             'ModuleName': {
+                'required': 'Please Select a Type'
+            },
+              'ModeID': {
+                'required': 'Please select Mode',
+                'stringonly': 'Invalid Mode selected',
+
+            },
+        };
+
+       
+
+        function loadPaperMasterAddForm() {
+            $formContainer.load('@Url.Action("LoadPaperMaster", "Paper")?TransMode='+'@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'paperMasterInitialLoad');
+            });
+        }
+        function loadPaperMasterList(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        $sideMenuOptions.title.find('h4').text('Paper List');
+          let pageUrl = '@Url.Action("GetPaperList", "Paper")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess)
+                    {
+                        $sidemenu.find('.jq_sidemenu_title').text("Paper List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadPaperMasterList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+                    }
+                    else
+                    {
+                              if (ajaxOutput.Process.Status = "NoData")
+                              {
+                                  $sidemenu.find('.jq_sidemenu_title').text("Paper List");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadPaperMasterList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                                    let $table = $sidemenu.find('table');
+                                    $table.dataTable({
+                                        "serverSide": true,
+                                        "processing": true,
+                                        "lengthMenu": [],
+                                        "searching": false,
+                                        "ordering": false,
+                                        "deferLoading": ajaxOutput.totalrecord,
+                                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                        "pageLength": ajaxOutput.pageSize,
+                                        "recordsFiltered": ajaxOutput.pageSize,
+                                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                                    });
+                              }
+                              else
+                              {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    });
+                              }
+                    }
+                },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editMenuGroup },</text>
+    }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                {
+                 <text> { displayName: "Delete", action: deleteMenuGroup },</text>
+                }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "PaperName", "PaperShortName"],
+        hideColumn: [],
+        rowClickAction: editMenuGroup,
+        renameHeader: { "SlNo": "SL NO", "PaperName": "Name", "PaperShortName":"ShortName"}
+
+        };
+
+        function editMenuGroup()
+        {
+            debugger
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = { ID_Paper: savedData.ID_Paper};
+
+            $('#LoadMenuGroup').empty();
+                $.ajax({
+                 url: '@Url.Action("GetPaperInfo", "Paper")',
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+                        console.log('ajaxOutput', ajaxOutput);
+                        if (ajaxOutput.Process.IsProcess) {
+                            $sideMenuOptions.close();
+                            $formContainer.load("@Url.Action("LoadPaperMaster", "Paper")", function () {
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].MnuGrpName)
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+                            $thisForm.attr('perfect-onFormSuccess', 'paperMasterInitialLoad');
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                                $thisForm.find('[name=ID_Paper]').val(ajaxOutput.Data[0].ID_Paper);
+                                $thisForm.find('[name=PaperName]').val(ajaxOutput.Data[0].PaperName);
+                                $thisForm.find('[name=ModeID]').val(ajaxOutput.Data[0].Mode).selectpicker('refresh');
+                                $thisForm.find('[name=PaperShortName]').val(ajaxOutput.Data[0].PaperShortName);
+                                $thisForm.find('[name="ModuleName"]').val(ajaxOutput.Data[0].FK_Type).selectpicker('refresh');
+                                $thisForm.find('[name=SortNo]').val(ajaxOutput.Data[0].SortOrder);
+                                $thisForm.find('[name="AccountHeadID"]').val(ajaxOutput.Data[0].FK_AccountHead)
+                                $thisForm.find('[name="AccountHeadSubID"]').val(ajaxOutput.Data[0].FK_AccountSubHead),
+                                    $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AccountHead);
+                                $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].AccountSubHead);
+                              
+
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+         });
+        }
+        function deleteMenuGroup() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetPaperDeleteReasonList", "Paper")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.PaperName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_Paper: Saveddata['ID_Paper'],
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeletePaper", "Paper")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                paperMasterInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+        }
+</script>
+}

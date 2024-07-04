@@ -1,0 +1,505 @@
+﻿
+@{
+    ViewBag.Title = "AMCSettings";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="AMCSettings-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+<script type="text/javascript">
+    var AMCSettingsTransMode = "";
+    var validationMessage = {
+
+            'EffectDate': {
+                'required': 'Please Select Effect Date',
+                'stringonly': 'Invalid Effect Date selected'
+            },
+            'AMCTypeName': {
+                'required': 'Please Selcet AMC Type',
+                'stringonly': 'Invalid AMC Name Entered'
+            },
+            'AccountHeadName': {
+                'required': 'Please Select Account Head',
+                'stringonly': 'Invalid Account Head Selected'
+            },
+    }
+
+
+        const $formContainer = $('#AMCSettings-form');
+
+        $(document).ready(function () {
+            InitailAMCSettings();
+        });
+
+    function InitailAMCSettings() {
+     
+        getSessionValue("1ACzsCQLW6Yg97I+tQiZC+Fapz8mSveorO1KgMtDr+c=", function (result) {
+            AMCSettingsTransMode = result;
+            @if (ViewBag.PagedAccessRights.UsrrlMsView)
+            {
+                <text>  loadAMCSettingsList(this);</text>
+            }
+        });
+        loadAMCSettingsForm();
+    }
+        function loadAMCSettingsForm() {
+           // debugger;
+            $formContainer.load('@Url.Action("loadAMCSettingsForm", "AMCSettings")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                let AMCSMonthFrom = $thisForm.find('[name=AMCSMonthFrom]').val();
+                let AMCSMonthTo = $thisForm.find('[name=AMCSMonthTo]').val();
+                if (AMCSMonthFrom == "" || AMCSMonthTo == "") {
+                    AMCSMonthFrom.text = "0";
+                    $thisForm.find('[name=AMCSMonthFrom]').val("0");
+                    $thisForm.find('[name=AMCSMonthTo]').val(AMCSMonthTo + 1);
+                } 
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                initFunctions($thisForm);
+            });
+    };
+
+
+
+    function loadAMCSettingsList(ele) {
+      
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('AMC Settings List');
+            let pageUrl = '@Url.Action("GetAMCSettingsList", "AMCSettings")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: AMCSettingsTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('OutPut Data', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("AMCSettings");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadAMCSettingsList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: AMCSettingsTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("AMCSettings");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadAMCSettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+   
+      var tableOptions = {
+            dropdown: {
+                buttons: [              
+                  
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+               {
+                    <text> { displayName: "View", action: editAMCSettings },</text>
+                }
+                    { type: "divider" },
+
+                     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                        {
+                        <text> { displayName: "Delete", action: deleteAMCSettings },</text>
+                        }
+                 
+                ],
+                class: "btn btn-success light sharp"
+          },
+
+         
+          hideColumn: ['ID_AMCSettings', 'TotalCount', 'FK_AccountHead','FK_AccountHeadSub',"TransMode"],
+          rowClickAction: editAMCSettings,
+          serialNo: false,
+          isDateType: ["EffectDate"],
+          renameHeader: {"SlNo": "Sl No.","EffectDate":"Date", "AMCName": "AMC Name",},
+    };
+
+    function editAMCSettings() {
+        debugger;
+
+        let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');    
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ID_AMCSettings: Saveddata.ID_AMCSettings,
+            FK_AMCSettings: Saveddata.ID_AMCSettings
+        };
+
+        fillAMCSettingsDetails(inputData, Saveddata);
+    
+    }
+    function fillAMCSettingsDetails(inputData, listSelectedData) {
+        debugger;
+         $.ajax({
+                url: '@Url.Action("GetAMCSettingsInfo", "AMCSettings")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.AMCSettingsInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("loadAMCSettingsForm", "AMCSettings")", function () {
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                   
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.AMCSettingsInfo.Data[0].AMCName)
+                                    console.log("AMCSettingsInfo", ajaxOutput.AMCSettingsInfo.Data[0]);
+
+                                    $thisForm.find('[name="ID_AMCSettings"]').val(ajaxOutput.AMCSettingsInfo.Data[0].ID_AMCSettings);
+                                    $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.AMCSettingsInfo.Data[0]['EffectDate']).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="AMCTypeName"]').val(ajaxOutput.AMCSettingsInfo.Data[0].AMCTypeID);
+                                    $thisForm.find('[name="AccountHeadName"]').val(ajaxOutput.AMCSettingsInfo.Data[0].AccountHeadName);
+                                    $thisForm.find('[name="AccountSubHeadName"]').val(ajaxOutput.AMCSettingsInfo.Data[0].AccountSubHeadName);
+                                    $thisForm.find('[name="AMCTypeName"]').val(ajaxOutput.AMCSettingsInfo.Data[0].AMCTypeID);
+                                    $thisForm.find('[name="FK_AccountHead"]').val(ajaxOutput.AMCSettingsInfo.Data[0].FK_AccountHead);
+                                    $thisForm.find('[name="FK_AccountHeadSub"]').val(ajaxOutput.AMCSettingsInfo.Data[0].FK_AccountHeadSub);
+                                    $thisForm.find('[name="TaxGroupID"]').val(ajaxOutput.AMCSettingsInfo.Data[0]['TaxGroupID']).selectpicker('refresh');
+                                    $thisForm.find('[name="TaxGroupName"]').val(ajaxOutput.AMCSettingsInfo.Data[0]['TaxGroupName']);
+                                    $thisForm.find('[name="IncludeTax"]').prop('checked', ajaxOutput.AMCSettingsInfo.Data[0]['IncludeTax']);
+                                    if (ajaxOutput.AMCSettingsdetails.Process.IsProcess) {
+                                        console.log("AMCSettingsDetails", ajaxOutput.AMCSettingsdetails.Data);
+                                        $thisForm.data({ pData: ajaxOutput.AMCSettingsdetails.Data[0] });                                        
+                                        let MonthFrom = ajaxOutput.AMCSettingsdetails.Data[ajaxOutput.AMCSettingsdetails.Data.length - 1].AMCSMonthTo + 1 ;
+                                        $thisForm.find('[name="AMCSMonthFrom"]').val(MonthFrom);
+                                        console.log("MonthFrom", MonthFrom)
+                                        fn_fillAMCSettingsData($thisForm, 'AMCSettingsDetails', ajaxOutput.AMCSettingsdetails.Data, tableOptionsAMCSettings)
+                                        $thisForm.find('[perfect-tempTable="AMCSettingsDetails"]').find('table').dataTable({ paging: false, ordering: false, searching: false });
+                                    }                                  
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'loadAMCSettingsList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+        });
+
+    }
+
+    function fn_fillAMCSettingsData(ele, tkey, data, tableOptionsTempOut) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+               let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        switch (headerName) {
+                            case "AMCSCalMethod":
+                                headerName = "Calculation";
+                                break;
+                            default:
+                                break;
+                        }
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                    else if ($this.is('input')) {
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        if (inputType == 'checkbox') {
+                            pData[nameAttr] = valOne[nameAttr];
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+                        }
+                        else if (inputType == 'hidden') {
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if (inputType == 'date') {
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                }
+            });
+
+            insertData.push(pData);
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+       
+
+    }
+
+
+    function deleteAMCSettings() {
+        debugger;
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+               $.ajax({
+                   url: "@Url.Action("GetAMCSettingsReasonList", "AMCSettings")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.AMCName + " ? (" + moment(Saveddata.EffectDate).format('DD/MM/YYYY') + ")" ,cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_AMCSettings: Saveddata['ID_AMCSettings'],
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAMCSettingsInfo", "AMCSettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+    };
+
+    var tableOptionsAMCSettings = {
+        iconButton: {
+            buttons: [
+                
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        debugger;
+                        let Saveddata = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        let indexname = tableKey + 'index';
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(Saveddata[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', Saveddata[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(Saveddata[pf_name]);
+                                }
+
+                            }
+                            else {
+                                $thisNode.val(Saveddata[pf_name]);
+                            }
+                        });
+                        let sel = $thisForm.find('[name=AMCSCalMethod] option:selected').text();
+                        if (sel == "" || sel == undefined) {
+                            alert(1);
+                        }
+                        if (sel=='Amount') {
+                            $thisForm.find('[name="lblAmount"]').text('Amount');                           
+                        }
+                        else {
+                            $thisForm.find('[name="lblAmount"]').text('Percentage');
+                        }
+                    }
+                   
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            $thistbl.dataTable({ paging: true });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                    }
+                },
+            ]
+        },
+        //onlyShowColumn: [],
+        serialNo: true,
+        renameHeader: { "SlNo": "Sl No.", "EffectDate": "Effect Date", "AMCSMonthFrom": "From Month1R", "AMCSMonthTo": "To Month1R", "AMCSNoOfServices": "No.of Services1R", "AMCSCalMethod": "Calculation", "AMCSAmount": "Amount/Percentage1R","AMCRenewPeriod" :"Renewal Period1R"},
+        hideColumn: ['ID_AMCSettingsDetails'],
+        rowAttribute: [],
+        isCheckType: []
+    };
+</script>
+    }

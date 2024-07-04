@@ -1,0 +1,573 @@
+﻿
+
+
+
+
+@model PerfectWebERP.Models.PayRollReportModel.PayRollReportView
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+</style>
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">PayRoll Reports@*<span class="badge light badge-success float-right" perfect-class="formTitle">REPORT</span>*@</h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @*@Html.AntiForgeryToken()*@
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.Companyname" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control Action ActionDate" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+
+                                    <option value="1">Individual Pay Slip</option>
+                                    <option value="2">Salary Certificate</option>
+
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 ">
+
+                    </div>
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclears(this)">
+
+                                    <option value="">Please Select</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="col-sm-6 DivDepartment">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearemployee(this)">
+
+                                    <option value="">Please Select</option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var deprtmnt in Model.DepartmentList)
+                                        {
+                                            <option value="@deprtmnt.DepartmentID">@deprtmnt.DepartmentName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="col-sm-6 DivEmployeeName">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Employee</span>
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" id="EmployeeID" name="EmployeeID" class="form-control perfectValidate_numeric" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                       
+                                        <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>*@
+
+                    @if (ViewBag.Manager || ViewBag.Admin)
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+
+
+                    else
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                                        <div class="input-group-append">
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID"disabled></button>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+
+
+
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_numeric" id="Reporttype" name="Reporttype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    @*<option value="">Please Select</option>*@
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getpayrollreport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+    (function () {
+        // jQuery('form').validate();//<----- Validate/initialize our form on page load
+        jQuery('select').selectpicker();
+    })();
+
+
+    function ResetButton(ele) {
+      
+        PayrollreportInitialLoadAddForm();
+    }
+    $(document).ready(function () {
+        Getdepartmentdefault(this);
+        PayrollattendancereportInitialLoadAddForm();
+        $('#jq-sidemenu').hide();
+    });
+
+     function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                          let user = '@ViewBag.Admin';
+                     
+                       
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    function onchangeBranchclears(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=DepartmentID]').val(0);
+        $thisForm.find('[name=DepartmentName]').val('');
+         let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val(0);
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+       
+    }
+    function clearemployee(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val(0);
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+    }
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+        let mindate = "1899/12/31";
+        mindate = new Date(mindate);
+        mindate.setHours(0, 0, 0, 0)
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        debugger
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+            return false;
+        }
+        else if (Todate < mindate) {
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else if (Fromdate < mindate) {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+
+    //function ValidateAddrepdetails(Rptval) {
+
+    //    var Error = 0;
+    //    let $inp;
+
+    //    debugger
+    //    if (Rptval == 7 || Rptval == 11 || Rptval == 12 || Rptval == 13 || Rptval == 15) { $inp = $(".ActionDate"); }
+
+    //    else { $inp = $(".Action"); }
+    //    let is_empty;
+
+    //    $inp.each((i, el) => {
+
+
+    //        if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+    //            is_empty = false;
+
+    //        }
+    //        else {
+    //            if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+    //                is_empty = true;
+    //            }
+    //            else {
+
+
+    //                is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+    //            }
+
+    //        }
+
+
+    //        let ErrorID = $(el).attr('data-id');
+
+    //        if (ErrorID != undefined) {
+    //            if (is_empty) {
+
+    //                $('#' + ErrorID).css('display', 'block');
+    //                Error++;
+
+    //            }
+    //            else if (!is_empty) {
+    //                $('#' + ErrorID).css('display', 'none');
+
+    //            }
+    //            el.classList.toggle("is-empty", is_empty);
+    //        }
+    //    });
+
+    //    return Error;
+    //}
+
+    function ValidateAddrepdetails() {
+        var Error = 0;
+        let $inp;
+        $inp = $(".ActionDate");
+        let is_empty;
+        $inp.each((i, el) => {
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+
+
+ function getpayrollreport(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        let isValid = true;
+        //let pdt = $thisForm.find('[name="ProductID"]').val();
+        //if ((($('#ID_Report').val() == 12) || ($('#ID_Report').val() == 11)) && (pdt=="")) {
+        //    isValid = false;
+        //    $thisForm.find('[name=Product]').closest('[perfect-class="formGroup"]').find('.error').text('Please Select Product');
+
+        //}
+        //else {
+        //    isValid = true;
+        //    $thisForm.find('[name=Product]').closest('[perfect-class="formGroup"]').find('.error').text('');
+
+        //}
+
+     if ($thisForm.valid() && (ValidateAddrepdetails($('#ID_Report').val()) <= 0)) {
+            debugger
+            var datval = true;
+       
+                datval = checkLimit(ele);
+                console.log('DATE',datval);
+         
+
+         if (datval) {
+
+
+
+
+
+             var Report_Id = $('#ID_Report').val();
+             var Fromdate = $('#FromDate').val() == null ? null : $('#FromDate').val();
+
+             var Todate = $('#ToDate').val();
+             // var Employee = $thisForm.find('[name="FK_LgCollectedBy"]').val();
+             var Branch = $('#BranchID').val();
+             var Branchname = $('#BranchID :selected').text();
+
+
+             var Department = $('#DepartmentID').val();
+             var Departmentname = $('#DepartmentID :selected').text();
+
+
+
+
+             var Employee = $thisForm.find('[name="EmployeeID"]').val();
+             var Employeename = $thisForm.find('[name="Employee"]').val();
+
+
+
+             var Reportformat = $('#Reporttype').val();
+             var Company = $thisForm.find('[name="Companyname"]').val();
+
+
+             var Url = ('@Url.Action("GetPayRollReport", "Report")?ReportMode=' + Report_Id +
+                 '&FromDate=' + Fromdate +
+                 '&ToDate=' + Todate +
+                 '&FK_Branch=' + Branch +
+
+                 '&CompName=' + Company +
+                 '&Branchname=' + Branchname +
+
+
+                 '&FK_Department=' + Department +
+
+                 '&Departmentname=' + Departmentname +
+
+                 '&Rptype=' + Reportformat +
+
+                 '&FK_Employee=' + Employee +
+                 '&Employeename=' + Employeename
+
+
+             );
+
+
+
+             console.log('url', Url);
+             popitup(Url);
+         }
+         else {
+             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'To Date should be Greater Than from Date' });
+         }
+
+        }
+    }
+
+    function popitup(url) {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+       
+            if (window.focus) {
+                newwindow.focus()
+            }
+            return false;
+        
+      
+    }
+    function fireDownload(url) {
+        window.location.assign(url);
+    }
+</script>

@@ -1,0 +1,681 @@
+﻿
+@model PerfectWebERP.Models.ProjectWiseDuelistReportModel.Projectwiseduelistview
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+<div class="card ">
+
+   
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_Projectwiseduelist_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body Projectwiseduelistbody " style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="Projectwiseduelistbodysearch-body">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As on Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="edatecheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label name="lblProject" class="col-sm-4 col-form-label">Project</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="Project" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="ProjectID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 41, 'Project Details',[],['ProjectDate'])" BindName="Project" BindVal="ProjectID" perfect-css="button"></button>
+                                    </div>
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getReportProjectwiseduelist(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton();" name="reset">Clear</button>
+
+                </div>
+            </div>
+
+          
+            <table id="ProjectList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                <thead class="thead-primary">
+                    <tr>
+                        <th>Sl No</th>
+                        <th>Completion Date</th>
+                        <th></th>
+                        <th>Team</th>
+                        <th>Stage</th>
+                        <th>Customer</th>
+                        <th>Due days</th>
+
+
+                    </tr>
+                </thead>
+
+            </table>
+
+
+            @*</div>*@
+
+        </form>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+
+    function ResetButton() {
+
+        fn_Projectwiseduelist_initialLoad();
+
+    }
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+    function edatecheck(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let upperlimit = $thisForm.find('[name="AsonDate"]').val();
+        var enqDate = new Date(upperlimit);
+
+        var today = new Date();
+
+
+        if (enqDate.getTime() > today.getTime()) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('As On date should be lessthan or equal to Today s date')
+
+        }
+        else {
+            console.log('inside limit check else')
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+
+
+        }
+
+
+
+    }
+    var itemdta = "" ;
+    var vfromdate;
+    var vtodate;
+    var vBranch = "";
+    var exportbtntoogle;
+
+    function getReportProjectwiseduelist(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        debugger
+        let isvalid = true;
+        let upperlimits = $thisForm.find('[name="AsonDate"]').val();
+        var enqDates = new Date(upperlimits);
+
+        var todays = new Date();
+
+
+        if (enqDates.getTime() > todays.getTime()) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').attr("style", "display:block")
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('As On date should be lessthan or equal to Todays date')
+            isvalid = false;
+
+        }
+        else {
+            if ($thisForm.valid()) {
+
+
+
+
+
+
+                var obj = {
+                    AsonDate: $thisForm.find('[name=AsonDate]').val(),
+
+                    ProjectID: $thisForm.find('[name=ProjectID]').val(),
+
+                }
+
+
+                $.ajax({
+                    url: "@Url.Action("GetProjectwiseduelistreportdetail", "ProjectWiseDuelistReport")",
+                    type: "POST",
+                    data: obj,
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+
+
+                        console.log(ajaxOutput, '--ajaxOutput--');
+                        debugger
+                        if (ajaxOutput.Process.IsProcess) {
+                            exportfile_toogle = true;
+                            itemdta = ajaxOutput.Data;
+                            console.log(itemdta, 'item')
+                            tableData = $('#ProjectList').DataTable({
+                                pagination: "bootstrap",
+                                filter: true,
+                                data: itemdta,
+                                destroy: true,
+                                paging: false,
+                                info: false,
+                                searching: false,
+                                "columns": [
+                                    { "data": null },
+                                    { "data": "Date" },
+                                    { "data": "Project" },
+                                    { "data": "Team" },
+                                    { "data": "Stage" },
+                                    { "data": "Customer" },
+                                    { "data": "DueDays" },
+
+
+                                ],
+                                scrollY: 500,
+                                scrollX: true,
+                                scrollCollapse: true,
+                                paging: false,
+                                fixedHeader: {
+                                    header: true,
+                                    footer: true
+                                },
+                                "order": [[2, "asc"]],
+                                "columnDefs": [
+                                    { "orderable": false, "targets": [0, 1, 3, 4, 5, 6] },
+                                    { "visible": false, "targets": [2] }
+                                ],
+                                drawCallback: function (settings) {
+                                    var api = this.api();
+                                    var rows = api.rows({ page: 'current' }).nodes();
+                                    var last = null;
+                                    //console.log(api, rows);
+                                    api.column(2, { page: 'current' }).data().each(function (group, i) {
+
+                                        if (last !== group) {
+                                            $(rows).eq(i).before(
+                                                '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                            );
+                                            last = group;
+                                        }
+                                    });
+                                },
+                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                    $("td:first", nRow).html(iDisplayIndex + 1);
+                                    return nRow;
+                                },
+                                createdRow: function (row, data, type) {
+
+                                },
+                                "footerCallback": function (row, data, start, end, display) {
+                                    var api = this.api(), data;
+
+                                },
+
+
+                            });
+                            let x = document.getElementById("exppdf");
+                            x.style.display = "block";
+                        }
+                        else {
+                            document.getElementById("exppdf").style.display = "none";
+                            exportfile_toogle = false;
+
+                            tableData = $('#ProjectList').DataTable({
+                                pagination: "bootstrap",
+                                filter: true,
+                                data: [],
+                                destroy: true,
+                                paging: false,
+                                info: false,
+                                searching: false,
+                                "columns": [
+                                    { "data": null },
+                                    { "data": "Date" },
+                                    { "data": "Project" },
+                                    { "data": "Team" },
+                                    { "data": "Stage" },
+                                    { "data": "Customer" },
+                                    { "data": "DueDays" },
+
+
+                                ],
+                                "language": {
+                                    "emptyTable": "No data available"
+                                },
+                                scrollY: 500,
+                                scrollX: true,
+                                scrollCollapse: true,
+                                paging: false,
+                                fixedHeader: {
+                                    header: true,
+                                    footer: true
+                                },
+                                "order": [[2, "asc"]],
+                                "columnDefs": [
+                                    { "orderable": false, "targets": [0, 1, 3, 4, 5, 6] },
+                                    { "visible": false, "targets": [2] }
+                                ],
+
+                                createdRow: function (row, data, type) {
+
+                                },
+                                "footerCallback": function (row, data, start, end, display) {
+                                    var api = this.api(), data;
+
+                                },
+
+
+                            });
+
+
+                        }
+
+
+
+                    },
+                    complete: function () {
+                    }
+                });
+                fn_showFilter();
+            }
+            else {
+                // fn_Projectwiseduelist_initialLoad();
+
+            }
+
+        }
+
+
+    }
+            
+
+            //else {
+
+
+
+            //        //NotificationMessage({
+            //        //    'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than  From Date'
+            //        //});
+            //    }
+
+
+
+            //}
+
+
+
+    var tabley;
+
+    function generatePdf() {
+        debugger
+        const obj = {
+
+           
+            Project: $('[name="Project"]').val()
+            
+
+        };
+        const obj2 = {
+            
+            "As on Date": changeDateFormat($('input[name="AsonDate"]').val())
+           
+        }
+
+        console.log(obj, '--obj--');
+
+        var str = "Filter By : ";
+        var str2 = "";
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + (obj2[i]) + ' , ';
+            }
+
+        };
+        var upperhead = {
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+
+                     str2 +
+
+
+                    '\n' + str
+
+
+                ],
+
+            ],
+
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black',
+                minCellHeight: 1 // Adjust the row height value to reduce the space between rows
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+            }
+        };
+            generatePdfprojectwiseduelist(upperhead, obj2["Report"]);
+      
+    }
+    function generatePdfprojectwiseduelist(upperhead,filename) {
+
+                var cdata;
+                //test start
+
+                $.ajax({
+                    url: '@Url.Action("GetCompanyDetails", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+                        debugger
+                        console.log('pdf', ajaxOutput);
+                        cdata = ajaxOutput;
+
+                    },
+
+                    complete: function () {
+
+                        var head = [['Sl No', 'Date', 'Team', 'Stage', 'Customer', 'DueDays']];
+                        var body = [];
+                        debugger
+                        var bod = itemdta;
+                        console.log('body', bod);
+
+                        var ptableDt = {
+                            columns: [
+                                { title: "Date", dataKey: "Date" },
+                                { title: "Team", dataKey: "Team" },
+                                { title: "Stage", dataKey: "Stage" },
+                                { title: "Customer", dataKey: "Customer" },
+                                { title: "Due Days", dataKey: "DueDays" }
+                            ],
+                            rows: bod
+
+                        };
+                        //var ptableData = {
+                        //    columns: [
+                        //        { title: "Date", dataKey: "Date" },
+
+                        //        { title: "Team", dataKey: "Team" },
+                        //        { title: "Stage", dataKey: "Stage" },
+                        //        { title: "Customer", dataKey: "Customer" },
+                        //        { title: "Due Days", dataKey: "DueDays" }
+                                
+                        //    ],
+                        //    rows: item
+
+                        //};
+
+                        var footerdata = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 0 },
+                        };
+
+                        grpvariable = "Project";
+                        const inputdt = {
+                            ptitle: "PROJECT WISE DUE LIST",
+                            phead: head,
+                            cdata,
+                            upperhead,
+                            ptableData: ptableDt,
+                            grpvariable,
+                            filename,
+                            footerdata,
+                            pageSize: "a4",
+                            isSort:false
+
+                        };
+
+
+                        if (exportfile_toogle) {
+                            //exportPdf('PROJECT WISE DUE LIST', head], cdata, upperhead, footerdata, ptableDt, grpvariable, filename, "a4");
+                            exportPdf2(inputdt);
+                        }
+                        //exportPdf('Attendance Register Report', head, cdata, upperhead, footerdata, ptableData, grpvariable, "Report", "a4");
+                    }
+                });
+        }
+
+    
+    function clearexportfile() {
+
+    }
+    //test
+    function onExell() {
+        var head = [];
+        var ptableDt;
+        var grpvariable;
+        let ReportName;
+
+        var cdata;
+
+
+
+
+        const obj = {
+
+            ProjectName: $('input[name="Project"]').val()
+
+        };
+        const obj2 = {
+            "AsonDate": changeDateFormat($('input[name="AsonDate"]').val())
+        }
+
+
+
+        console.log(obj, '--obj--');
+
+
+        var str = "Filter By : ";
+        var str2 = "";
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + (obj2[i]) + ' , ';
+            }
+
+        };
+
+        ////**Test-start
+          $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 console.log(cdata, "---cdata----");
+
+
+               
+                 head = ['Sl No', 'Date', 'Team', 'Stage', 'Customer', 'DueDays']
+                
+                 var aralenthleave = itemdta.length;
+                 var c = itemdta.slice(0, (aralenthleave));
+                 ptableDt = {
+                         columns: [
+                             { title: "Date", dataKey: "Date" },
+                             { title: "Team", dataKey: "Team" },
+                             { title: "Stage", dataKey: "Stage" },
+                             { title: "Customer", dataKey: "Customer" },
+                             { title: "Due Days", dataKey: "DueDays" }
+                         ],
+                         rows: itemdta
+
+                     };
+                     grpvariable = "Project";
+                     ReportName = "Project Wise Due List"
+                
+
+
+
+                 let ReportName1 = `${cdata.Company} \n${cdata.Branch}\n  Project Wise Due List REPORTS    \n \n ${str2} \n ${str} `;
+                  //  // generateExell(ReportName, [head], ptableData, "", "", ReportName, str);
+
+                 generateExell(ReportName1, [head], ptableDt, "", grpvariable, ReportName);
+              }
+          });
+
+        ////*Test-end
+
+
+        //ReportName = `${cdata.Company} \n${cdata.Branch}\n    ${LeadType} Report    \n  ${str2} \n ${str} `
+
+       // generateExell(ReportName, [head], ptableData, "", grpvariable, ReportName);
+
+
+    }
+
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+
+    function getfunction() {
+        document.querySelector('#exppdf').style.display = 'none';
+    }
+
+</script>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+

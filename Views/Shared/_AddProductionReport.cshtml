@@ -1,0 +1,1881 @@
+﻿@*@model PerfectWebERP.Models.StockReportModel.StockReportView*@
+@model PerfectWebERP.Models.ProductionReport.ProductionReportView
+@*@Scripts.Render("~/Scripts/exportFile.js")*@
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Production Reports</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="ReportType" class="form-control" value="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control Action ActionDate " id="ID_Report" name="ReportType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="showandhidefield(this)">
+                                    <option value="">Please select</option>
+
+
+
+                                    @if (!(Model.ReportType is null))
+                                    {
+                                        foreach (var FAT in Model.ReportType)
+                                        {
+                                            <option value=@FAT.ID_Mode>@FAT.ModeName</option>
+                                        }
+
+                                    }
+
+                                </select>
+                                <div class="text-danger temptableError" id="errReport"></div>
+                                @*<span id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</span>*@
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 ">
+
+                    </div>
+
+
+
+                    <div class="col-sm-6 DivAsOnDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="AsonDate" data-id="AsonDate-error" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="CheckAsOnDate()">
+
+                                <div id="AsOnDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Target Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                @*<input type="text" name="datefilter" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" class="form-control ActionDate" onclick="changeField()" />*@
+                                <div id="reportrange" class="pull-left form-control ActionDate" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                    <span></span> <b class="caret"></b>
+                                </div>
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivStage">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel" name="lblProName">Stages</span>
+                                <span class="text-danger"></span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="Satage" name="Satages"  perfect-class="formGroupControl" perfect-ctype="input"  perfect-css="input" perfect-tempTable-SalOrder="ProductName" readonly />
+                                    <input type="hidden" name="SatagesVal" perfect-tempTable-SalOrder="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchVal(this,110,'Stage List',[])" BindName="Satages" BindVal="SatagesVal" perfect-css="button" Criterea1="FK_Product" Function="1" ></button>
+                                        @*<button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,110,'Stage List',['FK_ProductionStage'],ProductionWorkFlowTransMode)" Criterea1="FK_Product" Criterea2="0" BindName="StageName" BindVal="FK_ProductionStage"></button>*@
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 DivProduct">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel" name="lblProName">Product</span>
+                                @*<span class="text-danger" id="spnProdReqrd"></span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="ProductName" name="ProductName"  perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-Project="ProductName" readonly />
+                                    <input type="hidden" name="FK_Product" perfect-tempTable-Project="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+                                    <div class="input-group-append">
+
+                                        <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="ChangeJobCard(this);GetCmnPopUpSearchVal(this,81,'Product List',[])" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="FK_Product" Function="1"></button>
+                                    </div>
+                                    <div class="text-danger temptableError" id="errProductName"></div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 DivStatus">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Status</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_string" id="status" name="Status" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="changeField()">
+                                        <option value="">Please Select</option>
+                                        <option value="0">Not Assigned</option>
+                                        <option value="1">Assigned</option>
+                                        <option value="2">Completed</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="col-sm-6 DivStage">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel" name="lblProName">Stages</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="Satages" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-SalOrder="ProductName" readonly />
+                                        <input type="hidden" name="SatagesVal" perfect-tempTable-SalOrder="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+
+                                        <div class="input-group-append">
+                                            <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchVal(this,62,'Product List',[])" BindName="Satages" BindVal="SatagesVal" perfect-css="button"></button>
+                                        </div>
+                                        <div class="text-danger temptableError"></div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>*@
+
+
+                    <div class="col-sm-6 DivJobCardNo">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel" name="lblProName">JobCard No.</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="JobCardNo" id="JobCardNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-JobCard="JobCardNo" readonly />
+                                    <input type="hidden" name="ID_JobCard" id="ID_JobCard" perfect-tempTable-JobCard="ID_JobCard" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchVal(this,106,'JobCard List',[])" BindName="JobCardNo" BindVal="ID_JobCard" Criterea1="FK_Product" perfect-css="button" Function="1"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-6 DivEmployeeName">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Employee</span>
+
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" id="EmployeeID" name="EmployeeID" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        @*<button id="addemployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="getEmployeeDepartmentlist(this)" Criterea1="0" Criterea2="0" BindName="FromName" BindVal="FromNameID"></button>*@
+                                        <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,37,'Employee List',['',''])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivMtrl">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel" name="lblProName">Material</span>
+                                @*<span class="text-danger" id="spnProdReqrd"></span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " perfect-tempTable-MaterialDetailsTable="MaterialName" name="MaterialName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="FK_Material" id="FK_Material" perfect-tempTable-MaterialDetailsTable="FK_Material" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="PSMMode" perfect-tempTable-MaterialDetailsTable="PSMMode" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="I" />
+                                    <div class="input-group-append">
+
+                                        <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,82,'Product List',[],[])" Criterea1="0" Criterea2="0" BindName="MaterialName" BindVal="FK_Material" Function="1"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+
+                    @*<div class="col-sm-6 DivEmployeeNameTo">
+                                <div class="form-group2 row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label">
+
+                                        <span perfect-class="formGroupLabel">Employee To</span>
+
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="EmployeeNameTo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                            <input type="hidden" id="EmployeeIDTo" name="EmployeeIDTo" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                            <div class="input-group-append">
+
+                                                <button id="addemployeestockto-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,37,'Employee List',['',''])" Criterea1="DepartmentIDTo" Criterea2="BranchIDTo" BindName="EmployeeNameTo" BindVal="EmployeeIDTo" onchange="checkemployeeid"></button>
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                            </div>
+                        </div>*@
+
+
+
+                    @*<div class="col-sm-6 DivOldProduct">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Old Product</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="OldProduct" id="OldProdt" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" id="OldProductId" name="OldProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+                                        <div class="input-group-append">
+                                            <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,29,'Product Details',[],[])" Criterea1="0" BindName="OldProduct" BindVal="OldProductID"></button>
+                                        </div>
+
+                                        <div class="invalid-feedback animated fadeInUp error" style="display: block;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivNewProduct">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">New Product</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="NewProduct" id="NewProdt" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" id="NewProductId" name="NewProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+                                        <div class="input-group-append">
+                                            <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,29,'Product Details',[],[])" Criterea1="0" BindName="NewProduct" BindVal="NewProductID"></button>
+                                        </div>
+
+                                        <div class="invalid-feedback animated fadeInUp error" style="display: block;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>*@
+                    <div class="col-sm-6 DivGrouping">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Grouping</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control" name="Criteria" id="Criteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="changeField()">
+
+                                    <option value="">Please select</option>
+
+
+                                </select>
+                                <div class="text-danger temptableError" id="CriteriaErr"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivReportFormat">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_numeric" id="Reporttype" name="Reporttype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getproductionreport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+
+            <button type="button" class="btn btn-nt" id="exppdf" style="display:none; float:right;" onclick="generatePdf()" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+           
+            @*<button type="button" class="btn" onclick="generatePdf()">
+                    Download PDF
+                </button>*@
+            <br />
+            <div id="divReportSection">
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+
+<script>
+    var jobcartstartdate;
+    var jobcartenddate;
+    head = [];
+    var ptableData;
+    var item = [];
+    var groupby = "";
+
+    var product;
+    var stages = "";
+    var status = "";
+    var grpby = "";
+    var jabNo = "";
+    var AsDate = "";
+    var Material = "";
+
+    var ptableData2 = {};
+
+   //     product = $('#ProductName').val();
+   // stages = $('#Satage').val();
+   // status = $('#status').val();
+
+   //// groupby1 = $('#Criteria').val();
+   // jabNo = $('#JobCardNo').val();
+
+   // AsDate = $('#AsonDate').val();
+
+
+
+    //$(function () {
+
+    //    $('input[name="datefilter"]').daterangepicker({
+    //        autoUpdateInput: false,
+    //        locale: {
+    //            cancelLabel: 'Clear'
+    //        }
+    //    });
+
+    //    $('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {
+    //        let bcd = $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));            
+    //        jobcartstartdate = picker.startDate.format('DD/MM/YYYY');
+    //        jobcartenddate = picker.endDate.format('DD/MM/YYYY');
+
+    //        $('#ToDate-error').text("");
+
+    //    });
+
+    //    $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+    //        $(this).val('');
+    //        jobcartstartdate = null;
+    //        jobcartenddate = null;
+    //        console.log("dcf", jobcartstartdate, jobcartenddate);
+    //    });
+
+    //});
+
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            jobcartstartdate = start.format('DD/MM/YYYY');
+            jobcartenddate = end.format('DD/MM/YYYY');
+        }
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
+
+
+    (function () {
+         jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        showandhidefield(this);
+    });
+    function ChangeJobCard(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+     
+        $("#ID_JobCard").val("0");
+        $("#JobCardNo").val("");
+        $thisForm.find('[name="Satages"]').val('');
+        $thisForm.find('[name="SatagesVal"]').val('0');
+
+    }
+    function fn_selectFieldlistgrouping(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var modes = 0;
+        if ($("#ID_Report").val() == 5)
+        {
+            modes = 71;
+        }
+        let mode = { mode: modes }
+        let $actionDropdown = $thisForm.find('[name="Criteria"]');
+        $actionDropdown.empty();
+        if (modes > 0) {
+            $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+            $.ajax({
+                url: "@Url.Action("getModeCriteriaList", "StockReport")",
+                type: "Get",
+                dataType: "json",
+                data: mode,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.length > 0) {
+                        $.each(ajaxOutput, function (key, value) {
+                            $actionDropdown.append($('<option/>', { value: value.ID_Mode }).text(value.ModeName)).selectpicker('refresh');
+                        });
+                        if ($actionDropdown.attr('perfect-onloadSelect')) {
+                            $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                        }
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            });
+        }
+
+
+    }
+
+    function clearFields() {
+        $("#ProductName").val("");
+        $("#FK_Product").val("0");
+        $('input[name="datefilter"]').val("");
+        //jobcartstartdate = null;
+        //jobcartenddate = null;
+        $('input[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+        $('input[name="Status"]').val("");
+        $('input[name="EmployeeID"]').val("");
+        $('input[name="Employee"]').val("");
+        $('input[name="Satages"]').val("");
+        $('input[name="SatagesVal"]').val("");
+        $('input[name="ID_JobCard"]').val("");
+        $('input[name="JobCardNo"]').val("");
+        $('input[name="FK_Material"]').val("");
+        $('input[name="MaterialName"]').val("");
+    }
+    function showandhidefield(element) {
+
+        document.getElementById('exppdf').style.display = "none";
+        fn_selectFieldlistgrouping(element);
+        clearFields();
+        var _ReportType = $("#ID_Report").val().trim();
+        $('.DivReportFormat').hide();
+        $('.DivMtrl').hide();
+         $('.DivToDate').hide();
+        $('.DivGrouping').hide();
+         $('.DivEmployeeName').hide();
+        $('.DivProduct').hide();
+        $('.DivStage').hide();
+        $('.DivStatus').hide();
+        $('.DivJobCardNo').hide();
+        $('.DivAsOnDate').hide();
+        $('#spnProdReqrd').text("");//for Product mandatory
+        if (_ReportType == "") {
+            $('.DivProduct').show();
+            $('.DivStatus').show();
+            $('.DivToDate').show();
+        }
+        else if (_ReportType == 1) {
+            $('.DivProduct').show();
+
+        }
+        else if (_ReportType == 2) {
+            $('.DivProduct').show();
+            $('.DivAsOnDate').show();
+        }
+        else if (_ReportType == 3) {
+            $('.DivStatus').show();
+            $('.DivToDate').show();
+            $('.DivStage').show();
+            $('.DivProduct').show();
+        } else if (_ReportType == 4) {
+            $('.DivProduct').show();
+            $('.DivStage').show();
+            $('.DivJobCardNo').show();
+            $('.DivToDate').show();
+            $('.DivMtrl').show();
+        }
+        else if (_ReportType == 5) {
+            $('.DivProduct').hide();
+            $('.DivToDate').show();
+            $('.DivGrouping').show();
+            $('.DivJobCardNo').show();
+            $('.DivProduct').show();
+        }
+        else {
+            $('.DivToDate').show();
+            $('.DivGrouping').show();
+            $('.DivStatus').show();
+        }
+        $('#divReportSection').html("");
+
+    }
+    function CheckAsOnDate() {
+
+        document.getElementById('exppdf').style.display = "none";
+        var _DateValid = true;
+        let AsonDate = $("#AsonDate").val();
+        if (AsonDate == null || AsonDate == "") {
+            $('#AsOnDate-error').text("Please Select As On Date"); _DateValid = false;
+        } else {
+            $('#AsOnDate-error').text("");
+        }
+        return _DateValid;
+    }
+    function checkLimit() {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+          let mindate = "1899/12/31";
+        mindate = new Date(mindate);
+        mindate.setHours(0, 0, 0, 0)
+        let maxdate = "2050/01/01";
+        maxdate = new Date(maxdate);
+        maxdate.setHours(0, 0, 0, 0)
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        //console.log(mindate);
+        //console.log(Fromdate);
+        //console.log(maxdate);
+        if (Fromdate < mindate) {
+
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Please Enter a Date greater than 31/12/1899');
+            return false;
+         }
+        else if (Fromdate > maxdate) {
+
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Please Enter a Date less than 01/01/2050');
+            return false;
+        }
+        else {
+
+            // console.log('inside limit check else');
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+
+    function RptValidation(type) {
+        debugger
+        var isrptValid = true;
+        var grouping= $("#Criteria").val();
+      //  $(".temptableError").text("");
+        if (type == "") {
+            isrptValid = false;
+            $("#errReport").text("Please Select Report");
+            return isrptValid;
+        }
+        else if (type == "2") {
+            isrptValid= CheckAsOnDate();
+        }
+        else if (type == "3") {
+            if (jobcartenddate == null || jobcartstartdate == null) {
+                isrptValid = false;
+                $('#ToDate-error').text("Please Select Target Date");
+
+            }
+        }
+        else if (type == "4") {
+
+            if (jobcartenddate == null || jobcartstartdate == null) {
+                isrptValid = false;
+                $('#ToDate-error').text("Please Select Target Date");
+
+            } else {
+                $('#ToDate-error').text("");
+            }
+        }
+        else if (type == "5")//ProductionList
+        {
+            if (jobcartenddate == null || jobcartstartdate == null) {
+                isrptValid = false;
+                $('#ToDate-error').text("Please Select Target Date");
+
+            }
+            else {
+                $('#ToDate-error').text("");
+            }
+            if (grouping.trim() == "" || grouping.trim() == "0") {
+                isrptValid = false;
+                $('#CriteriaErr').text("Please Select Grouping");
+            }
+            else {
+                $('#CriteriaErr').text("");
+            }
+        }
+
+        return isrptValid;
+
+    }
+    function getproductionreport(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var type = $("#ID_Report").val().trim();
+
+        groupby = $("#Criteria").val();
+        AsDate = $('#AsonDate').val();
+
+        product = $('#ProductName').val();
+        stages = $('#Satage').val();
+        status = $('#status').val();
+
+        // groupby1 = $('#Criteria').val();
+        jabNo = $('#JobCardNo').val();
+
+        AsDate = $('#AsonDate').val();
+        Material = $('#FK_Material').val();
+
+
+
+        let isValid = RptValidation(type, $thisForm);
+        if (isValid) {
+            var _html = " <div id='divProductionReportList'>" +
+                " <table id = 'ProductionReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+                " <thead class='thead-primary'></thead></table></div>";
+            $("#divReportSection").html(_html);
+            //console.log(jobcartstartdate);
+            //console.log(jobcartstartdate);
+              let inputData = {
+
+                "FK_product": $thisForm.find('[name="FK_Product"]').val() == "" ? "0" : $thisForm.find('[name="FK_Product"]').val(),
+                "FK_Material": $thisForm.find('[name="FK_Material"]').val() == "" ? "0" : $thisForm.find('[name="FK_Material"]').val(),
+                "FK_Stage": $thisForm.find('[name="SatagesVal"]').val() == "" ? "0" : $thisForm.find('[name="SatagesVal"]').val(),
+                "AsonDate": $thisForm.find('[name="AsonDate"]').val() == "" ? "01/01/2023" : $thisForm.find('[name="AsonDate"]').val(),
+                "FromDate": jobcartstartdate == null ? "01/01/2023" : jobcartstartdate,
+                "ToDate": jobcartenddate == null ? "01/01/2023" : jobcartenddate,
+                "Status": $thisForm.find('[name="Status"]').val(),
+                "ReportMode": $("#ID_Report").val(),
+                "ID_JobCard": $("#ID_JobCard").val() == "" ? "0" : $("#ID_JobCard").val(),
+                "GroupBy": groupby == "" ? "0" : groupby,
+            };
+            $.ajax({
+                url: "@Url.Action("GetProductionReportList", "ProductionReport")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput,"inside getproductionreport")
+                    var _gridColumns, _gridgroupby, _gridOrder = [];
+                    var hidecol = [];
+                    var type = $("#ID_Report").val();
+                    $('#divProductionReportList').show();
+                    $("#ProductionReportList").removeClass("dataTable");
+                    if (type.trim() == "1") {
+                         _gridColumns = [
+
+                            { title: "Sl No.",  "data": null },
+                            { title: "Product", "data": "Product" },
+                            { title: "JobCard No.",  "data": "JobCardNo" },
+                            { title: "Stage",  "data": "Stage" },
+                            { title: "Employee",  "data": "Employee" },
+                            { title: "Assigned", "data": "Quantity", className: "text-right" },
+                             { title: "Pending", "data": "PendingQty", className: "text-right" }
+
+
+                        ];
+                        _gridgroupby = 1;
+                        hidecol = [_gridgroupby];//if no group by then set hidecol=[];
+                        _gridOrder = [0];//ORDER columnS BY INDEX
+
+                    }
+                    else if (type.trim() == "2") {
+                        _gridColumns = [
+
+                            { title: "Sl No.",  "data": null },
+                            { title: "Product", "data": "Product" },
+                            { title: "JobCard No.",  "data": "JobCardNo" },
+                            { title: "Quantity", "data": "Quantity", className: "text-right" },
+                            { title: "Target Date", "data": "TargetDate" },
+                            { title: "Due Days", "data": "DueDays" },
+                            { title: "Status", "data": "Status" },
+
+                        ];
+                        _gridgroupby = 1;
+                        hidecol = [_gridgroupby];//if no group by then set hidecol=[];
+                        _gridOrder = [0];//ORDER columnS BY INDEX
+
+                    }
+                    else if (type.trim() == "3") {
+
+
+                         _gridColumns = [
+                            { title: "Sl No.", "data": null },
+                            { title: "JobCard No.",  "data": "JobCardNo" },
+                            { title: "Product", "data": "Product" },
+                            { title: "Stage",  "data": "Stage" },
+                            { title: "Priority",  "data": "Priority" },
+                            { title: "Quantity",  "data": "Quantity", className: "text-right" },
+                            { title: "StartDate", "data": "StartDate" },
+                            { title: "TargetDate", "data": "TargetDate" },
+                            { title: "Status",  "data": "Status" }
+                        ];
+                        _gridgroupby = 1; hidecol = [_gridgroupby];
+                        _gridOrder = [0];//ORDER columnS BY INDEX
+
+                    }
+                    else if (type.trim() == "4") {
+                          _gridColumns = [
+                              { title: "Sl No.", "data": null },
+                              { title: "Stage", "data": "Stage" },
+                            { title: "JobCard No.", "data": "JobCardNo" },
+                            { title: "Product", "data": "Product" },
+                              { title: "Material", "data": "Material" },
+                              { title: "Stock", "data": "Stock", className: "text-right" },
+                             { title: "TargetDate", "data": "TargetDate" }
+                        ];
+                        _gridgroupby = 1; hidecol = [1];
+                        _gridOrder = [0];//ORDER columnS BY INDEX
+
+                    }
+                    else if (type == "5") {
+                         _gridColumns = [
+                            { "data": null, title: "Sl No." },
+                            { "data": "JobCardNo", title: "JobCard No." },
+                            { "data": "Product",  title: "Product" },
+                            { "data": "Quantity",   title: "Quantity", className: "text-right" },
+                            { "data": "Completed",  title: "Completed", className: "text-right" }];
+                        isGrouping = true;
+                        _gridgroupby = parseInt(groupby.trim() == "" ? "0" : groupby.trim());//column index of groupby field
+                        hidecol = [_gridgroupby];
+
+                        _gridOrder = [0, 1, 2, 3];//ORDER columnS BY INDEX
+                    }
+                    if (ajaxOutput.Process.IsProcess) {
+                        ptableData = {
+                            columns: _gridColumns,
+                            rows: ajaxOutput.Data
+
+                        };
+                        console.log(ajaxOutput,"ajaxOutput ---")
+                     
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                       
+                        /*Grid fill*/
+                        tableData = $('#ProductionReportList').DataTable({
+                            pagination: "bootstrap",
+                            filter: true,
+                            data: ajaxOutput.Data,
+                            destroy: true,
+                            paging: false,
+                            info: false,
+                            searching: false,
+                            "columns": _gridColumns,
+                            scrollY: 500,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            paging: false,
+                            fixedHeader: {
+                                header: true,
+                                footer: true
+                            },
+                            "order": [[_gridgroupby, "asc"]],
+                            "columnDefs": [
+                                { "orderable": false, "targets": _gridOrder },
+                                { "visible": false, "targets": hidecol }
+                            ],
+                            drawCallback: function (settings) {
+                                if (_gridgroupby > 0) {
+                                    var api = this.api();
+                                    var rows = api.rows({ page: 'current' }).nodes();
+                                    var last = null;
+                                    //console.log(api, rows);
+                                    api.column(_gridgroupby, { page: 'current' }).data().each(function (group, i) {
+
+                                        if (last !== group) {
+                                            $(rows).eq(i).before(
+                                                '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                            );
+                                            last = group;
+                                        }
+                                    });
+                                }
+                            },
+                            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                $("td:first", nRow).html(iDisplayIndex + 1);
+                                return nRow;
+                            },
+                            createdRow: function (row, data, type) {
+
+                            },
+                            "footerCallback": function (row, data, start, end, display) {
+                                var api = this.api(), data;
+
+                            },
+
+
+                        });
+                       
+                    }
+                    else {
+                        exportfile_toogle = false;
+
+
+                        tableData = $('#ProductionReportList').DataTable({
+                            pagination: "bootstrap",
+                            filter: true,
+                            data: [],
+                            destroy: true,
+                            paging: false,
+                            info: false,
+                            searching: false,
+                            "columns": _gridColumns,
+                            "language": {
+                                "emptyTable": "No data available"
+                            },
+                            scrollY: 500,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            paging: false,
+                            fixedHeader: {
+                                header: true,
+                                footer: true
+                            },
+                            "order": [],
+                            "columnDefs": [
+                                { "orderable": false, "targets": [0, 1] },
+                                { "visible": false, "targets": [0] }
+                            ],
+
+                            createdRow: function (row, data, type) {
+
+                            },
+                            "footerCallback": function (row, data, start, end, display) {
+                                var api = this.api(), data;
+
+                            },
+
+
+                        });
+
+                        let x = document.getElementById("exppdf");
+                        x.style.display = "none";
+
+                       
+                    }
+
+                }
+            });
+
+
+        }
+    }
+
+    function popitup(url) {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+        if (window.focus) { newwindow.focus() }
+        return false;
+    }
+    function fireDownload(url) {
+        window.location.assign(url);
+    }
+    function ResetButton(ele) {
+        ProductionrptInitialLoadAddForm();
+    }
+    function ValidateAddrepdetails(Rptval) {
+        var Error = 0;
+        let $inp;
+
+        if (Rptval == 5 || Rptval == 11 || Rptval == 12 || Rptval == 13 || Rptval== 15) { $inp = $(".ActionDate"); }
+
+        else { $inp = $(".Action"); }
+        let is_empty;
+        $inp.each((i, el) => {
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+            let ErrorID = $(el).attr('data-id');
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+
+    function fn_searchjobcard(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $.ajax({
+            // url: '@Url.Action("GetQuotationGenSearchForComparison", "Quotation")?TransModeData=' + QuotationComparisonTransMode,
+            url: '@Url.Action("GetJobCardList", "JobCardCreation")',
+            type: "POST",
+            data: { pageSize: 10, pageIndex: 0, Name: "", TransMode: [] },
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (successData) {
+                if (successData.Process.IsProcess) {
+                    console.log(successData)
+                    if (successData.Data.length > 0) {
+                        var sss = createSelectList({
+                            data: successData.Data,
+                            hideColumn: ['CardType', 'FK_JobCard', 'FK_Master', 'FK_Product', 'GroupID', 'ID_JobCard', 'JobCardDetails', 'JobCardType', 'Name', 'TargetDate', 'TypeEndDate',
+                                'NoofCount', 'PageIndex', 'PageSize', 'Period', 'PeriodType', 'Priority', 'ProductName', 'Quantity', 'SoNo', 'TotalCount', 'TransMode', 'StartDate'],
+                            headingText: 'Job Card List',
+                            renameHeader: {
+                                "SlNo": "Sl No", "QuoNO": "Job Card No	", "QuoDate": "Priority	", "ProjectName": "ProjectName", "JobCardNo": "JobCardNo"
+                            },
+                        });
+
+                        sss.then(function (ret) {
+                            if (ret) {
+                                $thisForm.find('[name=FK_JobcardNo]').val(ret.JobCardNo);
+                                $thisForm.find('[name=JobcardNo]').focus().val(ret.JobCardNo);
+                                fn_loadQuotationListData(ele);
+                            }
+                        });
+                    }
+                }
+                else {
+                    $.each(successData.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+            complete: function () {
+            }
+        });
+    }
+
+
+    function generatePdf() {
+
+        var cdata;
+        var type = $("#ID_Report").val().trim();
+      
+        const obj = {
+            "JobCard No": $('input[name="JobCardNo"]').val(),
+           
+            "Status": $('select[name="Status"] option:selected').text(),
+            Material: $('input[name="MaterialName"]').val(),
+            Stages: $('input[name="Satages"]').val(),
+          
+            Product: $('input[name="ProductName"]').val(),
+            "As On Date": changeDateFormat($('input[name="AsonDate"]').val()),
+         
+            Grouping: $('select[name="Criteria"] option:selected').text()
+        };
+        const obj2 = {
+            
+            Report: $('select[id="ID_Report"] option:selected').text(),
+           
+            "Target Date": $('#reportrange span').html(),
+        }
+
+
+
+
+        if (type == 1) {
+            delete obj["As On Date"];
+            delete obj["Status"];
+            delete obj2["Target Date"];
+            delete obj["JobCard No"];
+            delete obj.Material;
+            delete obj.Stages;
+            delete obj.Grouping;
+        } else if (type == 2) {
+            
+            delete obj["Status"];
+          
+            delete obj["JobCard No"];
+            delete obj2["Target Date"];
+            delete obj.Material;
+            delete obj.Stages;
+            delete obj.Grouping;
+        } else if (type == 3) {
+            delete obj["As On Date"];  
+          
+            delete obj.Material; 
+            delete obj.Grouping;
+        } else if (type == 4) {
+
+            delete obj["As On Date"];
+            delete obj["Status"];
+               
+            delete obj.Material;
+           
+        } else if (type == 5) {
+          
+            delete obj["Status"];
+            delete obj["As On Date"];
+            delete obj.Material;
+            delete obj.Stages;
+          
+        }
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num=0
+        for (var i in obj) {
+            debugger
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0 && obj[i] != undefined && obj[i] != "Please select" ) {
+
+                if (typeof (obj[i]) == "string") {
+                    if (obj[i].trim() != "Please Select" && obj[i].trim() != "") {
+                        debugger
+                        if (num == 0) {
+                            str = "Filter By : ";
+                        }
+
+                        str = str + i + ' : ' + obj[i] + ' , ';
+                    }
+
+                } else {
+                    if (num == 0) {
+                        str = "Filter By : ";
+                    }
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+           // debugger
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+               
+                str2 = str2 + i + ' : ' + obj2[i] + ' , ';
+            }
+
+        };
+
+    
+        ////Test code end
+
+        $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+                complete: function () {
+
+                   
+                    var body = [];
+                    var collen = ":";
+                    var reportName = "";
+                    var upperhead;
+              
+
+                    console.log(jobcartstartdate, jobcartenddate,"date")
+                        
+                    if (type == 3) {
+
+                        reportName = "Job Card List & Target List";
+                        head = ["Sl No", "Product", "Stage", "Priority", "Quantity", "StartDate", "TargetDate", "Status"];
+
+                        var upperhead = {
+
+
+                            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                            body: [
+
+                                [
+                                     str2 +
+                                    '\n' + str
+                                ],
+                            ],
+
+                            theme: 'plain',
+                            styles: {
+                                // fillColor: '#3366ff',
+                                color: 'black',
+                                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                            },
+                            didDrawCell: function (data) {
+                                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                            }
+
+
+
+                        };
+                        //
+                        ptableData.columns =[
+                               
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Stage", dataKey: "Stage" },
+                                { title: "Priority", dataKey: "Priority" },
+                                { title: "Quantity", dataKey: "Quantity" },
+                                { title: "StartDate", dataKey: "StartDate" },
+                                { title: "TargetDate", dataKey: "TargetDate" },
+                                { title: "Status", dataKey: "Status" }
+                        ];
+                        grpby = "JobCardNo";
+                        console.log(ptableData,"ptableData.col")
+                    }
+
+                    else if (type == 5) {
+
+                        reportName = "Production List";
+
+
+
+                   
+
+
+                         upperhead = {
+
+
+                            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                            body: [
+
+                                [
+                                    str2 +
+                                    '\n' + str
+                                ],
+                            ],
+
+                            theme: 'plain',
+                            styles: {
+                                // fillColor: '#3366ff',
+                                color: 'black',
+                                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                            },
+                            didDrawCell: function (data) {
+                                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                            }
+
+
+
+                        };
+
+                        if (groupby == 1) {
+                            head = ["Sl No", "Product","Quantity", "Completed"];
+                            ptableData.columns =
+                                [
+                                    //{ title: "Sl No.", datakey: "", "data": null },
+                                    //{ title: "JobCard No.", dataKey: "JobCardNo" },
+                                      { title: "Product", dataKey: "Product" },
+                                    //{ title: "Stage", dataKey: "Stage" },
+                                    //{ title: "Priority", dataKey: "Priority" },
+                                    { title: "Quantity", dataKey: "Quantity" },
+                                    //{ title: "StartDate", dataKey: "StartDate" },
+                                    //{ title: "TargetDate", dataKey: "TargetDate" },
+                                   { title: "Completed", dataKey: "Completed" },
+
+
+                                ];
+                            grpby = "JobCardNo";
+
+
+                            //ptableData.rows = [
+                            //    ["1", "sdasdadadadadadadadasdadaffsdfgsgsdg", 30, 3],
+                            //    ["1", "sdasdadadadadadadadasdadaffsdfgsgsdg", 30, 3],
+                            //    ["1", "sdasdadadadadadadadasdadaffsdfgsgsdg", 30, 3],
+                            //    ["1", "sdasdadadadadadadadasdadaffsdfgsgsdg", 30, 3]
+                            //]
+
+                        } else if (groupby == 2) {
+                            head = ["Sl No", "JobCard No", "Quantity", "Completed"];
+                            ptableData.columns =
+                                [
+                                    //{ title: "Sl No.", datakey: "", "data": null },
+                                    { title: "JobCard No", dataKey: "JobCardNo" },
+                                   //{ title: "Product", datakey: "Product" },
+                                    //{ title: "Stage", dataKey: "Stage" },
+                                    //{ title: "Priority", dataKey: "Priority" },
+                                    { title: "Quantity", dataKey: "Quantity" },
+                                    //{ title: "StartDate", dataKey: "StartDate" },
+                                    //{ title: "TargetDate", dataKey: "TargetDate" },
+                                    { title: "Completed", dataKey: "Completed" },
+
+
+                                ];
+                            grpby ="Product"
+                        }
+
+                    } else if (type == 1) {
+
+
+                        //if (product == "") {
+                        //    product = "All";
+                        //}
+
+
+
+                        reportName = "Processing Levels of Each Product";
+                        head = ["Sl No", "JobCardNo", "Stage", "Employee", "Assigned","Pending"];
+                        //upperhead = {
+
+                        //    columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //    //margin: { top: 10, bottom:0 },
+
+                        //    body: [
+                        //        [
+                        //            "Product  :   " + product.padEnd(20)
+                        //            //"As On Date    :   " + AsDate.padEnd(20)
+
+                        //        ]
+
+                        //    ],
+
+                        //};
+
+                        upperhead = {
+
+
+                            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                            body: [
+
+                                [
+                                    str2 +
+                                    '\n' + str
+                                ],
+                            ],
+
+                            theme: 'plain',
+                            styles: {
+                                // fillColor: '#3366ff',
+                                color: 'black',
+                                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                            },
+                            didDrawCell: function (data) {
+                                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                            }
+
+
+
+                        };
+
+                        ptableData.columns =
+                            [
+                                //{ title: "Sl No.", datakey: "", "data": null },
+                                { title: "JobCard No.", dataKey: "JobCardNo" },
+                                //{ title: "Product", datakey: "Product" },
+                                { title: "Stage", dataKey: "Stage" },
+                                { title: "Employee", dataKey: "Employee" },
+                               { title: "Assigned", dataKey: "Quantity" },
+                                //{ title: "StartDate", dataKey: "StartDate" },
+                                //{ title: "TargetDate", dataKey: "TargetDate" },
+                               { title: "Pending", dataKey: "PendingQty" },
+
+
+                            ];
+                        grpby = "Product";
+                    } else if (type == 2) {
+
+                        //if (product == "") {
+                        //    product = "All";
+                        //}
+
+
+
+                        reportName = "Job Card Aging List";
+                        head = ["Sl No", "JobCardNo", "Quantity", "TargetDate","Due Days" ,"Status"];
+                        ptableData.columns =
+                            [
+                                //{ title: "Sl No.", datakey: "", "data": null },
+                                { title: "JobCard No.", dataKey: "JobCardNo" },
+                                //{ title: "Product", dataKey: "Product" },
+                                //{ title: "Stage", dataKey: "Stage" },
+                                //{ title: "Priority", dataKey: "Priority" },
+                                { title: "Quantity", dataKey: "Quantity" },
+                               // { title: "StartDate", dataKey: "StartDate" },
+                                { title: "TargetDate", dataKey: "TargetDate" },
+                                { title: "Due Days", dataKey: "DueDays" },
+                                { title: "Status", dataKey: "Completed" },
+
+
+                            ];
+
+                        var hdate = formatDate(AsDate.toString());
+
+                        upperhead = {
+
+
+                            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                            body: [
+
+                                [
+                                    str2 +
+                                    '\n' + str
+                                ],
+                            ],
+
+                            theme: 'plain',
+                            styles: {
+                                // fillColor: '#3366ff',
+                                color: 'black',
+                                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                            },
+                            didDrawCell: function (data) {
+                                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                            }
+
+
+
+                        };
+                     } else if(type == 4) {
+                        reportName = "Level wise Stock Management List";
+
+                        
+
+                        head = ["Sl No", "JobCardNo", "Product", "Material", "Stock", "TargetDate"];
+                       ptableData.columns =
+                        [
+                            //{ title: "Sl No.", datakey: "", "data": null },
+                            { title: "JobCard No.", dataKey: "JobCardNo" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Material", dataKey: "Material" },
+                            { title: "Stock", dataKey: "Stock" },
+                            { title: "TargetDate", dataKey: "TargetDate" },];
+                            grpby = "Stage";
+
+                        upperhead = {
+
+
+                            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                            body: [
+
+                                [
+                                    str2 +
+                                    '\n' + str
+                                ],
+                            ],
+
+                            theme: 'plain',
+                            styles: {
+                                // fillColor: '#3366ff',
+                                color: 'black',
+                                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                            },
+                            didDrawCell: function (data) {
+                                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                            }
+
+
+
+                        };
+
+
+
+                    };
+
+
+                    //test -end
+
+                    paptableData2 = ptableData;
+                    
+                    exportPdf("Production Report", [head], cdata, upperhead, "", ptableData, grpby, reportName,"a4","","","l");
+                   
+
+                }
+         });
+
+
+
+
+
+
+        //ptableData.rows=
+
+       // console.log(ptableData,"generatePdf")
+        //exportPdf("reportname", head, null, null, null, ptableData, "JobCardNo", "Report", "a4");
+    }
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+    function onExell() {
+        debugger
+
+
+        console.log(ptableData, "ptableData");
+
+        let table_data = [];
+        let Reporttype = $("#ID_Report").val();
+      
+
+
+        const obj = {
+            "JobCard No": $('input[name="JobCardNo"]').val(),
+
+            "Status": $('select[name="Status"] option:selected').text(),
+            Material: $('input[name="MaterialName"]').val(),
+            Stages: $('input[name="Satages"]').val(),
+           
+            Product: $('input[name="ProductName"]').val(),
+            "As On Date": changeDateFormat( $('input[name="AsonDate"]').val()),
+          
+            Grouping: $('select[name="Criteria"] option:selected').text()
+        };
+        const obj2 = {
+            
+            Report: $('select[id="ID_Report"] option:selected').text(),
+          
+            "Target Date": $('#reportrange span').html(),
+        }
+
+        if (Reporttype == 1) {
+
+
+            delete obj["As On Date"];
+            delete obj["Status"];
+            delete obj2["Target Date"];
+            delete obj["JobCard No"];
+            delete obj.Material;
+            delete obj.Stages;
+            delete obj.Grouping;
+
+        }
+        else if (Reporttype == 2) {
+            delete obj["Status"];
+           
+            delete obj["JobCard No"];
+            delete obj2["Target Date"];
+            delete obj.Material;
+            delete obj.Stages;
+            delete obj.Grouping;
+        }
+
+            else if (Reporttype == 3) {
+
+            delete obj["As On Date"];
+            
+            delete obj.Material;
+            delete obj.Grouping;
+
+        } else if (Reporttype == 4) {
+
+            delete obj["As On Date"];
+            delete obj["Status"];
+
+            delete obj.Material;
+
+
+        } else if (Reporttype == 5) {
+            delete obj["Status"];
+            delete obj["As On Date"];
+            delete obj.Material;
+            delete obj.Stages;
+
+        }
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 0
+        for (var i in obj) {
+            debugger
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0 && obj[i] != undefined && obj[i] != "Please select") {
+
+                if (typeof (obj[i]) == "string") {
+                    if (obj[i].trim() != "Please Select") {
+                        if (num == 0) {
+                            str = "Filter By : ";
+                        }
+
+                        str = str + i + ' : ' + obj[i] + ' , ';
+                    }
+
+                } else {
+                    if (num == 0) {
+                        str = "Filter By : ";
+                    }
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            // debugger
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                //str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+                str2 = str2 + i + ' : ' + obj2[i] + ' , ';
+            }
+
+        };
+
+
+
+       
+        var head = [];
+
+        //*******
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 console.log(cdata, "---cdata----");
+
+                
+                 if (Reporttype == 3) {
+                     
+
+                     reportName = "Job Card List & Target List";
+                     head = [["Sl No", "Product", "Stage", "Priority", "Quantity", "StartDate", "TargetDate", "Status"]];
+                     ptableData.columns = [
+                         //{ title: "Sl No.", datakey: "", "data": null },
+                         { title: "Product", dataKey: "Product" },
+                         { title: "Stage", dataKey: "Stage" },
+                         { title: "Priority", dataKey: "Priority" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "StartDate", dataKey: "StartDate" },
+                         { title: "TargetDate", dataKey: "TargetDate" },
+                         { title: "Status", dataKey: "Status" }
+                         
+                     ];
+                     grpby = "JobCardNo";
+
+
+
+
+                 } else if (Reporttype == 1) {
+                     reportName = "Processing Levels of Each Product";
+                     head = [["Sl No", "JobCardNo", "Stage", "Employee", "Assigned", "Pending"]];
+                     ptableData.columns =
+                         [
+                             //{ title: "Sl No.", datakey: "", "data": null },
+                             { title: "JobCard No.", dataKey: "JobCardNo" },
+                             //{ title: "Product", datakey: "Product" },
+                             { title: "Stage", dataKey: "Stage" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Assigned", dataKey: "Quantity" },
+                             //{ title: "StartDate", dataKey: "StartDate" },
+                             //{ title: "TargetDate", dataKey: "TargetDate" },
+                             { title: "Pending", dataKey: "PendingQty" },
+
+
+                         ];
+                     grpby = "Product";
+
+                 } else if (Reporttype == 2) {
+                     reportName = "Job Card Aging List";
+                     head = [["Sl No", "JobCardNo", "Quantity", "TargetDate", "Due Days", "Status"]];
+                     ptableData.columns =
+                         [
+                             //{ title: "Sl No.", datakey: "", "data": null },
+                             { title: "JobCard No.", dataKey: "JobCardNo" },
+                             //{ title: "Product", dataKey: "Product" },
+                             //{ title: "Stage", dataKey: "Stage" },
+                             //{ title: "Priority", dataKey: "Priority" },
+                             { title: "Quantity", dataKey: "Quantity" },
+                             // { title: "StartDate", dataKey: "StartDate" },
+                             { title: "TargetDate", dataKey: "TargetDate" },
+                             { title: "Due Days", dataKey: "DueDays" },
+                             { title: "Status", dataKey: "Completed" },
+
+
+                         ];
+                     grpby = "Product";
+
+                 } else if (Reporttype == 4) {
+                     reportName = "Level wise Stock Management List";
+
+                     head = [["Sl No", "JobCardNo", "Product", "Material", "Stock", "TargetDate"]];
+                     ptableData.columns =
+                         [
+                             //{ title: "Sl No.", datakey: "", "data": null },
+                             { title: "JobCard No.", dataKey: "JobCardNo" },
+                             { title: "Product", dataKey: "Product" },
+                             { title: "Material", dataKey: "Material" },
+                             { title: "Stock", dataKey: "Stock" },
+                             { title: "TargetDate", dataKey: "TargetDate" },];
+                     grpby = "Stage";
+
+                 } else if (Reporttype == 5) {
+                     reportName = "Production List";
+                     if (groupby == 1) {
+                         head = [["Sl No", "Product", "Quantity", "Completed"]];
+                         ptableData.columns =
+                             [
+                                 //{ title: "Sl No.", datakey: "", "data": null },
+                                 //{ title: "JobCard No.", dataKey: "JobCardNo" },
+                                 { title: "Product", dataKey: "Product" },
+                                 //{ title: "Stage", dataKey: "Stage" },
+                                 //{ title: "Priority", dataKey: "Priority" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 //{ title: "StartDate", dataKey: "StartDate" },
+                                 //{ title: "TargetDate", dataKey: "TargetDate" },
+                                 { title: "Completed", dataKey: "Completed" },
+
+
+                             ];
+                         grpby = "JobCardNo";
+
+
+                     } else if (groupby == 2) {
+                         head = [["Sl No", "JobCard No", "Quantity", "Completed"]];
+                         ptableData.columns =
+                             [
+                                 //{ title: "Sl No.", datakey: "", "data": null },
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 //{ title: "Product", datakey: "Product" },
+                                 //{ title: "Stage", dataKey: "Stage" },
+                                 //{ title: "Priority", dataKey: "Priority" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 //{ title: "StartDate", dataKey: "StartDate" },
+                                 //{ title: "TargetDate", dataKey: "TargetDate" },
+                                 { title: "Completed", dataKey: "Completed" },
+
+
+                             ];
+                         grpby = "Product";
+                     }
+                 }
+
+                 var mergeRanges = [
+
+                     //{ s: { r: 1, c: 1 }, e: { r: 1, c: 3 } },
+                     //{ s: { r: 1, c: 4 }, e: { r: 1, c: 6 } },
+                     //{ s: { r: paptableData2.rows.length + 3, c: 2 }, e: { r: paptableData2.rows.length + 3, c: 3 } },
+                     //{ s: { r: paptableData2.rows.length + 3, c: 5 }, e: { r: paptableData2.rows.length + 3, c: 6 } },
+
+                 ];
+
+                 let ReportName = $('#ReportName').text();
+
+                 var type = $("#ID_Report").val().trim();
+                 if (type == 1) {
+
+                     
+                     head1 = [["Sl No", "JobCardNo", "Stage", "Employee", "Assigned", "Pending"]];
+                  
+
+                 }
+                
+
+
+
+
+                 ReportName = `${cdata.Company} \n${cdata.Branch}\n  Production Report    \n  ${str2} \n ${str} `
+                
+                 generateExell(ReportName, head, ptableData, mergeRanges, grpby, reportName);
+               
+             }
+         });
+
+        //********
+
+
+        //generateExell(reportName, head, ptableData, mergeRanges, grpby,reportName);
+    }
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+    function getfunction() {
+       
+      
+        document.querySelector('#exppdf').style.display = 'none';
+       
+        
+    }
+    function changeField() {
+        document.getElementById('exppdf').style.display = "none";
+    }
+    
+</script>
+<script src="~/Scripts/xlsx.min.js"></script>
+

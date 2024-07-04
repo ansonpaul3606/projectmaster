@@ -1,0 +1,271 @@
+﻿
+@model List<PerfectWebERP.Models.CustFeedbackModel.FeedbackView>
+
+<link href="~/Assets/css/custFeedbacks.css" rel="stylesheet" />
+<header>
+    <h1 id="title" class="text-center"> </h1>
+    <p id="decription" class="text-center decription"> </p>
+</header>
+<style>
+    #the-count {
+        float: right;
+        padding: 0.1rem 0 0 0;
+        font-size: 0.875rem;
+    }
+</style>
+<form id="survey=-form">
+    <input type="hidden" id="hdn_IDCustomerServiceRegister" />
+    <input type="hidden" id="hdn_IDCustomerServiceRegisterProductDetails" />
+    @{ string[] options; string[] optnwithFk;
+        int i = 0; var name = "";
+        if (Model != null)
+        {
+            foreach (var itm in Model)
+            {
+                i++;
+
+                optnwithFk = itm.Options.Split(',');
+
+                <div style="text-align:center">
+                    <label id="name_and_surname-label@i" for="name_and_surname" style="display:block">
+                        @itm.Question
+                    </label>
+                </div>
+                if (itm.FeedbackType != 2)//emojis
+                {<fieldset class="feeditem">
+                        <input type="hidden" class="hdnFK_Feedback" value="@itm.FK_Feedback" />
+
+                        <div class="container1">
+
+                            @foreach (var opt in optnwithFk)
+                            {
+                                options = opt.Split(':');
+                                name = "feedback" + itm.FK_Feedback;
+
+                                <div class="item">
+
+                                    <label for="@options[0].Trim()">
+                                        <input class="radio" type="radio" name="@name" id="@options[0].Trim()" value="@options[0].Trim()">
+                                        <span title="@options[1]">@options[2]</span>
+                                    </label>
+                                    <span>@options[1]</span>
+                                </div>
+
+                            }
+                        </div>
+                    </fieldset>
+                }
+                else//star
+                {
+                    <div class="feedrate">
+                        <input type="hidden" class="hdnFK_Feedback" value="@itm.FK_Feedback" />
+                        <div class="container1">
+
+                            <div class="rate">
+                                @foreach (var opt in optnwithFk)
+                                {
+                                    options = opt.Split(':');
+                                    name = "rate" + itm.FK_Feedback;
+
+
+                                    <input type="radio" id="@options[0].Trim()" name="@name" value="options[1]" />
+                                    <label for="@options[0].Trim()" title=""></label>
+
+
+                                }
+
+
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+
+
+            }
+            <fieldset>
+                <div class="container1">
+
+                    <div class="col-sm-12">
+                        <div class="form-group">
+
+                            <textarea name="txtRemarks" id="CustRemarks" class="form-control" placeholder="Comments" rows="2" maxlength="500"></textarea>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </fieldset> <input type="hidden" class="Errmsg" value="" />
+        }
+        else
+        { <input type="hidden" class="Errmsg" value="Feedback Settings not found" />
+        }
+
+    }
+
+</form>
+<footer>
+    @if (Model != null)
+    {
+        <div class="card-footer text-right" perfect-class="formFooter">
+
+            <button id="addcompany-jq-addnewuserSkip" type="button" class="btn btn-primary mr-3" name="skip" perfect-css="button" onclick="fn_SendFeedbacks(this,1)"><i class="fa fa-refresh fa-spin loaderClass "></i>Skip</button>
+            <button id="addcompany-jq-addnewuserFeed" type="button" class="btn btn-primary mr-3 btnSave" name="add" perfect-css="button" onclick="fn_SendFeedbacks(this,2)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+            <button id="addcompany-jq-filterclearFeed" type="button" class="btn btn-primary mr-3 " name="clear" perfect-css="button" onclick="ClearAll()"><i class="fa fa-refresh fa-spin loaderClass "></i>Clear</button>
+
+        </div>
+    }
+</footer>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#addcompany-jq-addnewuserSkip").show();
+        $("#addcompany-jq-addnewuserFeed").hide();
+    })
+    $("#CustRemarks").keypress(function (e) {
+
+        var caretPos = $(this)[0].selectionStart
+        if (e.keyCode == 32 && caretPos == 0) {
+            return false;
+        }
+
+
+    });
+
+
+    $("#CustRemarks").change(function () {
+        $(this).val($(this).val().trim());
+        ToggleSaveAndSkip();
+    });
+    function ToggleSaveAndSkip() {
+        var val = $("#CustRemarks").val().trim();
+        var checked = $("input[type=radio]:checked").val();
+
+        if (checked!=null || val != "") {
+            $("#addcompany-jq-addnewuserFeed").show();
+            $("#addcompany-jq-addnewuserSkip").hide();
+        } else {
+            $("#addcompany-jq-addnewuserSkip").show();
+            $("#addcompany-jq-addnewuserFeed").hide();
+        }
+    }
+    $('input[type=radio]').click(function () {
+        ToggleSaveAndSkip();
+    });
+    function ClearAll() {
+        $("input[type=radio]").prop('checked', false);
+        $("#CustRemarks").val('');
+        $("#addcompany-jq-addnewuserSkip").show();
+        $("#addcompany-jq-addnewuserFeed").hide();
+    }
+    function CustFeedbackDetails(FK_Feedback, FK_FeedbackDetails , SkipFeedback) {
+
+        this.FK_Feedback= FK_Feedback;
+        this.ID_FeedbackDetails = FK_FeedbackDetails;
+        this.SkipFeedback = SkipFeedback;
+
+    };
+    function fn_SendFeedbacks(ele,Mod) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var PssfeedbackList = []; var fk_feedbackDetails = 0;
+
+
+        $(".feeditem").each(function () {
+
+            fk_feedback = $(this).find('.hdnFK_Feedback').val();
+            fk_feedbackDetails = $(this).find('.item').find('input[type="radio"]:checked').val();
+            if (fk_feedbackDetails != null) {
+                Data = new CustFeedbackDetails(fk_feedback, fk_feedbackDetails, false);
+
+            }
+            else {
+                Data = new CustFeedbackDetails(fk_feedback, 0, true);
+
+            }
+            PssfeedbackList.push(Data);
+
+        });
+        $(".feedrate").each(function () {
+             fk_feedback = $(this).find('.hdnFK_Feedback').val();
+
+            fk_feedbackDetails = $(this).find('.rate').find('input[type="radio"]:checked').val();
+            if (fk_feedbackDetails != null) {
+                Data = new CustFeedbackDetails(fk_feedback, fk_feedbackDetails, false);
+
+            } else {
+                Data = new CustFeedbackDetails(fk_feedback, 0, true);
+
+            }
+            PssfeedbackList.push(Data);
+
+        })
+
+
+        var remarks = $("#CustRemarks").val().trim();
+
+
+        $(ele).prop('disabled', true);
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'ID_CustFeedback': 0,
+            'CustFeedbackDetails': PssfeedbackList,
+            'FK_CustomerServiceRegister': $("#hdn_IDCustomerServiceRegister").val().trim() == "" ? "0" : $("#hdn_IDCustomerServiceRegister").val().trim(),
+            'ID_CustomerServiceRegisterProductDetails': $("#hdn_IDCustomerServiceRegisterProductDetails").val().trim() == "" ? "0" : $("#hdn_IDCustomerServiceRegisterProductDetails").val().trim(),
+            'Remarks': remarks
+        };
+
+        $.ajax({
+            url: "@Url.Action("UpdateCustFeedback", "CustFeedback")",
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        if (Mod == 1) {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Feedbacks Skipped Successfully' });
+                        }
+                        else {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Successfully Sent Feedbacks'});
+                        }
+                        
+                    });
+
+                    $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                    $thisForm.find('[perfect-ctype="input"]').val('');
+                    $thisForm.find('[perfect-ctype="date"]').val('');
+                    //$('#modalPssFeedbackInfo').modal('hide');
+
+
+                    $('#modalFeedback').modal('hide'); $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove(); rowclick = 0;
+                    // Get the value set in form's perfect-onFormSuccess attribute
+                    fn_ServiceList_LoadForm();
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+            }
+
+        });
+
+
+    }
+    function CloseFdModal() {
+        $('#modalFeedback').modal('hide'); $('#modalFeedback').modal('hide'); $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove(); rowclick = 0;
+    }
+</script>

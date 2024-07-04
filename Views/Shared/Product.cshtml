@@ -1,0 +1,234 @@
+﻿@model PerfectWebERP.Models.AreaModel.AreaListModel
+<div class="card ">
+
+    <div class="card-header">
+        <h4 class="card-title col-12">Area</h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Short Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_string" name="AreaShortName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">District</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string" name="DistrictID" perfect-selectButton="District Name" perfect-selectButtonAction="countryadding" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+                                    @*@if(Model.CountryList!=null)
+                        {*@
+                                    @foreach (var districtList in Model.DistrictList)
+                                    {
+                                        <option value="@districtList.ID_District">@districtList.DistrictName</option>
+                                    }
+                                    @*}*@
+                                </select>
+                            </div>
+                        </div>
+
+
+
+
+
+
+                    </div>
+
+                    <div class="col-sm-6">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">  Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_string" name="AreaName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Sort Order</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_digit" name="SortOrder" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+
+                    </div>
+                   
+
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_AreaForm_update(this)"><i class="fa fa-refresh fa-spin  loaderClass"></i>Update</button>
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="AddArea(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+            </form>
+
+</div>
+
+    
+   
+
+</div>
+
+<script>
+    (function () {
+        jQuery('form').validate();//<-----  Validate/initialize our form on page load
+        jQuery('select').selectpicker();
+    })();
+
+    $('[perfect-ctype=addButton]').on("click", function () {
+
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+
+        if ($thisForm.valid()) {
+
+            let inputData = {
+                ID_Area: 0,
+                AreaShortName: $thisForm.find('[name=AreaShortName]').val().trim(),
+                AreaName: $thisForm.find('[name=AreaName]').val().trim(),
+                FK_District: $thisForm.find('[name=DistrictID]').val().trim(),
+                SortOrder : $thisForm.find('[name=SortOrder]').val().trim()
+            }
+
+
+           console.log("Input data", inputData)
+
+            $.ajax({
+                url: '@Url.Action("AddNewAreaDetails", "Area")',
+                type: "POST",
+                data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+
+                },
+
+
+            });
+
+        }
+
+
+
+    });
+
+
+
+
+
+  
+
+     function getArea(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $.ajax({
+            url: '@Url.Action("GetArea", "Area")',
+            type: "GET",
+            // headers: { "token_key": "1234" },
+            //data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                // console.log("Data", data);
+
+                if (ajaxOutput.Process.IsProcess) {
+                    var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['ID_Area'] });
+                    stateModel.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $thisForm.find('[name=ID_Area]').val(ret.ID_Area);
+                            $thisForm.find('[name=Area]').val(ret.AreaName);
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+        });
+    }
+    function fn_AreaForm_update(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if ($thisForm.valid()) {
+
+            $(ele).prop('disabled', true);
+          //  console.log('form data', $thisForm.data('pData'))
+            let savedData = $thisForm.data('pData');
+            let inputData = {
+                'ID_Area': savedData.ID_Area,
+                
+                'AreaName': $thisForm.find('[name="AreaName"]').val(),
+                'AreaShortName': $thisForm.find('[name="AreaShortName"]').val(),
+                'DistrictID': $thisForm.find('[name="DistrictID"]').val(),
+                'SortOrder': $thisForm.find('[name="SortOrder"]').val(),
+                
+            };
+            $.ajax({
+                 url: "@Url.Action("UpdateArea", "Area")",
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                 success: function (ajaxOutput) {
+
+                     if (ajaxOutput.Process.IsProcess) {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                         });
+
+                         let onSuccess = $thisForm.attr('perfect-onFormSuccess');
+
+                         if (onSuccess) {
+                             window[onSuccess]();
+                         }
+                     }
+                     else {
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+
+            });
+
+
+        }
+
+    }
+
+</script>
+
+
+

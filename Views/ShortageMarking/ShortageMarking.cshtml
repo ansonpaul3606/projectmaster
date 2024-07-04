@@ -1,0 +1,380 @@
+﻿
+@{
+    ViewBag.Title = "ShortageMarking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+
+        <div class="col-lg-12" id="jq_ShortageMarking_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+<script type="text/javascript">
+        const $formContainer = $('#jq_ShortageMarking_formContainer');
+
+        $(document).ready(function () {
+            fn_ShortageMarking_initialload();
+        });
+    var ShortageMarkingTransMode = '@ViewBag.TransMode';
+    const LastIDSessionKey = 'ShortageMarkingLastID';
+    var LastID_ShortageMarking;
+        function fn_ShortageMarking_initialload() {
+            ShortageMarkingTransMode = '@ViewBag.TransMode';
+
+           
+            fn_loadShortageList(this, fn_loadShortageMarkingAddForm);
+        }
+
+    function fn_loadShortageMarkingAddForm() {
+
+         $formContainer.load('@Url.Action("LoadShortageMarkingForm", "ShortageMarking")?mtd=@ViewBag.mtd', function () {
+             let $thisForm = $(this).find('[perfect-class="form"]');
+
+             var today = new Date().toISOString().split('T')[0];
+             document.getElementsByName("TransDate")[0].setAttribute('max', today);
+            
+             $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+             $thisForm.find('[name="TransDate"]').prop("disabled", false);
+             $("#ProductButton").prop("disabled", false);
+             $("#SupplierButton").prop("disabled", false);
+             $("#PurchaseButton").prop("disabled", false);
+             $thisForm.validate({ messages: validationMessage });
+             $thisForm.attr('perfect-onFormSuccess', 'fn_ShortageMarking_initialload');
+             getSessionValue(LastIDSessionKey, function (result) {
+                 LastID_ShortageMarking = result;
+             });
+         });
+    }
+
+    var validationMessage = {
+        'TransDate': {
+            'required': 'Please Select Trans Date',
+            'max': jQuery.validator.format('Future date not Allowed'),
+            'min': jQuery.validator.format('Receive Date Should be greater than or equal to Purchase Invoice Date'),
+        },
+        'SuppID': {
+            'required': 'Please Select Supplier',
+
+        },
+        'PurchaseID': {
+            'required': 'Please Select Purchase',
+        },
+    };
+
+
+    function fn_loadShortageList(ele,callback){
+
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles' + ' ' + 'List');
+
+        let pageUrl = '@Url.Action("GetShortageList", "ShortageMarking")';
+
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        console.log('ajaxOutput:', ajaxOutput);
+
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                        $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadShortageList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                       
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            setSessionValue(LastIDSessionKey, 0);
+                            $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadShortageList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [0],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+    }
+
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+            },
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_EditShortage },</text>
+                }
+                //{ type: "divider" },
+                @*@if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_DeleteEmployeeWiseTargetSettings },</text>
+                  }*@
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "ModuleName","ShTransDate","Supplier","Purchase", "ShNetAmount"],
+        hideColumn: ["ID_Shortage", "FK_Supplier", "FK_Purchase"],
+        rowClickAction: fn_EditShortage,
+        renameHeader: { "SlNo": "SL NO", "ShTransDate": "TransDate", ShNetAmount:"Net Amount" },
+        isDateType: ["ShTransDate"]
+    };
+
+    function fn_EditShortage() {
+
+        let $thisUser = $(this).closest('tr');
+        let savedData = $thisUser.data('pData');        
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ShortageID: savedData.ID_Shortage
+        };
+
+
+             $.ajax({
+                 url: '@Url.Action("GetShortageInfoByID", "ShortageMarking")',
+                 type: "POST",
+                 data: inputData,
+                 dataType: "json",
+                 contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                 success: function (ajaxOutput) {
+                     console.log('ajaxOutput', ajaxOutput);
+                     
+
+                     if (ajaxOutput.ShortageInfo.Process.IsProcess) {
+                          $formContainer.load('@Url.Action("LoadShortageMarkingForm", "ShortageMarking")?mtd=@ViewBag.mtd', function () {                             
+
+                              let $thisForm = $(this).find('[perfect-class="form"]');
+
+                              $thisForm.validate({ messages: validationMessage });
+
+                              $thisForm.data({ 'pData': ajaxOutput.ShortageInfo.Data[0] });
+
+                              $thisForm.find('[name=TransDate]').val(moment(ajaxOutput.ShortageInfo.Data[0].ShTransDate).format('YYYY-MM-DD'));
+                              $thisForm.find('[name=ID_Shortage]').val(ajaxOutput.ShortageInfo.Data[0].ID_Shortage);
+                              $thisForm.find('[name=SuppID]').val(ajaxOutput.ShortageInfo.Data[0].FK_Supplier);
+                              $thisForm.find('[name=SuppName]').val(ajaxOutput.ShortageInfo.Data[0].Supplier);
+                              $thisForm.find('[name=InvoiceNo]').val(ajaxOutput.ShortageInfo.Data[0].Purchase);
+                              $thisForm.find('[name=PurchaseID]').val(ajaxOutput.ShortageInfo.Data[0].FK_Purchase);
+                              $thisForm.find('[name=NetAmount]').val(Number(ajaxOutput.ShortageInfo.Data[0].ShNetAmount).toFixed(2));
+
+                              $thisForm.find('button[name=add]').addClass('d-none');
+                              $thisForm.find('button[name=update]').addClass('d-none');
+
+                              $thisForm.attr('perfect-onFormSuccess', 'fn_ShortageMarking_initialload');
+                              $sideMenuOptions.close();
+
+                              $("#SupplierButton").prop("disabled", "disabled");
+                              $("#PurchaseButton").prop("disabled", "disabled");
+                              $thisForm.find('[name="TransDate"]').prop("disabled", "disabled");
+                              debugger
+                              if (ajaxOutput.ShortagePdtDetails.Process.IsProcess) {
+                                  fillTable($thisForm, 'Shortage', ajaxOutput.ShortagePdtDetails.Data, ShortageOptionsTempOut)
+                              }
+                         });
+                     }
+                     else {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                 },
+
+             });
+        
+    }
+
+    function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                console.log('name', valOne[nameAttr])
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        switch (headerName) {
+                            case "ShPdUnit":
+                                headerName = "Unit";
+                                break;
+                            default:
+                                break
+                        }
+
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        //displat text of select
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                        console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                    }
+                    else if ($this.is('input')) {
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        console.log(inputType)
+                        if (inputType == 'checkbox') {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+
+                            console.log('checkbox', nameAttr)
+
+
+                        }
+                        else if (inputType == 'hidden') {
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if (inputType == 'date') {
+
+
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+
+
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                }
+
+
+            });
+
+            insertData.push(pData);
+            //----
+
+        });
+        $tblcontainer.empty();
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+        $("#ProductButton").prop("disabled", "disabled");
+    }
+</script>
+}

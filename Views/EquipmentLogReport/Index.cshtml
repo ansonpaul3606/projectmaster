@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="eqlogtrport-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+
+        const $formContainer = $('#eqlogtrport-form');
+        var EQRTransMode = '';
+        $(document).ready(function () {
+
+            fn_eqlogrepo_initialLoad();
+
+
+        });
+        function fn_showFiltersearchs() {
+            let $thisForm = $('[perfect-class="form"]');
+            $thisForm.closest('.Accountreport').find('.accountreportsearch-body').toggleClass('d-none');
+        }
+
+        function fn_eqlogrepo_initialLoad() {
+            EQRTransMode ='@ViewBag.TransMode';
+            LoadAddeqlogRepo();
+            
+        }
+        var validationMessage = {
+            'FromDate': {
+                'required': 'Please Enter From Date'
+            },
+            'ToDate': {
+                'required': 'Please Enter To Date'
+            }
+        }
+
+        function LoadAddeqlogRepo() {
+            debugger
+             $formContainer.load('@Url.Action("LoadEqlogRepo", "EquipmentLogReport")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                 $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+
+                 $thisForm.attr('perfect-onFormSuccess', 'fn_eqlogrepo_initialLoad');
+
+            });
+        }
+
+     </script>
+    }

@@ -1,0 +1,447 @@
+﻿@{
+    ViewBag.Title = "ServiceSettings";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="serviceSettings-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        const $formContainer = $('#serviceSettings-form');
+        $(document).ready(function () {
+             serviceSettingsInitialLoad();
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+             {
+                <text> loadServiceSettingsList(this); </text>
+             }
+        });
+        let msg ="Effect date should be grater than or equal to today's date"
+        var validationMessage = {
+            'EffectDate': {
+                'required': 'Please Select Effect Date',
+                'date': 'Invalid Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date'),
+                'min': `${msg}`
+            },
+            'FK_Category': {
+                'required': 'Please select a Category'
+            }
+        };
+
+        function serviceSettingsInitialLoad() {
+            loadServiceSettingsListAddForm();
+        }
+
+        function loadServiceSettingsListAddForm() {
+            $formContainer.load('@Url.Action("LoadServiceSettingsList", "ServiceSettings")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("EffectDate")[0].setAttribute('min', today);
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'serviceSettingsInitialLoad');
+
+            });
+        }
+        function loadServiceSettingsList(ele)
+        {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Service Settings');
+          let pageUrl = '@Url.Action("GetServiceSettingsData", "ServiceSettings")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess)
+                    {
+                       
+                        $sidemenu.find('.jq_sidemenu_title').text("Service Settings");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadServiceSettingsList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+                    }
+                    else
+                    {
+                              if (ajaxOutput.Process.Status = "NoData")
+                              {
+                                  $sidemenu.find('.jq_sidemenu_title').text("Service Settings");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadServiceSettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                                    let $table = $sidemenu.find('table');
+                                    $table.dataTable({
+                                        "serverSide": true,
+                                        "processing": true,
+                                        "lengthMenu": [],
+                                        "searching": false,
+                                        "ordering": false,
+                                        "deferLoading": ajaxOutput.totalrecord,
+                                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                        "pageLength": ajaxOutput.pageSize,
+                                        "recordsFiltered": ajaxOutput.pageSize,
+                                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                                    });
+                              }
+                              else
+                              {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    });
+                              }
+                    }
+                },
+                complete: function () {
+
+                }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: editServiceSettings },</text>
+                }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                {
+                 <text> { displayName: "Delete", action: deleteServiceSettings },</text>
+                }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        hideColumn: ["ID_PeriodicServiceSettings", "FK_Category", "FK_Product","TransMode", "TotalCount"],
+        rowClickAction: editServiceSettings,
+        renameHeader: { "SlNo": "SL No", "EffectDate": "Effect Date"},
+        isDateType: ["EffectDate"]
+        };
+
+        function editServiceSettings()
+        {
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = { FK_PeriodicServiceSettings: savedData.ID_PeriodicServiceSettings};
+
+            $('#LoadServiceSettingsList').empty();
+                $.ajax({
+                 url: '@Url.Action("GetServiceSettingsInfo", "ServiceSettings")',
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+                       
+                        if (ajaxOutput.serInfo.Process.IsProcess) {
+                           
+                            $formContainer.load("@Url.Action("LoadServiceSettingsList", "ServiceSettings")", function ()
+                            {                              
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.serInfo.Data[0] });
+
+                                $thisForm.find('[name=ID_PeriodicServiceSettings]').val(ajaxOutput.serInfo.Data[0].ID_PeriodicServiceSettings);
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.serInfo.Data[0]['EffectDate']).format('YYYY-MM-DD'));
+                                var today = new Date().toISOString().split('T')[0];
+                                document.getElementsByName("EffectDate")[0].setAttribute('min', today);
+                                $thisForm.find('[name=FK_Category]').val(ajaxOutput.serInfo.Data[0].FK_Category);
+                                $thisForm.find('[name=FK_Product]').val(ajaxOutput.serInfo.Data[0].FK_Product);
+                                $thisForm.find('[name=ProductName]').val(ajaxOutput.serInfo.Data[0].Product);
+                               
+                                if (ajaxOutput.serDtlInfo.Process.IsProcess) {
+                                    $thisForm.data({ pData: ajaxOutput.serDtlInfo.Data[0] });                                  
+                                    fn_fillServiceItem($thisForm, 'ServiceSettings', ajaxOutput.serDtlInfo.Data, tableOptionsServiceSettingsItem)
+                                    $thisForm.find('[perfect-tempTable="ServiceSettings"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+
+                                }
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'serviceSettingsInitialLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+        }
+        function setActionData(actionName) {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="MenuListActionName"]').val(actionName).selectpicker('refresh');
+        }
+        function deleteServiceSettings() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetServiceSettingReasonList", "ServiceSettings")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),                                      
+                                        FK_PeriodicServiceSettings: Saveddata.ID_PeriodicServiceSettings,
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteServiceSettings", "ServiceSettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $sideMenuOptions.close();
+                                                loadServiceSettingsList(this);
+                                                serviceSettingsInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+                        }
+                   }
+               });
+        }
+        var tableOptionsServiceSettingsItem = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+
+                                let errorClass = '.temptableError';
+                                $thisForm.find('[perfect-tempTable-' + tableKey + '="' + pf_name + '"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: { "PssdPeriod": "Period1R", "PssdServiceCost": "Service Cost1R", "PssdGeneratebefore": "Ticket generate before day(s)1R" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+        function fn_fillServiceItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            switch (headerName) {
+                                case "FK_Service":
+                                    headerName = "Service";
+                                    break;
+                                case "PssdPeriodType":
+                                    headerName = "Period Type";
+                                    break;
+                                default:
+                                    break
+                            }
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                switch (nameAttr) {                                   
+                                    default:
+                                        tableOptionsTemp.hideColumn.push(nameAttr);
+                                        break;
+                                }
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        }
+    </script>
+}

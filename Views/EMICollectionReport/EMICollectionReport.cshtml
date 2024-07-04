@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "EMICollectionReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="EMICollectionRpt-form">
+            <table id="tab-table" class="Customtable"></table>
+        </div>
+    </div>
+</div>
+<script src="@Url.Content("~/Assets/js/jquery-2.1.4.min.js")"></script>
+<script>
+    const $formContainer = $('#EMICollectionRpt-form');
+    RPTusername = '@ViewBag.Username';
+
+    $(document).ready(function () {
+        fn_EMICollection_initialLoad(this);
+    });
+
+    function fn_EMICollection_initialLoad() {
+        LoadEMICollectionReport();
+    }
+
+    function LoadEMICollectionReport() {
+
+        $formContainer.load('@Url.Action("LoadEMICollectionReport", "EMICollectionReport")', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.attr('perfect-onFormSuccess', 'fn_EMICollection_initialLoad');
+            $thisForm.find('[name="Area"]').val('');
+            $thisForm.find('[name="AreaID"]').val(0);      
+        });
+    }
+
+    var validationMessage = {
+
+        'FromDate': {
+            'required': 'Please Select From Date',            
+
+        },
+
+        'ToDate': {
+            'required': 'Please Select To Date',            
+        },
+
+        'ID_Report': {
+            'required': 'Please Select Report Name',
+
+        },
+        'AmountTo': {
+            'required': 'Please Enter Amount',
+        },
+        'AmountFrom': {
+            'required': 'Please Enter Amount',
+        }
+
+
+    };
+</script>

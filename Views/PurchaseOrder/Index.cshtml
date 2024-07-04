@@ -1,0 +1,594 @@
+﻿
+@{
+    ViewBag.Title = "Purchase Order";
+}
+
+
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+       
+        <div class="col-lg-12" id="jq_PurchaseOrder_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+<script type="text/javascript">
+
+
+
+        var Transmode;
+        var LastId;
+
+        var validationMessage = {
+            'DepartmentID': {
+                'required': 'Please Select Department',
+                'digits': 'Invalid Supplier selected'
+
+            },
+            'SupplierID': {
+                'required': 'Please Select Supplier',
+                'digits': 'Invalid Supplier selected'
+            },
+            'DepartmentID': {
+                'required': 'Please Select Department',
+                'digits': 'Invalid Supplier selected'
+
+            },
+            'PurordDate': {
+                'required': 'Please Enter A Date',
+                'max': jQuery.validator.format('Future Date Not Allowed')
+
+            },
+            'PurordEstiDeliveryDate': {
+                'required': 'Please Enter A Estimate Delivery Date',
+                 'min': jQuery.validator.format('Only Allow Future Date')
+            },
+            'PurordDeliveryType': {
+                'required': 'Please Select  Delivery Type',
+                'digits': 'Invalid Delivery Type selected'
+            },
+            'PurordNo': {
+
+                'required': 'Please Enter Order Number',
+            },
+
+            //'PurordQReferenceNo': {
+
+            //    'required': 'Please Enter Reference Number',
+            //},
+            'ImportID': {
+
+                'required': 'Please Select Import',
+            },
+
+        };
+        const $formContainer = $('#jq_PurchaseOrder_formContainer');
+
+        $(document).ready(function () {
+
+        fn_PurchaseOrder_initialload();
+
+
+    });
+        const LastIDSessionKey = 'PurchaseOrderLastID';
+        var PurchaseOrderTransMode = '';
+    var LastID_PurchaseOrder;
+    var FK_BranchCodePOrder = '';
+
+        function fn_PurchaseOrder_initialload() {
+
+            PurchaseOrderTransMode = "";
+           // getSessionValue("Vd++rU8QQpt1lN1iIJW1a8WOnMZThAKaZf2B1lXxRm8=", function (result) {
+            PurchaseOrderTransMode = '@ViewBag.TransMode';
+            FK_BranchCodePOrder = '@ViewBag.Fk_BranchCode';
+
+            fn_Purchaseorderlist(this, fn_loadPurchaseOrderAddForm);
+
+                 //fn_Purchaseorderlist(this);
+       // });
+
+                //fn_loadPurchaseOrderAddForm();
+
+
+        }
+
+
+        function fn_loadPurchaseOrderAddForm() {
+
+
+            $formContainer.load('@Url.Action("LoadPurchaseOrderForm", "PurchaseOrder")?mtd=@ViewBag.mtd', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+                 Getdepartmentdefault();
+
+                 $thisForm.find('[name="PurordDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="PurordEstiDeliveryDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="PurordDeliveryType"]').val(1).selectpicker('refresh');
+               
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_PurchaseOrder_initialload');
+
+                if ('@ViewBag.NumberGen' == 1) {
+                    getNumberGeneration(PurchaseOrderTransMode, 0, $thisForm, 'PurordQReferenceNo')
+                }
+               
+
+                
+
+                initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_PurchaseOrder = result;
+                });
+
+            });
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: viewdetails },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: DeletePurchaseOrder
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Number","PurordQReferenceNo","Supplier"],
+            serialNo: false,
+            hideColumn: [],
+            rowClickAction: viewdetails,
+            renameHeader: { "SlNo": "SlNo","Number":"Order No", "PurordQReferenceNo": "Reference No", "Supplier": "Supplier"}
+
+
+        };
+
+        function fn_Purchaseorderlist(ele,callback) {
+            console.log("1", 1);
+
+        let $sidemenu = $sideMenuOptions.body;
+
+
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+
+          let pageUrl = '@Url.Action("GetPurchaseOrderList", "PurchaseOrder")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: {
+                    pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: PurchaseOrderTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+
+                              $sidemenu.find('.jq_sidemenu_title').text("PurchaseOrder");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Purchaseorderlist(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: PurchaseOrderTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                    else  {
+                              setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Purchaseorderlist(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: PurchaseOrderTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                console.log("2", 2);
+                if (callback) {
+                    console.log("3", 3);
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+
+
+
+        function viewdetails() {
+
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                    PurchaseOrderID: savedData.PurchaseOrderID,
+                    TransMode: PurchaseOrderTransMode,
+                };
+
+                    $.ajax({
+                 url: '@Url.Action("GetPurchaseOrderInfo", "PurchaseOrder")',
+                type: "POST",
+
+                 data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+              contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                            console.log(ajaxOutput);
+                         ///success
+                            $sideMenuOptions.close();
+
+
+                                $('#jq_PurchaseOrder_formContainer').load("@Url.Action("LoadPurchaseOrderForm", "PurchaseOrder")?mtd=@ViewBag.mtd", function () {
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Number)
+                                    console.log('Inside load');
+                                    $thisForm.validate({ messages: validationMessage });
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        $thisForm.data({ 'pData': ajaxOutput.Data[0] });//setting pdata : which is used to get PostID when updating the  form in partial page
+
+
+
+
+                                        console.log('pData', ajaxOutput.Data[0]);
+                                        console.log('CheckQtData', ajaxOutput.Data[0].QuotationID);
+
+                                        if (ajaxOutput.Data[0].QuotationID == 0) {
+
+
+                                            $thisForm.find('[name=ImportID]').val(1).selectpicker('refresh');
+                                            $thisForm.find('[name="PurordQReferenceNo"]').attr("enabled", "enabled");
+
+                                            $thisForm.find('[name="ImportID"]').attr("disabled", "disabled");
+                                            document.getElementById('addcountry-jq-searchButton3').disabled=true;
+
+                                        }
+
+                                        else {
+
+                                            $thisForm.find('[name=ImportID]').val(2).selectpicker('refresh');
+                                            $thisForm.find('[name="PurordQReferenceNo"]').attr("disabled", "disabled");
+
+                                            document.getElementById('addcountry-jq-searchButton3').disabled = true;
+                                            $thisForm.find('[name="ImportID"]').attr("disabled", "disabled");
+                                        }
+
+
+
+
+
+                                        $thisForm.attr('perfect-onFormSuccess', 'fn_PurchaseOrder_initialload');
+                                        $thisForm.find('[name=Number]').val(ajaxOutput.Data[0].Number),
+                                            $thisForm.find('[name=PurordQReferenceNo]').val(ajaxOutput.Data[0].PurordQReferenceNo),
+
+                                            $thisForm.find('[name=PurordDate]').val(moment(ajaxOutput.Data[0].PurordDate).format('YYYY-MM-DD')),
+
+
+                                            $thisForm.find('[name=SupplierID]').val(ajaxOutput.Data[0].SupplierID).selectpicker('refresh'),
+                                            $thisForm.find('[name=Supplier]').val(ajaxOutput.Data[0].Supplier),
+
+                                            $thisForm.find('[name=DepartmentID]').val(ajaxOutput.Data[0].DepartmentID).selectpicker('refresh'),
+                                            $thisForm.find('[name=BranchID]').val(ajaxOutput.Data[0].BranchID),
+
+                                            $thisForm.find('[name=Department]').val(ajaxOutput.Data[0].Department),
+
+											$thisForm.find('[name=QuotationID]').val(ajaxOutput.Data[0].QuotationID),
+                                            ComDetailsTable_Fill($thisForm, 'cstatus', ajaxOutput.Data[0].PurchaseOrderDetails, tableOptionsTempOutFill),
+
+                                            $thisForm.find('[name=PurordEstiDeliveryDate]').val(moment(ajaxOutput.Data[0].PurordEstiDeliveryDate).format('YYYY-MM-DD')),
+
+                                            $thisForm.find('[name=PurordDeliveryType]').val(ajaxOutput.Data[0].PurordDeliveryType).selectpicker('refresh'),
+
+                                            $thisForm.find('[name=ID_Mode]').val(ajaxOutput.Data[0].ID_Mode).selectpicker('refresh'),
+                                            $thisForm.find('[name=ModeName]').val(ajaxOutput.Data[0].ModeName),
+
+
+
+                                            $thisForm.find('[name=PurordAdvanceAmount]').val((ajaxOutput.Data[0]['PurordAdvanceAmount']).toFixed(2)),
+
+
+                                        $thisForm.find('[name=PurordNetAmount]').val((ajaxOutput.Data[0]['PurordNetAmount']).toFixed(2));
+
+                                        var advanceamount = ajaxOutput.Data[0]['PurordAdvanceAmount'];
+                                        var netamount = ajaxOutput.Data[0]['PurordNetAmount'];
+                                        var totalcal = advanceamount + netamount;
+                                        $('[name="PurordTotalAmount"]').val((totalcal).toFixed(2));
+                                        $thisForm.find('[name=PurordRemark]').val(ajaxOutput.Data[0].PurordRemark);
+
+                                        $thisForm.find('button[name=add]').addClass('d-none');
+                                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                        $thisForm.find('[name="ImportID"]').attr("disabled", "disabled");
+
+                                    }
+
+                                });
+
+
+
+
+                },
+
+
+            });
+
+        }
+
+        var tableOptionsTempOutFill = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+
+
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+							
+                            CalculateTotal($tablecontainer, 1);
+                            CalculateNetAmount(this, 1);
+
+
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: {
+                'PurordQuantity': 'Quantity1R', 'UnitName': 'Unit', 'PurordUnitID_d': 'Unit', 'PurordPrice': 'Price1R','PurordActQuantity':'Act.Qty1R'},
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+
+           function DeletePurchaseOrder() {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+               console.log("Saved data", Saveddata);
+               $('.dataTable tr').removeClass("SelectForDelete");
+               $(this).closest('tr').addClass('SelectForDelete');
+                $.ajax({
+                    url: "@Url.Action("GetPurchaseOrderReasonList", "PurchaseOrder")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  " + Saveddata.PurordQReferenceNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        PurchaseOrderID: Saveddata.PurchaseOrderID,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeletePurchaseOrder", "PurchaseOrder")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+
+</script>
+}

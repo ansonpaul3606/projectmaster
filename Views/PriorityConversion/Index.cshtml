@@ -1,0 +1,72 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="PriorityConversion-form">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script type="text/javascript">
+
+        const $formContainer = $('#PriorityConversion-form');
+
+        $(document).ready(function () {
+            PriorityConversionInitialLoad();
+        });
+
+        function PriorityConversionInitialLoad()
+    {
+      
+            PriorityConversionLoad();
+           
+        }
+        var validationMessage = {
+
+
+            'AsonDate': {
+                'required': 'Please Select As On Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+           
+
+        };
+        function PriorityConversionLoad()
+        {
+             $formContainer.load('@Url.Action("LoadFormPriorityConversion", "PriorityConversion")?mtd=@ViewBag.mtd', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+                 $thisForm.attr('perfect-onFormSuccess', 'PriorityConversionInitialLoad');
+                 $("#PriorityDetails").hide();
+                 $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.validate({ messages: validationMessage });
+                 if ('@ViewBag.PagedAccessRights.UsrrlAdmin'== 'True') {
+
+                       $thisForm.find('[name="FK_Branch"]').val(@ViewBag.FK_Branch).selectpicker('refresh');
+                     $thisForm.find('[name="FK_Branch"]').attr("enabled", "enabled");
+                  }
+
+                 else {
+
+                  $thisForm.find('[name="FK_Branch"]').val(@ViewBag.FK_Branch).selectpicker('refresh');
+                     $thisForm.find('[name="FK_Branch"]').attr("disabled", "disabled");
+                   }
+                
+                
+                
+
+                   });
+        }
+        
+        </script>
+
+    }
+
+

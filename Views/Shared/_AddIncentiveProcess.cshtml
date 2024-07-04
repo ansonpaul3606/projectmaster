@@ -1,0 +1,1091 @@
+﻿<style>
+    .tableFixHead {
+        overflow: auto;
+        height: auto;
+        max-height: 210px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+
+    th {
+        background: var(--perfect-primary);
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitles</h4>
+        <span title="To View List" id="idviewlist" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div>
+                @Html.AntiForgeryToken()
+
+
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Incentive Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="ID_IncentiveProcess" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_numeric" name="FK_IncentiveType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="incentivetypechange(this)">
+                                        <option value="">Please Select </option>
+                                        @if (!(Model.IncentivetypeList is null))
+                                        {
+                                            foreach (var Module in Model.IncentivetypeList)
+                                            {
+                                                <option value="@Module.IncentiveTypeID">@Module.IncentiveType</option>
+                                            }
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Process Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ProcessDate" id="Processdateid" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control  perfectValidate_date" name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control  perfectValidate_date" name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm " id="FK_Branch" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="clearbill(this)">
+
+                                    <option value="0">All</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            if (branchList.BranchID == ViewBag.FK_Branch)
+                                            {
+                                                <option value="@branchList.BranchID" selected>@branchList.Branch</option> }
+                                            else
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>}
+
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="DepartmentName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="DepartmentID" id="FK_Department" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="depeartment" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,35,'Department Details',[])" Criterea1="0" Criterea2="0" BindName="DepartmentName" BindVal="DepartmentID" Function="1"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Employee</span>
+
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group" id="divemployeefrom">
+                                    <input type="text" class="form-control " name="EmployeeName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="EmployeeID" id="employeeid" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,37,'Employee List',[],['FK_Department','FK_Branch'],'@ViewBag.TransMode')" Criterea1="DepartmentID" Criterea2="BranchID" BindName="EmployeeName" BindVal="EmployeeID" Function="2"></button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+
+
+                            <div class="col-sm-8">
+                                <div class="input-group" id="divemployeefrom">
+                                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_Incentiveprocess(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Process</button>
+                                    <button type="button" class="btn btn-light" id="idresetbutton" perfect-css="button" onclick="ResetIncentiveprocess(this)" name="reset">Clear</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="form-row">
+                    <div class="col-sm-12" di>
+                        <div class="card">
+                            <div class="card-body" style="padding-top:0 !important">
+                                <div class="table-responsive-xl tableFixHead">
+                                    <table class="table table-hover table-responsive-xl table-striped  text-black" id="IncentiveprocessDetails" style="display:none;">
+                                        <thead class="bg-primary text-white " style="position:sticky; top:0px">
+                                            <tr>
+
+
+
+
+                                                <th scope="col" style="text-align:left"> <input type="checkbox" id="checkall" name="checkall" title="Select All" /></th>
+                                                <th scope="col" style="text-align:center">SL.NO</th>
+                                                <th style="display:none">BranchID</th>
+                                                <th>Branch</th>
+                                                <th style="display:none">DepartmentID</th>
+                                                <th>Department</th>
+                                                <th style="display:none">EmployeeID</th>
+                                                <th>Employee</th>
+
+                                                <th>Last Incentive Date</th>
+                                                <th>Act.Incentive</th>
+                                                <th>Payable</th>
+                                                <th>Direct</th>
+                                                <th style="display:none">GroupID</th>
+                                                <th style="display:none">ID_IncentiveProcessDetails</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="IncentiveprocessDetailsTbody">
+                                            <tr id="0"></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal fade" perfect-class="formGroupEditPopupIncentiveDetails" id="formGroupEditPopupIncentiveDetails">
+                        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+                            <div class="modal-content rounded-0">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">Incentive WorkSheet</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" perfect-class="formGroup">
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="form-group row" perfect-class="formGroup">
+                                                <label class="col-sm-4 col-form-label">
+                                                    <span perfect-class="formGroupLabel">Employee</span>
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="col-sm-8">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" name="EmpName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="250" readonly />
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group row" perfect-class="formGroup">
+                                                <label class="col-sm-4 col-form-label">
+                                                    <span perfect-class="formGroupLabel">Branch</span>
+                                                </label>
+                                                <div class="col-sm-8">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" name="EmpBranchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="250" readonly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="form-group row" perfect-class="formGroup">
+                                                <label class="col-sm-4 col-form-label">
+                                                    <span perfect-class="formGroupLabel">Department</span>
+                                                </label>
+                                                <div class="col-sm-8">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" name="EmpDepartmentName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="250" readonly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive-lg tableFixHead">
+                                        <input type="hidden" id="UId" name="UId">
+                                        <input type="hidden" id="Totamt" name="Totamt">
+                                        <table class="table mb-0 table-striped text-black" id="IncentiveprocesseditDetails" style="display:none;">
+                                            <thead class="bg-primary text-white" style="position:sticky; top:0px">
+                                                <tr>
+                                                    <th scope="col" style="text-align:center">SL.NO</th>
+                                                    <th>Module</th>
+                                                    <th>Account No</th>
+                                                    <th>Value</th>
+                                                    <th>Activity</th>
+                                                    <th>Calculation Method</th>
+                                                    <th>Act.Incentive</th>
+                                                    <th>Payable</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="IncentiveprocesseditDetailsTbody">
+                                                <tr id="0">
+                                                    <!-- Placeholder for no records -->
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="idpopupupdate" class="btn btn-primary mr-3" data-dismiss="modal" onclick="fn_EditPopupvalues(this)">Update</button>
+                                    <button type="button" id="idpopreset" class="btn btn light"  onclick="Resetpopupedit(this)">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter" id="idfooter" style="display:none;">
+
+                @*@if (ViewBag.PagedAccessRights.UsrrlMsEdt)
+                    {
+                        <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_UpdateIncentiveProcess(this,'update')"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>
+                    }*@
+                @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                {
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3" name="add" perfect-css="button" onclick="fn_UpdateIncentiveProcess(this,'new')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                }
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="Resetfn_UpdateIncentiveProcess(this)" name="reset">Clear</button>
+            </div>
+
+
+
+
+        </form>
+
+
+    </div>
+</div>
+<script>
+
+    //on load functions
+    $(document).ready(function () {
+
+        initFunctions('form');
+        GetLeadFromdefault();
+    });
+    function Resetfn_UpdateIncentiveProcess(ele) {
+
+        IncentiveprocessInitialLoad();
+    }
+
+    function ResetIncentiveprocess(ele) {
+        IncentiveprocessInitialLoad();
+        $('#IncentiveprocessDetails').hide();
+        $('#IncentiveprocessDetailsTbody').empty();
+    }
+
+
+
+
+     function GetLeadFromdefault() {
+         let $thisForm = $('[perfect-class="form"]');
+                $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                     $.each(ajaxOutput.Data, function (key, value) {
+                         debugger
+
+                         console.log('>_ Search button > list click', value);
+
+                         $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+                         $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                         let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                          let user = '@ViewBag.Admin';
+
+                         if (parseFloat(Mode) == 1 && user == 'True') {
+
+                             $('#BranchID').prop('disabled', false );
+                         }
+                         else {
+                             $('#BranchID').prop('disabled', true);
+                         }
+
+
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+
+             },
+
+
+         });
+
+
+    }
+      var subtablelst = [];
+
+
+
+    function fn_Incentiveprocess(ele) {
+        var $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        debugger;
+        let Fromdate = new Date($thisForm.find('[name="FromDate"]').val());
+        Fromdate.setHours(0, 0, 0, 0);
+        let Todate = new Date($thisForm.find('[name="ToDate"]').val());
+        Todate.setHours(0, 0, 0, 0);
+        let processdate = new Date($thisForm.find('[name="ProcessDate"]').val());
+        processdate.setHours(0, 0, 0, 0);
+
+        let datecheck = processdate >= Todate;
+        let datechecks = processdate > Fromdate;
+        let todate = Todate > Fromdate;
+
+        if (!datecheck) {
+
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Process Date should be greater than or equal to To Date' });
+
+        }
+
+        if (!datechecks) {
+
+            NotificationMessage({'type': 'error', 'heading': 'Error', 'message': 'Process Date should be greater than From Date' });
+
+
+        }
+
+        if (!todate) {
+
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than From Date' });
+        }
+
+
+
+
+        if ($thisForm.valid() && checkLimit()) {
+
+            $(ele).prop('disabled', true);
+
+            var InputData = {
+                'FK_IncentiveType': $thisForm.find('[name="FK_IncentiveType"]').val(),
+                'ProcessDate': $thisForm.find('[name="ProcessDate"]').val(),
+                'FromDate': $thisForm.find('[name="FromDate"]').val(),
+                'ToDate': $thisForm.find('[name="ToDate"]').val(),
+                'FK_Department': $thisForm.find('[name="DepartmentID"]').val() == "" ? 0 : $thisForm.find('[name="DepartmentID"]').val(),
+                'FK_Branch': $thisForm.find('[name="BranchID"]').val(),
+                'FK_Employee': $thisForm.find('[name="EmployeeID"]').val() == "" ? 0 : $thisForm.find('[name="EmployeeID"]').val(),
+                'Clear':0,
+            };
+            console.log('inputdata', InputData);
+            $.ajax({
+                url: "@Url.Action("GetIncentiveprocessDetails", "IncentiveProcess")",
+                type: "GET",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    $('#IncentiveprocessDetails').show();
+                    if (ajaxOutput != null) {
+                        bindajaxout = ajaxOutput;
+                        console.log('bindajaxout', ajaxOutput);
+
+                        var $ProductHtml = '';
+                        if (ajaxOutput.Lits.Data != null) {
+                            if (ajaxOutput.Lits.Data[0].ErrCode != -200) {
+                                if (ajaxOutput.Lits.Data != null) {
+
+                                    $('#IncentiveprocessDetailsTbody').empty();
+                                    if (ajaxOutput.Lits.Data.length > 0) {
+                                        $('#idfooter').show();
+                                        let uniqueRowId = 1;
+                                        $.each(ajaxOutput.Lits.Data, function (i, value) {
+                                            let rowCount = (i + 1);
+                                            $ProductHtml += "<tr id=" + rowCount + " data-row-id=" + uniqueRowId + ">";
+                                            $ProductHtml += "<td class='jq_incentivecheckbox'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox' checked='true'/></td>";
+                                            $ProductHtml += "<td  Style='text-align:center'>" + value.SlNo + "</td>";
+                                            $ProductHtml += "<td class='jq_incentiveprocess_branch'id='editbranchid " + i + "'name=BranchID" + i + "' Style='Display:none'>" + value.BranchID + "</td>";
+                                            $ProductHtml += "<td style='width: 150px;' >" + value.Branch + "</td>";
+                                            $ProductHtml += "<td class='jq_incentiveprocess_department'id='editdepartmentid" + i + "' name=DepartmentID" + i + "' Style='Display:none'>" + value.DepartmentID + "</td>";
+                                            $ProductHtml += "<td style='width: 150px;' >" + value.DepartmentName + "</td>";
+                                            $ProductHtml += "<td class='jq_incentiveprocess_employeeid'id='editemployeeid" + i + "' name=EmployeeID" + i + "' Style='Display:none'>" + value.EmployeeID + "</td>";
+                                            $ProductHtml += "<td style='width: 150px;' >" + value.Employee + "</td>";
+                                            $ProductHtml += "<td class='jq_incentiveprocess_lastincentive'style='width: 150px;name=LastInstDate" + i + "'>" + value.LastIncentiveDate + "</td>";
+                                            $ProductHtml += "<td  class='jq_incentiveprocess_actualincentive'style='width: 150px;name=ActIncentive" + i + "'>" + value.ActualIncentive + "</td>";
+                                            $ProductHtml += "<td class='jq_Payableamt' style='width: 150px; id='firstpayable' name=Payable" + i + "'>" + value.Payable + "</td>";
+                                            $ProductHtml += "<td class='jq_incentivedirect_td' style='width: 150px;name=Direct" + i + "'><input  id='directchk1' type='checkbox' " + (value.Direct ? "checked" : "") + " onchange=''/></td>";
+                                            $ProductHtml += "<td class='jq_incentiveprocess_groupid'id='editgroupid" + i + "' name=GroupID" + i + "' Style='Display:none'>" + value.GroupID + "</td>";
+                                            //$ProductHtml += "<td class='EditStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditdata(this, " + value.BranchID + ", " + value.DepartmentID + ", " + value.EmployeeID + ", " + value.GroupID + "," + value.Branch + ")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                            $ProductHtml += "<td class='EditStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditdata(this, " + uniqueRowId + "," + value.BranchID + ", " + value.DepartmentID + ", " + value.EmployeeID + ", " + value.GroupID + ",\"" + value.Branch + "\", \"" + value.DepartmentName + "\", \"" + value.Employee + "\")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                            $ProductHtml += "</tr>";
+                                            uniqueRowId++; // Increment uniqueRowId for each row
+                                        });
+                                    }
+                                }
+
+                                else {
+                                    $('#IncentiveprocessDetailsTbody').empty();
+                                    $('#checkall').is(":checked") == false;
+                                    $ProductHtml += "<tr id='0'><td colspan='8' style='text-align:center'>No Records..</td></tr>";
+                                    $(ele).prop('disabled', false);
+                                }
+
+                            }
+                            else {
+
+                                $('#IncentiveprocessDetails').hide();
+                                $(ele).prop('disabled', false);
+                                $('#IncentiveprocessDetailsTbody').empty();
+                                let confirmationDialogBoxOption = { heading: "Message", body: ajaxOutput.Lits.Data[0].ErrMsg, cancel: "No", confirm: "Yes", reason: '' };
+                                var res = ConfirmDialog(confirmationDialogBoxOption);
+                                res.then(function (selectedOption) {
+                                    if (selectedOption) {
+                                        var InputDatas = {
+                                            'FK_IncentiveType': $thisForm.find('[name="FK_IncentiveType"]').val(),
+                                            'ProcessDate': $thisForm.find('[name="ProcessDate"]').val(),
+                                            'FromDate': $thisForm.find('[name="FromDate"]').val(),
+                                            'ToDate': $thisForm.find('[name="ToDate"]').val(),
+                                            'FK_Department': $thisForm.find('[name="DepartmentID"]').val() == "" ? 0 : $thisForm.find('[name="DepartmentID"]').val(),
+                                            'FK_Branch': $thisForm.find('[name="BranchID"]').val(),
+                                            'FK_Employee': $thisForm.find('[name="EmployeeID"]').val() == "" ? 0 : $thisForm.find('[name="EmployeeID"]').val(),
+                                            'Clear': 1,
+                                        };
+                                        $.ajax({
+                                            url: "@Url.Action("GetIncentiveprocessDetails", "IncentiveProcess")",
+                                            type: "GET",
+                                            data: InputDatas,
+                                            dataType: "json",
+                                            contentType: "application/json",
+                                            success: function (ajaxOutput) {
+
+                                                $('#IncentiveprocessDetails').show();
+                                                if (ajaxOutput != null) {
+                                                    bindajaxout = ajaxOutput;
+                                                    console.log('bindajaxout', ajaxOutput);
+
+                                                    var $ProductHtml = '';
+
+                                                    if (ajaxOutput.Lits.Data != null) {
+
+                                                        $('#IncentiveprocessDetailsTbody').empty();
+                                                        if (ajaxOutput.Lits.Data.length > 0) {
+                                                            $('#idfooter').show();
+                                                            let uniqueRowId = 1;
+                                                            $.each(ajaxOutput.Lits.Data, function (i, value) {
+                                                                let rowCount = (i + 1);
+                                                                $ProductHtml += "<tr id=" + rowCount + " data-row-id=" + uniqueRowId + ">";
+                                                                $ProductHtml += "<td class='jq_incentivecheckbox'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox' checked='true'/></td>";
+                                                                $ProductHtml += "<td  Style='text-align:center'>" + value.SlNo + "</td>";
+                                                                $ProductHtml += "<td class='jq_incentiveprocess_branch'id='editbranchid " + i + "'name=BranchID" + i + "' Style='Display:none'>" + value.BranchID + "</td>";
+                                                                $ProductHtml += "<td style='width: 150px;' >" + value.Branch + "</td>";
+                                                                $ProductHtml += "<td class='jq_incentiveprocess_department'id='editdepartmentid" + i + "' name=DepartmentID" + i + "' Style='Display:none'>" + value.DepartmentID + "</td>";
+                                                                $ProductHtml += "<td style='width: 150px;' >" + value.DepartmentName + "</td>";
+                                                                $ProductHtml += "<td class='jq_incentiveprocess_employeeid'id='editemployeeid" + i + "' name=EmployeeID" + i + "' Style='Display:none'>" + value.EmployeeID + "</td>";
+                                                                $ProductHtml += "<td style='width: 150px;' >" + value.Employee + "</td>";
+                                                                $ProductHtml += "<td class='jq_incentiveprocess_lastincentive'style='width: 150px;name=LastInstDate" + i + "'>" + value.LastIncentiveDate + "</td>";
+                                                                $ProductHtml += "<td  class='jq_incentiveprocess_actualincentive'style='width: 150px;name=ActIncentive" + i + "'>" + value.ActualIncentive + "</td>";
+                                                                $ProductHtml += "<td class='jq_Payableamt' style='width: 150px; id='firstpayable' name=Payable" + i + "'>" + value.Payable + "</td>";
+                                                                $ProductHtml += "<td class='jq_incentivedirect_td' style='width: 150px;name=Direct" + i + "'><input  id='directchk1' type='checkbox' " + (value.Direct ? "checked" : "") + " onchange=''/></td>";
+                                                                $ProductHtml += "<td class='jq_incentiveprocess_groupid'id='editgroupid" + i + "' name=GroupID" + i + "' Style='Display:none'>" + value.GroupID + "</td>";
+                                                                //$ProductHtml += "<td class='EditStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditdata(this, " + value.BranchID + ", " + value.DepartmentID + ", " + value.EmployeeID + ", " + value.GroupID + "," + value.Branch + ")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                                                $ProductHtml += "<td class='EditStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditdata(this, " + uniqueRowId + "," + value.BranchID + ", " + value.DepartmentID + ", " + value.EmployeeID + ", " + value.GroupID + ",\"" + value.Branch + "\", \"" + value.DepartmentName + "\", \"" + value.Employee + "\")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                                                $ProductHtml += "</tr>";
+                                                                uniqueRowId++; // Increment uniqueRowId for each row
+                                                            });
+                                                        }
+                                                    }
+
+                                                    else {
+                                                        $('#IncentiveprocessDetailsTbody').empty();
+                                                        $('#checkall').is(":checked") == false;
+                                                        $ProductHtml += "<tr id='0'><td colspan='8' style='text-align:center'>No Records..</td></tr>";
+                                                        $(ele).prop('disabled', false);
+                                                    }
+
+                                                }
+
+                                                $(ele).prop('disabled', false);
+                                                $("#IncentiveprocessDetails").show();
+                                                $('#IncentiveprocessDetailsTbody').append($ProductHtml);
+                                            }
+
+
+
+
+                                        });
+
+
+                                    }
+                                    else {
+                                        $(ele).prop('disabled', false);
+
+                                        IncentiveprocessInitialLoad();
+                                        $('#IncentiveprocessDetails').hide();
+                                        $('#IncentiveprocessDetailsTbody').empty();
+                                    }
+                                });
+                            }
+
+                    }
+                        $('#IncentiveprocessDetailsTbody').empty();
+                        $('#checkall').is(":checked") == false;
+                       
+                        $(ele).prop('disabled', false);
+                    }
+
+
+
+                }
+            });
+        }
+        else {
+            $('#IncentiveprocessDetailsTbody').empty();
+            $('#checkall').is(":checked") == false;
+          
+            $(ele).prop('disabled', false);
+        }
+    }
+
+    function checkallcase() {
+
+        var allcheck = $("#checkall:checked").length;
+        var Checkedcount = $("input[type='checkbox']:checked").length;
+        var Actualcheckedcount = Checkedcount - allcheck;
+        var rowCount = $("#IncentiveprocessDetailsTbody tbody tr").length;
+        if (Actualcheckedcount < rowCount) {
+            $('#checkall').prop('checked', false);
+        }
+        else {
+            $('#checkall').prop('checked', true);
+        }
+
+    }
+
+
+
+    function checkLimit(ele) {
+        debugger;
+        let $thisForm = $('[perfect-class="form"]');
+        let Fromdate = new Date($thisForm.find('[name="FromDate"]').val());
+        Fromdate.setHours(0, 0, 0, 0);
+        let Todate = new Date($thisForm.find('[name="ToDate"]').val());
+        Todate.setHours(0, 0, 0, 0);
+        let processdate = new Date($thisForm.find('[name="ProcessDate"]').val());
+        processdate.setHours(0, 0, 0, 0);
+
+        let datecheck = processdate >= Todate;
+        let datechecks = processdate > Fromdate;
+        let todate = Todate > Fromdate;
+
+        if (!datecheck) {
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Process Date should be greater than or equal to To Date');
+        } else {
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+        }
+
+        if (!datechecks) {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Process Date should be greater than From Date');
+        } else {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+        }
+
+        if (!todate) {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date');
+        } else {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+        }
+
+        return datecheck && datechecks && todate;
+    }
+
+
+
+    var EditGroupid = 0;
+    function Popupeditdata(button,dataId ,branchID, departmentID, employeeID,groupID,branch,department,employee) {
+        debugger
+        let $thisFormValue = $(dataId).closest('tr').data('row-id');
+        let iddd = dataId;
+
+        var $thisForm = $(this).closest('[perfect-class="form"]');
+
+        $('#IncentiveprocesseditDetails').show();
+        $('#formGroupEditPopupIncentiveDetails').modal('show');
+
+
+
+        console.log('values:', branchID, departmentID, employeeID, groupID, branch, department, employee);
+        EditGroupid = groupID;
+        $('[name="EmpName"]').val(employee);
+        $('[name="EmpBranchName"]').val(branch);
+        $('[name="EmpDepartmentName"]').val(department);
+        debugger
+
+        var InputData = {
+
+            'FK_Department': departmentID,
+            'FK_Branch': branchID,
+            'FK_Employee': employeeID,
+            'GroupID': groupID,
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetEditIncentiveprocessDetails", "IncentiveProcess")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                $('#IncentiveprocesseditDetails').show();
+                if (ajaxOutput != null) {
+                    bindajaxout = ajaxOutput;
+                    var $EditProductHtml = '';
+
+
+
+
+                    if (ajaxOutput.Lits.Data != null) {
+                        $('#IncentiveprocesseditDetailsTbody').empty();
+                        if (ajaxOutput.Lits.Data.length > 0) {
+
+                            $('#idfooter').show();
+
+                            $.each(ajaxOutput.Lits.Data, function (i, value) {
+                                var amtTotal = 0;
+                                amtTotal = value.WorkSheetPayable;
+                                let rowCount = (i + 1);
+                                $EditProductHtml += "<tr id=" + rowCount + ">";
+
+
+                                $EditProductHtml += "<td  Style='text-align:center'>" + value.SlNo + "</td>";
+
+                                $EditProductHtml += "<td style='width: 150px;' >" + value.Module + "</td>";
+
+                                $EditProductHtml += "<td style='width: 150px;' >" + value.AccountNo + "</td>";
+
+                                $EditProductHtml += "<td style='width: 150px;'  >" + value.Value + "</td>";
+                                $EditProductHtml += "<td style='width: 150px;'>" + value.Activity + "</td>";
+                                $EditProductHtml += "<td style='width: 150px;'>" + value.CalculationMethod + "</td>";
+                                $EditProductHtml += "<td class='jq_editactualincentive' style='width: 150px;'><input type='textbox'onkeypress='return /[0-9.]/i.test(event.key)' maxlength ='10' type='number' style='width:200px'id='jq_editactualincentive'   class='form-control ' value='" + value.ActualIncentive + "'disabled/></td>";
+
+                                $EditProductHtml += "<td class='jq_editincentivepayable'id='editincentivepayableid " + i + "'name=WorkSheetPayable" + i + "'><input type = 'textbox'onkeypress = 'return /[0-9.]/i.test(event.key)' maxlength = '10' type = 'number'style = 'width:200px'class='form-control'value ='" + value.WorkSheetPayable + "'/></td>";
+                                $EditProductHtml += "<td class='jq_editincentivecalc'id='editincentiveid " + i + "'name=ID_IncentiveProcessWorkSheetCalc" + i + "' Style='Display:none'>" + value.ID_IncentiveProcessWorkSheetCalc + "</td>";
+
+                                $EditProductHtml += "</tr>";
+
+
+                                $('[name="UId"]').val(iddd);
+                            });
+
+                        }
+                    }
+                    else {
+                        $('#IncentiveprocesseditDetailsTbody').empty();
+                        $('#checkall').is(":checked") == false;
+                        $EditProductHtml += "<tr id='0'><td colspan='8' style'text-align:center'>No Records..</td></tr>";
+                    }
+                    $('#IncentiveprocesseditDetailsTbody').append($EditProductHtml);
+                    $('#IncentiveprocesseditDetails').show();
+                    $('#idpopreset').show();
+                    $('#idpopupupdate').show();
+
+                }
+            }
+        });
+    }
+
+ 
+
+    function Resetpopupedit() {
+   
+            $('#IncentiveprocesseditDetailsTbody tr').each(function () {
+                
+                var actualIncentiveInput = $(this).find('.jq_editactualincentive input');
+               
+                var workSheetPayableInput = $(this).find('.jq_editincentivepayable input');
+               
+                workSheetPayableInput.val(actualIncentiveInput.val());
+               
+            });
+      
+        
+
+   }
+
+    function fn_EditPopupvalues(ele) {
+        debugger
+        var $thisForm = $(ele).closest('[perfect-class="form"]');
+        var tableeditpopupvalues = $("#IncentiveprocesseditDetailsTbody tr");
+
+        let EditpopupDetails = [];
+
+        if (tableeditpopupvalues.length > 0)
+
+        {
+
+
+            $('#IncentiveprocesseditDetailsTbody tr').each(function (index, ele) {
+
+                let EditDetinfo = {};
+
+                EditDetinfo['ID_IncentiveProcessWorkSheetCalc'] = $(this).find('.jq_editincentivecalc').text();
+                EditDetinfo['Payable'] = $(this).find('.jq_editincentivepayable').find('input').val();
+
+                EditpopupDetails.push(EditDetinfo);
+            });
+
+
+
+        }debugger
+        let inputData = {
+
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'EditPopupUpdatelist': EditpopupDetails,
+            GroupID: EditGroupid,
+        };
+
+                        $.ajax({
+                            url: "@Url.Action("UpdateEditIncentivePopupDetails", "IncentiveProcess")",
+                            type: "POST",
+
+                            data: inputData,//<---- Input json : data passed to controller
+                            dataType: "json",
+                            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                            success: function (ajaxOutput) { //<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                                if (ajaxOutput.Process.IsProcess) {
+
+
+
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        //toastr.success(value, "Success");
+                                        NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Updated' });
+
+                                    });
+
+
+                                    let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                    //if (onSuccess) {
+                                    //    window[onSuccess]();
+                                    //}
+
+
+
+
+                                }
+                                else {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        $('#formGroupEditPopupIncentiveDetails').modal('hide');
+                                    });
+                                }
+
+
+                            },
+                            complete: function () {
+                                debugger
+                                $(ele).prop('disabled', false);
+                                let sum = parseFloat($('[name="Totamt"]').val()) || 0;
+                                $('[name="UId"]').val();
+                                $('#firstpayable').val(sum);
+                                $('#firstpayable').text(sum);
+                            }
+
+        });
+
+        updateTotalIncentive();
+    }
+
+    function updateTotalIncentive() {
+        debugger
+        var totalIncentive = 0;
+        var totalIncentive1 = 0;
+        $('#IncentiveprocesseditDetailsTbody tr').each(function (index, ele) {
+            totalIncentive += parseFloat(($(this).find('.jq_editincentivepayable').find('input').val()) == '' ? 0 : $(this).find('.jq_editincentivepayable').find('input').val());
+        });
+
+        console.log('total', totalIncentive);
+
+
+        let uniqueRowId = $('[name="UId"]').val();
+
+
+        let $rowToUpdate = $('#IncentiveprocessDetailsTbody').find('tr[data-row-id="' + uniqueRowId + '"]');
+
+        if ($rowToUpdate.length > 0) {
+            // Update the Payableamt value for the specific row
+            $rowToUpdate.find('.jq_Payableamt').text(totalIncentive);
+        }
+
+
+
+    }
+
+
+    function fn_UpdateIncentiveProcess(element, actionType) {
+        debugger
+        let $thisForm = $(element).closest('[perfect-class="form"]');
+
+
+
+        $(element).prop('disabled', true);
+
+
+        var tableincentiveprocessdetailsrws = $("#IncentiveprocessDetailsTbody tr");
+
+        let IncentiveprocessDetails = [];
+        let checklist = 0;
+        if (tableincentiveprocessdetailsrws.length > 0) {
+            debugger;
+
+
+            $('#IncentiveprocessDetailsTbody tr').each(function (index, element) {
+                debugger;
+
+                if ($(this).find('.jq_incentivecheckbox').find('[type="checkbox"]').is(':checked') == true) {
+                    checklist = 1;
+
+                    let IncentiveDetinfo = {};
+
+
+                    IncentiveDetinfo['FK_Branch'] = $(element).find('.jq_incentiveprocess_branch').text();
+                    IncentiveDetinfo['FK_Department'] = $(element).find('.jq_incentiveprocess_department').text();
+                    IncentiveDetinfo['FK_Employee'] = $(element).find('.jq_incentiveprocess_employeeid').text();
+                    IncentiveDetinfo['LastIncentiveDate'] = $(element).find('.jq_incentiveprocess_lastincentive').text();
+                    IncentiveDetinfo['ActualIncentive'] = $(element).find('.jq_incentiveprocess_actualincentive').text();
+                    IncentiveDetinfo['Payable'] = $(element).find('.jq_Payableamt').text();
+                    IncentiveDetinfo['Direct'] = $(element).find('.jq_incentivedirect_td').find('input').is(':checked');
+                    IncentiveDetinfo['GroupID'] = $(element).find('.jq_incentiveprocess_groupid').text();
+                    IncentiveprocessDetails.push(IncentiveDetinfo);
+
+                }
+
+            });
+            console.log('IncentiveprocessDetails', IncentiveprocessDetails);
+        }
+
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementsByName("ProcessDate")[0].setAttribute('max', today);
+        document.getElementsByName("FromDate")[0].setAttribute('max', today);
+        document.getElementsByName("ToDate")[0].setAttribute('max', today);
+        if(checkLimit()){
+
+            if ($thisForm.valid() && checklist == 1) {
+                let _ID_IncentiveProcess = 0;
+                let _ActionUrl = "";
+
+                if (actionType === "new") {
+                    _ID_IncentiveProcess = 0;
+                    _ActionUrl = "@Url.Action("SaveIncentiveProcess", "IncentiveProcess")";
+                }
+                else if (actionType === "update") {
+
+                    _ActionUrl = "@Url.Action("UpdateIncentiveProcess", "IncentiveProcess")";
+                }
+
+
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    ID_IncentiveProcess: _ID_IncentiveProcess,
+                    'FK_IncentiveType': $thisForm.find('[name="FK_IncentiveType"]').val(),
+                    'ProcessDate': $thisForm.find('[name="ProcessDate"]').val(),
+                    'FromDate': $thisForm.find('[name="FromDate"]').val(),
+                    'ToDate': $thisForm.find('[name="ToDate"]').val(),
+                    'FK_Department': $thisForm.find('[name="DepartmentID"]').val() == "" ? 0 : $thisForm.find('[name="DepartmentID"]').val(),
+                    'FK_Branch': $thisForm.find('[name="BranchID"]').val(),
+                    'FK_Employee': $thisForm.find('[name="EmployeeID"]').val() == "" ? 0 : $thisForm.find('[name="EmployeeID"]').val(),
+                    'IncentiveProcessDetailsList': IncentiveprocessDetails,
+                    'TransMode': IncentiveprocessTransMode,
+                };
+
+
+                $.ajax({
+                    url: _ActionUrl,
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                            });
+
+
+
+
+
+                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                            if (onSuccess) {
+                                IncentiveprocessInitialLoad();
+                            }
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $(element).prop('disabled', false);
+                    }
+
+                });
+            }
+            else {
+
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'At Least one Incentive should be Processed' });
+                $(element).prop('disabled', false);
+            }
+
+
+        }
+        else {
+
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Check Dates' });
+
+        }
+      
+            $(element).prop('disabled', false);
+      
+
+    }
+
+    function clearbill(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $('#IncentiveprocessDetails').hide();
+        $('#IncentiveprocessDetailsTbody').empty();
+        $thisForm.find('[name="EmployeeID"]').val(0);
+        $thisForm.find('[name="DepartmentID"]').val(0);
+        $thisForm.find('[name="DepartmentName"]').val('');
+        $thisForm.find('[name="EmployeeName"]').val('');
+
+    }
+
+    function getfunction(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $('#IncentiveprocessDetails').hide();
+        $('#IncentiveprocessDetailsTbody').empty();
+        $thisForm.find('[name="EmployeeID"]').val(0);
+        $thisForm.find('[name="EmployeeName"]').val('');
+    }
+    function getfunctionAssign(ele) {
+
+        $('#IncentiveprocessDetails').hide();
+        $('#IncentiveprocessDetailsTbody').empty();
+
+    }
+    function incentivetypechange(ele) {
+        $('#IncentiveprocessDetails').hide();
+        $('#IncentiveprocessDetailsTbody').empty();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="EmployeeID"]').val(0);
+        $thisForm.find('[name="DepartmentID"]').val(0);
+        $thisForm.find('[name="DepartmentName"]').val('');
+        $thisForm.find('[name="EmployeeName"]').val('');
+
+    }
+    $('#checkall').change(function () {
+        $('tbody tr td input[type="checkbox"]').prop('checked', $(this).prop('checked'));
+
+        $('tbody tr td #directchk1').prop('checked', false);
+
+    });
+
+</script>

@@ -1,0 +1,1032 @@
+﻿@model PerfectWebERP.Models.LogModel.LogListModel
+
+
+
+<style>
+    .tableFixHead {
+        overflow: auto;
+        height: 500px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+    
+</style>
+
+
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_eqlogrepo_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none   ">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+
+    <div class="card-body Accountreport">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="accountreportsearch-body" @* id="filterid" style="display: none;"*@>
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+
+                    <div class="col-sm-4" style="display:none;">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                @*<input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.Companyname" perfect-class="formGroupControl" perfect-css="input" />*@
+
+                                <select class="form-control" id="ID_Report" name="ID_Report" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    <option value="1">Vehicle Log Report</option>
+                                    <option value="2">Tool Log</option>
+                                </select>
+                                @*<div id="ID_Report-error" class="invalid-feedback animated fadeInUp producterror" style="display: block;">Please Select Report Name</div>*@
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date  Action" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" id="ToDate" class="form-control perfectValidate_date Action" name="ToDate" data-id="ToDate-error" perfect-class="formGroupControl" perfect-ctype="date" max="2050-01-01" onchange="checkLimit(this)" perfect-css="date" />
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label" id="Products">
+                                @ViewBag.lblpro
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" perfect-tempTable-Purchase="EmpName" name="ID_Name" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="ID_FIELD" perfect-tempTable-Purchase="Item" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="fn_showpopuplist(this)" perfect-css="button" Function="1"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+
+
+                            <label class="col-sm-4 col-form-label" id="Employees">
+                                @ViewBag.lblemp
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="EmployeeID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,150,'Employee Details',[],['Branchs','BranchTypeID','FK_Departement','Department','BranchType','SLNo','FK_Branch'])" Criterea1="" Criterea2="0" Criterea3="0" BindName="Employee" BindVal="EmployeeID"  Function="1"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 PerError">
+                        <div class="form-group row" perfect-class="formGroup">
+
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel" name="lblMaintenancetype">Maintenance Type</span>
+
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control" perfect-tempTable-MaintenanceDetails="FK_Maintenance" name="FK_Maintenance" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="maitenanceChange()">
+                                        <option value="">Please Select </option>
+
+                                        @if (!(Model.TypeListdata is null))
+                                        {
+                                            foreach (var typelist in Model.TypeListdata)
+                                            {
+                                                <option value="@typelist.TypeID">@typelist.TypeName </option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getreport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                </div>
+            </div>
+
+            @*<button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:right; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>*@
+
+            <br />
+            <div class="row" id="vllog" style="display:none">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div perfect-class="LogContainer" id="incentivettable" class="">
+                                <div class="table-responsive tableFixHead">
+                                    <table id="EqlogList" class="table table-hover   table-striped text-black">
+                                        <thead class="thead-primary">
+                                            <tr>
+                                                <th style="display:none;"></th>
+                                                <th>Vehicle</th>
+                                                @*<th>FK_VehicleLog</th>*@
+                                                <th>Driver</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Start Km</th>
+                                                <th>End Km</th>
+                                                <th>Route</th>
+                                                <th>Maintenance</th>
+                                                <th>Remarks</th>
+                                                <th class="text-left">Amount</th>
+
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="EqlogTbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="row" id="tllog" style="display:none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+
+                            <div perfect-class="LogContainertool" id="incentivettable2" class="">
+                                <div class="table-responsive tableFixHead">
+                                    <table id="EqlogList" class="table table-hover  table-striped text-black">
+                                        <thead class="thead-primary">
+                                            <tr>
+                                                <th style="display:none"></th>
+                                                <th>Tool</th>
+                                                @*<th>FK_VehicleLog</th>*@
+                                                <th>Operator</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Description</th>
+                                                <th>Maintenance</th>
+                                                <th class="text-left">Remarks</th>
+                                                <th class="text-left">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="EqTllogTbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+    (function () {
+        jQuery("select").selectpicker();
+
+    })();
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+       //document.getElementById("tllog").style.display = 'none';
+       //document.getElementById("vllog").style.display = 'none';
+
+
+                            if (EQRTransMode == 'VLRPT') {
+
+                                document.getElementById("vllog").style.display = 'block';
+                                document.getElementById("tllog").style.display = 'none';
+                            }
+                            else {
+                                document.getElementById("vllog").style.display = 'none';
+                                document.getElementById('tllog').style.display = 'block';
+        } //fn_showFiltersearchs();
+
+    });
+    function checkLimit(ele) {
+
+        document.getElementById("exppdf").style.display = "none";
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            //console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date');
+            return false;
+        }
+        else {
+
+            //console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+
+    }
+    function fn_showpopuplist(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (EQRTransMode == 'VLRPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 95, 'Vehicle List', [], ['ID_FIELD', 'ID_Name', 'Vehicle','FK_Master'], EQRTransMode)
+
+
+        }
+        else if (EQRTransMode == 'TORPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 95, 'Tool List', [], ['ID_FIELD', 'ID_Name', 'HSNCode', 'VehicleNo','FK_Master'], EQRTransMode)
+        }
+        else {
+            NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'TransMode miss match!!!' });
+        }
+
+    }
+
+    function ResetButton(ele) {
+
+        fn_eqlogrepo_initialLoad();
+
+    }
+
+    var item = 0;
+    function getreport(ele) {
+
+
+      
+
+        let $tbody;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if (EQRTransMode == 'VLRPT') {
+
+             $tbody = $thisForm.find('[perfect-class="LogContainer"]').find('tbody');
+
+        } else {
+            $tbody = $thisForm.find('[perfect-class="LogContainertool"]').find('tbody');
+        }
+
+        $("#EqlogTbody tr").remove();
+        $("#EqTllogTbody tr").remove();
+
+        if ($thisForm.valid()) {
+
+            if (checkLimit(ele)) {
+                var obj = {
+                    TransMode: EQRTransMode,
+                    FromDate: $thisForm.find('[name=FromDate]').val(),
+                    ToDate: $thisForm.find('[name=ToDate]').val(),
+                    ID_Report: 1,
+                    ID_FIELD: $thisForm.find('[name=ID_FIELD]').val(),
+                    EmployeeID: $thisForm.find('[name=EmployeeID]').val(),
+                    FK_Maintenance: $thisForm.find('[name=FK_Maintenance]').val(),
+
+                }
+
+                $.ajax({
+                    url: "@Url.Action("GetEqlogReportgridViewList", "EquipmentLogReport")",
+                    type: "POST",
+                    data: JSON.stringify(obj),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+
+                        console.log(data,'---data----')
+                        item = data.Data;
+
+                        if (item == null || item ==  "") {
+
+                            let x = document.getElementById("exppdf");
+                            x.style.display = "none";
+                        } else {
+
+                            let x = document.getElementById("exppdf");
+                            x.style.display = "block";
+                        }
+                        if (data.Process.IsProcess) {
+                         
+                            $("#EqlogTbody tr").remove();
+                            $("#EqTllogTbody tr").remove();
+
+                            if (EQRTransMode == 'VLRPT') {
+
+                                if (item) {
+
+                                    $.each(item, function (i, value) {
+
+                                        let $thead = $('<th/>', { colspan: 11 }).text(value.Name).css('color', 'black');;
+                                        $tbody.append($('<tr/>').append($thead));
+
+                                        $.each(value.Logout, function (i, values) {
+
+                                         
+                                            let rowCount = (i + 1);
+                                            let $row = $('<tr/>', { id: rowCount, class: "trvalue" });
+
+                                            $row.append($('<td>'))
+                                                .append($('<td>', { class: "name", style: "display:none" }).text(values.Name))
+                                                //.append($('<td>', { class: "fkV" }).text(values.FK_VehicleLog))
+                                                .append($('<td>', { class: "empname" }).text(values.EmpName))
+                                                .append($('<td>', { class: "stdt" }).text(values.VtLogStartDate))
+                                                .append($('<td>', { class: "enddt" }).text(values.VtLogEndDate))
+                                                .append($('<td>', { class: "stkm" }).text(values.VtlogStartKm))
+                                                .append($('<td>', { class: "endkm" }).text(values.VtlogEndKm))
+                                                .append($('<td>', { class: "route" ,style:"max-width:100px" }).text(values.VtLogDescription))
+                                                .append($('<td>', { class: "mainNme" }).text(values.MaintenanceName))
+                                                .append($('<td>', { class: "mainDes", style: "max-width:100px" }).text(values.VtlDetRemarks))
+                                                .append($('<td>', { class: "mainAmt text-center" }).text(values.VtLogNetAmount))
+
+
+                                            $tbody.append($row);
+                                        });
+                                    });
+
+
+                                }
+                                else {
+                                    $filldata += "<tr id='0'><td class='norecord'colspan='5' style'text-align:center'>No Records..</td></tr>";
+
+                                }
+
+                            }
+                            else {
+                                if (item) {
+
+                                    $.each(item, function (i, value1) {
+
+                                        let $thead1 = $('<th/>', { colspan: 9}).text(value1.Name).css('color', 'black');;
+                                        $tbody.append($('<tr/>').append($thead1));
+
+                                        $.each(value1.Logout, function (j, value2) {
+
+                                          
+                                            let rowCount1 = (j + 1);
+                                            let $row1 = $('<tr/>', { id: rowCount1, class: "trvalue1" });
+
+                                            $row1.append($('<td>'))
+                                                .append($('<td>', { class: "name1", style: "display:none" }).text(value2.Name))
+                                                //.append($('<td>', { class: "fkV" }).text(values.FK_VehicleLog))
+                                                .append($('<td>', { class: "empname1" }).text(value2.EmpName))
+                                                .append($('<td>', { class: "stdt1" }).text(value2.VtLogStartDate))
+                                                .append($('<td>', { class: "enddt1" }).text(value2.VtLogEndDate))
+                                                .append($('<td>', { class: "des", style: "max-width:100px"  }).text(value2.VtLogDescription))
+                                                .append($('<td>', { class: "mainNme1" }).text(value2.MaintenanceName))
+                                                .append($('<td>', { class: "mainDes1", style: "max-width:100px" }).text(value2.VtlDetRemarks))
+                                                .append($('<td>', { class: "mainAmt1 text-center" }).text(value2.VtLogNetAmount))
+
+
+                                            $tbody.append($row1);
+                                        });
+                                    });
+
+                                } else {
+
+                                    $filldata1 += "<tr id='0'><td class='norecord'colspan='5' style'text-align:center'>No Records..</td></tr>";
+                                }
+
+                            }
+
+                        } else {
+                            console.error(data.Process.Message);
+                        }
+
+                    },
+                });
+                fn_showFiltersearchs(); 
+              
+                $('#exppdf').css('display', 'none');
+            }
+            else {
+                $(ele).prop('disabled', false);
+                NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'To Date should be greater than From Date ' });
+            }
+        } 
+
+
+    }
+
+    var tabley;
+
+    function generatePdf(ele) {
+     
+        var cdata;
+        var head;
+        var body;
+        var collen;
+        var vfromdate;
+        var vtodate;
+
+        ///Test code--Start
+        const obj = {
+     
+            "Maintenance Type": $('select[name="FK_Maintenance"] option:selected').text(),
+            Vehicle: $('input[name="ID_Name"] ').val(),
+            Driver: $('input[name="Employee"]').val(),
+          
+
+
+        };
+        const obj2 = {
+            "From ": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 0;
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase().trim() != "PLEASE SELECT" && obj[i] != 0) {
+                if (num == 0) {
+                    str = "Filter By : ";
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+     
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+               
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        var upperhead;
+        if (str === "") {
+             upperhead = {
+
+
+                columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                body: [
+
+                    [
+
+                        str2 
+
+                    ],
+
+                ],
+
+                theme: 'plain',
+                styles: {
+                    // fillColor: '#3366ff',
+                    color: 'black',
+                    rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                },
+                didDrawCell: function (data) {
+                    data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                }
+
+
+
+            };
+        } else {
+             upperhead = {
+
+
+                columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                body: [
+
+                    [     
+                        str2 +
+                        '\n' + str
+                    ],
+                    //[
+                    //    str
+                    //]
+
+
+
+                ],
+
+                theme: 'plain',
+                styles: {
+                    // fillColor: '#3366ff',
+                    color: 'black',
+                    rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                },
+                didDrawCell: function (data) {
+                    data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                }
+
+
+
+            };
+        }
+        
+
+
+
+        /////Test Code ---end
+
+        //test start
+        // let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $thisForm = document.querySelector('form[perfect-class="form"]')
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+
+
+
+                     head = [['Sl No', 'Vehicle', 'Driver', 'Start Date', 'End Date', 'Start Km', 'End Km', 'Route', 'Maintenance', 'Remarks','Amount']];
+                     body = [];
+                     collen=":"
+                     vfromdate;
+                     vtodate;
+                 //// vfromdate = $thisForm.find('[name="FromDate"]').val();
+                 //vfromdate = $thisForm.querySelector('input[name="FromDate"]').value;
+                 //   const dateObject = new Date(vfromdate);
+
+                 //   // Extract the month, day, and year from the date object
+                 //   const month = dateObject.getMonth() + 1;
+                 //   const day = dateObject.getDate();
+                 //   const year = dateObject.getFullYear();
+
+                 //   // Create a new date string with the 'MM-DD-YYYY' format
+
+                 //   vfromdate = `${day}/${month}/${year}`;
+
+                 //   // Use the newDateString variable to display the date in the desired format
+                 //   // Extract the month, day, and year from the date object
+
+                 //// vtodate = $thisForm.find('[name=ToDate]').val();
+                 //vtodate = $thisForm.querySelector('input[name=ToDate]').value;
+
+
+                 ////console.log(document.querySelector('input[name="FromDate"]').value, document.querySelector('input[name=ToDate]').value , "vfromdate__vTodate");
+
+                 //   const dateObjects = new Date(vtodate);
+                 //   const months = dateObjects.getMonth() + 1;
+                 //   const days = dateObjects.getDate();
+                 //   const years = dateObjects.getFullYear();
+
+
+
+
+                 //   vtodate = `${days}/${months}/${years}`;
+
+                 //   var upperhead = {
+
+                 //       columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                 //       //margin: { top: 10, bottom:0 },
+
+                 //       body: [
+                 //           [
+                 //               "From Date  :   " + vfromdate + "           To Date :   " + vtodate ]
+
+
+
+                 //       ],
+
+                 //   };
+                    var aralenth = item.length;
+                  
+                    var c = item.slice(0, (aralenth - 1));
+                   
+
+                 var body1 = [];
+
+               
+
+                    $.each(item, function (i, value) {
+                        console.log(value, "loop 1");
+                        $.each(value.Logout, function (j, value2) {
+
+                            let rcount = (j + 1);
+                            console.log(value2, "loop 2 ");
+                            body1.push(value2);
+                        });
+
+                    });
+
+                    console.log(body1, "body ln");
+                    // head = ["Sl No", "Product", "Stage", "Priority", "Quantity", "StartDate", "TargetDate", "Status"];
+                    var ptableData = {
+                        columns: [
+                            { title: "Name", dataKey: "Name" },
+                            { title: "Employee", dataKey: "EmpName" },
+                            { title: "Start Date", dataKey: "VtLogStartDate" },
+                            { title: "End Date", dataKey: "VtLogEndDate" },
+                            {  title: "Start Km", dataKey: "VtlogStartKm" },
+                            { title: "End Km", dataKey: "VtlogEndKm" },
+                            { title: "Route", dataKey: "VtLogDescription", class: {"max-width":"50px"} },
+                            { title: "Maintenence", dataKey: "MaintenanceName" },
+                            { title: "Remark", dataKey: "VtlDetRemarks" },
+                            { title: "Amount", dataKey: "VtLogNetAmount" }
+                        ],
+                        rows: body1
+
+                 };
+
+
+                 var ptableData1 = {
+                     columns: [
+                         { title: "Name", dataKey: "Name" },
+                         { title: "Employee", dataKey: "EmpName" },
+                         { title: "Start Date", dataKey: "VtLogStartDate" },
+                         { title: "End Date", dataKey: "VtLogEndDate" },
+                         { title: "Description", dataKey: "VtLogDescription" },
+                         { title: "Maintenence", dataKey: "MaintenanceName" },
+                         { title: "Remark", dataKey: "VtlDetRemarks" },
+                         { title: "Amount", dataKey: "VtLogNetAmount" }
+                     ],
+                     rows: body1
+
+                 };
+
+               
+                 var rname;
+                // let repon = $thisForm.find('[name="ID_Report"]').val();
+              
+                 if (EQRTransMode == 'VLRPT') {
+                     rname = "Vehicle Log Report"
+
+                 } else {
+                     rname = "Tool Log Report"
+
+                 }
+
+                 if (EQRTransMode == 'TORPT') {
+
+                     var head1 = [['Sl No', 'Tool', 'Operator', 'Start Date', 'End Date', 'Description', 'Maintenance', 'Remarks', 'Amount']];
+
+
+                     let columnStyles = {
+                         0: { cellWidth: 40 },
+                         1: { cellWidth: 100 },
+                         2: { cellWidth: 100 },
+                         3: { cellWidth: 60 },
+                         4: { cellWidth: 60 },
+                         5: { cellWidth: 120 },
+                         6: { cellWidth: 80 },
+                         7: { cellWidth: 120 },
+                         8: { cellWidth: 80 },
+                       
+                     };
+                   
+                     exportPdf(rname, head1, cdata, upperhead, '', ptableData1, 'Name', `${rname} Reports`, 'a4', '', columnStyles,'l');
+
+
+                    
+
+                 }
+                 else {
+
+                   let  columnStyles2 = {
+                         0: { cellWidth: 30 },
+                         1: { cellWidth: 70 },
+                         2: { cellWidth: 70 },
+                         3: { cellWidth: 50 },
+                         4: { cellWidth: 50 },
+                         5: { cellWidth: 50 },
+                         6: { cellWidth: 50 },
+                         7: { cellWidth: 120 },
+                         8: { cellWidth: 80 },
+                         9: { cellWidth: 120 },
+                         10: { cellWidth: 70 }
+
+
+                     };
+
+                     exportPdf(rname, head, cdata, upperhead, '', ptableData, 'Name', `${rname} Reports`, 'a4', '', columnStyles2,'l');
+                    
+                 }
+
+                }
+         });
+
+    }
+
+    //$("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+    function onExell() {
+
+
+        var body1 = [];
+        $.each(item, function (i, value) {
+            //console.log(value, "loop 1");
+            $.each(value.Logout, function (j, value2) {
+
+                let rcount = (j + 1);
+               // console.log(value2, "loop 2 ");
+                body1.push(value2);
+            });
+
+        });
+        var head;
+            //= ['Sl No', 'Name', 'Employee', 'Start Date', 'End Date', 'Description', 'Maintenance', 'Remark', 'Amount'];
+        var ptableData;
+        //    = {
+        //    columns: [
+        //        { title: "Name", dataKey: "Name" },
+        //        { title: "Employee", dataKey: "EmpName" },
+        //        { title: "Start Date", dataKey: "VtLogStartDate" },
+        //        { title: "End Date", dataKey: "VtLogEndDate" },
+        //        { title: "Description", dataKey: "VtLogDescription" },
+        //        { title: "Maintenence", dataKey: "MaintenanceName" },
+        //        { title: "Remark", dataKey: "VtlDetRemarks" },
+        //        { title: "Amount", dataKey: "VtlDetAmount" }
+        //    ],
+        //    rows: body1
+
+        //};
+
+        ///Test Code-start  *****
+        const obj = {
+
+            "Maintenance Type": $('select[name="FK_Maintenance"] option:selected').text(),
+            Vehicle: $('input[name="ID_Name"] ').val(),
+            Driver: $('input[name="Employee"]').val(),
+
+
+
+        };
+        const obj2 = {
+            "From ": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 0;
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase().trim() != "PLEASE SELECT" && obj[i] != 0) {
+                if (num == 0) {
+                    str = "Filter By : ";
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        /////
+        var rname;
+        if (EQRTransMode == 'VLRPT') {
+            rname = "Vehicle Log Report";
+            head = ['Sl No', 'Vehicle', 'Driver', 'Start Date', 'End Date', 'Start Km', 'End Km', 'Route', 'Maintenance', 'Remarks', 'Amount'];
+            ptableData = {
+                columns: [
+                    { title: "Name", dataKey: "Name" },
+                    { title: "Employee", dataKey: "EmpName" },
+                    { title: "Start Date", dataKey: "VtLogStartDate" },
+                    { title: "End Date", dataKey: "VtLogEndDate" },
+                    { title: "Start Km", dataKey: "VtlogStartKm" },
+                    { title: "End Km", dataKey: "VtlogEndKm" },
+                    { title: "Route", dataKey: "VtLogDescription", class: { "max-width": "50px" } },
+                    { title: "Maintenence", dataKey: "MaintenanceName" },
+                    { title: "Remark", dataKey: "VtlDetRemarks" },
+                    { title: "Amount", dataKey: "VtLogNetAmount" }
+                ],
+                rows: body1
+
+            };
+
+        } else {
+            rname = "Tool Log Report";
+            head = ['Sl No', 'Tool', 'Operator', 'Start Date', 'End Date', 'Description', 'Maintenance', 'Remarks', 'Amount'];
+            ptableData = {
+                columns: [
+                    { title: "Name", dataKey: "Name" },
+                    { title: "Employee", dataKey: "EmpName" },
+                    { title: "Start Date", dataKey: "VtLogStartDate" },
+                    { title: "End Date", dataKey: "VtLogEndDate" },
+                    { title: "Description", dataKey: "VtLogDescription" },
+                    { title: "Maintenence", dataKey: "MaintenanceName" },
+                    { title: "Remark", dataKey: "VtlDetRemarks" },
+                    { title: "Amount", dataKey: "VtLogNetAmount" }
+                ],
+                rows: body1
+
+            };
+
+        }
+
+
+
+
+
+
+        $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+
+
+
+                // let ReportName = `Vehicle log Report`;
+                var ReportName = `${cdata.Company} \n${cdata.Branch}\n    ${rname} Report    \n  ${str2} \n ${str} `
+               
+                 generateExell(ReportName, [head], ptableData, "", "Name", `${rname} Report `);
+
+               
+
+                }
+         });
+
+
+
+       ///Test Code-end *****
+
+
+        
+       
+
+       
+
+        
+    }
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+    function getfunction() {
+        document.getElementById("exppdf").style.display = "none ";
+    }
+    function maitenanceChange() {
+        document.getElementById("exppdf").style.display = "none";
+    }
+
+</script>

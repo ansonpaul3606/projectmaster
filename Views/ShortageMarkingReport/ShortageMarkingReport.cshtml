@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewBag.Title = "ShortageMarkingReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+
+        <div class="col-lg-12" id="jq_ShortageMarkingReport_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_ShortageMarkingReport_formContainer');
+    RPTusername = '@ViewBag.Username';
+    $(document).ready(function () {
+        
+        fn_ShortageMarkingReport_initialload();
+    });
+    var ShortageRptTransMode = '';
+    function fn_ShortageMarkingReport_initialload() {
+        ShortageRptTransMode='@ViewBag.TransMode';
+
+        fn_loadShortageMarkingAddForm();
+    }
+    function fn_showFiltersearchs() {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.closest('.ReportFilter').find('.filter').toggleClass('d-none');
+
+        $thisform.find('[name="SupplierName"]').val('');
+        $thisform.find('[name="SupplierID"]').val('');
+        $thisform.find('[name="InvoiceNo"]').val('');
+        $thisform.find('[name="PurchaseID"]').val('');
+        $thisform.find('[name="ProductName"]').val('');
+        $thisform.find('[name="FK_Product"]').val('');
+        $thisform.find('[name="Criteria"]').val('').selectpicker('refresh');
+        
+    };
+    function fn_loadShortageMarkingAddForm() {
+       
+        $formContainer.load('@Url.Action("LoadShortageMarkingReportForm", "ShortageMarkingReport")?mtd=@ViewBag.mtd', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            fn_showFiltersearchs();
+            //$thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'fn_ShortageMarkingReport_initialload');
+
+        });
+    }
+
+    var validationMessage = {
+
+        'ID_Report': {
+            'required': 'Please Select Report Name',
+        },
+    }
+</script>
+
+}

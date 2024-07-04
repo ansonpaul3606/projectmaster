@@ -1,0 +1,571 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="incentiveSettings-form">
+
+        </div>
+    </div>
+    @*<button onclick="let y = trigerCategory( 2); console.log(y,'y');" >click</button>*@
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+        var ID_ServiceIncentiveSettings;
+        var isModifed = false;
+        //var IncTransMode = '';
+        const $formContainer = $('#incentiveSettings-form');
+
+         var tableOptions ={
+                dropdown: {
+                    buttons: [
+                      @if (ViewBag.PagedAccessRights.UsrrlStView)
+                       {
+                         <text> { displayName: "View", action: editIncentiveSettingsData },</text>
+                       }
+                        { type: "divider" },
+                       @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                        {
+                         <text>{ displayName: "Delete", action: deleteIncentiveSettingsData },</text>
+                        }
+                    ],
+                    class: "btn btn-success light sharp"
+                },       
+            onlyShowColumn: ["SlNo", "Designation", "EffectDate", "Employee"],
+            hideColumn: [],
+             rowClickAction: editIncentiveSettingsData,
+            isDateType: ["EffectDate"],
+            renameHeader: { "SlNo": "Sl No", "EffectDate": "Effect Date" }
+         
+        };
+        var validationMessage = {
+            'ServiceID': {
+                'required': 'Please Select Service',
+                'digits': 'Invalid Service Selected'
+            },
+            'FK_Category': {
+                'required': 'Please Select Category',
+                'digits': 'Invalid Category Selected'
+            },
+            'IncTrDividentPercent': {
+                'required': 'Please enter Percentage'
+            },
+            'TransDate': {
+                'required': 'Please select Transdate'
+            },
+            'EffectDate': {
+                'required': 'Please Select Effect Date'
+            },
+            'DesignationID': {
+                'required': 'Please Select Designation'
+            }
+
+
+        };
+
+
+        $(document).ready(function () {
+
+            fn_incentive_initialLoad(this);
+
+        });
+
+        function fn_incentive_initialLoad() {
+          //  IncTransMode ='@ViewBag.TransMode';
+            LoadAddIncentive();
+          //  LoadIncetivedetailsList();
+             @if (ViewBag.PagedAccessRights.UsrrlStView)
+            {
+                <text>fn_IncentiveSettings_Load(this);</text>
+            }
+        }
+
+        function LoadAddIncentive() {
+            isModifed = false;
+            $formContainer.load('@Url.Action("LoadIncetiveSettings", "IncentiveSettings")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                //let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                //$thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+
+                // $thisForm.attr('perfect-onFormSuccess', 'fn_incentive_initialLoad');
+               // $('.percentageDiv').hide();
+              
+                $('.amountDiv').hide();
+
+            });
+        }
+
+        
+        
+        function fn_IncentiveSettings_Load(ele)
+        {
+            debugger
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Incentive Settings List');
+            let pageUrl = "@Url.Action("GetIncentiveSettingsData", "IncentiveSettings")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log(ajaxOutput, 'ajaxOutput>>>>2');
+                    console.log("tableoption123", tableOptions)
+                    if (ajaxOutput.Process.IsProcess) {
+                        $sidemenu.find('.jq_sidemenu_title').text("IncentiveSettings List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_IncentiveSettings_Load(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Language");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_IncentiveSettings_Load(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) { NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value }); });
+                        }
+                    }
+                },
+                complete: function () {}
+            })
+            
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            debugger
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function editIncentiveSettingsData()
+        {
+           
+          
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+            ID_ServiceIncentiveSettings = savedData.ID_ServiceIncentiveSettings;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');            
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_ServiceIncentiveSettings: savedData.ID_ServiceIncentiveSettings
+            };
+
+                $.ajax({
+                 url: '@Url.Action("GetIncentivetableData", "IncentiveSettings")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        console.log(ajaxOutput,'789')
+                        if (ajaxOutput.maindata.Process.IsProcess) {
+                            $formContainer.load('@Url.Action("LoadIncetiveSettings", "IncentiveSettings")', function () 
+                            {
+                                
+                                //console.log(ajaxOutput.maindata.Data[0].FK_Employee,' ajaxOutput.maindata.Data[0].FK_Employee')
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.maindata.Data[0] });
+                                $thisForm.find('[name=ID_ServiceIncentiveSettings]').val(ajaxOutput.maindata.Data[0].ID_ServiceIncentiveSettings);
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.maindata.Data[0].EffectDate).format('YYYY-MM-DD'));
+                              
+                                $thisForm.find('[name="DesignationID"]').val(ajaxOutput.maindata.Data[0].FK_Designation).selectpicker('refresh');
+                                $thisForm.find('[name="DesignationID"]').trigger('change');
+
+
+                              //  $thisForm.find('[name="EmployeeID"]').attr('perfect-onloadSelect', ajaxOutput.maindata.Data[0].FK_Employee);
+                               // $thisForm.find('[name="EmployeeID"]').attr('perfect-onloadSelect', ajaxOutput.maindata.Data[0]['FK_Employee']);
+                                $thisForm.find('[name="EmployeeID"]').val(ajaxOutput.maindata.Data[0]['FK_Employee']);
+                                $thisForm.find('[name="Employee"]').val(ajaxOutput.maindata.Data[0]['Employee']);
+                                $thisForm.find('[name="AccountHead"]').val(ajaxOutput.maindata.Data[0].FK_AccountHead);
+                                $thisForm.find('[name="AHeadName"]').val(ajaxOutput.maindata.Data[0].AccountHead);
+                                $thisForm.find('[name="AccountHeadSub"]').val(ajaxOutput.maindata.Data[0].FK_AccountSubHead);
+                                $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.maindata.Data[0].AccountSubHead);
+                                $thisForm.find('[name="IsAcitve"]').prop("checked",ajaxOutput.maindata.Data[0].IsActive);
+                                $('.amountDiv').hide();
+                               
+                                if (ajaxOutput.subdata.Process.IsProcess) {
+                                  
+                                    fn_fillAuthorizationLevelItem($thisForm, 'IncentiveSettings', ajaxOutput.subdata.Data, tableOptionsAuthorizationLevelTempOut)
+                                    $thisForm.find('[perfect-tempTable="IncentiveSettings"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                }
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'AuthorizationlevelLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+        }
+        function fn_fillAuthorizationLevelItem(ele, tkey, data, tableOptionsTempOut) {
+            debugger
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+                debugger
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+
+
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            switch (headerName) {
+                                case "FK_Category":
+                                    headerName = "Category";
+                                   
+                                    break;
+                                case "FK_Service":
+                                    headerName = "Service";
+                                    break;
+                                case "Commitiontype":
+                                    headerName = "Calculation Type ";
+                                    break;
+                                case "FK_AmountCriteria":
+                                    headerName = "Amount Criteria";
+                                    break;
+                                default:
+                                    break;
+                            }
+                                tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                                pData[nameAttr] = valOne[nameAttr];
+                            
+                           
+                            
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                debugger
+                                if (nameAttr == "Product" && valOne[nameAttr] == "") {
+                                    pData[nameAttr] = "All Product";
+                                } else if (nameAttr == "Percentage" || nameAttr == "Amount") {
+                                    debugger
+                                    pData[nameAttr] = valOne[nameAttr] == '' ? valOne[nameAttr] : valOne[nameAttr] == null?  '': formatAmount(valOne[nameAttr]);
+
+                                   
+                                }
+                                else {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+
+                });
+                pData["FK_Service_d"] = valOne['Services'];
+                pData["FK_Id"] = valOne['ID_ServiceIncentiveSettingsDetails'];
+                insertData.push(pData);
+                
+            });
+            debugger
+            console.log(insertData, 'insertData>><<>')
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        }
+
+        var tableOptionsAuthorizationLevelTempOut = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+
+                            let savedData = $(this).closest('tr').data('pData')
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                debugger
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+
+                                if ($thisNode.is('select')) {
+                                    switch (pf_name) {
+                                        case "DesignationID":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                        case "FK_Category":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            $thisNode.trigger('change');
+                                            break;
+                                        case "FK_Service":
+                                            debugger
+                                            $thisNode.attr('perfect-onloadSelect', savedData[pf_name]);
+                                            break;
+                                        case "Commitiontype":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                        default:
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                    }
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                          //  removeTable(this);
+                          //  isModifed = true;
+                            
+                            onCommisssionTypeTrigger();
+                            fn_setSelectedCriteriaData($thisForm);
+                            
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                //$('#AuthorizationLevelItemHead').attr('perfect-temptable-action', 0);
+                                //$('#AuthorizationLevelItemHead').attr('perfect-temptable-lastindex', 0);
+                                $thistbl.remove();
+                                
+                            }
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: ["FK_Category","FK_Id"],
+            serialNo: true,
+            renameHeader: { "FK_Category": "Category", "FK_Service": "Service", "Commitiontype": "Calculation Type ", "AldAmountTo": "Amount To" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+
+        function deleteIncentiveSettingsData()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            console.log(Saveddata,'Saveddata>><')
+          
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetReasonList", "IncentiveSettings")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log(ajaxReasonOutput,'ajaxReasonOutput,,,...')
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           confirmBoxObj.then(function (selectedOption) {
+                               console.log(selectedOption, 'selectedOption>><<');
+                                if (selectedOption) {
+                                 
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_ServiceIncentiveSettings: Saveddata.ID_ServiceIncentiveSettings,
+                                        FK_Reason: selectedOption
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleateIncentiveSettingsData", "IncentiveSettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                AuthorizationlevelInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        function removeTable(els) {
+            debugger
+            let $thistbl = $(els).closest('table');
+            let table = $thistbl.DataTable();
+            table.destroy();
+            if ($(els).closest('tbody').find('tr').length > 1) {
+                $(els).closest('tr').remove();
+                pft_table_slreset($thistbl);
+                $thistbl.dataTable({ paging: true });
+            }
+            else {
+                $('#AuthorizationLevelItemHead').attr('perfect-temptable-action', 0);
+                $('#AuthorizationLevelItemHead').attr('perfect-temptable-lastindex', 0);
+                $thistbl.remove();
+
+            }
+        }
+        function formatAmount(amount) {
+
+            const floatValue = parseFloat(amount);
+            const formattedAmount = floatValue.toFixed(2);
+            return formattedAmount;
+        }
+
+    </script>
+
+}
+

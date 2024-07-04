@@ -1,0 +1,272 @@
+﻿
+@{
+    ViewBag.Title = "Opening Stock";
+    //Layout = "~/Views/Shared/_LayoutOpeningStock.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="jq_openingstockIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+        var OpeningStockTransMode;
+        //--- Form
+        const $formContainer = $('#jq_openingstockIndex_formContainer');
+       
+
+        var validationMessage = {
+           
+            'Mode': {
+                'required': 'Please Select a Mode',
+                'stringonly': 'Special characters are not allowed in Mode',
+            },
+           
+            'ProductID': {
+                'required': 'Please select a Product',
+                'stringonly': 'Invalid Product selected',
+
+            },
+          
+         
+            //'ProductionCost': {
+            //    'required': 'Please Enter Product Cost',
+            //    'decimal': 'Invalid Production Cost',
+
+            //},
+           
+          
+
+
+        };
+
+        // Initial load functions
+        $(document).ready(function () {
+           
+            fn_openingstockIndex_initialLoad()
+            $('#jq-sidemenu').hide();
+
+
+        });
+
+        function fn_openingstockIndex_initialLoad() {
+          //  getSessionValue("t9Nx4nozTuh7ClsES11B2lH/tywJ0TKK7MVBdsSpCKQ=", function (result) {
+
+                OpeningStockTransMode = '@ViewBag.TransMode'; 
+                fn_openingstockIndex_loadOpeningStockAddForm();
+           // });
+            //fn_openingstockIndex_loadOpeningStock();
+          
+
+        }
+
+
+        // Fucntion to load OpeningStockList
+        function fn_openingstockIndex_loadOpeningStock() {
+            $.ajax({
+                url: "@Url.Action("GetOpeningStockList", "OpeningStock")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        // console.log('OpeningStock :', data);
+                        $sideMenuOptions.title.find('h4').text("OpeningStock List");
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                    }
+                    else {
+
+                        if (ajaxOutput.Process.Status == 'NoData') { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                //toastr.warning(value, "Error");
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+
+
+
+        };
+        // Fucntion to load OpeningStock ADD form
+        function fn_openingstockIndex_loadOpeningStockAddForm() {
+
+          
+
+            $formContainer.load('@Url.Action("LoadFormOpeningStock", "OpeningStock")' + '?OpeningStockTransMode=' + OpeningStockTransMode, function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.attr('perfect-onFormSuccess','fn_openingstockIndex_initialLoad');
+
+                Getbranchdepartmentdefault();
+                //$thisForm.find('[name="ExpiryDate"]').val(moment().format('YYYY-MM-DD'));
+                // ... Custom validation message
+                $thisForm.validate({
+                    // ...
+                    messages: validationMessage
+                    // ...
+                });
+               
+            });
+
+        };
+        // Function to load openingstock Update from
+        function fn_openingstockIndex_loadOpeningStockUpdateForm() {
+
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                OpeningStockID: saveddata.OpeningStockID
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetOpeningStockInfoByID", "OpeningStock")",
+                type: "POST",
+              
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        //process is success
+                        $formContainer.load('@Url.Action("LoadOpeningStockForm", "OpeningStock")', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                           
+
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                            // Fill fields
+                         
+                            // stuff to do after filling data
+                            $sideMenuOptions.close();//<---  Close side menu
+                            $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                            $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                            $thisForm.attr('perfect-onFormSuccess', 'fn_openingstockIndex_initialLoad');
+
+                        });
+                    }
+                    else {
+                        //Error occured
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            });
+        };
+
+        // Function to delete openingstock
+
+
+        function fn_openingstockIndex_deleteOpeningStock() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetOpeningStockReasonList", "OpeningStock")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('openingstockIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        OpeningStockID: Saveddata['OpeningStockID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteOpeningStock", "OpeningStock")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+    </script>
+
+
+
+}

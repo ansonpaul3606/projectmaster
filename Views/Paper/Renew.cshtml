@@ -1,0 +1,590 @@
+﻿
+@{
+    ViewBag.Title = "Renew";
+}
+
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Renewal-form">
+
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts
+{
+<script type="text/javascript">
+
+
+    const $formContainer = $('#Renewal-form');
+    const LastIDSessionKeyPR = 'PaperrenewLastID';
+    var LastID_Paperrenew;
+    var PaperRenewID = 0;
+        $(document).ready(function () {
+
+            initialloadRenewform();
+        });
+    var PaperrenewTransMode;
+   
+
+    function initialloadRenewform() {
+        debugger
+
+        PaperrenewTransMode = '@ViewBag.TransMode';
+          HeadName = '@ViewBag.headlog';
+            console.log('HeadName', HeadName);
+            console.log('HeadName1', '@ViewBag.headlog');
+        console.log('PaperrenewTransMode', PaperrenewTransMode)
+            loadAddModelForm();
+            PaperInitialLoad();
+
+        }
+
+
+
+        var validationMessage = {
+
+            'ID_FIELD': {
+                'required': 'Please select Vehicle Number '
+            },
+            'EffectDate': {
+                'required': 'Please Enter Effect Date'
+            },
+            'TransDate': {
+                'required': 'Please Enter Trans Date'
+            },
+
+
+
+        };
+
+
+        function PaperInitialLoad() {
+
+            //fn_prdwiseIndex_loadAddPrdWise();
+              @if (ViewBag.PagedAccessRights.UsrrlStView)
+         {
+           <text>  fn_prdwiseIndex_loadprdwiselst(this);</text>
+         }
+
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editPaperRenewal },</text>
+                   }
+
+                    { type: "divider" },
+
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deletePaperRenewal },</text>
+                    }
+
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "MasterName","EffectDate"],
+            hideColumn: [],
+            rowClickAction: editPaperRenewal,
+
+            isDateType: ["EffectDate"],
+            //serialNo: true,
+            renameHeader: { "SlNo": "SL NO", "MasterName": "@ViewBag.headlog", "EffectDate":"Effect Date"}
+        };
+
+           // Fucntion to load ProductWise ADD form
+
+
+
+
+
+    function loadAddModelForm() {
+        debugger
+            @*$formContainer.load("@Url.Action("LoadRenew", "Paper")", function () {*@
+             $formContainer.load('@Url.Action("LoadRenew", "Paper")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+                 $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="ID_Name"]').val('@ViewBag.vName');
+                 $thisForm.find('[name="FK_Master"]').val('@ViewBag.FK_Master');
+                 $thisForm.find('[name="FK_Paper"]').val('@ViewBag.vPaper').selectpicker('refresh');
+                 $thisForm.find('[name="PmdPaperNo"]').val('@ViewBag.vPano');
+                 $thisForm.find('[name="FK_Provider"]').val('@ViewBag.vPro').selectpicker('refresh');
+                 $thisForm.find('[name="PmdIssueDate"]').val(moment('@ViewBag.vIssue').format('YYYY-MM-DD'));
+                 $thisForm.find('[name="PmdExpireDate"]').val(moment('@ViewBag.vIexpir').format('YYYY-MM-DD'));
+                 //$thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].EffectDate).format('YYYY-MM-DD')),
+                 //    $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].TransDate).format('YYYY-MM-DD')),
+                $thisForm.validate({ messages: validationMessage });
+                 $thisForm.attr('perfect-onFormSuccess', 'initialloadRenewform');
+
+                 getSessionValue(LastIDSessionKeyPR, function (result) {
+                     LastID_Paperrenew = result;
+                 });
+
+            });
+        }
+
+             //list ProductWise
+    function fn_prdwiseIndex_loadprdwiselst(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+            //    let $thisForm = $(ele).closest('.Search-Control');
+            console.log("TRANSMODE", PaperrenewTransMode)
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Paper Renewal List');
+          let pageUrl = '@Url.Action("GetRenewalList", "Paper")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0,  Name: SearchName, TransMode: '@ViewBag.TransMode' },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              $sidemenu.find('.jq_sidemenu_title').text("Paper Renewal");
+                              console.log('ajaxOutputrenewal:', ajaxOutput);
+                              setSessionValue(LastIDSessionKeyPR, ajaxOutput.Data[0]["LastID"]);
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_prdwiseIndex_loadprdwiselst(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: '@ViewBag.TransMode'}, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Paper Renewal");
+                                  setSessionValue(LastIDSessionKeyPR, 0);
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_prdwiseIndex_loadprdwiselst(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName,TransMode: '@ViewBag.TransMode'}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+
+
+          // Function to delete ProductWiseService
+
+        function deletePaperRenewal()
+        {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                console.log("Saved data", Saveddata);
+                $.ajax({
+                    url: "@Url.Action("GetPaperRenewalDeleteReasonList", "Paper")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.MasterName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_PaperMaintenance: Saveddata['ID_PaperMaintenance'],
+                                        TransMode: PaperrenewTransMode,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("PaperRenewalDelete", "Paper")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        }
+
+        var tableOptionsTempOutFill = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                   // $thisNode.val(savedData[pf_name]).selectpicker();
+                                   $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+                            if (TaxMainArray != '') {
+                                Taxlist = TaxMainArray.filter(obj => obj.FK_Paper.toString() === (savedData.FK_Paper).toString());
+                            }
+
+                        }
+                    },
+                    {
+                      icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let savedData = $(this).closest('tr').data('pData')
+                            let table = $thistbl.DataTable();
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+
+
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                            totalamountcalculation($tablecontainer);
+                            $("#btnresetMtrl").click();
+                            if (TaxMainArray != '') {
+                                TaxMainArray = TaxMainArray.filter(obj => obj.FK_Paper.toString() != (savedData.FK_Paper).toString());
+                            }
+                        }
+                    },
+                ]
+            },
+
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: { "PmdPaperNo": "Number", "PmdIssueDate": "Issue Date", "PmdExpireDate": "Expiry Date", "PmdPaperAmount": "Amount1R", "PmdPaperTaxAmount": "Tax Amount1R", "PmIncludeTax": "Tax Include", "PmdPaperNetAmount": "Net Amount1R","PmdWarningBefore": "Warning Before1R" },
+            rowAttribute: [],
+            isCheckType: [],
+            isDateType: ["PmdExpireDate", "PmdIssueDate"]
+        };
+
+        function editPaperRenewal() {
+
+
+            debugger
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+      let savedData = $thisUser.data('pData');
+
+      $('.dataTable tr').removeClass("SelectForDelete");
+      $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('reference data', savedData);
+
+      let inputData = {
+
+          ID_PaperMaintenance: savedData.ID_PaperMaintenance,
+          TransMode: '@ViewBag.TransMode'
+,
+
+
+      };
+      //$('#LoadProductwise').empty();
+            console.log('input data', savedData.ID_PaperMaintenance)
+                    $.ajax({
+                 url: '@Url.Action("GetPaperRenewalInfo", "Paper")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                        // headers: { "token_key": "1234" },
+                        data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                 contentType: "application/json",
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                        if (ajaxOutput) {
+
+                            $sideMenuOptions.close();
+
+                            $('#Renewal-form').load('@Url.Action("LoadRenew", "Paper")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                //$thisForm.data({ 'pData': ajaxOutput.mptableInfo.Data[0] });
+
+                                
+                                $thisForm.find('[name="ID_PaperMaintenance"]').val(ajaxOutput.mptableInfo.Data[0].ID_PaperMaintenance),
+                                    $thisForm.find('[name="FK_Master"]').val(ajaxOutput.mptableInfo.Data[0].FK_Master),
+                                    $thisForm.find('[name="ID_Name"]').val(ajaxOutput.mptableInfo.Data[0].MasterName),
+                                    $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].EffectDate).format('YYYY-MM-DD')),
+                                    $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].TransDate).format('YYYY-MM-DD')),
+                                    $thisForm.find('[name="OtherCharge"]').val(ajaxOutput.mptableInfo.Data[0].OtherCharge);
+                                $thisForm.find('[name="PmTotalAmount"]').val(ajaxOutput.mptableInfo.Data[0].PmTotalAmount),
+                                    PaperRenewID = ajaxOutput.mptableInfo.Data[0].ID_PaperMaintenance
+                                    ComDetailsTable_Fill($thisForm, 'cstatus', ajaxOutput.mptableInfo.Data[0].PaperMaintenanceDetails, tableOptionsTempOutFill)
+                                
+
+                                if (ajaxOutput.Taxselect.Data != null) {
+                                    TaxMainArray = ajaxOutput.Taxselect.Data;
+                                    edit = 1;
+                                    console.log('TaxMainArray>>>>>>>>>>>>>>Return', TaxMainArray);
+                                }
+
+
+                                $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+
+
+                                if (ajaxOutput.paymentdetail.Data) {
+
+                                    fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                                }
+                                let billamt = 0;
+                                let bilamt = 0;
+                                if ($thisForm.find('[name=BalAmt]').text() == '') {
+                                    bilamt = 0;
+                                }
+                                else {
+                                    bilamt = netamt;
+                                }
+                                $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+
+                                    billamt += parseFloat($(ele).find('.PAmount').text());
+
+                                });
+
+                                bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+                                $thisForm.find('[name=BalAmt]').text((0).toFixed(2));
+
+                                $thisForm.data({ pImage: ajaxOutput.Imageselect.Data });
+                                PssfupDocsList = ajaxOutput.Imageselect.Data;
+                                //ShowOtherCharges(this, 1)
+                                if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                    let othechg = ajaxOutput.OtherCharge.Data;
+                                    console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                    othrchargelst = [];
+                                    othrchargelst = othrchargelst.concat(othechg);
+                                    console.log('OTH INFOT>', othrchargelst);
+                                    $thisForm.data({ prtothchgData: othrchargelst });
+                                }
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            $thisForm.attr('perfect-onFormSuccess', 'initialloadRenewform');
+                            $sideMenuOptions.close();
+
+
+                                debugger
+
+                           });
+                        }
+
+                    },
+
+                    });
+
+        }
+    function RenewalPaperRenewal() {
+
+    }
+
+</script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,612 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="usersban-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#usersban-form');
+
+        $(document).ready(function () {
+            UsersbanInitialLoad();
+
+        });
+
+        function UsersbanInitialLoad() {
+
+             @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+              {
+                 <text>   loadUsersbanList(this); </text>
+              }
+          
+          
+             loadUsersbanAddForm();
+        }
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+                  {
+                    <text>{ displayName: "Un Ban", action: UpdateUserBan }, </text>//
+                    //{ displayName: "Go to", action: "" },
+                  }
+                    { type: "divider" },
+                    @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+                            {
+                                <text>{ displayName: "Delete", action: deleteUsersBan }</text>
+                            }
+                  
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "UserCode", "Branch"],
+            hideColumn: [],
+            rowClickAction: UpdateUserBan,
+            //serialNo: true,
+            renameHeader: { "SlNo": "Sl No","UserCode": "User Code", "Branch": "Branch" }
+        };
+
+        var validationMessage = {
+           
+            'UsersID': {
+                'required': 'Please Select a User',
+                'digits': 'Invalid Branch Type selected'
+            },
+            'BranchID': {
+                'required': 'Please Select a Branch',
+                'digits': 'Invalid Branch selected'
+            },
+            'BanMethodID': {
+                'required': 'Please Select a Ban Method',
+                'digits': 'Invalid User Role selected'
+            },
+            'UserReasonBan': {
+                'required': 'Please Enter Reason for Ban',
+                'digits': 'Invalid Reason ban'
+            },
+            //'UserReasonUnBan': {
+            //    'required': 'Please Enter Reason for Un Ban',
+            //    'digits': 'Invalid Reason Un ban'
+            //},
+            'UbFromDate': {
+                
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'UbToDate': {
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+           
+        };
+           // Fucntion to load Branch ADD form
+        function loadUsersbanAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormUserBanned", "UserBanned")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+
+
+               $thisForm.validate({ messages: validationMessage });
+
+
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'UsersbanInitialLoad');
+            });
+
+        };
+
+
+        @*function loadUsersbanList1() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('User Banned List');
+
+       let pageUrl = '@Url.Action("GetUserBannedList", "UserBanned")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+ 
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('User Banned', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("User Ban");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                              $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  "lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+
+
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+        function returnajaxPagination1(ajaxInfo, tableOptions, tableid) {
+            { apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    return { pageSize: info.length, pageIndex: info.page }
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                     $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }*@
+
+        function loadUsersbanList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            $sideMenuOptions.title.find('h4').text('User Ban List');
+          let pageUrl = '@Url.Action("GetUserBannedList", "UserBanned")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('UserBanned', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("UserBanned");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUsersbanList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("UserBanned");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUsersbanList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+       
+
+
+        function deleteUsersBan() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            //console.log("DeleteFunctiondata", Saveddata);
+
+
+               $.ajax({
+                   url: "@Url.Action("GetUsersBanDeleteReasonList", "UserBanned")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                          //old delete section
+
+
+                           let confirmationDialogBoxOption = { body: "Do you want to remove   " + Saveddata.UserCode + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                     
+                                        ID_UserBanned: Saveddata['UserBannedID'],
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteusersBan", "UserBanned")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",//antiforgery token changed json->x-www-form-urlencode...
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    //toastr.success(value, "Success");
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    // toastr.warning(value, "Error");
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                            //row.remove();
+                                            //$(row).closest('table').reload()
+
+
+                                        }
+                                    });
+                                }
+                                else {
+                                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                           //old delete section
+
+                    }
+                }
+
+            });
+
+
+
+
+        };
+        function UpdateUserBan() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                UserBannedID: Saveddata.UserBannedID
+
+
+                //console.log("id", UsersID);
+            };
+
+            $.ajax({
+                url: '@Url.Action("GetUsersBanInfoByID", "UserBanned")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetUsersBanInfo', ajaxOutput)
+
+                                $sideMenuOptions.close();
+
+                                $formContainer.load("@Url.Action("LoadFormUserBanned", "UserBanned")", function () {
+
+
+                                   
+                                    //Fn_FillBranchByTypeId(ajaxOutput.Data[0].BranchTypeID);
+                                  
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].UserCode)
+                                   
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'UsersbanInitialLoad');
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none')
+
+                                   // $thisForm.find('[name="BranchID"]').val(ajaxOutput.Data[0].BranchID).selectpicker('refresh');
+
+                                    $thisForm.find('[name="BranchID"]').val(ajaxOutput.Data[0].BranchID).selectpicker('refresh');
+
+                                    $thisForm.find('[name=BranchID]').trigger('change');
+
+                                    // $thisForm.find('[name=CategoryID]').val(ajaxOutput.Data[0].Category).selectpicker('refresh'),
+                                    $thisForm.find('[name=BranchID]').attr('perfect-onSelectLoad', ajaxOutput.Data[0].BranchID);
+                                    $thisForm.find('[name="BranchID"]').attr("disabled", true);
+                                    $thisForm.find('[name=Branch]').attr('perfect-onSelectLoad', ajaxOutput.Data[0].Branch);
+                                    $thisForm.find('[name="Branch"]').attr("disabled", true);
+
+                                    $thisForm.find('[name="UsersID"]').val(ajaxOutput.Data[0].UsersID).displayName;
+                                    $thisForm.find('[name="UsersID"]').attr("disabled", true);
+
+                                    $thisForm.find('[name="UserCode"]').val(ajaxOutput.Data[0].UserCode).displayName;
+                                    $thisForm.find('[name="UserCode"]').attr("disabled", true);
+                                    $thisForm.find('[name="UserCodeSearchBTN"]').attr("disabled", true);
+                                    
+                                    
+                                    $thisForm.find('[name="BanMethodID"]').val(ajaxOutput.Data[0].BanMethodID).selectpicker('refresh'),
+                                   $thisForm.find('[name="BanMethodID"]').attr("disabled", true);
+
+                                    $thisForm.find('[name=labelfromdate]').show();
+                                    $thisForm.find('[name="UbFromDate"]').val(moment(ajaxOutput.Data[0].UbFromDate).format('YYYY-MM-DD')).show(),
+                                    $thisForm.find('[name="UbFromDate"]').attr("disabled", true);
+
+                                    $thisForm.find('[name=labeltodate]').show();
+                                    $thisForm.find('[name="UbToDate"]').val(moment(ajaxOutput.Data[0].UbToDate).format('YYYY-MM-DD')).show(),
+                                    $thisForm.find('[name="UbToDate"]').attr("disabled", true);
+
+                                    $thisForm.find('[name=labelreasonban]').show();
+                                    $thisForm.find('[name="UserReasonBan"]').val(ajaxOutput.Data[0].UserReasonBan).show();
+                                    $thisForm.find('[name="UserReasonBan"]').attr("disabled", true);
+
+                                    $thisForm.find('[name=labelreasonunban]').show();
+                                    $thisForm.find('[name="UserReasonUnBan"]').val(ajaxOutput.Data[0].UserReasonUnBan).show();
+
+
+
+
+                                       
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetUsersInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+
+        }
+
+        function deleteUsersBan1() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetUsersBanDeleteReasonList", "UserBanned")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.UserCode + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                       // ID_Users: Saveddata['UsersID'],
+                                        ID_UserBanned: Saveddata['UserBannedID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteusersBan", "UserBanned")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (data) {
+                                            if (data.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+    </script>
+    }
+

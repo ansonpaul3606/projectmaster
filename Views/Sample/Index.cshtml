@@ -1,0 +1,154 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+
+}
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="customer-sample-form">
+
+        </div>
+    </div>
+</div>
+<div class="col-sm-3" style="margin-top:5px;">
+    <label for="Rptype">Report Format</label>
+    <select id="Rptype" class="form-control" style="width: 100%; height:28px;" name="ReportType">
+        <option value="1">PDF</option>
+        <option value="2">Excel</option>
+    </select>
+    <button class="btn btn-primary" id="testingButton" onclick="getreport(this)">Test button</button>
+</div>
+@*<button class="btn btn-primary" id="testingButton" onclick="getreport()">Test button</button>*@
+
+@section scripts{
+
+    <script>
+        //////anson
+
+        //////ansonend
+        function getreport()
+        {
+            let Rptype = $('#Rptype').val();
+
+            window.open('@Url.Action("GetCountrySampleReport", "Sample")?Rptype=' + Rptype)
+        }
+
+
+
+
+
+
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: updateCustomer },
+                    { displayName: "Go to", action: "" },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: ""
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            hideColumn: ["CustomerID", "PlaceID", "StateID", "DistrictID", "CustomerTitleID"],
+            isDateType: ["DateOfBirth", "CustomerDate"],
+            rowClickAction: () => { alert("clicked row") }
+        };
+
+
+
+        //$('#customer-sample-form').load("", function () { })  //sample load 
+
+        $('#customer-sample-form').load("@Url.Action("LoadFormSample", "Sample")");
+
+        $(document).ready(function () {
+
+            //load customer data
+            GetCustomerList();
+        });
+
+        function GetCustomerList() {
+            $.ajax({
+                url: '@Url.Action("GetCustomerList", "Sample")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "GET",
+                // headers: { "token_key": "1234" },
+                //data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    console.log('Customer List', ajaxOutput);
+                    if (ajaxOutput.Process.IsProcess) {
+               
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions));
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+                       
+
+                      
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Customer List', 'message': value });
+                        });
+                    }
+
+                }
+            });
+        }
+
+
+
+
+        function updateCustomer() {
+
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+            let savedData = $thisUser.data('pData');
+            let inputData = { customerID: savedData.CustomerID };
+            //dbcall
+                    $.ajax({
+                 url: '@Url.Action("GetCustomerByID", "Sample")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                        
+                        //$.each(ajaxOutput.Process.Message, function (key, value) {
+                        //    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        //});
+
+                        $('#customer-sample-form').load("@Url.Action("LoadFormSample", "Sample")", function () {
+
+                            let $thisForm = $(this).closest('[perfect-class="form"]');
+                            console.log(ajaxOutput.Data)
+                            $thisForm.find('[name=CustomerName]').val(ajaxOutput.Data[0].CustomerName),
+                                $thisForm.find('[name=CustomerTitleID]').val(ajaxOutput.Data[0].CustomerTitleID),
+                                $thisForm.find('[name=CustomerDate]').val(ajaxOutput.Data[0].CustomerDate),
+                                $thisForm.find('[name=PlaceID]').val(ajaxOutput.Data[0].PlaceID),
+                                $thisForm.find('[name=DistrictID]').val(ajaxOutput.Data[0].DistrictID),
+                                $thisForm.find('[name=StateID]').val(ajaxOutput.Data[0].StateID),
+                                $thisForm.find('[name=Phone]').val(ajaxOutput.Data[0].Phone),
+                                $thisForm.find('[name=Mobile]').val(ajaxOutput.Data[0].Mobile),
+                                $thisForm.find('[name=DateOfBirth]').val(ajaxOutput.Data[0].DateOfBirth)
+                            
+                        });
+
+                },
+
+
+            });
+
+        }
+
+
+    </script>
+
+
+
+}

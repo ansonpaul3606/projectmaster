@@ -1,0 +1,2385 @@
+﻿@model PerfectWebERP.Models.LoadFactoryService.CustomerserviceassignView
+
+
+<style>
+    form .error {
+        color: #FF6746;
+        font-size: 81%;
+        margin-top: 0.25rem;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            @*<h4 class="card-title col-12">@ViewBag.PageTitle</h4>*@
+            <h4 class="card-title col-12">Factory Service</h4>
+        </div>
+
+
+
+        <div class="col-xl-8 text-right">
+            <button id="refreshServiceAssign" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_LoadFactoryServicepage()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:block   ">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body ">
+        <form id="" class="form-valide" perfect-class="formassign" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Branch</label>*@
+                            <select class="form-control " name="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="getfunction()">
+                                <option value="0">Select Terminal</option>
+                                @if (!(Model.BranchList is null))
+                                {
+                                    foreach (var branch in Model.BranchList)
+                                    {
+                                        <option value="@branch.ID_Branch">@branch.BranchName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Product</label>*@
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="ProductName" perfect-class="formGroupControl" placeholder=" Select Product" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,18,'Product List',[])" form="formassign" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="ProductID" Function="1"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Complaint Type</label>*@
+                            <select class="form-control " name="ComplaintType" perfect-class="formGroupControl" placeholder=" Select Complaint Type" perfect-ctype="select" perfect-css="select" onchange="getfunction()">
+                                <option value="0">Select Complaint Type</option>
+                                @if (!(Model.ComplaintList is null))
+                                {
+                                    foreach (var complaint in Model.ComplaintList)
+                                    {
+                                        <option value="@complaint.ID_ComplaintList">@complaint.ComplaintName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Status</label>*@
+                            <select class="form-control" name="Complaintstatus" onchange="getfunction()">
+                                <option value="-1">Select Status</option>
+                                <option value="-1">All</option>
+                                <option value="0">New</option>
+                                <option value="1">Pending</option>
+                                <option value="3">On Hold</option>
+                                <option value="5">Pick-up</option>
+                                <option value="6">Standby</option>
+                                <option value="7">Delivery with standby</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <input type="hidden" name="LeadGenerateID" />
+                            <input type="date" class="form-control " name="FromDate" perfect-class="formGroupControl" title="From Date" perfect-ctype="date" perfect-css="date" onchange="getfunction()" />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="hidden" name="LeadGenerateID" />
+                            <input type="date" class="form-control " name="ToDate" perfect-class="formGroupControl" title="To Date" perfect-ctype="date" perfect-css="date" onchange="getfunction()" />
+                        </div>
+                    </div>
+                    <div class="col-sm-3 mt-4 pt-1">
+                        <div class="form-group">
+                            @*<label>Area</label>*@
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="AreaName" perfect-class="formGroupControl" placeholder=" Select Area" perfect-ctype="input" perfect-css="input" perfect-tempTable-cstatus="Area" disabled />
+                                <input type="hidden" name="AreaID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-cstatus="Area ID" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,14,'Area List',[])" form="formassign" Criterea1="0" Criterea2="0" BindName="AreaName" BindVal="AreaID" Function="1"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 mt-4 pt-1">
+                        <div class="form-group">
+                            @*<label>Post</label>*@
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="PostName" perfect-class="formGroupControl" placeholder=" Select Post" perfect-ctype="input" perfect-css="input" perfect-tempTable-cstatus="Post" disabled />
+                                <input type="hidden" name="PostID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-cstatus="Post ID" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,13,'Post List',[])" form="formassign" Criterea1="0" Criterea2="0" BindName="PostName" BindVal="PostID" Function="1"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Customer</label>*@
+                            <input type="text" name="Customer" class="form-control" placeholder="Enter Customer" onchange="getfunction()">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Customer Mobile</label>*@
+                            <input type="text" name="Mobile" class="form-control" placeholder="Customer Mobile" onkeypress="return isNumberKey(event)" onchange="getfunction()">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Ticket Number</label>*@
+                            <input type="text" name="Ticket" class="form-control" placeholder="Ticket Number" onchange="getfunction()">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Ticket Number</label>*@
+                            <input type="number" name="DueDays" class="form-control" placeholder="Due Days" onchange="getfunction()">
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        @*<label>Employee</label>*@
+                        <div class="input-group">
+                            <input type="text" class="form-control " name="EmployeeSearch" perfect-class="formGroupControl" placeholder="Select Employee" perfect-ctype="input" perfect-css="input" disabled />
+                            <input type="hidden" name="FK_EmployeeSearch" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            <div class="input-group-append">
+                                <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,6,'Employee List',[])" form="formassign" Criterea1="0" BindName="EmployeeSearch" BindVal="FK_EmployeeSearch" Function="1"></button>
+                            </div>
+                            @*<div id="ProductNameExists-error" class="Custominvalid animated fadeInUp producterror" style="display:none;">Employee already exists.</div>*@
+                        </div>
+                        @*<div class="text-danger temptableError1" style="font-size:80%;"></div>*@
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            @*<label>Sort Order</label>*@
+                            <select class="form-control" name="Sortorder" onchange="getfunction()">
+                                <option value="0">Select Sort Order</option>
+                                <option value="1">Terminal</option>
+                                <option value="2">Ticket Number</option>
+                                <option value="3">Priority</option>
+                                <option value="4">Status</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-1">
+                        <input type="hidden" name="filt" />
+                        <input type="hidden" name="md" />
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary btn-sm " href="#profile" name="Search" perfect-css="button" onclick="fn_LeadSearchbyfilter (this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+                    </div>
+                    <div class="col-sm-1">
+
+                        <button id="addcompany-jq-filterclear" type="button" class="btn btn-light btn-sm " name="Clearfilter" perfect-css="button" onclick="FilterReset (this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Clear</button>
+                    </div>
+
+
+                </div>
+            </div>
+            <br />
+            @*////////table/////*@
+            <div class="row">
+                <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv" id="test7"> </div>
+            </div>
+        </form>
+    </div>
+
+    @*/////////////////////// modal///////////////////////////////*@
+    <div class="modal fade bd-service-modal-sm" tabindex="-1" role="dialog" style="display: none; " aria-hidden="true">
+        <div class="modal-dialog modal-xl" id="modalid">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title Serviceassign" id="ServiceAssignModal">Service Assign</h5>
+                    <h5 class="modal-title Editassign" style="display:none">Edit Assign</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <form class="form-valide" perfect-class="form" id="formid" action="#" method="post" perfect-onFormSuccess="">
+                    <div class="modal fade" perfect-class="formGroupModalCustomerBalance" id="formGroupModalCustomerBalance">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content  rounded-lg">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">Customer Balance</h5>
+                                    <button type="button" class="close" @*data-dismiss="modal"*@ onclick="fn_closeCustomerBalance()">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                    <div class="default-tab">
+
+                                        <ul class="nav nav-tabs" role="tablist">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" data-toggle="tab" id="Customerdueid" href="#CustomerDue"><i class="fa fa-exclamation mr-2"></i>Customer Due</a>
+                                            </li>
+                                        </ul>
+
+                                        <div class="tab-content">
+                                            <div id="CustomDue" class="tab-pane active">
+                                                <div class="row" style="margin-top:1.5rem;">
+                                                    <div class="col-sm-12">
+                                                        <div id="Accountbalancedetails" style="display:none"></div>
+                                                        <div class="row col-md-12" id="Accountbalancedetailss"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 mt-3" perfect-class="formGroupModalCustomerBalancebody">
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0"></div>
+                    </div>
+                    <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+
+                        <div class="form-group row" id="TopDetails">
+
+                        </div>
+                        <div class="form-group row" id="TopDetails2">
+
+
+                        </div>
+                        <div></div>
+                        <div class="form-group row" id="TopDetail">
+
+                        </div>
+                        <div class="form-group row" id="TopDetail2">
+
+                        </div>
+
+
+                        <input type="hidden" name="ID_Customerserviceassign" />
+                        <input type="hidden" name="FK_Customerserviceregister" />
+                        <input type="hidden" name="ID_Customer" />
+
+                        <div class="form-group row">
+
+                            <div class="col-md-3" perfect-class="formGroup" id="Visitdate">
+                                <label>Attended Date</label>&nbsp;<span class="text-danger">*</span>
+                                <input type="date" class="form-control perfectValidate_date" name="CSAVisitdate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" min="2000-01-01" max="2050-01-01" onchange="datecheck(this)">
+                                @*<div class="invalid-feedback animated fadeInUp limit-check" style="display: none;"></div>*@
+                                <div class="invalid-feedback animated fadeInUp temptableErrors"></div>
+                            </div>
+                            <div class="col-md-3" id="Visittime">
+                                <label>Attended Time</label>&nbsp;@*<span class="text-danger">*</span>*@
+                                <input type="time" class="form-control" placeholder="" name="CSAVisittime" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                            <div class="col-md-3" id="Priority">
+                                <label>Priority</label>&nbsp;<span class="text-danger">*</span>
+                                <select class="form-control perfectValidate_string" name="CSAPriority">
+                                    <option value="">Please select</option>
+                                    <option value="1">High</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Normal</option>
+
+                                </select>
+                            </div>
+                            <div class="col-md-3" id="Remarks">
+                                <label>Remarks</label>&nbsp;
+                                <input type="text" name="CSARemarks" class="form-control" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                <input type="hidden" name="ID_CustomerServiceRegisterProductDetails" class="form-control" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                @*<textarea rows="1" name="CSARemarks" class="form-control" maxlength="500"></textarea>*@
+                            </div>
+
+                            <div class="col-md-3" perfect-class="formGroup" id="status">
+                                <label>
+                                    <span perfect-class="formGroupLabel">Status</span>
+                                </label>&nbsp;
+                                <select class="form-control" id="nextaction" name="NextAction" @*onchange="fn_bindate(this)"*@ perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="nxtonchng(this)">
+                                    <option value="">Select Status</option>
+                                    @if (!(Model.StatusList is null))
+                                    {
+                                        foreach (var Mode in Model.StatusList)
+                                        {
+                                            <option value="@Mode.ID_NextAction">@Mode.NxtActnName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-sm-3" id="Attendedby">
+                                <label>
+                                    <span perfect-class="formGroupLabel">Attended By</span>
+                                </label>&nbsp;
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="AttendedBy" perfect-class="formGroupControl" placeholder="Select Employee" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" class="form-control " name="FK_Attendedby" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,6,'Employee List',[])" Criterea1="0" BindName="AttendedBy" BindVal="FK_Attendedby"></button>
+                                    </div>
+                                    <div class="text-danger empError" style="font-size:70%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row Employeeadd">
+                            <div class="form-group col-md-3">
+                                <label>Department</label>
+                                <select class="form-control" id="dept" name="DepartmentID" data-id="subtabledepartment-error" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-tempTable-ComplaintDetails="DepartmentName" onchange="ClearEmployeeonchange(this)">
+                                    <option value="0">Please Select  </option>
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var DepartmentModule in Model.DepartmentList)
+                                        {
+                                            <option value="@DepartmentModule.DepartmentID">@DepartmentModule.DepartmentName </option>
+                                        }
+                                    }
+                                </select>
+                                <div class="text-danger temptableError mt-0"></div>
+                                @*<div id="subtabledepartment-error" class="invalid-feedback animated fadeInUp  temptableError" style="display: none;">Select Department.</div>*@
+                            </div>
+
+                            <div class="col-sm-3">
+
+                                <label>Employee</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" data-id="subtableemployee-error" perfect-ctype="input" perfect-css="input" perfect-tempTable-ComplaintDetails="Employee" disabled />
+                                    <input type="hidden" name="FK_Employee" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-ComplaintDetails="FK_Employee" />
+                                    @*<input type="text" class="form-control" name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-cstatus="Product" disabled />
+
+                                        <input type="hidden" name="ProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-cstatus="Product ID" />*@
+                                    <div class="input-group-append">
+                                        <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,6,'Employee List',['DepartmentID','Department'])" Criterea1="DepartmentID" BindName="Employee" BindVal="FK_Employee" Function="1"></button>
+                                    </div>
+                                    @*<div id="subtableemployee-error" class="invalid-feedback animated fadeInUp  temptableError" style="display: none;">Select Employee</div>*@
+
+
+
+
+                                </div>
+                                <div class="text-danger temptableError1" style="font-size:80%;"></div>
+                                <div id="ProductNameExists-error" class="Custominvalid animated fadeInUp producterror" style="display:none;">Employee already exists.</div>
+                            </div>
+
+                            <div class="form-group col-md-3">
+                                <label>Role</label>
+                                <select class="form-control " name="EmployeeType" perfect-class="formGroupControl" data-id="subtablerole-error" perfect-ctype="select" perfect-css="select" perfect-tempTable-ComplaintDetails="Role">
+
+                                    <option value="0">Please select</option>
+                                    @if (!(Model.ActionStatusList is null))
+                                    {
+                                        foreach (var ActionStatus in Model.ActionStatusList)
+                                        {
+                                            <option value="@ActionStatus.ID_Mode">@ActionStatus.ModeName</option>
+                                        }
+                                    }
+
+                                </select>
+                                <div class="text-danger temptableError2" style="font-size:70%;"></div>
+
+                            </div>
+
+                            <div class="col-sm-2 mt-6">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <button type="button" id="TbtnSave" class="btn btn-primary1" perfect-css="button" onclick="AddProductComplaintdetails(this, 'ComplaintDetails',1)" name="reset" align="center" title="Save"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                        <button type="button" id="TbtnUpdate" class="btn btn-primary1" perfect-css="button" onclick="AddProductComplaintdetails(this, 'ComplaintDetails',2)" name="reset" align="center" title="Update"><i class="fa fa-plus" aria-hidden="true"></i></button>
+
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button" id="clear" class="btn btn-light1" perfect-css="button" onclick="ClearProductComplaintdetails(this);"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!--Confirm Modal-->
+                            <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirmation</h5>
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span>×</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div id="ConfirmBody">
+
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            @*<button type="button" onclick="fn_SaveCustomerServiceRegister(this)" class="btn btn-primary">Confirm</button>*@
+                                            <button type="button" class="btn btn-danger light" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+                        <div class="row">
+                            <div class="col-xl-8">
+                                <div class="table-responsive " perfect-tempTable="ComplaintDetails" id="Emptable" style="display:none">
+                                    <table class="table table-responsive-md" id="EMPL">
+                                        <thead class="btn-primary" id="EMPLS">
+                                            <tr>
+                                                <th scope="col" style="text-align:center">SL.NO</th>
+                                                @*<th scope="col"="display:none;"><strong>DepartmentID</strong></th>
+                                                    <th><strong>Department</strong></th>*@
+                                                <th style="display:none; text-align:center"><strong>FK_Employee</strong></th>
+                                                <th scope="col" style="text-align:center">Employee</th>
+                                                @*<th><strong>Role</strong></th>
+                                                    <th style="display:none;"><strong>EmployeeType</strong></th>*@
+                                                <th scope="col" style="text-align:center">Role</th>
+                                                <th scope="col" style="text-align:center"></th>
+                                                <th scope="col" style="display:none;"><strong>DepartmentID</strong></th>
+                                                <th style="display:none;"><strong>CSAVisitdate</strong></th>
+
+                                                <th scope="col" style="text-align:center"></th>
+
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ComplaintDetailstbody">
+                                            <tr id="0">
+                                                <td style="text-align:center;" colspan="4">No Records..</td>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-xl-6 mt-2">
+                            <div class="table-responsive" perfect-tempTable="cstatus" perfect-tempTable-lastindex="0" perfect-tempTable-action="0">
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btnUpdate" onclick="fn_UpdateCustomerServiceAssignnew(this);" class="btn btn-primary">Update</button>
+                        <button type="button" id="btnSave" onclick="fn_SaveCustomerServiceAssign(this);" class="btn btn-primary">Save</button>
+                        <button type="button" id="btnUpdatepriority" onclick="fn_Priority_UpdateCustomerServiceAssign(this);" class="btn btn-primary">Update</button>
+                        <button type="button" id="btnUpdateprioritynew" onclick="fn_Priority_UpdateCustomerServiceAssign(this);" class="btn btn-primary">Update</button>
+                        <button type="button" class="btn btn-light1" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+     function ClearModalInput(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         $('[name=Employee]').val('');
+         $('[name=FK_Employee]').val('');
+         $('[name=CSAVisitdate]').val('');
+         $('[name=CSAVisittime]').val('');
+         $('[name=CSAPriority]').val('3');
+         $('[name=CSARemarks]').val('');
+         $('[name=ID_CustomerServiceRegisterProductDetails]').val('');
+           $('[name=DepartmentID]').val('@Model.ID_DefaultDept').selectpicker('refresh');
+             $('[name=Employee]').val('');
+         $('[name=EmployeeType]').val('0').selectpicker('refresh');
+         $('[name=NextAction]').val('');
+         $('[name=FK_Attendedby]').val('0');
+         $('[name=AttendedBy]').val('');
+         $('[name=PdAssignedDate]').val('');
+         $('[name=PdAssignedTime]').val('');
+         $('[name=PdVehicleDetails]').val('');
+         //$('[perfect-tempTable-cstatus]').val('');
+         //$('[perfect-tempTable="ComplaintDetails"]').html('');
+         $("#ComplaintDetailstbody tr").remove();
+
+
+
+     }
+
+     function checkfunction() {
+         let row = $(this).closest('tr');
+         let Saveddata = row.data('pData');
+
+         var curntemp = Saveddata.Employee;
+        
+         let id = Saveddata.ID_CustomerServiceRegister;
+         var ID_CustomerServiceRegisterProductDetails = 0;
+
+         if (Saveddata.ID_CustomerServiceRegisterProductDetails != 0) {
+             ID_CustomerServiceRegisterProductDetails = Saveddata.ID_CustomerServiceRegisterProductDetails;
+         }
+
+         if (Saveddata.StatusCode == 3) {
+             fn_ShowServiceAssignDetailsnew(this, id, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode, Saveddata.StatusCode);
+         }
+         else if (Saveddata.StatusCode == 0) {
+             ClearModalInput();
+             GetTicketDetailsnew(this, id, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode, Saveddata.StatusCode);
+         }
+         else if (Saveddata.StatusCode == 7 || Saveddata.StatusCode == 6) {// delivery Request
+             fn_ShowDeliverydetails(this, id, curntemp, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode)
+         }
+         else if (Saveddata.StatusCode == 5) {//pickup request
+             fn_ShowPickupdetails(this, id, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode)
+         }
+         else if (Saveddata.StatusCode == 4 || Saveddata.StatusCode == 10 || Saveddata.StatusCode == 9) {//completed
+             Feedbackview(this, id, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode)
+         }
+         else {
+             fn_ShowServiceAssignDetailsnew(this, id, ID_CustomerServiceRegisterProductDetails, Saveddata.TransMode, Saveddata.StatusCode);
+         }
+     }
+
+     var tableOptions2 = {
+
+         //textButton: {
+         //    buttons: [
+         //        { displayName: "Assign", class: "fa fa-pencil btnPerfectGridEdit", action: /*checkfunction*/fn_showpriority }
+         //    ]
+         //},
+
+         onlyShowColumn: ['Slno', 'TicketNo', 'TicketDate', 'Customer', 'Mobile', 'Customer', 'Branch', 'Priority', 'Status', 'Area', 'Due', 'Employee', 'Channel', 'Product'],
+         hideColumn: ["ID_CustomerServiceRegister", "PriorityCode", "StatusCode", "ID_Master", "TransMode", "ID_CustomerServiceRegisterProductDetails"],
+         trackInfo: { "TicketNo": "Click to more information" },
+         rowClickAction: checkfunction,
+         //serialNo: true,
+         renameHeader: { "Slno": "SL NO.", "TicketNo": "Ticket No", "TicketDate": "Ticket Date", "Mobile": "Mobile", "Customer": "Customer", "Branch": "Terminal", "Priority": "Priority", "Status": "Status", "Assign": "Action", "Test": "PriorityCode", "Area": "Area", "Due": "Days Due" },
+         isDateType: ["TicketDate"],
+         //customIcon: ["Assign"],
+         //buttons: ["Assign", { action: checkfunction }],
+         status: ["Status"],
+         priority: ["Priority"],
+         Channel: ["Channel"],
+
+     };
+
+
+
+     $(document).ready(function () {
+        
+         fn_LeadManagement_search(this, 8, '#test7');
+     });
+
+
+
+
+
+
+
+     function fn_LeadManagement_search(ele, M, ids) {
+         
+        let $sidemenu = $sideMenuOptions.body;
+        ClearModalInput();
+       // let $thisForm = $(ele).closest('.Search-Control');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $formDivContainer = $thisForm.find('[name=SearchLoadDiv]');
+
+        var InputData = {
+            'Customer': $('[name=Customer]').val().trim(),
+            'FromDate': $('[name=FromDate]').val(),
+            'ToDate': $('[name=ToDate]').val(),
+            'FK_Branch': $('[name=Branch]').val().trim(),
+            'Status': $('[name=Complaintstatus]').val().trim(),
+            'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+            'FK_Product': $('[name=ProductID]').val().trim(),
+            'Mobile': $('[name=Mobile]').val().trim(),
+            'Sortorder': $('[name=Sortorder]').val().trim(),
+            'TicketNumber': $('[name=Ticket]').val().trim(),
+            'pageSize': 15,
+            'pageIndex': 0,
+            'Mode': M,
+            'FK_Area': $('[name=AreaID]').val().trim(),
+            'FK_Post': $('[name=PostID]').val().trim(),
+            'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+            'DueDays': $('[name=DueDays]').val().trim(),
+        }
+        if (M == 2) {
+            titlepdf = 'New Service Assign';
+        }
+        else {
+            titlepdf = 'On Going Service Assign';
+        }
+
+        tabMode = M;
+
+
+          let pageUrl = '@Url.Action("GetSearchResults", "LoadFactoryService")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log('place', ajaxOutput);
+                          if (ajaxOutput.Process.IsProcess) {
+
+
+                              Data = ajaxOutput.Data;
+                              document.querySelector('#exppdf').style.display = 'block';
+
+                              $(ids).empty().append('<div class="d-flex justify-content-end mb-3 position-relative"><div class="col-md-1 position-absolute top-1 z-index"> <div class="input-group testSearchBox"></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+                              datapdf = {
+                                  'Customer': $('[name=Customer]').val().trim(),
+                                  'FromDate': $('[name=FromDate]').val(),
+                                  'ToDate': $('[name=ToDate]').val(),
+                                  'FK_Branch': $('[name=Branch]').val().trim(),
+                                  'Status': $('[name=Complaintstatus]').val().trim(),
+                                  'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+                                  'FK_Product': $('[name=ProductID]').val().trim(),
+                                  'Mobile': $('[name=Mobile]').val().trim(),
+                                  'Sortorder': $('[name=Sortorder]').val().trim(),
+                                  'TicketNumber': $('[name=Ticket]').val().trim(),
+                                  'pageSize': ajaxOutput.totalrecord,
+                                  'pageIndex': 0,
+                                  'Mode': M,
+                                  'FK_Area': $('[name=AreaID]').val().trim(),
+                                  'FK_Post': $('[name=PostID]').val().trim(),
+                                  'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+                                  'DueDays': $('[name=DueDays]').val().trim(),
+                              }
+                              let $table = $(ids).find('table');
+
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,//<----starting record
+                                  "pageLength": ajaxOutput.PageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.PageSize,//<---page size
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.PageSize, Customer: $('[name=Customer]').val().trim(), FromDate: $('[name=FromDate]').val(), ToDate: $('[name=ToDate]').val(), FK_Branch: $('[name=Branch]').val().trim(), FK_ComplaintType: $('[name=ComplaintType]').val().trim(), FK_Product: $('[name=ProductID]').val().trim(), Mobile: $('[name=Mobile]').val().trim(), Sortorder: $('[name=Sortorder]').val().trim(), TicketNumber: $('[name=Ticket]').val().trim(), 'Mode': M, 'FK_Area': $('[name=AreaID]').val().trim(), 'FK_Post': $('[name=PostID]').val().trim(), 'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(), 'Status': $('[name=Complaintstatus]').val().trim(), 'DueDays': $('[name=DueDays]').val().trim() }, tableOptions2, $table)
+                              });
+
+                          } else {
+                              document.querySelector('#exppdf').style.display = 'none';
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+
+
+                                  $(ids).empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $(ids).find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,//<----starting record
+                            "pageLength": ajaxOutput.PageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.PageSize, Customer: $('[name=Customer]').val().trim(), FromDate: $('[name=FromDate]').val(), ToDate: $('[name=ToDate]').val(), FK_Branch: $('[name=Branch]').val().trim(), FK_ComplaintType: $('[name=ComplaintType]').val().trim(), FK_Product: $('[name=ProductID]').val().trim(), Mobile: $('[name=Mobile]').val().trim(), Sortorder: $('[name=Sortorder]').val().trim(), TicketNumber: $('[name=Ticket]').val().trim(), 'Mode': M, 'FK_Area': $('[name=AreaID]').val().trim(), 'FK_Post': $('[name=PostID]').val().trim(), 'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(), 'Status': $('[name=Complaintstatus]').val().trim(), 'DueDays': $('[name=DueDays]').val().trim() }, tableOptions2, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+                    get_tab_count(this);
+
+            },
+            complete: function () {
+                $('[name=filt]').val(ids);
+                $('[name=md]').val(M);
+            }
+        });
+     }
+
+
+      function fn_LeadSearchbyfilter(ele) {
+
+          document.querySelector('#exppdf').style.display = 'none';
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+           let id = $('[name=filt]').val(); //id
+           let modes = $('[name=md]').val();//mode
+        $thisForm.find('[name=SearchLoadDiv]').empty();
+
+             let s = $(".nav-link active");
+             console.log('NAVIGATION VALUE-----', s)
+             let Mode = 0;
+           let ids = '';
+           let tableoptionscustom;
+
+            if (modes = 8) {
+               $("#factory").click();
+               Mode = 8;
+               ids = '#test7';
+               tableoptionscustom = tableOptions2;
+           }
+
+
+           if (Mode == 2) {
+               titlepdf = 'New Service Assign';
+           }
+           else {
+               titlepdf = 'On Going Service Assign';
+           }
+
+
+             var InputData = {
+                 'Customer': $('[name=Customer]').val().trim(),
+                 'FromDate': $('[name=FromDate]').val(),
+                 'ToDate': $('[name=ToDate]').val(),
+                 'FK_Branch': $('[name=Branch]').val().trim(),
+                 'Status': $('[name=Complaintstatus]').val().trim(),
+                 'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+                 'FK_Product': $('[name=ProductID]').val().trim(),
+                 'Mobile': $('[name=Mobile]').val().trim(),
+                 'Sortorder': $('[name=Sortorder]').val().trim(),
+                 'TicketNumber': $('[name=Ticket]').val().trim(),
+                 'pageSize': 15,
+                 'pageIndex': 0,
+                 'Mode': Mode,
+                 'FK_Area': $('[name=AreaID]').val().trim(),
+                 'FK_Post': $('[name=PostID]').val().trim(),
+                 'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+                 'DueDays': $('[name=DueDays]').val().trim(),
+             }
+
+
+             let pageUrl = '@Url.Action("GetSearchResults", "Service")';
+             $.ajax({
+             url: pageUrl,
+             type: "POST",
+             data: InputData,//<---- Input json : data passed to controller
+             dataType: "json",
+             contentType: "application/x-www-form-urlencoded;charset=utf-8",
+             success: function (ajaxOutput) {
+
+
+                 console.log(ajaxOutput.Data, 'ajaxOutput.Data////<<<<>>>>>')
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     document.querySelector('#exppdf').style.display = 'block';
+                    $(ids).empty().append('<div class="d-flex justify-content-end mb-3 position-relative"><div class="col-md-1 position-absolute top-1 z-index"> <div class="input-group testSearchBox"></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableoptionscustom)))
+                    datapdf = {
+                        'Customer': $('[name=Customer]').val().trim(),
+                        'FromDate': $('[name=FromDate]').val(),
+                        'ToDate': $('[name=ToDate]').val(),
+                        'FK_Branch': $('[name=Branch]').val().trim(),
+                        'Status': $('[name=Complaintstatus]').val().trim(),
+                        'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+                        'FK_Product': $('[name=ProductID]').val().trim(),
+                        'Mobile': $('[name=Mobile]').val().trim(),
+                        'Sortorder': $('[name=Sortorder]').val().trim(),
+                        'TicketNumber': $('[name=Ticket]').val().trim(),
+                        'pageSize': ajaxOutput.totalrecord,
+                        'pageIndex': 0,
+                        'Mode': Mode,
+                        'FK_Area': $('[name=AreaID]').val().trim(),
+                        'FK_Post': $('[name=PostID]').val().trim(),
+                        'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+                        'DueDays': $('[name=DueDays]').val().trim(),
+                    }
+
+
+                              let $table = $(ids).find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,//<----starting record
+                                  "pageLength": ajaxOutput.PageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.PageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.PageSize, Customer: $('[name=Customer]').val().trim(), FromDate: $('[name=FromDate]').val(), ToDate: $('[name=ToDate]').val(), FK_Branch: $('[name=Branch]').val().trim(), FK_ComplaintType: $('[name=ComplaintType]').val().trim(), FK_Product: $('[name=ProductID]').val().trim(), Mobile: $('[name=Mobile]').val().trim(), Sortorder: $('[name=Sortorder]').val().trim(), TicketNumber: $('[name=Ticket]').val().trim(), 'Mode': Mode, 'FK_Area': $('[name=AreaID]').val().trim(), 'FK_Post': $('[name=PostID]').val().trim(), 'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(), 'Status': $('[name=Complaintstatus]').val().trim(), 'DueDays': $('[name=DueDays]').val().trim() }, tableoptionscustom, $table)
+                              });
+
+                  }
+                 else {
+                     document.querySelector('#exppdf').style.display = 'none';
+                     if (ajaxOutput.Process.Status = "NoData") {
+
+                       
+
+                        $(ids).empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableoptionscustom)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $(ids).find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            // "lengthChange": false,
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,//<----starting record
+                            "pageLength": ajaxOutput.PageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.PageSize, Customer: $('[name=Customer]').val().trim(), FromDate: $('[name=FromDate]').val(), ToDate: $('[name=ToDate]').val(), FK_Branch: $('[name=Branch]').val().trim(), FK_ComplaintType: $('[name=ComplaintType]').val().trim(), FK_Product: $('[name=ProductID]').val().trim(), Mobile: $('[name=Mobile]').val().trim(), Sortorder: $('[name=Sortorder]').val().trim(), TicketNumber: $('[name=Ticket]').val().trim(), 'Mode': Mode, 'FK_Area': $('[name=AreaID]').val().trim(), 'FK_Post': $('[name=PostID]').val().trim(), 'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(), 'Status': $('[name=Complaintstatus]').val().trim(), 'DueDays': $('[name=DueDays]').val().trim() }, tableoptionscustom, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+                },
+                complete: function () {
+
+                }
+            });
+
+
+    }
+
+
+     function FilterReset(ele) {
+         document.querySelector('#exppdf').style.display = 'none';
+         let $container = $(ele).closest('[perfect-class="formassign"]');
+
+         $('select[name=Branch]').val('0');
+         $container.find('[name=Branch]').val('0');
+         $container.find('[name=ProductName]').val('')
+         $container.find('[name=ProductID]').val('0');
+         $container.find('[name=AreaName]').val('');
+         $container.find('[name=AreaID]').val('0');
+         $container.find('[name=PostName]').val('')
+         $container.find('[name=PostID]').val('0');
+         $container.find('[name=FromDate]').val('');
+         $container.find('[name=ToDate]').val('');
+         $container.find('[name=ComplaintType]').val('0');
+         $('select[name=ComplaintType]').val('0');
+         $container.find('[name=Customer]').val('');
+         $container.find('[name=Mobile]').val('');
+         $container.find('[name=Ticket]').val('');
+         $container.find('[name=Sortorder]').val('');
+         $('select[name=Sortorder]').val('0');
+         $container.find('[name=Complaintstatus]').val('');
+         $('select[name=Complaintstatus]').val('8');
+         $container.find('[name=EmployeeSearch]').val('');
+
+     }
+
+     function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+         //{ apiurl, pageSize }
+
+         return {
+             url: ajaxInfo.apiurl,
+             type: "post",
+             data: function () {
+                 var info = tableid.DataTable().page.info();
+                 console.log('RETURN AJAX', info)
+                 //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                 let input = { pageSize: info.length, pageIndex: info.page, Customer: ajaxInfo.Customer, FromDate: ajaxInfo.FromDate, Todate: ajaxInfo.Todate, FK_Branch: ajaxInfo.FK_Branch, FK_ComplaintType: ajaxInfo.FK_ComplaintType, FK_Product: ajaxInfo.FK_Product, Mobile: ajaxInfo.Mobile, TicketNo: ajaxInfo.TicketNo, Sortorder: ajaxInfo.Sortorder, Mode: ajaxInfo.Mode, FK_Area: ajaxInfo.FK_Area, FK_Post: ajaxInfo.FK_Post, FK_Employee: ajaxInfo.FK_Employee, Status: ajaxInfo.Status, DueDays: ajaxInfo.DueDays };
+                 if (ajaxInfo.searchkey) {
+                     input["Name"] = ajaxInfo.searchkey;
+                 }
+                 return input
+             },
+             dataType: "json",
+             contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+             success: function (dtajaxOutput) {
+                 // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                 console.table(dtajaxOutput.Data, 'dtajaxOutput.Data>>pagination fun')
+                 Data = dtajaxOutput.Data;
+                 document.querySelector('#exppdf').style.display = 'block';
+                 let table = tableid.DataTable();
+                 table.destroy();
+                 pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                 tableid.dataTable({
+                     "serverSide": true,
+                     "processing": true,
+                     //"lengthChange": false,
+                     "lengthMenu": [10, 15, 20, 25, 50, 100],
+                     "searching": false,
+                     "ordering": false,
+                     "deferLoading": dtajaxOutput.totalrecord,
+                     "displayStart": dtajaxOutput.PageIndex * dtajaxOutput.PageSize,
+                     "pageLength": dtajaxOutput.PageSize,
+                     "recordsFiltered": dtajaxOutput.PageSize,
+                     "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                 })
+
+             },
+
+         }
+     }
+
+
+
+     function fn_ShowServiceAssignDetailsnew(ele, id, ID_CustomerServiceRegisterProductDetails, TransMode, StatusCode) {
+       // debugger
+
+         $('Emptable').hide()
+        ClearModalInput();
+
+        if (StatusCode == 13) {
+            $("#ServiceAssignModal").text('Factory Service');
+        }
+        else if (StatusCode == 12) {
+            $("#ServiceAssignModal").text('Replacement Request');
+        }
+        else {
+            $("#ServiceAssignModal").text('Service Assign');
+        }
+
+        $('.Editassign').hide();
+        $('.Serviceassign').show();
+        $('.Employeeadd').show();
+        $('#TopDetail').hide();
+        $('#TopDetail2').hide();
+        $('#TopDetails').show();
+        $('#TopDetails2').show();
+
+        $('#Visitdate').show();
+        $('#Visittime').show();
+        $('#Remarks').show();
+        $('#status').hide();
+        $('#Attendedby').hide();
+        $('#Priority').show();
+
+        $('#modalid').removeClass('modal-lg');
+        $('#modalid').addClass('modal-xl');
+
+        var InputData = {
+            'FK_Customerserviceregister': id,
+            'FK_CustomerserviceregisterProductDetails': ID_CustomerServiceRegisterProductDetails,
+            'TransMode': TransMode,
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetTicketDetailsByIdNew", "Service")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+               //let $thisForm = $(this).find('[perfect-class="form"]');
+                //$thisForm.validate({ messages: validationMessage });
+                console.log(ajaxOutput,'ajaxOutput>>-->>')
+
+                 let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+                $('[name=CSAVisitdate]').val(moment(ajaxOutput.Model.Visitdate).format('YYYY-MM-DD'));
+                $('[name=CSAVisittime]').val(ajaxOutput.Model['Visittime']);
+                $('[name=CSAPriority]').val(ajaxOutput.Model['Priority']);
+                $('[name=CSARemarks]').val(ajaxOutput.Model['Remarks']);
+                $('[name=ID_CustomerServiceRegisterProductDetails]').val(ID_CustomerServiceRegisterProductDetails);
+
+
+                if (ajaxOutput.CustomerData.Data != null) {
+                    $('[name="DepartmentID"]').val('@Model.ID_DefaultDept').selectpicker('refresh');
+                    $('[name="DepartmentID"]').trigger('change');
+                    $('#TopDetails').empty();
+                    $('[name=ID_Customer]').val(ajaxOutput.CustomerData.Data[0].ID_Customer);
+                    $('[name=FK_Customerserviceregister]').val(id);
+                    let cusassign = $('[name=ID_Customerserviceassign]').val(ajaxOutput.Model.ID_Customerserviceassign);
+                    $TicketHtml = '';
+
+
+                    //Ticket Information
+                    $TicketHtml += "<div class='col-sm-12'>";
+                    $TicketHtml += "<div class='profile-personal-info'>";
+                    $TicketHtml += "<h4 class='text-primary mb-4'>Ticket Information</h4>";
+                    $TicketHtml += "<div class='row  px-3'>";
+
+                    $TicketHtml += "<div class='col-sm-4'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Ticket <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Ticket + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "<div class='col-sm-3'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Customer <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Customer + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "<div class='col-sm-5'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Address <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-9'><span>" + ajaxOutput.CustomerData.Data[0].Address + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "<div class='col-sm-4'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Land Mark <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Landmark + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "<div class='col-sm-3'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Contact No. <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].OtherMobile + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "<div class='col-sm-3'>";
+                    $TicketHtml += "<div class='info'>";
+                    $TicketHtml += "<div class='row'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Mobile Number <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Mobile + "</span>";
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += `<div class='col-sm-2'> <button id="customerbalancebtn" class="btn btn-primary fa fa-info" type="button" perfect-css="button" title="Customer Balance" onclick="ShowCustomerBalance(this)"></button>`;
+                    $TicketHtml += "</div ></div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div >";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += "</div>";
+
+                    if (ajaxOutput.CustomerData.Data[0].FromDate !== null) {
+
+
+                        //Service Information
+                        $TicketHtml += "<div class='col-sm-12 py-3'>";
+                        $TicketHtml += "<div class='profile-personal-info'>";
+                        $TicketHtml += "<h4 class='text-primary mb-4'>Service Information</h4>";
+                        $TicketHtml += "<div class='row  px-3'>";
+
+                        $TicketHtml += "<div class='col-sm-5'>";
+                        $TicketHtml += "<div class='info'>";
+                        $TicketHtml += "<div class='row'>";
+                        $TicketHtml += "<h5 class='f-w-500'>Requested Date <span class='pull-right'>:</span></h5>";
+                        $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].FromDate + ' ' + " - " + ' ' + ajaxOutput.CustomerData.Data[0].ToDate + "</span>";
+                        $TicketHtml += "</div ></div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+
+                        $TicketHtml += "<div class='col-sm-5'>";
+                        $TicketHtml += "<div class='info'>";
+                        $TicketHtml += "<div class='row'>";
+                        $TicketHtml += "<h5 class='f-w-500'>Requested Time <span class='pull-right'>:</span></h5>";
+                        $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].FromTime + ' ' + " - " + ' ' + ajaxOutput.CustomerData.Data[0].ToTime + "</span>";
+                        $TicketHtml += "</div ></div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div>";
+                        $TicketHtml += "</div>";
+                    }
+                    else if (ajaxOutput.CustomerData.Data[0].FollowUpDate !== null) {
+
+
+                        //Follow Up Details
+                        $TicketHtml += "<div class='col-sm-12 py-3'>";
+                        $TicketHtml += "<div class='profile-personal-info'>";
+                        $TicketHtml += "<h4 class='text-primary mb-4'>Follow Up Details</h4>";
+                        $TicketHtml += "<div class='row  px-3'>";
+
+                        $TicketHtml += "<div class='col-sm-5'>";
+                        $TicketHtml += "<div class='info'>";
+                        $TicketHtml += "<div class='row'>";
+                        $TicketHtml += "<h5 class='f-w-500'>Follow Up Date <span class='pull-right'>:</span></h5>";
+                        $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].FollowUpDate + "</span>";
+                        $TicketHtml += "</div ></div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+
+                        $TicketHtml += "<div class='col-sm-5'>";
+                        $TicketHtml += "<div class='info'>";
+                        $TicketHtml += "<div class='row'>";
+                        $TicketHtml += "<h5 class='f-w-500'>Remarks <span class='pull-right'>:</span></h5>";
+                        $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Remarks + "</span>";
+                        $TicketHtml += "</div ></div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+                        let outResult = "No";
+                        if (ajaxOutput.CustomerData.Data[0].ProvideStandBy == 1) {
+                            outResult = "Yes";
+                            $TicketHtml += "<div class='col-sm-5'>";
+                            $TicketHtml += "<div class='info'>";
+                            $TicketHtml += "<div class='row'>";
+                            $TicketHtml += "<h5 class='f-w-500'>Provide Standby<span class='pull-right'>:</span></h5>";
+                            $TicketHtml += "<div class='col-6'><span>" + outResult + "</span>";
+                            $TicketHtml += "</div ></div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+                        }
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div >";
+                        $TicketHtml += "</div>";
+                        $TicketHtml += "</div>";
+                    }
+
+                    console.clear()
+                    console.log(ajaxOutput.CustomerData.Data[0].PickUpOn)
+
+                    if (ajaxOutput.CustomerData.Data[0].PickUpOn != null) {
+                        if (ajaxOutput.CustomerData.Data[0].PickUpOn != "") {
+                            $TicketHtml += "<div class='col-sm-12 py-3'>";
+                            $TicketHtml += "<div class='profile-personal-info'>";
+                            $TicketHtml += "<h4 class='text-primary mb-4'>Pick Up Information</h4>";
+                            $TicketHtml += "<div class='row px-3'>";
+
+                            $TicketHtml += "<div class='col-sm-5'>";
+                            $TicketHtml += "<div class='info'>";
+                            $TicketHtml += "<div class='row'>";
+                            $TicketHtml += "<h5 class='f-w-500'>Date<span class='pull-right'>:</span></h5>";
+                            $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].PickUpOn + "</span>";
+                            $TicketHtml += "</div ></div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+
+                            $TicketHtml += "<div class='col-sm-5'>";
+                            $TicketHtml += "<div class='info'>";
+                            $TicketHtml += "<div class='row'>";
+                            $TicketHtml += "<h5 class='f-w-500'>Pick Up Person <span class='pull-right'>:</span></h5>";
+                            $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].PickUpBy + "</span>";
+                            $TicketHtml += "</div ></div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "<div class='col-sm-5'>";
+                            $TicketHtml += "<div class='info'>";
+                            $TicketHtml += "<div class='row'>";
+                            $TicketHtml += "<h5 class='f-w-500'>Remarks<span class='pull-right'>:</span></h5>";
+                            $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].PickUpRemarks + "</span>";
+                            $TicketHtml += "</div ></div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div >";
+                            $TicketHtml += "</div>";
+                            $TicketHtml += "</div>";
+                        }
+                    }
+
+                    $('#TopDetails').append($TicketHtml);
+
+                    if (ajaxOutput != null) {
+
+                        $('#TopDetails2').empty();
+                        var ProductData = ajaxOutput.Products;
+                        $ProductHtml = '';
+                        //if (ProductData.length > 0) {
+                        $ProductHtml += "<div class='col-sm-12 '>";
+                        $ProductHtml += "<div class='profile-personal-info'>";
+                        $ProductHtml += "<h4 class='text-primary mb-4'>Product Details</h4>";
+                        $ProductHtml += "<div class='row'>";
+
+                        $ProductHtml += "<div class='col-sm-4'>";
+                        $ProductHtml += "<div class='info'>";
+                        $ProductHtml += "<div class='row'>";
+                        $ProductHtml += "<div class='col-6'>";
+                        $ProductHtml += "<h5 class='f-w-500'>Category/Product Name<span class='pull-right'>:</span></h5>";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].Productname + "</span>";
+                        $ProductHtml += "</div ></div >";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "</div >";
+
+                        $ProductHtml += "<div class='col-sm-4'>";
+                        $ProductHtml += "<div class='info'>";
+                        $ProductHtml += "<div class='row'>";
+                        $ProductHtml += "<div class='col-6'>";
+                        $ProductHtml += "<h5 class='f-w-500'>Product Complaint <span class='pull-right'>:</span></h5>";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].ProductComplaint + "</span>";
+                        $ProductHtml += "</div ></div >";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "</div >";
+
+                        $ProductHtml += "<div class='col-sm-4'>";
+                        $ProductHtml += "<div class='info'>";
+                        $ProductHtml += "<div class='row'>";
+                        $ProductHtml += "<div class='col-6'>";
+                        $ProductHtml += "<h5 class='f-w-500'>Description <span class='pull-right'>:</span></h5>";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "<div class='col-6'><span>" + ajaxOutput.CustomerData.Data[0].ProductDescription + "</span>";
+                        $ProductHtml += "</div ></div >";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "</div >";
+
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "</div >";
+                        $ProductHtml += "</div>";
+                        $ProductHtml += "</div>";
+                        //$.each(ProductData, function (i, value) {
+                        //    let rowCount = (i + 1);
+
+                        //    $ProductHtml += "<tr id=" + rowCount + ">";
+                        //    $ProductHtml += "<td style='text-align: center;'>" + rowCount + "</td>";
+                        //    $ProductHtml += "<td>" + value.Productname + "</td>";
+                        //    $ProductHtml += "<td>" + value.ProductComplaint + "</td>";
+                        //    $ProductHtml += "<td>" + value.ProductDescription + "</td>";
+                        //    $ProductHtml += "</tr>";
+                        //});
+                        //}
+                        //else {
+                        //    $ProductHtml += "<tr id='0'><td colspan='4' style'text-align:center'>No Records..</td></tr>";
+                        //}
+
+                        $('#TopDetails2').append($ProductHtml);
+                    }
+                    //////////////////////////////////////////
+                    $('#btnUpdateprioritynew').css('display', 'none');
+                    $('#btnUpdatepriority').css('display', 'none');
+                    $('#btnUpdate').css('display', 'block');
+                    $('#btnSave').css('display', 'none');
+                    $('.bd-service-modal-sm').modal('show');
+
+                    $('#TbtnUpdate').css('display', 'none');
+                    $('#TbtnSave').css('display', 'block');
+                }
+
+                else {
+
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Error" });
+
+
+                }
+
+
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+                $('.bd-service-modal-sm').validate().resetForm();
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="Employee"]').closest('[perfect-class="formGroup"]').find('temptableError2').text('');
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="DepartmentName"]').closest('[perfect-class="formGroup"]').find('temptableError').text('');
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="Role"]').closest('[perfect-class="formGroup"]').find('temptableError2').text('');
+                $('#modalid').on('hidden.bs.modal', function () {
+                    $('#modalid form')[0].reset();
+                });
+
+            }
+        });
+
+     }
+
+     function ClearEmployeeonchange(ele) {
+
+         $('select[name=DepartmentID]').prop("disabled", false);
+         let $container = $(ele).closest('[perfect-class="form"]');
+         $container.find('[name=FK_Employee]').val('0')
+         $container.find('[name=Employee]').val('');
+         $('select[name=EmployeeType]').val('0');
+         $container.find('[name=EmployeeType]').val('0').selectpicker('refresh');
+         //$('select[name=EmployeeType]').val('0');
+         //$container.find('[name=DepartmentID]').val('');
+         //$container.find('[name=ModeName]').val('');
+         $('#TbtnUpdate').css('display', 'none');
+         $('#TbtnSave').css('display', 'block');
+         ValidateAddProductcomplaintdetails(this);
+         if (CheckExisting($container.find('[name=FK_Employee]').val(), 'ComplaintDetails', ele, 'ProductNameExists-error') <= 0) {
+
+             $container.find('[name="FK_Employee"]').closest('[perfect-class="form"]').find('.producterror').attr("style", "display:none");
+
+         }
+
+     }
+
+     function ValidateAddProductcomplaintdetails() {
+         
+         var Error = 0;
+         const $inp = $(".product");
+         let is_empty = '';
+         $inp.each((i, el) => {
+
+             //is_empty = !el.value.trim();
+
+
+             if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                 is_empty = false;
+             }
+             else {
+                 is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+             }
+
+
+             let ErrorID = $(el).attr('data-id');
+             if (is_empty) {
+                 console.log(`field ${el.id} is empty`);
+                 $('#' + ErrorID).css('display', 'block');
+                 Error++;
+                 console.log("While empty", Error)
+             }
+             else if (!is_empty) {
+                 $('#' + ErrorID).css('display', 'none');
+                 console.log("While not empty", Error)
+                 //if (Error > 0) {
+                 //    Error--;
+                 //}
+             }
+             el.classList.toggle("is-empty", is_empty);
+         });
+         return Error;
+     }
+
+     function CheckExisting(Object_ID, val, ele, Error, btnid) {
+       
+         let $container = $(ele).closest('[perfect-class="form"]');
+         var cntr = 0;
+         var Exist = 0;
+         $container.find('[perfect-tempTable="' + val + '"]').find('tbody').find('tr').each(function () {
+
+             var $tds = $(this).find('td'),
+                 productId = $tds.eq(1).text();
+
+             console.log('PRODUCT_ID-->', productId)
+
+
+             if (productId == Object_ID) {
+                 if (btnid == 2) {
+                     cntr++;
+                     if (cntr > 1) {
+                         Exist++;
+
+                     }
+                     else {
+                         Exist = 0;
+                     }
+                 }
+                 else {
+
+                     Exist++;
+                 }
+
+             }
+
+             if (Exist > 0) {
+                 $('#' + Error).css('display', 'block');
+                 console.log('Yes it exist');
+
+             }
+             else {
+                 $('#' + Error).css('display', 'none');
+                 console.log('No it not exist');
+             }
+         })
+         return Exist;
+     }
+
+     function ShowCustomerBalance(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name=ID_Customer]').val() != '') {
+            var obj = {
+                FK_Customer: $thisForm.find('[name=ID_Customer]').val(),
+                TransDate: moment().format('YYYY-MM-DD'),
+            }
+
+            console.log(obj)
+            $.ajax({
+                url: "@Url.Action("getGetCustomerAccountBalance", "Sales")",
+                type: "POST",
+                data: obj,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    $('#Accountbalancedetailss').html('')
+                    if (ajaxOutput.Process.IsProcess) {
+                        let table = JSON.parse(ajaxOutput.Data);
+                        $('#Accountbalancedetailss').html(pft_table_createtable(table.dtable, { serialNo: true }))
+                        document.getElementById("Accountbalancedetails").style.display = 'none';
+                      $("#formGroupModalCustomerBalance").modal('show');
+                    }
+                    else {
+                        document.getElementById("Accountbalancedetails").style.display = 'block';
+                        $('#Accountbalancedetails').html("<p style='text-align:center;' >No Records..</p>");
+                        $('#Accountbalancedetailss').html('')
+                        NotificationMessage({
+                            'type': 'info', 'heading': 'info', 'message': "Customer has no balance"
+                        });
+                    }
+                }
+
+            });
+
+
+        }
+        else {
+            NotificationMessage({
+                'type': 'info', 'heading': 'info', 'message': "Please select Import From"
+            });
+        }
+
+    }
+
+    function generatePdf(ele) {
+        var cdata;
+
+
+        let $container = $(ele).closest('[perfect-class="form"]');
+        const obj = {
+
+            "Ticket Number": $('input[name="Ticket"]').val(),
+            "Due Days": $('input[name="DueDays"]').val(),
+
+            Branch: $('select[name="Branch"] option:selected').text(),
+            "Complaint Type": $('select[name="ComplaintType"] option:selected').text(),
+           "Status": $('select[name="Complaintstatus"] option:selected').text(),
+
+            "Sortorder": $('select[name="Sortorder"] option:selected').text(),
+            "Customer Mobile": $('input[name="Mobile"]').val(),
+            Customer: $('input[name="Customer"]').val(),
+            "Post": $('input[name="PostName"]').val(),
+            Product: $('input[name="ProductName"]').val(),
+            "Area": $('input[name="AreaName"]').val(),
+            "Employee": $('input[name="EmployeeSearch"]').val()
+
+
+
+
+        };
+        const obj2 = {
+            "From":    $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        console.log(Data,'Data>><<<')
+
+        //Data.forEach((x) => {
+        //    if (x['TicketDate']) {
+        //        let q = x['TicketDate'].split('T');
+        //        x['TicketDate'] = changeDateFormat(q[0]);
+        //    }
+
+        //})
+
+
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+                 var reportName;
+                 var head = [];
+                 var ptableData = {};
+               
+                 
+                     reportName = "Factory Service";
+                 head = ["Sl .No", "Ticket No", "Ticket Date", "Terminal", "Customer", "Mobile", "Area", "Employee", "Channel", "Priority", "Status", "Days Due"];
+                     ptableData = {
+                         columns: [
+
+
+                             { dataKey: "TicketNo" },
+                             { dataKey: "TicketDate" },
+                             { dataKey: "Branch" },
+                             { dataKey: "Customer" },
+                             { dataKey: "Mobile" },
+                             { dataKey: "Area" },
+                             { dataKey: "Employee" },
+                             { dataKey: "Channel" },
+                             { dataKey: "Priority" },
+                             { dataKey: "Status" },
+                             { dataKey: "Due" },
+
+                         ],
+                         rows: Data
+
+                     };
+                 
+
+                 var str = "";
+                 var str2 = `Report : ${reportName} List`;
+                 var filename = `${reportName} List`;
+                 var num = 0;
+
+                 for (var i in obj) {
+                     if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0 && obj[i] != "Select Terminal" && obj[i] != "Select Complaint Type" && obj[i] != "Select Status" && obj[i] != "Select Sort Order") {
+
+                         if (num == 0) {
+                             str = "Filter By : ";
+                         }
+                         str = str + i + ' : ' + obj[i] + ' , ';
+                         num++;
+                     }
+
+                 };
+                 //for (var i in obj2) {
+                 //    if (obj2[i] != "" && obj2[i] != undefined) {
+
+
+
+                 //       // str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+                 //    }
+
+                 //};
+                 if (obj2['From'] && obj2['To']) {
+
+                     str2 = str2 + ` ,For the Period  ${changeDateFormat(obj2['From'])} - ${changeDateFormat(obj2['To'])}`;
+                 }
+                 var upperhead;
+                 if (str2 && str) {
+                     upperhead = {
+
+
+                         columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                         columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                         body: [
+
+                             [
+
+                                 str2 +
+                                 '\n' + str
+
+
+                             ]
+                         ],
+
+                         theme: 'plain',
+                         styles: {
+                             // fillColor: '#3366ff',
+                             color: 'black',
+                             rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                         },
+                         didDrawCell: function (data) {
+                             data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                         }
+
+
+
+                     };
+
+                 } else if (str2 && str == "") {
+                     upperhead = {
+
+
+                         columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                         columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                         body: [
+
+
+                             [ str2 ]
+
+
+                         ],
+
+                         theme: 'plain',
+                         styles: {
+                             // fillColor: '#3366ff',
+                             color: 'black',
+                             rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                         },
+                         didDrawCell: function (data) {
+                             data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                         }
+
+
+
+                     };
+
+                 }
+
+                 exportPdf("", [head], cdata, upperhead, "", ptableData, "", `${filename} Report`, "a4","","","l");
+                // exportPdf(ptitle, phead, cdata, upperhead, footerdata, ptableData, grpvariable, filename, pageSize, tableOptions, columnStyles, PageOrientation)
+
+                }
+         });
+    }
+
+    function onExell() {
+
+
+
+        var cdata;
+
+
+
+        const obj = {
+
+            "Ticket Number": $('input[name="Ticket"]').val(),
+            "Due Days": $('input[name="DueDays"]').val(),
+
+            Branch: $('select[name="Branch"] option:selected').text(),
+            "Complaint Type": $('select[name="ComplaintType"] option:selected').text(),
+            "Status": $('select[name="Complaintstatus"] option:selected').text(),
+
+            "Sortorder": $('select[name="Sortorder"] option:selected').text(),
+            "Customer Mobile": $('input[name="Mobile"]').val(),
+            Customer: $('input[name="Customer"]').val(),
+            "Post": $('input[name="PostName"]').val(),
+            Product: $('input[name="ProductName"]').val(),
+            "Area": $('input[name="AreaName"]').val(),
+            "Employee": $('input[name="EmployeeSearch"]').val()
+
+
+
+
+        };
+        const obj2 = {
+            "From": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+
+
+        let ReportName1;
+
+
+        //Data.unshift(str);
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 console.log(cdata, "---cdata----");
+                 var reportName;
+                 var head = [];
+                 var ptableData = {};
+
+                 
+                     reportName = "Factory Service";
+                 head = ["Sl .No", "Ticket No", "Ticket Date", "Terminal", "Customer", "Mobile", "Area", "Employee", "Channel", "Priority", "Status", "Days Due"];
+                     ptableData = {
+                         columns: [
+
+
+                             { dataKey: "TicketNo" },
+                             { dataKey: "TicketDate" },
+                             { dataKey: "Branch" },
+                             { dataKey: "Customer" },
+                             { dataKey: "Mobile" },
+                             { dataKey: "Area" },
+                             { dataKey: "Employee" },
+                             { dataKey: "Channel" },
+                             { dataKey: "Priority" },
+                             { dataKey: "Status" },
+                             { dataKey: "Due" },
+
+                         ],
+                         rows: Data
+
+                     };
+                 
+
+
+                 var str = "";
+                 var str2 = `Report :  SERVICE ASSIGN - ${reportName} List`;
+                 var filename = `SERVICE ASSIGN - ${reportName} List`;
+                 var num = 0;
+
+                 for (var i in obj) {
+                     if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0 && obj[i] != "Select Terminal" && obj[i] != "Select Complaint Type" && obj[i] != "Select Status" && obj[i] != "Select Sort Order") {
+
+                         if (num == 0) {
+                             str = "Filter By : ";
+                         }
+                         str = str + i + ' : ' + obj[i] + ' , ';
+                         num++;
+                     }
+
+                 };
+            
+
+                 if (obj2['From'] && obj2['To']) {
+                     
+                     str2 = str2 + ` ,For the Period  ${changeDateFormat(obj2['From'])} - ${changeDateFormat(obj2['To'])}`;
+                 }
+
+                 ReportName1 = `${cdata.Company} \n${cdata.Branch}\n ${str2} \n ${str} `
+                 generateExell(ReportName1, [head], ptableData, "", "", `${filename} Report`);
+
+
+
+
+             }
+         });
+
+
+
+
+
+    }
+
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+
+    function getfunction() {
+        document.querySelector('#exppdf').style.display = 'none';
+    }
+
+
+
+     function fn_showFilter() {
+
+         $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+
+    }
+
+    function AddProductComplaintdetails(ele, val, btnid) {
+      
+
+        $("#dept").on('change', function () {
+
+            ClearEmployeeonchange(this);
+
+        })
+        let tableKey = val;
+        let errorClass = '.temptableError';
+        let errorClass1 = '.temptableError1';
+        let errorClass2 = '.temptableError2';
+        let isValid = true;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="Employee"]').val().length == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="Employee"]').val().length == null) {
+            isValid = false;
+            console.log('false');
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Employee"]').closest('[perfect-class="formGroup"]').find(errorClass1).text('Please select Employee');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Employee"]').closest('[perfect-class="formGroup"]').find(errorClass1).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="DepartmentName"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="DepartmentName"]').val().length == null) {
+
+            isValid = false;
+            console.log('false');
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="DepartmentName"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Department');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="DepartmentName"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="Role"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="Role"]').val() == null) {
+
+            isValid = false;
+            console.log('false');
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Role"]').closest('[perfect-class="formGroup"]').find(errorClass2).text('Please Select Role');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Role"]').closest('[perfect-class="formGroup"]').find(errorClass2).text('');
+        }
+
+        console.log("Validate >", ValidateAddProductcomplaintdetails())
+        let $container = $(ele).closest('[perfect-class="form"]');
+        //   console.log("Check Exist >", (CheckExisting($container.find('[name=FK_Employee]').val(), val, ele)));
+        if (isValid) {
+            
+            //if (Employeechecking() <= 0) {
+
+            if (ValidateAddProductcomplaintdetails() <= 0 && CheckExisting($container.find('[name=FK_Employee]').val(), val, ele, 'ProductNameExists-error', btnid) <= 0) {
+                if (btnid == 2) {
+                    removerow($container.find('[name=FK_Employee]').val(), ele, btnid, val);
+                }
+                $('#Emptable').css('display', 'block');
+                $('#TbtnUpdate').css('display', 'none');
+                $('#TbtnSave').css('display', 'block');
+                let $tbl = $container.find('[perfect-tempTable="' + val + '"]');
+                //let savedData = [];
+                //$container.find('[perfect-tempTable="' + val + '"]').find('tbody').find('tr').each(function () {
+                //    savedData.push($(this).data('pData'));
+                //})
+
+                RemoveEmptyRow('ComplaintDetailstbody');
+
+                var TbodyHtml = '';
+
+                var rowcount = document.getElementById('ComplaintDetailstbody').rows.length;
+
+                rowcount = rowcount + 1;
+                TbodyHtml += "<tr id=" + htmlEncode(rowcount) + ">";
+                TbodyHtml += "<td class='row-index' style='text-align:center;'>" + htmlEncode(rowcount) + "</td>";
+
+                TbodyHtml += "<td style='display:none;'>" + $container.find('[name=FK_Employee]').val() + "</td>";
+                TbodyHtml += "<td style='text-align:center;'>" + htmlEncode($container.find('[name=Employee]').val()) + "</td>";
+                TbodyHtml += "<td style='text-align:center;'>" + htmlEncode($('select[name=EmployeeType]').find(':selected').text()) + "</td>";
+                TbodyHtml += "<td style='display:none;'>" + $container.find('[name=EmployeeType]').val() + "</td>";
+                TbodyHtml += "<td style='display:none;'>" + $('select[name=DepartmentID]').find(':selected').val() + "</td>";
+                TbodyHtml += "<td style='display:none;'>" + htmlEncode($('select[name=DepartmentID]').find(':selected').text()) + "</td>";
+                TbodyHtml += "<td style='display:none;'>" + $('[name=CSAVisitdate]').val() + "</td>";
+
+                console.log('TIME', $('[name=CSAVisittime]').val());
+                console.log('DATE', $('[name=CSAVisitdate]').val());
+                TbodyHtml += "<td style='text-align:center;'><div class='d-flex'><a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1' title='Edit' onclick='EditProductComplaintdetails(this);'> <i class='fa fa-pencil btnPerfectGridEdit'></i></a>";
+                TbodyHtml += "<a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1' title='Delete' onclick='RemoveProductComplaintdetails(this);'><i class='fa fa-trash btnPerfectGridDelete'></i></a>";
+                TbodyHtml += "<a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1' title='Assigned Works' onclick='Employeechecking(this);'><i class='fa fa-history'></i></a></div ></td > ";
+                TbodyHtml += "</tr>";
+
+
+                $('#ComplaintDetailstbody').append(TbodyHtml);
+
+
+                $('[name=FK_Employee]').val('0')
+                $('[name=Employee]').val('');
+                $('select[name=EmployeeType]').val('0');
+                $('[name=EmployeeType]').val('0');
+                $('select[name=EmployeeType]').val('0');
+                $('[name=DepartmentID]').val('0');
+
+            }
+            //}
+        }
+
+    }
+
+
+    function ClearProductComplaintdetails(ele) {
+       
+
+
+        $('select[name=DepartmentID]').prop("disabled", false);
+        let $container = $(ele).closest('[perfect-class="form"]');
+        $container.find('[name=FK_Employee]').val('0')
+        $container.find('[name=Employee]').val('');
+        $('select[name=EmployeeType]').val('0').selectpicker('refresh');
+        $('select[name=DepartmentID]').val('0').selectpicker('refresh');
+        $container.find('[name=EmployeeType]').val('0');
+        // $('select[name=EmployeeType]').val('');
+        $container.find('[name=DepartmentID]').val('0');
+        //$container.find('[name=ModeName]').val('');
+        $('#TbtnUpdate').css('display', 'none');
+        $('#TbtnSave').css('display', 'block');
+        ValidateAddProductcomplaintdetails(this);
+        if (CheckExisting($container.find('[name=FK_Employee]').val(), 'ComplaintDetails', ele, 'ProductNameExists-error') <= 0) {
+
+            $container.find('[name="FK_Employee"]').closest('[perfect-class="form"]').find('.producterror').attr("style", "display:none");
+        }
+    }
+
+    function RemoveEmptyRow(ID) {
+        let val = $('#' + ID).find('tr:first').attr('id');
+        if (val == 0) {
+            $('#' + ID).empty();
+        }
+    }
+
+    function EditProductComplaintdetails(ele) {
+       
+        let $container = $(ele).closest('[perfect-class="form"]');
+        var tr = $(ele).closest('tr');
+        tre = $(ele).closest('tr');
+        var $tds = tr.find('td'),
+            Slno = $tds.eq(0).text(),
+            FK_Employee = $tds.eq(1).text(),
+            Employee = $tds.eq(2).text(),
+            DepartmentID = $tds.eq(5).text(),
+            Role = $tds.eq(4).text(),
+            EmployeeType = $tds.eq(3).text();
+
+        $container.find('[name=FK_Employee]').val(FK_Employee);
+        //$container.find('[name=DepartmentName]').val(DepartmentName);
+        $container.find('[name=Employee]').val(Employee);
+        $container.find('[name=EmployeeType]').val(EmployeeType);
+
+        $('select[name=EmployeeType]').val(Role);
+        $('select[name=DepartmentID]').val(DepartmentID);
+        $('select[name=DepartmentID]').prop("disabled", true);
+        //$container.find('[name=EmployeeType]').val(EmployeeType);
+
+
+
+
+        //Re Calculate SI>NO
+
+
+
+        //$(ele).closest('tr').remove();
+        //End
+        // Add no record if table empty
+        var rowcount = document.getElementById('ComplaintDetailstbody').rows.length;
+        if (rowcount == 0) {
+            $('#Emptable').css('display', 'none');
+            let TbodyHtml = '';
+            TbodyHtml += "<tr id='0'> <td style='text-align:center;' colspan='4'>No Records..</td> </tr>";
+            $('#ComplaintDetailstbody').html(TbodyHtml);
+        }
+        $('#TbtnUpdate').css('display', 'block');
+        $('#TbtnSave').css('display', 'none');
+        //end
+        //$("#dept").on('change', function () {
+
+        //    ClearEmployeeonchange(this);
+
+        //})
+    }
+    function RemoveProductComplaintdetails(ele) {
+
+        let ObjectName = $(ele).closest("tr").find("td").eq(2).text().trim();
+
+        if (confirm("Are you sure you want to delete " + " " + ObjectName + "?")) {
+            var row = $(ele).closest('tr');
+
+            var siblings = row.siblings();
+
+            siblings.each(function (index) {
+                $(this).children('td').first().text(index + 1);
+            });
+
+            // Removing the current row.
+            $(ele).closest('tr').remove();
+
+            $('[name=FK_Employee]').val('0')
+            $('[name=Employee]').val('');
+            $('select[name=EmployeeType]').val('0');
+            $('[name=EmployeeType]').val('0');
+            $('select[name=EmployeeType]').val('0');
+            $('[name=DepartmentID]').val('0');
+            $('#TbtnUpdate').css('display', 'none');
+            $('#TbtnSave').css('display', 'block');
+
+            $('select[name=DepartmentID]').prop("disabled", false);
+        }
+        else {
+            return false;
+        }
+
+        //If removed all rows
+        var rowcount = document.getElementById('ComplaintDetailstbody').rows.length;
+        if (rowcount == 0) {
+            $('#Emptable').css('display', 'none');
+            let TbodyHtml = '';
+            TbodyHtml += "<tr id='0'> <td style='text-align:center;' colspan='5'>No Records..</td> </tr>";
+            $('#ComplaintDetailstbody').html(TbodyHtml);
+            $("#ComplaintDetailstbody tr").remove();
+        }
+    }
+    function Employeechecking(ele) {
+
+        let inputdata = 0;
+
+        let $thisForm = 0;
+
+        $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.valid()) {
+
+            var tr = $(ele).closest('tr');
+            var $tds = tr.find('td'),
+                FK_Employee = $tds.eq(1).text(),
+                CSAVisitdate = $tds.eq(7).text(),
+                CSAVisittime = $tds.eq(8).text()
+                console.log('TABLE VALUES', $tds)
+            var InputData =
+            {
+                //'__RequestVerificationToken': $('[name="__RequestVerificationToken"]').val(),
+
+                'FK_Employee': FK_Employee ,
+                'VisitDate': CSAVisitdate ,
+                'Visittime': CSAVisittime,
+                'Mode': 1
+            }
+
+        $.ajax({
+            url: '@Url.Action("GetEmployeeTicketHistory", "Service")',
+            type: "POST",
+            data: InputData,//<---- Input json : data passed to controller
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function (ajaxOutput) {
+
+
+               
+                if (ajaxOutput.Process.IsProcess) {
+                   
+
+                    let table = JSON.parse(ajaxOutput.Data);
+
+                        let $modal = createSearchModalDOM();
+                        let $message = pft_table_createtable(table.dtable, { serialNo: true });
+                        $modal.modal.find('.modal-body')
+                        .addClass('text-black')
+                        .html($message);
+                        $modal.modal.find('.modal-title')
+                        .addClass('text-primary')
+                        .text('Assigned Tickets');
+
+                       $modal.modal.show();
+
+
+                }
+                else {
+                    let $modal = createSearchModalDOM();
+                    let $message = '<span>No Ticket History Available</span>';
+                    $modal.modal.find('.modal-body')
+                        .addClass('text-black')
+                        .html($message);
+                    $modal.modal.find('.modal-title')
+                        .addClass('text-primary')
+                        .text('Assigned Tickets');
+
+                    $modal.modal.show();
+                }
+            },
+            complete: function () {
+
+
+            }
+        });
+        }
+    }
+    function fn_UpdateCustomerServiceAssignnew(ele, id) {
+        var mode;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($('#Visitdate').is(":visible") && $('#Visittime').is(":visible")) {
+            $('[name="CSAVisitdate"]').addClass('perfectValidate_date');
+            $('[name="CSAVisittime"]').addClass('perfectValidate_time');
+        }
+
+        if ($('#TbtnUpdate').is(":visible") && $('#TbtnSave').is(":hidden")) {
+            mode = 2;
+        }
+        else
+        {
+            mode = 3;
+        }
+        let Empdatas = [];
+        $thisForm.find('[perfect-tempTable="ComplaintDetails"]').find('tbody').find('tr').each(function () {
+            let tr = $(this);
+            let Employeedata = {
+                FK_Employee: tr.find("td:eq(1)").text().trim(),EmployeeType: tr.find("td:eq(4)").text().trim()
+            }
+            Empdatas.push(Employeedata);
+        })
+
+     
+        var rowcount = document.getElementById('ComplaintDetailstbody').rows.length;
+        //let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //debugger
+        if ($thisForm.valid()) {
+
+            let Visitdate = $thisForm.find('[name="CSAVisitdate"]').val();
+            var enqDate = new Date(Visitdate);
+            enqDate.setHours(0, 0, 0, 0)
+            var today = new Date();
+            today.setHours(0, 0, 0, 0)
+
+
+            let errorClass = '.temptableErrors';
+            if (enqDate >= today) {
+
+                isValid = true;
+                $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:none");
+                $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+            }
+            else {
+                isValid = false;
+                console.log('false');
+                $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+                $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Visit Date should be greater than or equal to Todays date');
+
+            }
+            if (isValid) {
+                if (Empdatas.length != 0 && rowcount != 0) {
+                    $(ele).prop('disabled', true);
+
+
+                    var inputData =
+                    {
+                        'ID_Customerserviceassign': $('[name=ID_Customerserviceassign]').val(),
+                        '__RequestVerificationToken': $('[name="__RequestVerificationToken"]').val(),
+                        'FK_Customerserviceregister': $thisForm.find('[name=FK_Customerserviceregister]').val().trim(),
+                        //'FK_Employee': $thisForm.find('[name=FK_Employee]').val().trim(),
+                        'CSAVisitdate': $thisForm.find('[name=CSAVisitdate]').val().trim(),
+                        'CSAVisittime': $thisForm.find('[name=CSAVisittime]').val().trim(),
+                        'CSAPriority': $thisForm.find('[name=CSAPriority]').val().trim(),
+                        'CSARemarks': $thisForm.find('[name=CSARemarks]').val().trim(),
+                        'Assignees': Empdatas,
+                        'ID_CustomerServiceRegisterProductDetails': $('[name=ID_CustomerServiceRegisterProductDetails]').val(),
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("UpdateCustomerserviceAssignNew", "Service")",
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                            if (ajaxOutput.Process.IsProcess) {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Updated Successfully' });
+                                });
+                                // Get the value set in form's perfect-onFormSuccess attribute
+                                let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                //if (onSuccess) {
+                                //    window[onSuccess]();
+                                //}
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                            if (mode = 8) { fn_LeadManagement_search(this, mode, '#test7', tableOptions2); }
+                            //if (mode = 7) { fn_LeadManagement_search(this, mode, '#test6', tableOptions2); }
+                            //if (mode = 6) { fn_LeadManagement_search(this, mode, '#test5', tableOptions2); }
+                            //if (mode = 5) { fn_LeadManagement_search(this, mode, '#test4', tableOptions2); }
+                            //if (mode = 4) { fn_LeadManagement_search(this, mode, '#test3', tableOptions2); }
+                            //if (mode = 3) { fn_LeadManagement_search(this, mode, '#test2', tableOptions2); }
+                            //if (mode = 2) { fn_LeadManagement_search(this, mode, '#test1', tableOptions); }
+                            //fn_LeadManagement_search(this, 3, '#test2', tableOptions);
+                        },
+                        complete: function () {
+                            debugger
+                            
+                            $(ele).prop('disabled', false);
+                            $('.bd-service-modal-sm').modal('hide');
+                           // Searchtableresult(this);
+                        }
+                    });
+                }
+                else {
+                    let $modal = createSearchModalDOM();
+
+                    let $message = '<span>Add Atleast One Employee Details</span>';
+                    $modal.modal.find('.modal-body')
+                        .addClass('text-black')
+                        .html($message);
+                    $modal.modal.find('.modal-title')
+                        .addClass('text-primary')
+                        .text('Message');
+
+                    $modal.modal.show();
+                }
+            }
+        }
+    }
+
+
+    function removerow(Object_ID, ele, btnid, val) {
+        $('select[name=DepartmentID]').prop("disabled", false);
+        let $container = $(ele).closest('[perfect-class="form"]');
+        var cntr = 0;
+        $container.find('[perfect-tempTable="' + val + '"]').find('tbody').find('tr').each(function () {
+
+            var $tds = $(this).find('td'),
+                productId = $tds.eq(1).text();
+           
+            if (productId == Object_ID) {
+
+                if (btnid == 2) {
+                    cntr++;
+                    if (cntr > 1) {
+
+
+                    }
+                    else {
+                        var siblings = tre.siblings();
+                        console.log('Sibling>', siblings);
+                        siblings.each(function (index) {
+                            $(this).children('td').first().text(index + 1);
+                        });
+                        tre.remove();
+
+                    }
+                }
+
+
+            }
+            else {
+                var siblings = tre.siblings();
+                console.log('Sibling>', siblings);
+                siblings.each(function (index) {
+                    $(this).children('td').first().text(index + 1);
+                });
+                tre.remove();
+            }
+
+
+        })
+    };
+    function fn_closeCustomerBalance() {
+        $("#formGroupModalCustomerBalance").modal('hide');
+    }
+    //////////////////////////////////NEW PAGINATION CHECK///////////////////////////////////////////////
+    function datecheck(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+
+        let Visitdate = $thisForm.find('[name="CSAVisitdate"]').val();
+        var enqDate = new Date(Visitdate);
+        enqDate.setHours(0, 0, 0, 0)
+        var today = new Date();
+        today.setHours(0, 0, 0, 0)
+
+        let errorClass4 = '.temptableErrors';
+        if (enqDate >= today) {
+
+            $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass4).attr("style", "display:none");
+            $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass4).text('');
+        }
+        else if (enqDate <= today){
+            isValid = false;
+            console.log('false');
+            $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass4).attr("style", "display:block");
+            $thisForm.find('[name="CSAVisitdate"]').closest('[perfect-class="formGroup"]').find(errorClass4).text('Attended Date should be greater than or equal to Todays date');
+
+        }
+
+
+        //$thisForm.find('[perfect-ctype="date"]').val('');
+        $('[name=FK_Employee]').val('0');
+        $('[name=Employee]').val('');
+        //$('select[name=EmployeeType]').val('0');
+        $('[name=EmployeeType]').val('0').selectpicker('refresh');
+        //$('select[name=EmployeeType]').val('0');
+        $('[name=DepartmentID]').val('@Model.ID_DefaultDept').selectpicker('refresh');
+
+        $('#TbtnUpdate').css('display', 'none');
+        $('#TbtnSave').css('display', 'block');
+    }
+    rowclick = 0;
+    function Feedbackview(ele, ID_CustomerServiceRegister, ID_CustomerServiceRegisterProductDetails) {
+
+        let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');
+
+        $('#divmdlFeedback').load('@Url.Action("GetCustFeedbackList", "CustFeedback")', function () {
+            $("#hdn_IDCustomerServiceRegister").val(ID_CustomerServiceRegister);
+            $("#hdn_IDCustomerServiceRegisterProductDetails").val(ID_CustomerServiceRegisterProductDetails);
+            $("#headerFeedback").text("Customer Feedback Details");
+            var msg = $(".Errmsg").val().trim();
+            if (msg != "") {
+                alert("in")
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': msg });
+                rowclick = 0;
+            }
+            else {
+                $('#modalFeedback').modal('show');
+            }
+        });
+    }
+
+</script>
+
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>

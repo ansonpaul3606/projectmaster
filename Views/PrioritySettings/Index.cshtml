@@ -1,0 +1,548 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+
+        <div class="col-lg-12" id="jq_PrioritysettingsContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+<script type="text/javascript">
+ $(document).ready(function () {
+
+        fn_Prioritysettings_initialload();
+
+
+        });
+
+
+        var PrioritysettingsTransMode = '';
+
+
+        function fn_Prioritysettings_initialload() {
+
+            PrioritysettingsTransMode = "";
+
+            PrioritysettingsTransMode = '@ViewBag.TransMode';
+            FK_BranchCodePOrder = '@ViewBag.Fk_BranchCode';
+                 fn_Prioritysettingslist(this);
+
+
+                fn_loadPrioritysettingsAddForm();
+
+
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                { displayName: "View", action: ViewPrioritySetting },
+                { type: "divider" },
+                {
+                    displayName: "Delete", action: DeletePrioritySetting
+                }
+            ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ['SlNo','EffectDate','CategoryName','ProductName'],
+        serialNo: false,
+        hideColumn: [],
+        rowClickAction:ViewPrioritySetting ,
+        isDateType: ["EffectDate"],
+        renameHeader: { 'CategoryName': 'Category', 'ProductName':'Product'}
+
+
+    };
+    var validationMessage = {
+       
+        'CategoryID': {
+            'required': 'Please Select Category',
+            'digits': 'Invalid Category Selected'
+        },
+       
+        'EffectDate': {
+            'required': 'Please Select Effect Date'
+       
+        }
+
+
+    };
+        var LastID_Prioritysettings;
+        const $formContainer = $('#jq_PrioritysettingsContainer');
+        function fn_loadPrioritysettingsAddForm() {
+
+
+            $formContainer.load('@Url.Action("LoadPrioritySettings", "PrioritySettings")?mtd=@ViewBag.mtd', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $('.DivCount').hide();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_Prioritysettings_initialload');
+                initFunctions($thisForm);
+              
+
+            });
+        }
+  
+    function fn_Prioritysettingslist(ele)
+        {
+            debugger
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+     
+         $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+            let pageUrl = "@Url.Action("GetPrioritySettingList", "PrioritySettings")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log(ajaxOutput, 'ajaxOutput>>>>2');
+                    console.log("tableoption123", tableOptions)
+                    if (ajaxOutput.Process.IsProcess) {
+                        $sidemenu.find('.jq_sidemenu_title').text("PrioritySettings List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Prioritysettingslist(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Language");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Prioritysettingslist(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) { NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value }); });
+                        }
+                    }
+                },
+                complete: function () {}
+            })
+            
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            debugger
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+    function ViewPrioritySetting()
+        {
+           
+          
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+            ID_ServiceIncentiveSettings = savedData.ID_ServiceIncentiveSettings;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');            
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_PrioritySetting: savedData.ID_PrioritySettings
+            };
+
+                $.ajax({
+                 url: '@Url.Action("GetPrioritySettingsInfo", "PrioritySettings")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        console.log(ajaxOutput,'789')
+                        if (ajaxOutput.Process.IsProcess) {
+                            $formContainer.load('@Url.Action("LoadPrioritySettings", "PrioritySettings")?mtd=@ViewBag.mtd', function () 
+                            {
+                                
+                              
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.Data[0] });
+                                $thisForm.find('[name=ID_PrioritySettings]').val(ajaxOutput.Data[0].ID_PrioritySettings);
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.Data[0].EffectDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="EffectDate"]').attr("disabled", "disabled");
+
+                                $thisForm.find('[name="CategoryID"]').val(ajaxOutput.Data[0].CategoryID).selectpicker('refresh').disabled;
+                                $thisForm.find('[name="CategoryID"]').trigger('change');
+                                $thisForm.find('[name="CategoryID"]').attr("disabled", "disabled");
+
+
+                                $thisForm.find('[name="ProductID"]').val(ajaxOutput.Data[0]['ProductID']).disabled;
+                                $thisForm.find('[name="ProductName"]').val(ajaxOutput.Data[0]['ProductName']).disabled;
+                              
+                               
+                                $('#addproduct-jq-searchButton3').prop('disabled', true);
+                                $('#idsubtableclear').prop('disabled', true);
+                                $('#idsubtableadd').prop('disabled', true);
+                                
+                                
+                                  
+                                fn_fillPrioritysettingsDetails($thisForm, 'Criteria', ajaxOutput.Data[0].CriteriaDetails, PrioritytableOptionsTempOut)
+                                    //$thisForm.find('[perfect-tempTable="Criteria"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                               
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'fn_Prioritysettings_initialload');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                              
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+    }
+
+    function fn_fillPrioritysettingsDetails(ele, tkey, data, tableOptionsTempOut) {
+
+        let $thisForm = $(ele)
+
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $thisForm.find('[perfect-tempTable="' + tableKey + '"]').empty();
+
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                console.log('name', valOne[nameAttr])
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+
+
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        //displat text of select
+
+                        let selectText = ($this.val().length == 1) ? '' : $this.find('[value="' + valOne[nameAttr] + '"]').text();
+
+                        pData[nameAttr + '_d'] = selectText;
+                        pData[nameAttr] = valOne[nameAttr];
+                        console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+                        console.log('selectText', $this.find('[value="' + valOne[nameAttr] + '"]').text());
+
+                    }
+                    else if ($this.is('input')) {
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        console.log('inputType', inputType)
+                        if (inputType == 'checkbox') {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+
+                            console.log('checkbox', nameAttr)
+
+
+                        }
+                        else if (inputType == 'hidden') {
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+
+                        else if (inputType == 'date') {
+
+
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+
+
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                }
+
+
+
+            });
+
+            insertData.push(pData);
+            console.log('insertdata', insertData)
+
+            //----
+
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+    }
+
+    var PrioritytableOptionsTempOut = {
+        //iconButton: {
+        //    buttons: [
+
+        //        {
+        //            icon: "fa fa-pencil btnPerfectGridEdit",
+        //            action: function () {
+
+        //                let savedData = $(this).closest('tr').data('pData')
+        //                let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                let tableKey = $tablecontainer.attr('perfect-tempTable');
+        //                let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+        //                let indexname = tableKey + 'index';
+        //                let rindex = $(this).closest('tr').attr(indexname);
+        //                $tablecontainer.attr('perfect-tempTable-action', rindex);
+        //                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+        //                    debugger
+        //                    let $thisNode = $(this);
+        //                    let pf_name = $thisNode.attr('name');
+
+        //                    if ($thisNode.is('select')) {
+
+        //                        $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+        //                    }
+        //                    else if ($thisNode.is('input')) {
+
+        //                        if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+        //                            $thisNode.prop('checked', savedData[pf_name]);
+        //                        }
+        //                        else {
+        //                            $thisNode.val(savedData[pf_name]);
+        //                        }
+        //                    }
+        //                    else {
+        //                        $thisNode.val(savedData[pf_name]);
+        //                    }
+        //                });
+        //                //  removeTable(this);
+        //                //  isModifed = true;
+
+                       
+
+
+        //            }
+        //        },
+        //        {
+        //            icon: "fa fa-trash btnPerfectGridDelete",
+        //            action: function () {
+        //                let savedData = $(this).closest('tr').data('pData')
+        //                let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                let $thistbl = $(this).closest('table');
+        //                let table = $thistbl.DataTable();
+        //                table.destroy();
+        //                if ($(this).closest('tbody').find('tr').length > 1) {
+        //                    $(this).closest('tr').remove();
+        //                    pft_table_slreset($thistbl);
+        //                    //$thistbl.dataTable({ paging: false,  ordering: false });
+
+        //                }
+        //                else {
+        //                    $thistbl.remove();
+        //                }
+
+
+        //            }
+        //        },
+        //    ]
+        //},
+        onlyShowColumn: [],
+        hideColumn: ['SLNo'],
+        serialNo: true,
+        renameHeader: {
+            'PriorityID': 'Priority', 'CriteriaID': 'Criteria', 'Days': '1RDay', 'Count': '1RCount', 'Warningbefore': '1RWarning Before', 'Amount': '1RAmount', 'AmountCriteria':'1RAmountCriteria'
+
+        },
+        rowAttribute: [],
+        isCheckType: []
+    };
+
+   
+    function DeletePrioritySetting() {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+               console.log("Saved data", Saveddata);
+               $('.dataTable tr').removeClass("SelectForDelete");
+               $(this).closest('tr').addClass('SelectForDelete');
+                $.ajax({
+                    url: "@Url.Action("GetPrioritySettingsReasonList", "PrioritySettings")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  " + '' + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        PrioritySettingID: Saveddata.ID_PrioritySettings,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeletePrioritySettings", "PrioritySettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+</script>
+    }

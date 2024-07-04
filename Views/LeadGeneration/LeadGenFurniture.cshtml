@@ -1,0 +1,817 @@
+﻿
+@{
+    ViewBag.Title = "Lead Generation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="jq_LeadGenerateIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script type="text/javascript">
+        var LastIDSessionKey = 'LeadLastID';
+        var LeadTransMode = '';
+        var LastID_Lead;
+        var EntryBy;
+    const $formContainer = $('#jq_LeadGenerateIndex_formContainer');
+
+    $(document).ready(function () {
+        fn_LeadGenerateIndex_initialLoad();
+
+        });
+
+
+
+        var validationMessage = {
+
+            'RegDate': {
+                'required': 'Please Select Enquiry date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'CusPhnNo': {
+                'anyphonenumber': 'Invalid Phone No',
+                'minlength': jQuery.validator.format('Phone No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('Phone No Should be Less than {0} Characters')
+            },
+
+            'CusMobile': {
+                'anyphonenumber': 'Invalid Contact No',
+                'minlength': jQuery.validator.format('Contact No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('Contact No Should be Less than {0} Characters')
+            },
+           'CusName': {
+               'required': 'Please Enter Customer Name',
+               'stringonly': 'Special Characters are not Allowed in  Customer Name'
+
+            },
+            'CusMobileAlternate': {
+                'anyphonenumber': 'Invalid WhatsApp No',
+                'minlength': jQuery.validator.format('WhatsApp No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('WhatsApp No Should be Less than {0} Characters')
+
+            },
+            
+        'CusMobile1': {
+            'anyphonenumber': 'Invalid Contact No',
+                'minlength': jQuery.validator.format('Mobile No Should be More than {0} Characters'),
+                    'maxlength': jQuery.validator.format('Mobile No Should be Less than {0} Characters')
+        },
+
+
+            'CusEmail': {
+                'email': 'Please Enter a Valid Email'
+
+            },
+
+            'NextActionDate': {
+
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+           'LgpDescription': {
+               'required': 'Please Enter Enquiry Note'
+            },
+            'FK_Category': {
+                'required': 'Please Select Category'
+            },
+            'PinCode': {
+                'maxlength': jQuery.validator.format('Please Enter a Valid Pincode')
+            }
+
+        };
+
+        function fn_LeadGenerateIndex_initialLoad() {
+          //  getSessionValue("ThqkM/KciIFsu1JbXl4YylpH2B+GO3Ikd8uwSS/fliM=", function (result) {
+            LeadTransMode = '@ViewBag.TransMode';
+            EntryBy = '@ViewBag.EntrBy';
+                
+            fn_LeadGenIndex_loadLeadGen(this, fn_LeadGenIndex_loadLeadGenAddForm);
+
+
+
+    }
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                { displayName: "View", action: fn_LeadGenerateIndex_loadLeadGenUpdateFormFur },
+                { type: "divider" },
+                {
+                    displayName: "Delete", action: fn_ProductIndex_deleteLeadGeration
+                }
+            ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ['SlNo', 'LeadNo', 'LeadDate', 'CusName', 'Area', 'CusMobile', 'CusEmail','CollectedByName'],
+        hideColumn: ["LeadGenerateID"],
+        rowClickAction: fn_LeadGenerateIndex_loadLeadGenUpdateFormFur,
+        serialNo: false,
+
+        renameHeader: { "SlNo":"SL NO", "LeadNo": "Lead No", "LeadDate": "Date", "CusName": "Customer", "Area": "Area", "CusMobile": "Mobile", "CusEmail": "Email", "CollectedByName": "Attended By"  },
+        isDateType: ["LeadDate"],
+        //  isDateType: [],
+        //  rowClickAction: () => { alert("clicked row") }
+        };
+
+
+
+        //side menu list showing
+        function fn_LeadGenIndex_loadLeadGen(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Lead List');
+            let pageUrl = '@Url.Action("GetLeadGenList", "LeadGeneration")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: LeadTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                         setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              console.log('Lead List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Lead List");
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LeadGenIndex_loadLeadGen(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                //  "lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: LeadTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Lead List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LeadGenIndex_loadLeadGen(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: LeadTransMode}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    function fn_LeadGenIndex_loadLeadGendup() {
+            $.ajax({
+                url: '@Url.Action("GetLeadGenList", "LeadGeneration")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    let $thisForm = $(this).find('[perfect-class="form"]');
+                    if (ajaxOutput.Process.IsProcess) {
+                        $sideMenuOptions.title.find('h4').text("Lead List");
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+                        $thisForm.validate({ messages: validationMessage });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status == "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+                },
+                complete: function () {
+
+                }
+            });
+
+
+
+        };
+
+     // Fucntion to load LeadGen ADD form
+        function fn_LeadGenIndex_loadLeadGenAddForm() {
+
+            $formContainer.load('@Url.Action("LoadLeadGenerateForm", "LeadGeneration")?mtd=@ViewBag.mtd', function () {
+                $('.followupid').hide();
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="RegDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'fn_LeadGenerateIndex_initialLoad');
+                GetLeadFromdefault();
+
+                getNumberGeneration(LeadTransMode, 0, $thisForm, 'Lead_No');
+
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_Lead = result;
+                });
+                
+                $thisForm.validate({
+                    // ...
+                    messages: validationMessage
+                    // ...
+                });
+                initFunctions($thisForm);
+               
+
+                if ('@ViewBag.MasterID' != "") {
+                    fn_LeadGenerateIndex_loadLeadGenUpdateFormFur();
+                }
+            });
+
+    };
+
+
+
+
+    @*function fn_LeadGenerateIndex_loadLeadGenUpdateForm() {
+        $('.DivSubMedia').hide();
+            let $thisRow = $(this).closest('tr');
+        let saveddata = $thisRow.data('pData');
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                LeadGenerateID: saveddata.LeadGenerateID
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetLeadGenInfo", "LeadGeneration")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    $formContainer.load('@Url.Action("LoadLeadGenerateForm", "LeadGeneration")?mtd=@ViewBag.mtd', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        $thisForm.validate({ messages: validationMessage });
+                        if (ajaxOutput.prInfo.Process.IsProcess) {
+                            //process is success
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                            $('.followupid').hide();
+
+                            $thisForm.data({ pData: ajaxOutput.prInfo.Data[0] });
+                            // Fill fields
+                            if (saveddata.LeadNo.length > 0) {
+                                $("#spanLeadNo").text(" : " + saveddata.LeadNo);
+                            }
+
+                            $thisForm.find('[name="LeadGenerateID"]').val(ajaxOutput.prInfo.Data[0]['LeadGenerateID']);
+                            console.log('dateslead', ajaxOutput.prInfo.Data[0]);
+                            $thisForm.find('[name="RegDate"]').val(moment(ajaxOutput.prInfo.Data[0]['LeadDate']).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="RegDate"]').attr('readonly', true);
+                            $thisForm.find('[name="ID_LeadFrom"]').val(ajaxOutput.prInfo.Data[0]['LeadFrom']).selectpicker('refresh');
+
+
+                            GetName($thisForm.find('[name="ID_LeadFrom"]'));
+
+                        if (ajaxOutput.prInfo.Data[0]['ID_Customer'] != 0) {
+                            $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.prInfo.Data[0]['ID_Customer']);
+
+                        } else {
+                            $thisForm.find('[name="FK_CustomerOthers"]').val(ajaxOutput.prInfo.Data[0]['FK_CustomerOthers']);
+                        }
+
+                        $thisForm.find('[name="CusName"]').val(ajaxOutput.prInfo.Data[0]['CusName']);
+                            $thisForm.find('[name="CusAddress"]').val(ajaxOutput.prInfo.Data[0]['CusAddress']);
+                            $thisForm.find('[name="CusAddress2"]').val(ajaxOutput.prInfo.Data[0]['CusAddress2']);
+                            console.log('ADDRESS2', ajaxOutput.prInfo.Data[0]['CusAddress2'])
+                        $thisForm.find('[name="CusMobile"]').val(ajaxOutput.prInfo.Data[0]['CusMobile']);
+                        $thisForm.find('[name="CusEmail"]').val(ajaxOutput.prInfo.Data[0]['CusEmail']);
+                            $thisForm.find('[name="LeadBy"]').val(ajaxOutput.prInfo.Data[0]['LeadByName']);
+                            console.log('STATE NAME>>>>>>>>>>>', ajaxOutput.prInfo.Data[0]['StName']);
+                        $thisForm.find('[name="FK_LeadBy"]').val(ajaxOutput.prInfo.Data[0]['LeadBy'])
+                        $thisForm.find('[name="Company"]').val(ajaxOutput.prInfo.Data[0]['Company']);
+                        $thisForm.find('[name="CusPhnNo"]').val(ajaxOutput.prInfo.Data[0]['CusPhnNo']);
+                        $thisForm.find('[name="CusNameTitle"]').val(ajaxOutput.prInfo.Data[0]['CusNameTitle']).selectpicker('refresh');
+                        $thisForm.find('[name="CusMobileAlternate"]').val(ajaxOutput.prInfo.Data[0]['CusMobileAlternate']);
+                        $thisForm.find('[name="CountryID"]').val(ajaxOutput.prInfo.Data[0]['CountryID']);
+                        $thisForm.find('[name="PinCode"]').val(ajaxOutput.prInfo.Data[0]['PinCode']);
+                           // $thisForm.find('[name="SubMedia"]').val(ajaxOutput.prInfo.Data[0]['SubMedia']).selectpicker('refresh');;
+                        $thisForm.find('[name="StatesID"]').val(ajaxOutput.prInfo.Data[0]['StatesID']);
+                        $thisForm.find('[name="DistrictID"]').val(ajaxOutput.prInfo.Data[0]['DistrictID']);
+                        $thisForm.find('[name="PostID"]').val(ajaxOutput.prInfo.Data[0]['PostID']);
+                        $thisForm.find('[name="Country"]').val(ajaxOutput.prInfo.Data[0]['CntryName']);
+                        $thisForm.find('[name="States"]').val(ajaxOutput.prInfo.Data[0]['StName']);
+                        $thisForm.find('[name="District"]').val(ajaxOutput.prInfo.Data[0]['DtName']);
+                        $thisForm.find('[name="Post"]').val(ajaxOutput.prInfo.Data[0]['PostName']);
+                            $thisForm.find('[name="Area"]').val(ajaxOutput.prInfo.Data[0]['Area']);
+                            $thisForm.find('[name="AreaID"]').val(ajaxOutput.prInfo.Data[0]['AreaID']);
+                        $thisForm.find('[name="ID_MediaMaster"]').val(ajaxOutput.prInfo.Data[0]['ID_MediaMaster']).selectpicker('refresh');
+                        $thisForm.find('[name="AssignEmp"]').val('');
+                        $thisForm.find('[name="FK_Employee"]').val(0);
+                        $thisForm.find('[name="FK_LgCollectedBy"]').val(ajaxOutput.prInfo.Data[0]['CollectedBy']);
+                            $thisForm.find('[name="LgCollectedBy"]').val(ajaxOutput.prInfo.Data[0]['CollectedByName']);
+                            if (ajaxOutput.prInfo.Data[0]['ID_Customer'] != 0) {
+                                $thisForm.find('[name="CusEmail"]').attr('readonly', true);
+                                //$thisForm.find('[name="PinCode"]').attr('readonly', true);
+                                $thisForm.find('[name="Company"]').attr('readonly', true);
+                                $thisForm.find('[name="CusAddress"]').attr('readonly', true);
+                                $thisForm.find('[name="CusAddress2"]').attr('readonly', true);
+                                $thisForm.find('[name="Area"]').attr('readonly', true);
+                                $thisForm.find('[name="CusName"]').attr('readonly', true);
+                                $thisForm.find('[name="CusMobileAlternate"]').attr('readonly', true);
+                                $thisForm.find('[name=pincd]').attr("disabled", "disabled")
+                                $thisForm.find('[name=cntry]').attr("disabled", "disabled")
+                                $thisForm.find('[name=state]').attr("disabled", "disabled")
+                                $thisForm.find('[name=distct]').attr("disabled", "disabled")
+                                $thisForm.find('[name=areas]').attr("disabled", "disabled")
+                                $thisForm.find('[name=pst]').attr("disabled", "disabled")
+
+                            }
+                            GetSubMedia(this, ajaxOutput.prInfo.Data[0]['SubMedia']);
+                    }
+
+                        console.log('ssse455', ajaxOutput.subproduct);
+                    if (ajaxOutput.subproduct.Process.IsProcess) {
+                        $thisForm.data({ cData: ajaxOutput.subproduct.Data });
+                        //process is success
+
+                        console.log('sss', ajaxOutput.subproduct.Data);
+
+
+                            //console.log('sss', $thisForm)
+
+                            console.log('sss4', ajaxOutput.subproduct.Data[0],1);
+
+                        fillTable($thisForm, 'ProductType', ajaxOutput.subproduct.Data, tableOptionsTempOut)
+
+
+                         }
+                         $sideMenuOptions.close();//<---  Close side menu
+                         $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                         $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_LeadGenerateIndex_initialLoad');
+                    });
+
+                }
+            });
+    };*@
+        var MasterID = '@ViewBag.MasterID';
+        function fn_LeadGenerateIndex_loadLeadGenUpdateFormFur() {
+        $('.DivSubMedia').hide();
+            let $thisRow = $(this).closest('tr');
+        let saveddata = $thisRow.data('pData');
+        let LeadGenerateId = 0;
+        if ('@ViewBag.MasterID' != "") {
+            LeadGenerateId = '@ViewBag.MasterID';
+        }
+        else {
+            LeadGenerateId = saveddata.LeadGenerateID;
+        }
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                LeadGenerateID: LeadGenerateId
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetLeadGenInfo", "LeadGeneration")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    $formContainer.load('@Url.Action("LoadLeadGenerateForm", "LeadGeneration")?mtd=@ViewBag.mtd', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        $thisForm.validate({ messages: validationMessage });
+                        if (ajaxOutput.prInfo.Process.IsProcess) {
+                            //process is success
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                            $('.followupid').hide();
+
+
+                            $thisForm.data({ pData: ajaxOutput.prInfo.Data[0] });
+                            // Fill fields
+                            if (ajaxOutput.prInfo.Data[0]['LeadNo']) {
+                                $("#spanLeadNo").text(" : " + ajaxOutput.prInfo.Data[0]['LeadNo']);
+                            }
+
+                            $thisForm.find('[name="LeadGenerateID"]').val(ajaxOutput.prInfo.Data[0]['LeadGenerateID']);
+                            console.log('dateslead', ajaxOutput.prInfo.Data[0]);
+                            $thisForm.find('[name="RegDate"]').val(moment(ajaxOutput.prInfo.Data[0]['LeadDate']).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="RegDate"]').attr('readonly', true);
+                            $thisForm.find('[name="ID_LeadFrom"]').val(ajaxOutput.prInfo.Data[0]['LeadFrom']).selectpicker('refresh');
+
+
+                            GetName($thisForm.find('[name="ID_LeadFrom"]'));
+
+                        if (ajaxOutput.prInfo.Data[0]['ID_Customer'] != 0) {
+                            $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.prInfo.Data[0]['ID_Customer']);
+
+                        } else {
+                            $thisForm.find('[name="FK_CustomerOthers"]').val(ajaxOutput.prInfo.Data[0]['FK_CustomerOthers']);
+                        }
+
+                        $thisForm.find('[name="CusName"]').val(ajaxOutput.prInfo.Data[0]['CusName']);
+                            $thisForm.find('[name="CusAddress"]').val(ajaxOutput.prInfo.Data[0]['CusAddress']);
+                            $thisForm.find('[name="CusAddress2"]').val(ajaxOutput.prInfo.Data[0]['CusAddress2']);
+                            console.log('ADDRESS2', ajaxOutput.prInfo.Data[0]['CusAddress2'])
+                        $thisForm.find('[name="CusMobile"]').val(ajaxOutput.prInfo.Data[0]['CusMobile']);
+                        $thisForm.find('[name="CusEmail"]').val(ajaxOutput.prInfo.Data[0]['CusEmail']);
+                            $thisForm.find('[name="LeadBy"]').val(ajaxOutput.prInfo.Data[0]['LeadByName']);
+                            console.log('STATE NAME>>>>>>>>>>>', ajaxOutput.prInfo.Data[0]['StName']);
+                        $thisForm.find('[name="FK_LeadBy"]').val(ajaxOutput.prInfo.Data[0]['LeadBy'])
+                        $thisForm.find('[name="Company"]').val(ajaxOutput.prInfo.Data[0]['Company']);
+                        $thisForm.find('[name="CusPhnNo"]').val(ajaxOutput.prInfo.Data[0]['CusPhnNo']);
+                        $thisForm.find('[name="CusNameTitle"]').val(ajaxOutput.prInfo.Data[0]['CusNameTitle']).selectpicker('refresh');
+                        $thisForm.find('[name="CusMobileAlternate"]').val(ajaxOutput.prInfo.Data[0]['CusMobileAlternate']);
+                        $thisForm.find('[name="CountryID"]').val(ajaxOutput.prInfo.Data[0]['CountryID']);
+                        $thisForm.find('[name="PinCode"]').val(ajaxOutput.prInfo.Data[0]['PinCode']);
+                           // $thisForm.find('[name="SubMedia"]').val(ajaxOutput.prInfo.Data[0]['SubMedia']).selectpicker('refresh');;
+                        $thisForm.find('[name="StatesID"]').val(ajaxOutput.prInfo.Data[0]['StatesID']);
+                        $thisForm.find('[name="DistrictID"]').val(ajaxOutput.prInfo.Data[0]['DistrictID']);
+                        $thisForm.find('[name="PostID"]').val(ajaxOutput.prInfo.Data[0]['PostID']);
+                        $thisForm.find('[name="Country"]').val(ajaxOutput.prInfo.Data[0]['CntryName']);
+                        $thisForm.find('[name="States"]').val(ajaxOutput.prInfo.Data[0]['StName']);
+                        $thisForm.find('[name="District"]').val(ajaxOutput.prInfo.Data[0]['DtName']);
+                        $thisForm.find('[name="Post"]').val(ajaxOutput.prInfo.Data[0]['PostName']);
+                            $thisForm.find('[name="Area"]').val(ajaxOutput.prInfo.Data[0]['Area']);
+                            $thisForm.find('[name="AreaID"]').val(ajaxOutput.prInfo.Data[0]['AreaID']);
+                            $thisForm.find('[name="ID_MediaMaster"]').val(ajaxOutput.prInfo.Data[0]['ID_MediaMaster']).selectpicker('refresh');
+                            $thisForm.find('[name="CusMobile1"]').val(ajaxOutput.prInfo.Data[0]['CusMobile1']);
+                        //$thisForm.find('[name="AssignEmp"]').val('');
+                        //$thisForm.find('[name="FK_Employee"]').val(0);
+                            GetLeadFromdefaultprodustdetails();
+                            $thisForm.find('[name="FK_LgCollectedBy"]').val(ajaxOutput.prInfo.Data[0]['CollectedBy']);
+
+                            $thisForm.find('[name="LgCollectedBy"]').val(ajaxOutput.prInfo.Data[0]['CollectedByName']);
+
+                            $thisForm.find('[name="FK_Quotation"]').val(ajaxOutput.prInfo.Data[0]['FK_Quotation']);
+                            if (ajaxOutput.prInfo.Data[0]['FK_Quotation'] != 0) {
+                                $('#btnProductgridadd').hide();
+                                $('#btnProductgridclear').hide();
+
+                            }
+                            if (ajaxOutput.prInfo.Data[0]['ID_Customer'] != 0) {
+                                $thisForm.find('[name="CusEmail"]').attr('readonly', true);
+                                //$thisForm.find('[name="PinCode"]').attr('readonly', true);
+                                $thisForm.find('[name="Company"]').attr('readonly', true);
+                                $thisForm.find('[name="CusAddress"]').attr('readonly', true);
+                                $thisForm.find('[name="CusAddress2"]').attr('readonly', true);
+                                $thisForm.find('[name="Area"]').attr('readonly', true);
+                                $thisForm.find('[name="CusName"]').attr('readonly', true);
+                                $thisForm.find('[name="CusMobileAlternate"]').attr('readonly', true);
+                                $thisForm.find('[name=pincd]').attr("disabled", "disabled")
+                                $thisForm.find('[name=cntry]').attr("disabled", "disabled")
+                                $thisForm.find('[name=state]').attr("disabled", "disabled")
+                                $thisForm.find('[name=distct]').attr("disabled", "disabled")
+                                $thisForm.find('[name=areas]').attr("disabled", "disabled")
+                                $thisForm.find('[name=pst]').attr("disabled", "disabled")
+
+                            }
+                            GetSubMedia(this, ajaxOutput.prInfo.Data[0]['SubMedia']);
+                    }
+
+                        console.log('ssse455', ajaxOutput.subproduct);
+                    if (ajaxOutput.subproduct.Process.IsProcess) {
+                        $thisForm.data({ cData: ajaxOutput.subproduct.Data });
+                        //process is success
+
+                        console.log('sss', ajaxOutput.subproduct.Data);
+
+
+                            //console.log('sss', $thisForm)
+
+                            console.log('sss4', ajaxOutput.subproduct.Data[0],1);
+                        if (ajaxOutput.prInfo.Data[0]['FK_Quotation'] != 0) {
+                            fillTable($thisForm, 'ProductType', ajaxOutput.subproduct.Data, tableOptionsTempOutviewQuotation)
+                        }
+                        else {
+                            fillTable($thisForm, 'ProductType', ajaxOutput.subproduct.Data, tableOptionsTempOut)
+                        }
+
+
+
+                         }
+                         $sideMenuOptions.close();//<---  Close side menu
+                         $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                         $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_LeadGenerateIndex_initialLoad');
+                    });
+
+                }
+            });
+    };
+
+        var tableOptionsTempOutviewQuotation = {
+            //iconButton: {
+            //    buttons: [
+
+            //        {
+            //            icon: "fa fa-pencil btnPerfectGridEdit",
+            //            action: function () {
+            //                let savedData = $(this).closest('tr').data('pData')
+
+            //                let $tablecontainer = $(this).closest('[perfect-tempTable]');
+            //                let tableKey = $tablecontainer.attr('perfect-tempTable');
+            //                let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+            //                //index attribute name in table row
+            //                let indexname = tableKey + 'index';
+            //                //index number in table row
+            //                let rindex = $(this).closest('tr').attr(indexname);
+            //                $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+            //                console.log('Editclick', savedData);
+            //                //filling data in available inputs
+            //                let masterid = "";
+            //                let branchtypeid = "";
+            //                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+            //                    let $thisNode = $(this);
+            //                    let category = $thisForm.find('[name="FK_Category"]').children(":selected").attr('Project')
+            //                    let pf_name = $thisNode.attr('name');
+            //                    if (pf_name == 'BranchTypeID') {
+
+            //                        branchtypeid = { BranchTypeID: savedData[pf_name] }
+
+            //                    }
+            //                    if (pf_name == 'BranchID') {
+            //                        masterid = savedData[pf_name];
+            //                    }
+            //                    if (masterid != "" && branchtypeid != "") {
+            //                        getbranchlist(branchtypeid, masterid, $thisForm);
+            //                    }
+            //                    if ($thisForm.find('[name="ID_Product"]').val() == 0 && category == 'True') {
+            //                        $thisForm.find('[name="ProdBtn"]').hide();
+            //                        $thisForm.find('[name="lblProName"]').text('Model');
+            //                    }
+            //                    else {
+            //                        $thisForm.find('[name="ProdBtn"]').show();
+            //                        $thisForm.find('[name="lblProName"]').text('Product Name');
+            //                    }
+            //                    if ($thisNode.is('select')) {
+
+            //                        $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+            //                        //if ($thisForm.find('[name="ActStatus"]').val() == 1)
+            //                        if ($thisForm.find('[name="FK_NetAction"]').children(":selected").attr('Status') == 1) {
+            //                            $('.followupid').show();
+            //                        }
+            //                        else {
+            //                            $('.followupid').hide();
+            //                        }
+            //                    }
+
+
+            //                    else if ($thisNode.is('input')) {
+            //                        let inputType = $thisNode.attr('type').toLocaleLowerCase();
+            //                        if (inputType == 'checkbox') {
+
+            //                            $thisNode.prop('checked', savedData[pf_name]);
+            //                        }
+
+            //                        else if (inputType == 'hidden') {
+
+            //                            // tableOptionsTemp.hideColumn.push(pf_name);
+            //                            $thisNode.val(savedData[pf_name]);
+            //                        }
+            //                        else if (inputType == 'date') {
+
+            //                            console.log('datess', moment(savedData[pf_name]).format('YYYY-MM-DD'))
+
+            //                            $thisNode.val(moment(savedData[pf_name]).format('YYYY-MM-DD'));
+
+
+            //                            //$thisNode.val(savedData[pf_name]);
+            //                        }
+            //                        else {
+            //                            $thisNode.val(savedData[pf_name]);
+
+            //                        }
+
+            //                    }
+            //                    else {
+
+            //                        $thisNode.val(savedData[pf_name]);
+            //                    }
+
+
+            //                });
+
+
+
+            //            }
+            //        },
+            //        {
+            //            icon: "fa fa-trash btnPerfectGridDelete",
+            //            action: function () {
+            //                let $thistbl = $(this).closest('table');
+            //                let table = $thistbl.DataTable();
+            //                table.destroy();
+            //                if ($(this).closest('tbody').find('tr').length > 1) {
+            //                    $(this).closest('tr').remove();
+            //                    pft_table_slreset($thistbl);
+            //                    //  $thistbl.dataTable({ paging: false });
+            //                }
+            //                else {
+            //                    $thistbl.remove();
+            //                }
+
+            //            }
+            //        },
+            //    ]
+            //},
+            onlyShowColumn: ["ProdName", "FK_Priority_d", "FK_NetAction_d", "FK_ActionType_d", "NextActionDate", "FK_Category_d"],
+            hideColumn: ["FK_Category", "ProdName"],
+            serialNo: true,
+            renameHeader: { "FK_NetAction": "Action", "FK_ActionType": "Action Type", "LgpPQuantity": "Qty", "NextActionDate": "Follow Up Date", "ProdName": "Product", "FK_Category": "Category" },
+            rowAttribute: [],
+            isCheckType: [],
+            isDateType: ["NextActionDate"]
+        };
+
+
+    function fn_ProductIndex_deleteLeadGeration() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetLeadGenerateReasonList", "LeadGeneration")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.LeadNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('LeadGenerate> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        LeadGenerateID: Saveddata['LeadGenerateID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteLeadGenerate", "LeadGeneration")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                fn_LeadGenerateIndex_initialLoad();
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+    </script>
+}

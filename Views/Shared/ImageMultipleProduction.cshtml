@@ -1,0 +1,372 @@
+﻿
+
+<style>
+    /*.thumbnail:hover {
+        height: 100%;
+        width: 100%;
+    }*/
+
+    .thumbnail {
+        height: 100px;
+        width: 100px;
+    }
+
+    .thumbnailpdf {
+        height: 40px;
+        width: 40px;
+    }
+
+    input[type=file]::file-selector-button {
+        border: 2px solid #e94560;
+        padding: .2em .4em;
+        border-radius: .2em;
+        color: white;
+        background-color: #e94560;
+        transition: 1s;
+    }
+</style>
+@model PerfectWebERP.Models.CommonSearchPopupModel.Imagelist
+
+<div id="imagediv" name="imagediv" class="p_file">
+    <div class="col-xl-6">
+
+        <div class="form-group row" perfect-class="formGroup">
+            <label class="col-lg-4 col-form-label">
+                <span perfect-class="formGroupLabel">Image Mode</span>
+
+            </label>
+
+            <div class="col-lg-8">
+
+                <select class="form-control" name="ID_ImgMode" perfect-tempTable-ProductType="ImgMode" id="ID_ImgMode" onchange="Getimgcntrl1(this,'','','')" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                    <option value="">Please select</option>
+                    @if (!(Model.ImgModeList is null))
+                    {
+                        foreach (var img in Model.ImgModeList)
+                        {
+                            <option value="@img.ID_Mode" Modeval="@img.ModeVal">@img.ModeName</option>
+                        }
+                    }
+
+                </select>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+<div class="modal-footer"> 
+    <button type="button" class="btn btn-primary light" onclick="submitimg()">Apply</button>
+</div>
+
+<script>
+    var uproductid;
+    var UImageID;
+    var UImageData;
+    var ImageMode = 4;
+    var wartype;
+    var ProductionImagelst;
+    $(document).ready(function () {
+
+        
+        let $thisForm = $('[perfect-class="form"]');
+        if (ImageMode != 0) {
+
+            $thisForm.find('[name=ID_ImgMode]').prop("disabled", true);
+            $thisForm.find('[name=ID_ImgMode]').val(ImageMode).selectpicker('refresh');
+            Getimgcntrl1($thisForm, '', '', '')
+        }
+        else {
+            $thisForm.find('[name=ID_ImgMode]').prop("disabled", false);
+        }
+
+        if (ProductionImagelst == null || ProductionImagelst == '') {
+            ProductionImagelst = JSON.parse(localStorage.getItem('pImage'));
+            console.log("ProductionImagelst", ProductionImagelst)
+
+            UImageData = ProductionImagelst.PSImage;
+        }
+        var warproduct = [];
+        var warprobject = [];
+        if (UImageID == undefined) {
+            UImageID = 1;
+        }
+        if (ProductionImagelst != null) {
+            warproduct = ProductionImagelst.filter(obj => obj.ImageID.toString() === UImageID.toString());
+            console.log("warproduct", warproduct)
+            console.log("UImageID", UImageID)
+            UImageData = warproduct.PSImage;
+
+        
+
+            warprobject = warproduct.filter(obj => obj.ImageMode.toString() === ImageMode.toString());
+            console.log("warprobject", warprobject)
+           
+        }
+
+
+        if (warprobject.length == 0) {
+
+        }
+        else {
+          
+            var Productionimg = [];
+            var prdval = "";
+            $.each(warprobject, function (key, value) {
+
+                if (value.ImageMode != prdval) {
+                    //check the list with the imagemode
+                    Productionimg = warprobject.filter(obj => obj.ImageMode.toString() === value.ImageMode.toString());
+                    console.log("Productionimg", Productionimg)
+                    Getimgcntrl1(this, Productionimg, value.ImageModeName, value.ImageMode)
+
+                    prdval = value.ImageMode;
+                }
+
+            });
+        }
+
+    });
+
+
+    function Getimgcntrl1(ele, data, mod, modval) {      
+        let $thisForm;
+        if (imagemode != 0) {
+            $thisForm = $(ele).closest('[perfect-class="form"]');
+        }
+        else {
+            $thisForm = ele;
+        }
+             let sel = "";
+             let selval = "";
+        if (data == "") {
+
+                sel = $thisForm.find('[name=ID_ImgMode] option:selected').text();
+                selval = $thisForm.find('[name=ID_ImgMode] option:selected').val();
+
+        }
+        else {
+            sel = mod;
+            selval = modval;
+        }
+        if (document.getElementById("fileup"+selval) == null) {
+
+            var div = document.createElement("div");
+            div.className = "col-xl-12 imagedivd";
+            div.id = "div" + selval;
+
+            var div1 = document.createElement("div");
+            div1.className = "form-group row"
+            var label = document.createElement("Label");
+            label.className = "col-lg-2 col-form-label";
+            var text = document.createTextNode(sel);
+            label.appendChild(text);
+            div1.appendChild(label);
+
+            var div2 = document.createElement("div");
+            div2.className = "col-lg-4";
+            var input = document.createElement('input');
+            input.type = "file";
+            input.id = "fileup" + selval;
+            input.multiple = true;
+            input.accept = ".xls,.xlsx,.jpg,.jpeg,.bmp,.gif,.jfif,.pdf,.docx"
+
+            input.setAttribute("onchange",  "inputchange(this)" );
+
+            input.setAttribute("name", sel);
+            input.setAttribute("nameval", selval);
+            input.className = "form-control";
+            div2.appendChild(input);
+            var div3 = document.createElement("div");
+            div3.className = "row " + sel;
+            div3.id = sel;
+
+            div1.appendChild(div2);
+
+            div.appendChild(div1);
+            document.getElementById('imagediv').appendChild(div);
+            document.getElementById('imagediv').appendChild(div3);
+        }
+
+        if (data != "")
+        {
+            getimage(data);
+        }
+
+
+    }
+    function inputchange(ele) {
+
+        imgupld(ele.id, ele.name, jQuery(ele).attr("nameval"))
+    }
+
+
+    var cntrimg = [];
+    var imgnamu;
+    var imgcnt;
+
+    function imgupld(id, nameimg,nameimgvl) {
+   
+        let attachment_typ = null;
+        let attachment_ext = null;
+        let $input_element = document.getElementById(id);
+        var files = $input_element.files;
+        var cntimg = 1;
+
+        for (var i = 0; i < files.length; i++) {
+                let attachfile = files[i];
+                let reader = new FileReader();
+                let name = attachfile.name;
+                attachment_typ = attachfile.type;
+                attachment_ext = name.split('.').pop().toLowerCase();
+                reader.readAsDataURL(attachfile);
+                reader.onload = function () {
+                    var byteData = reader.result;
+                    byteData = byteData.split(';')[1].replace("base64,", "");
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("GetImage", "CommonPopupSearch")",
+                        data: '{byteData: "' + byteData + '" }',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            //Only pics
+
+                            if (cntrimg.some(code => code.imgnamu == nameimg)) {
+                                cntimg = cntrimg.find(code => code.imgnamu == nameimg).imgcnt;
+                                cntimg = parseInt(cntimg) + 1;
+                                cntrimg.find(v => v.imgnamu == nameimg).imgcnt = cntimg;
+                                cntrimg.push({ imgcnt: cntimg, imgnamu: nameimg });
+                            }
+                            else {
+                                cntimg = 1;
+                                cntrimg.push({ imgcnt: cntimg, imgnamu: nameimg });
+                            }
+                          var imgbyt = "";
+                                var divx = document.createElement("div");
+                                divx.className = "col-lg-2";
+                                var img = document.createElement('img');
+                                img.id = "img" + nameimg + cntimg;
+                            if (attachfile.type.match('image')) {
+                                img.className = "thumbnail";
+                                img.src = "data:image/;base64," + response;
+                                imgbyt = "data:image/;base64," + response;
+                                img.name = name;
+                             
+                                divx.appendChild(img);
+
+                            }
+                            else {
+                               // img.className = "thumbnailpdf";
+                              //  img.src = "../Assets/images/icondoc.png";                           
+                                //imgbyt = "data:image/;base64," + response;
+                                var label = document.createElement("Label");
+                                label.className = "col-sm-12";
+                                var text = document.createTextNode(name);
+                                label.appendChild(text);
+                                img.name = '';                             
+                                divx.appendChild(img);
+                                divx.appendChild(label);
+                            }
+                                document.getElementById(nameimg).appendChild(divx);
+                                document.getElementById("img" + nameimg + cntimg).onload = function () {
+                                    Imagechng("img" + nameimg + cntimg, nameimgvl, imgbyt, nameimg);
+                                };
+                            
+                        },
+                        error: function (response) { alert('Image Upload Failed'); }
+                    });
+                };
+            }     
+    }
+
+
+    function getimage(data)
+    {
+      
+        cntrimg = [];
+        var cntimg = 1;
+        $.each(data, function (i, value) {
+           if (cntrimg.some(code => code.imgnamu == value.ImageModeName)) {
+                cntimg = cntrimg.find(code => code.imgnamu == value.ImageModeName).imgcnt;
+                cntimg = parseInt(cntimg) + 1;
+                cntrimg.find(v => v.imgnamu == value.ImageModeName).imgcnt = cntimg;
+                cntrimg.push({ imgcnt: cntimg, imgnamu: value.ImageModeName });               
+            }
+            else {
+                cntimg = 1;
+                cntrimg.push({ imgcnt: cntimg, imgnamu: value.ImageModeName });
+            }
+               
+                var imgbyt = "";
+                var divx = document.createElement("div");
+                    divx.className = "col-lg-2";
+                var img = document.createElement('img');
+                    img.id = "img" + value.ImageModeName + cntimg;
+            if (value.PSImageName.includes(".jpg") || value.PSImageName.includes(".jpeg") || value.PSImageName.includes(".bmp") || value.PSImageName.includes(".gif") || value.PSImageName.includes(".png") || value.PSImageName.includes(".jfif")) {
+                    img.className = "thumbnail";
+                    img.src = value.PSImage;
+                imgbyt = value.PSImage;
+                    img.name = value.PSImageName;                
+                    divx.appendChild(img);
+                }
+                else {
+                    img.className = "thumbnailpdf";
+
+                img.src = "../Assets/images/icondoc.png";
+                imgbyt = value.PSImage;
+                    var label = document.createElement("Label");
+                    label.className = "col-sm-12";
+                    var text = document.createTextNode(value.PSImageName);
+                    label.appendChild(text);
+                    img.name = value.PSImageName;                  
+                    divx.appendChild(img);
+                    divx.appendChild(label);
+                }
+            document.getElementById(value.ImageModeName).appendChild(divx);          
+         });
+
+    }
+
+
+    var ProductionImage = [];
+    var PImage = [];
+    function Imagechng(img, val, imgbyte, nameimg)
+    {      
+        let imgname;      
+        imgname = $("#" + img).attr('name');
+        if (imgbyte != null) {         
+          //  ProductionImage.push({ ID_ProductionStageImages: 0, TransMode: 'PDSTS', ImageID: UImageID, PSImageName: imgname, PSImage: imgbyte, ImageMode: val, ImageModeName: nameimg});
+            PImage.push({ ImageID: UImageID, PSImageName: imgname, PSImage: imgbyte, ImageMode: val, ImageModeName: nameimg});
+            console.log('PImage', PImage)
+        }
+    }
+
+    function submitimg()
+    {
+    
+        let $thisForm = $('[perfect-class="form"]');
+        let ProductionImagelstcmn = JSON.parse(localStorage.getItem('PImage'));
+        let PImagelst = JSON.parse(localStorage.getItem('PImage'))
+        if (PImagelst == "" || PImagelst == null) {
+            PImagelst = ProductionImagelst;
+            ProductionImagelstcmn = ProductionImagelst;
+        }      
+        if (PImagelst != null) {
+            PImage.push.apply(PImage, PImagelst);
+        }
+         else if (ProductionImagelstcmn != null) {
+              PImage.push.apply(PImage, ProductionImagelstcmn);
+        }        
+        localStorage.setItem('PImage', JSON.stringify(PImage));
+        $thisForm.data({ pImage: PImage });
+        console.log('PImage', PImage);     
+       
+        $('#formGroupModalProductionimg').modal('hide');
+    }
+
+
+</script>

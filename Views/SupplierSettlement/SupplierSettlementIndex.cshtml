@@ -1,0 +1,708 @@
+﻿@{
+    ViewBag.Title = "SupplierSettlementIndex";
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-sm-12" id="SupplierSettlement-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+        var SupplierSettlementTransMode;
+        var LastID_Suppliertransaction;
+        var FK_BranchCodeSupTr = '';
+        var SupplierSettlementTransModes;
+
+        const LastIDSessionKey = 'SupplierLastID';
+    const $formContainer = $('#SupplierSettlement-form');
+
+    $(document).ready(function () {
+      
+       
+        SupplierSettlement_initialLoad();
+    });
+
+        function SupplierSettlement_initialLoad() {
+
+            SupplierSettlementTransMode = "";
+         
+            SupplierSettlementTransMode = '@ViewBag.TransMode';
+             SupplierSettlementTransModes= '@ViewBag.TransMode';
+            FK_BranchCodeSupTr = '@ViewBag.Fk_BranchCode'
+               
+         
+            fn_Suppliersettlementlist(this, fn_SupplierSettlementAddForm);
+    }
+        var validationMessage = {
+
+
+            'ddltransType': {
+
+                'required': 'Please select Trans Type',
+                'stringonly': 'Invalid transtype selected',
+
+            },
+            
+          'TransDate': {
+                'required': 'Please Enter A Date',
+              'max': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            'InvoiceDate': {
+                'required': 'Please Enter Invoice Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+            },
+
+            'BillTypeID': {
+                'required': 'Select Bill Type',
+            },
+            
+                  'BranchID': {
+                      'required': 'Select Branch',
+            },
+            'DepartmentID': {
+                'required': 'Select Department',
+            },
+            'SuppID': {
+                'required': 'Select Supplier',
+            },
+            'SuppName': {
+                'required': 'Select Supplier',
+            },
+            'ddlimportfrom': {
+                'required': 'Please Select Import From',
+            },
+            'TotalAmount': {
+                'required': 'Please Enter Total Amount',
+            },
+            'TotalDiscount': {
+                'required': 'Please Enter Total Discount',
+            },
+
+            'Paymentmethod': {
+                'required': 'Please Select Payment Method',
+            },
+
+        };
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: SupplierSettlementviewdetails },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: DeleteSupplierSettlement
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ['SlNo', 'TransDate', 'SuppName', 'NetAmount','transType'],
+            serialNo: false,
+            hideColumn: [],
+            rowClickAction: SupplierSettlementviewdetails,
+            renameHeader: { 'TransDate': 'Trans Date', 'SuppName': 'Supplier', 'NetAmount': 'Net Amount', 'transType':'Payment Mode' },
+            isDateType: ['TransDate'],
+
+        };
+        function fn_SupplierSettlementAddForm() {
+
+            $formContainer.load('@Url.Action("LoadSupplierSettlementForm", "SupplierSettlement")', function () {
+                debugger;
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                      
+             $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+
+             $thisForm.data({ pOthrChgData: [] })
+
+             $('.Divpaymentdetails').hide();
+             $('.DivTotalDiscount').hide();
+                $('.DivTotalAmount').hide();
+                $('.Divpaymentmethod').hide();
+                $("#PaymentMandatory").hide();
+             $thisForm.validate({ messages: validationMessage });
+             Getdepartmentbranchnamedefault();
+             $thisForm.attr('perfect-onFormSuccess', 'SupplierSettlement_initialLoad');
+             getSessionValue(LastIDSessionKey, function (result) {
+                 LastID_Suppliertransaction = result;
+             });
+        });
+
+       
+        };
+
+
+
+        function fn_Suppliersettlementlist(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+            
+        let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+             serchpdfname = SearchName ;
+          
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Supplier Transaction List');
+         
+            
+          let pageUrl = '@Url.Action("GetSupplierSettlemetList", "SupplierSettlement")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: SupplierSettlementTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log('h',ajaxOutput);
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        
+                        //alert(Session);
+                        $sidemenu.find('.jq_sidemenu_title').text("upplier Transaction List");
+                        
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Suppliersettlementlist(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SupplierSettlementTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Customer Service Registrations");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Suppliersettlementlist(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                             "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SupplierSettlementTransMode}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+
+        
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+        var SupID = 0; var SuppSettlementID = 0;
+        function SupplierSettlementviewdetails(ele) {
+            debugger
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $('.Divpaymentdetails').hide();
+            $('.DivTotalDiscount').hide();
+            $('.DivTotalAmount').hide();
+            $('.Divpaymentmethod').hide();
+            
+            var transtype;
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+           
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                GroupID: savedData.GroupID,
+                TransMode: SupplierSettlementTransMode,
+            };
+
+         
+            $.ajax({
+                url: '@Url.Action("GetSupplierSettlementInfo", "SupplierSettlement")',
+                type: "POST",
+
+                data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                   console.log('edit out',ajaxOutput);
+
+                    if (ajaxOutput.mptableInfo.Process.IsProcess) {
+                        debugger
+                        $sideMenuOptions.close();
+                        $formContainer.load("@Url.Action("LoadSupplierSettlementForm", "SupplierSettlement")", function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $thisForm.data({ 'pData': ajaxOutput.mptableInfo.Data[0] });//setting pdata : which is used to get PostID when updating the  form in partial page
+
+
+                            // $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+                            if (ajaxOutput.OtherCharge.Process.IsProcess) {
+                                $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data })
+                            }
+                            $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+
+                            $thisForm.attr('perfect-onFormSuccess', 'SupplierSettlement_initialLoad');
+
+
+                            $('.Divpaymentmethod').hide();
+                            $thisForm.find('[name=ddltransType]').val(ajaxOutput.mptableInfo.Data[0].ddltransType).selectpicker('refresh').attr("disabled", "disabled");
+                            fn_ddltranstypes($thisForm.find('[name=ddltransType]').val().trim());
+
+                            $thisForm.find('[name=ddlimportfrom]').val(ajaxOutput.mptableInfo.Data[0].ddlimportfrom).selectpicker('refresh').attr("disabled", "disabled");
+
+                            $thisForm.find('[name=ImportID]').val(ajaxOutput.mptableInfo.Data[0].ImportID);
+                            console.log('FK_MASTER>>>>>>>>>>>>>>>>>>', ajaxOutput.mptableInfo.Data[0].FK_Master);
+                            $thisForm.find('[name=SupplierSettlementID]').val(ajaxOutput.mptableInfo.Data[0].SupplierSettlementID);
+                            SuppSettlementID = ajaxOutput.mptableInfo.Data[0].SupplierSettlementID;
+                            $thisForm.find('[name=GroupID]').val(ajaxOutput.mptableInfo.Data[0].GroupID);
+                            $thisForm.find('[name=TransMode]').val(ajaxOutput.mptableInfo.Data[0].TransMode);
+
+                            $thisForm.find('[name=TransDate]').val(moment(ajaxOutput.mptableInfo.Data[0].TransDate).format('YYYY-MM-DD')).attr("disabled", "disabled");
+                            $thisForm.find('[name=InvoiceDate]').val(moment(ajaxOutput.mptableInfo.Data[0].InvoiceDate).format('YYYY-MM-DD')).attr("disabled", "disabled");
+                            $thisForm.find('[name=EnteredOn]').val(ajaxOutput.mptableInfo.Data[0].EnteredOn);
+                            $thisForm.find('[name=BranchID]').val(ajaxOutput.mptableInfo.Data[0].BranchID).selectpicker('refresh').attr("disabled", "disabled");
+                            $thisForm.find('[name=DepartmentID]').val(ajaxOutput.mptableInfo.Data[0].DepartmentID).selectpicker('refresh').attr("disabled", "disabled");
+                            $thisForm.find('[name=BillTypeID]').val(ajaxOutput.mptableInfo.Data[0].BillTypeID).selectpicker('refresh');
+                            $thisForm.find('[name=SuppID]').val(ajaxOutput.mptableInfo.Data[0].SuppID).selectpicker('refresh').attr("disabled", "disabled");
+                            $thisForm.find('[name=SuppName]').val(ajaxOutput.mptableInfo.Data[0].SuppName);
+                            $('#addaccounthead-jq-searchButton3').attr("disabled", "disabled");
+                            $thisForm.find('[name=ddlimportfrom]').val(ajaxOutput.mptableInfo.Data[0].ddlimportfrom).selectpicker('refresh').attr("disabled", "disabled");
+                            $thisForm.find('[name=OtherCharge]').val(ajaxOutput.mptableInfo.Data[0].OtherCharge);
+                            $thisForm.find('[name=Discount]').val(ajaxOutput.mptableInfo.Data[0].Discount).attr("disabled", "disabled");
+                            $thisForm.find('[name=Supproundoff]').val(ajaxOutput.mptableInfo.Data[0].Supproundoff).attr("disabled", "disabled");
+                            $thisForm.find('[name=menulist]').val(ajaxOutput.mptableInfo.Data[0].ID_Mode);
+                            $thisForm.find('[name="menulist"]').selectpicker('refresh');
+                            if ($thisForm.find('[name=ddlimportfrom]').val() == 1) {
+                                $thisForm.find('[name=SuppNetAmount]').val((parseFloat(ajaxOutput.mptableInfo.Data[0].SuppNetAmount) + parseFloat(ajaxOutput.mptableInfo.Data[0].Supproundoff)));
+                            } else {
+                                $thisForm.find('[name=SuppNetAmount]').val(parseFloat(ajaxOutput.mptableInfo.Data[0].NetAmount) + parseFloat(ajaxOutput.mptableInfo.Data[0].OtherCharge) + parseFloat(ajaxOutput.mptableInfo.Data[0].Supproundoff) - parseFloat(ajaxOutput.mptableInfo.Data[0].Discount) - parseFloat(ajaxOutput.mptableInfo.Data[0].AdvanceAmount));
+                            }
+                            $thisForm.find('[name=NetAmount]').val(ajaxOutput.mptableInfo.Data[0].NetAmount);
+                            $thisForm.find('[name=NetAmounts]').val(ajaxOutput.mptableInfo.Data[0].NetAmount);
+                            $thisForm.find('[name=InvoiceItemCount]').val(ajaxOutput.mptableInfo.Data[0].InvoiceItemCount);
+                            $thisForm.find('[name=InvoiceNo]').val(ajaxOutput.mptableInfo.Data[0].InvoiceNo);
+                            $thisForm.find('[name=EnteredBy]').val(ajaxOutput.mptableInfo.Data[0].EnteredBy);
+                            $thisForm.find('[name=AdvanceAmount]').val(ajaxOutput.mptableInfo.Data[0].AdvanceAmount);
+                            SupID = ajaxOutput.mptableInfo.Data[0].SuppID;
+                           console.log('mptableInfo',ajaxOutput.mptableInfo.Data);
+                           
+                            if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                let othechg = ajaxOutput.OtherCharge.Data;
+                                console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                othrchargelst = [];
+                                othrchargelst = othrchargelst.concat(othechg);
+                                console.log('OTH INFOT>', othrchargelst);
+                                $thisForm.data({ prtothchgData: othrchargelst });
+                            }
+
+                            if (saveddata.GroupID != 0) {
+                                debugger
+                                fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                            }
+
+                            if (parseFloat(ajaxOutput.mptableInfo.Data[0].ddltransType )== 2) {
+
+                               
+                                $('.divBillType').hide();
+                                $('.divddlimport').hide();
+                                $('.divinvoice').hide();
+                                $('.divinvoicedata').hide();
+                                $('.divBillTotal').hide();
+                                $('.divhr').hide();
+
+                                $('.DivTotalAmount').show();
+                                $('.DivTotalDiscount').show();
+                              
+                                $('.Divpaymentmethod').show();
+                             
+                                $('#IdDivpaymentdetails').show();
+
+                                var CheckList = '';
+
+
+
+                                if (ajaxOutput.mptableInfo.Data.length > 0) {
+                                    $.each(ajaxOutput.mptableInfo.Data, function (i, value) {
+
+
+                                        let rowCount = (i + 1);
+                                            let display = '';
+                                            if (parseFloat($thisForm.find('[name="ddltransType"]').val()) == 2 && parseFloat($thisForm.find('[name="menulist"]').val()) == 0) {
+                                                display = '';
+                                                $('#discountth').show();
+                                                $('.DivTotalDiscount').hide();
+												display = `Style='Display:none'`
+                                            }
+                                            else {
+                                                display = `Style='Display:none'`
+                                                $('#discountth').hide();
+                                                $('.DivTotalDiscount').hide();
+                                        }
+
+                                        if (value.Balance > 0)
+								transtype='Cr'
+								else
+								transtype='Dr'
+                                        CheckList += "<tr id=" + rowCount + ">";
+                                        CheckList += "<tr>";
+
+                                        CheckList += "<td class='jq_paymentDetcheckbox_td'><input  id='chk2'type='checkbox' checked value='" + value.FK_Master + "' /></td>";
+                                        CheckList += "<td  Class='jq_Mode_td' style='text-align:center'>" + value.ddlimportfroms + "</td>";
+                                        CheckList += "<td Class='jq_Referencrno_td' style='text-align:center'>" + value.InvoiceNo + "</td>";
+
+
+                                        CheckList += "<td class='jq_Invoicedate_td' style='text-align:center'>" + moment(value.InvoiceDate).format('DD-MM-YYYY') + "</td>";
+
+                                        CheckList += "<td Class='jq_suppliertranscationId' Style='Display:none'>" + value.SupplierTransactionID + "</td>";
+                                        CheckList += "<td class='jq_ID_Purchase'Style='Display:none'>" + value.FK_Master + "</td>";
+                                        CheckList += "<td class='jq_billtype_td'Style='Display:none'>" + value.BillTypeID + "</td>";
+                                        CheckList += "<td class='jq_invoicetype_td'Style='Display:none'>" + value.ddltransType + "</td>";
+                                        CheckList += "<td class='jq_balanceamount_td_old' Style='Display:none'>" + + "</td>";
+                                        CheckList += "<td class='payAmount' style='text-align:right'><input type='text' class='form-control text-right' name='payAmount' id ='payAmountid oninput=decimalpnt(this,'payAmountid',3) onkeypress='return isNumberKey(event)' value='" + (value.Balance).toFixed(2) + "' min='0'  maxlength='13' readonly/></td>";
+                                        CheckList += "<td class='jq_balanceamount_td' style='text-align:right'><input type='text' class='form-control text-right' name='Balance' id='balanceid' oninput=decimalpnt(this,'balanceid',3) disabled onkeypress='return isNumberKey(event)'  value='" + Math.abs(value.SuppNetAmount)+ "' min='0.00'  maxlength='13'' /></td></td>";
+                                        CheckList += "<td class='jq_discount_td'  " + display +"><input type='text' class='form-control text-right'  name='Discount' id='Discountid' oninput=decimalpnt(this,'Discountid',3) disabled onkeypress='return isNumberKey(event)'  value='" + value.Discount + "' min='0.00'  maxlength='13'' /></td></td>";
+                                        CheckList += "<td class='jq_balancetopay_td' style='text-align:right'><input type='text' class='form-control text-right' name='BalanceToPay' id ='balancetopayid oninput=decimalpnt(this,'balancetopayid',3) onkeypress='return isNumberKey(event)' value='" + Math.abs(value.Balance)
+                                    + "' min='0'  maxlength='13'readonly/></td></td>";
+                                        CheckList += "<td class='jq_TransType_td' style='text-align:left'>" + transtype + "</td>"; 
+                                        CheckList += "<td class='jq_TransAmount_td' style='Display:none'><input type='text' class='form-control text-right' name='TransAmount' id='TransAmount' oninput=decimalpnt(this,'TransAmount',3) disabled onkeypress='return isNumberKey(event)'  value='" +(value.SuppNetAmount) + "' min='0.00'  maxlength='13'' /></td></td>";
+                                      
+                                        CheckList += "</tr>";
+
+                                    });
+                                }
+                                else {
+                                    CheckList += "<div class='form-group col-md-6'>";
+                                    CheckList += "<div class='form-check mb-2'>";
+                                    CheckList += "<label class='form-check-label' for='check1'>No Records...</label>";
+                                    CheckList += "</div></div>"
+                                }
+
+                                $("#paymentdetailsbody").html(CheckList);
+                                console.log('table', $("#paymentdetailsbody").html(CheckList));
+
+                            }
+                           
+                            else {
+                                $.each(ajaxOutput.mptableInfo.Process.Message, function (key, value) {
+                                   // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    $('.Divpaymentmethod').hide();
+                                });
+
+                            }
+                            $("#paymentdetailsbody").html(CheckList);
+
+                            $('#Paymenttableid').show();
+                            $('#IdDivpaymentdetails').show();
+                        
+                            var totalamount = 0;
+                            var totaldiscount = 0;
+							var creditTotal=0;
+							var debitTotal=0;
+							var creditBalance=0;
+							var debitBalance=0
+                            $('#Paymentdetailsid').find('tbody tr').each(function (index, ele) {
+                                if ($($(ele).find("input[type='checkbox']")).is(":checked") == true) {
+
+                                    totalamount = parseFloat(($(ele).find('.jq_TransAmount_td').find('input').val()) == "" ? "0.00" : ($(ele).find('.jq_TransAmount_td').find('input').val()));
+                                    
+                                    
+                                    totaldiscount = totaldiscount + parseFloat(($(ele).find('.jq_discount_td').find('input').val()) == "" ? "0.00" : ($(ele).find('.jq_discount_td').find('input').val()));
+                                   
+                                    if ($(ele).find('.jq_TransAmount_td').find('input').val() > 0) {
+                                        creditTotal += totalamount; 
+                                       
+                                      
+										} 
+                                    if ($(ele).find('.jq_TransAmount_td').find('input').val() < 0) {
+										debitTotal += (totalamount);
+                                          
+										}
+                                }
+
+
+                            });
+							creditBalance += creditTotal;
+							debitBalance += debitTotal;
+							var totalamount= parseFloat(creditBalance) + parseFloat(debitBalance);
+							if(creditBalance+debitBalance<0)
+							TrType='Dr'
+							else
+                                TrType = 'Cr'
+                           // alert(creditBalance);
+                           // alert(debitBalance);
+                            $thisForm.find('[name=TotalAmount]').val(Math.abs(totalamount).toFixed(2)+TrType);
+                            $thisForm.find('[name=TotalDiscount]').val(totaldiscount.toFixed(2));
+                           
+
+                            $thisForm.find('[name=Paymentmethod]').val(ajaxOutput.paymentdetail.Data[0].PaymentMethod).selectpicker('refresh').attr("disabled", "disabled");
+                         
+                            $('#addcountry-jq-searchButton3').attr("disabled", "disabled");
+                          
+                           // $('#searchButtonother').attr("disabled", "disabled");
+                            $('#idroundoff').attr("disabled", "disabled");
+                            $('#idpaymentmethodpopup').attr("disabled", "disabled");
+                            $('#addcompany-jq-addnewuser').hide();
+                            $('#btn btn-warning mr-3 addcompany-jq-addnewuserdelete').show();
+
+
+                           
+                            $thisForm.find('button[name=delete]').removeClass('d-none');
+
+
+                            $thisForm.find('[name="ImportID"]').attr("disabled", "disabled");
+
+
+
+                        });
+                        
+                
+                    }
+
+                    else {
+                        console.log('>_ Inside GetSupplierTranscationInfo :false')
+
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+
+            });
+
+
+         
+            
+        }
+      
+        function fn_ddltranstypes(element) {
+            debugger
+            let $thisForm = $(element).closest('[perfect-class="form"]');
+          
+            $thisForm.find('[name="SuppID"]').val('');
+            $thisForm.find('[name="SuppName"]').val('');
+           
+            if (element == 1) {
+              
+                $('.divBillType').show();
+                $('.divddlimport').show();
+                $('.divinvoice').show();
+                $('.divinvoicedata').show();
+                $('.divBillTotal').show();
+                $('.divhr').show();
+                $('.Divpaymentdetails').hide();
+                   $('.Divpaymentmethod').show();
+              //  $('.Divpaymentmethod').hide();
+                $('.DivTotalDiscount').hide();
+                $('.DivTotalAmount').hide();
+                $('.SupplierPayment').hide();
+
+            }
+            else if (element == 2) {
+              
+                $('.divBillType').hide();
+                $('.divddlimport').hide();
+                $('.divinvoice').hide();
+                $('.divinvoicedata').hide();
+                $('.divBillTotal').hide();
+                $('.divhr').hide();
+                $('.Divpaymentdetails').show();
+
+                $('.Divpaymentmethod').show();
+                $('.DivTotalDiscount').show();
+                $('.DivTotalAmount').show();
+                $('.SupplierPayment').show();
+
+            }
+
+
+
+
+        } 
+
+                            
+
+                   
+        
+        function DeleteSupplierSettlement(ele) {
+        let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log("Saved data", Saveddata); 
+        $.ajax({
+            url: "@Url.Action("GetSupplierSettlementReasonList", "SupplierSettlement")",
+            type: "GET",
+            
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+
+                    console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to Delete Supplier Transaction Details of : " + "<b>" + Saveddata.SuppName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                    var res = ConfirmDialog(confirmationDialogBoxOption);
+
+                    
+
+                    res.then(function (ret) {
+                        if (ret) {
+
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                GroupID: Saveddata.GroupID,
+                                ReasonID: ret,
+                                TransMode: SupplierSettlementTransMode,
+                        
+                            };
+
+
+                            $.ajax({
+                                url: "@Url.Action("DeleteSupplierSettlement", "SupplierSettlement")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    $formContainer.load('@Url.Action("LoadSupplierSettlementForm", "SupplierSettlement")', function () {
+                                        if (ajaxOutput.Process.IsProcess) {
+
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                            });
+
+                                            //removing a data
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            SupplierSettlement_initialLoad();
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+
+
+                        }
+                        else {
+
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+
+                    //-----delete code
+
+                }
+            }
+        });
+
+    };
+
+
+
+
+     
+    </script>
+
+}

@@ -1,0 +1,928 @@
+﻿
+
+
+
+@model PerfectWebERP.Models.WalkingCustomerReportModel.Walkingcustomerview
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="LoadAddWalkingCustomerreportrefresh();" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body" style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-4">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report</span>
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_string " name="FK_Report" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select"onchange="validationshowandremove(this)">
+                                        <option value="">Please Select</option>
+                                        <option value="1">Walk in Customer List</option>
+                                        <option value="2">Walk in Customer - Convert To Lead List</option>
+                                        <option value="3">Walk in Customer - Non Convert List</option>
+
+                                    </select>
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 ">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Date Range</span>
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="col-sm-8">
+
+                                <div id="reportrange" name="datefilter" class="pull-left form-control ActionDate" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                    <span></span> <b class="caret"></b>
+                                </div>
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        @if (ViewBag.Manager || ViewBag.Admin)
+                        {
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Employee</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="EmployeeID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" disabled />
+                                        <input type="hidden" name="BranchID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" disabled value="@ViewBag.BranchID" />
+                                        <div class="input-group-append">
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="0" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Employee</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value='@ViewBag.Employee' disabled />
+                                        <input type="hidden" name="EmployeeID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' disabled />
+                                        <input type="hidden" name="BranchID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" disabled value="@ViewBag.BranchID" />
+                                        <div class="input-group-append">
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="0" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID" disabled></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+
+                        <div class="col-sm-12 card-footer text-right" perfect-class="formFooter">
+                            <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getWalkingcustomerReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                            <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton();" name="reset">Clear</button>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+            <div class="col-xl-4">
+                <h1>
+                    <span perfect-class="formGroupLabel" class="card-title col-12" id="IdReportnames" name="ReportNames"></span>
+                </h1>
+
+
+            </div>
+
+            <div id="divWalkingList">
+                <table id="WalkingList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Customer</th>
+                            <th>Mobile</th>
+                            <th>Assigned To</th>
+                            <th>Assigned Date</th>
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+            <div id="divWalkingLeadList">
+                <table id="WalkingLeadList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Lead No</th>
+                            <th>Customer</th>
+                            <th>Mobile</th>
+                            <th>Assigned To</th>
+                            <th>Assigned Date</th>
+
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+
+
+
+        </form>
+    </div>
+</div>
+
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+
+
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        initFunctions($thisForm);
+
+
+    });
+
+        var jobcartstartdate;
+        var jobcartenddate;
+    //$(function () {
+
+    //    $('input[name="datefilter"]').daterangepicker({
+    //        autoUpdateInput: false,
+    //        locale: {
+    //            cancelLabel: 'Clear'
+    //        }
+    //    });
+
+    //    $('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {
+    //        let bcd = $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    //        console.log("abc", picker.startDate.format('MM/DD/YYYY'), picker.endDate.format('MM/DD/YYYY'));
+
+    //        jobcartstartdate = picker.startDate.format('DD/MM/YYYY');
+    //        jobcartenddate = picker.endDate.format('DD/MM/YYYY');
+
+    //        $('#ToDate-error').text("");
+
+    //    });
+
+    //    $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+    //        $(this).val('');
+    //        jobcartstartdate = null;
+    //        jobcartenddate = null;
+
+    //    });
+
+    //});
+
+
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            jobcartstartdate = start.format('DD/MM/YYYY');
+            jobcartenddate = end.format('DD/MM/YYYY');
+        }
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
+
+        function RptValidation(ele) {
+            debugger
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            var isrptValid = true;
+            //if ($('input[name="datefilter"]').val() == undefined || $('input[name="datefilter"]').val() == '') {
+            //        isrptValid = false;
+            //    $('#ToDate-error').text("Please Select Target Date");
+
+            //    }
+
+            //    else
+            //    {
+            //    $('#ToDate-error').text("");
+            //    isrptValid = true;
+
+            //}
+            if (jobcartenddate == null || jobcartstartdate == null) {
+                isrptValid = false;
+                $('#ToDate-error').text("Please Select Date Range");
+
+            } else {
+                $('#ToDate-error').text("");
+            }
+            return isrptValid;
+        }
+
+
+
+
+
+    function ResetButton() {
+        fn_WalkingCustomerreport_initialLoad();
+      
+    }
+
+    var itemdata = 0;
+    var tableData;
+
+    function getWalkingcustomerReport(ele) {
+
+            let $tbody;
+
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            //  $("#EqSerList tr").remove();
+            debugger
+            if ($thisForm.valid()) {
+
+                var table = $('#WalkingList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+                table.clear().draw();
+                var table = $('#WalkingLeadList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+                table.clear().draw();
+
+                if (RptValidation(ele)) {
+
+                    debugger
+
+                    var obj = {
+                        "FK_Report": $thisForm.find('[name="FK_Report"]').val(),
+                        "FromDate": jobcartstartdate == null ? "01/01/2023" : jobcartstartdate,
+                        "ToDate": jobcartenddate == null ? "01/01/2023" : jobcartenddate,       
+                        "FK_Employee": $thisForm.find('[name="EmployeeID"]').val(),
+
+
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("GetWalkingCustomerlList", "WalkingCustomerReport")",
+                        type: "POST",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (dataOut) {
+
+                           
+                            dataOut.datares.Data.forEach((i) => {
+
+                                var a = i.AssignedDate.split('T')[0];
+
+                                i['AssignedDate'] = changeDateFormat(a);
+                            });
+                            itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                            if (itemdata == null || itemdata == "") {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "none";
+
+                            } else {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                            }
+
+
+
+                            if (dataOut.datares.Process.IsProcess) {
+                                if (itemdata != null) {
+                                    if ($('select[name="FK_Report"] option:selected').val() == 2) {
+
+                                        let name = $thisForm.find('[name="FK_Report"] option:selected').text();
+                                        $thisForm.find('[name="ReportNames"]').text(name);
+                                        $("#divWalkingLeadList").show();
+                                        $("#divWalkingList").hide();
+                                        tableData = $('#WalkingLeadList').DataTable({
+                                            pagination: "bootstrap",
+                                            filter: true,
+                                            data: dataOut.datares.Data,
+                                            destroy: true,
+                                            paging: false,
+                                            info: false,
+                                            searching: false,
+                                            "columns": [
+                                                { "data": null },
+                                                { "data": "LeadNo" },
+                                                { "data": "Customer" },
+                                                { "data": "Mobile" },
+                                                { "data": "AssignedTo" },
+                                                { "data": "AssignedDate" },
+                                               
+
+                                            ],
+                                            //scrollY: 550,
+                                            //scrollX: true,
+                                            scrollCollapse: true,
+                                            paging: false,
+                                            fixedHeader: {
+                                                header: true,
+                                                //footer: true
+                                            },
+                                            //"order": [[7, "asc"]],
+                                            "columnDefs": [
+                                                { "orderable": false, "targets": [0, 1, 2, 3, 4, 5] }
+
+                                                //{ "visible": false, "targets": 0 }
+                                            ],
+
+                                            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                $("td:first", nRow).html(iDisplayIndex + 1);
+                                                //$('td:eq(1)', nRow).html('');
+                                                return nRow;
+
+
+                                            },
+                                          
+                                        });
+                                    }
+                                    if ($('select[name="FK_Report"] option:selected').val() == 1) {
+                                        let name = $thisForm.find('[name="FK_Report"] option:selected').text();
+                                        $thisForm.find('[name="ReportNames"]').text(name);
+                                        $("#divWalkingList").show();
+                                        $("#divWalkingLeadList").hide();
+                                        tableData = $('#WalkingList').DataTable({
+                                            pagination: "bootstrap",
+                                            filter: true,
+                                            data: dataOut.datares.Data,
+                                            destroy: true,
+                                            paging: false,
+                                            info: false,
+                                            searching: false,
+                                            "columns": [
+                                                { "data": null },
+                                                { "data": "Customer" },
+                                                { "data": "Mobile" },
+                                                { "data": "AssignedTo" },
+                                                { "data": "AssignedDate" },
+
+
+
+                                            ],
+
+                                            scrollCollapse: true,
+                                            paging: false,
+                                            fixedHeader: {
+                                                header: true,
+
+                                            },
+
+                                            "columnDefs": [
+                                                { "orderable": false, "targets": [0, 1, 2, 3, 4] }
+
+
+                                            ],
+
+                                            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                return nRow;
+
+
+                                            },
+
+
+
+                                        });
+                                    }
+                                    if ($('select[name="FK_Report"] option:selected').val() == 3) {
+                                        let name = $thisForm.find('[name="FK_Report"] option:selected').text();
+                                        $thisForm.find('[name="ReportNames"]').text(name);
+                                        $("#divWalkingList").show();
+                                        $("#divWalkingLeadList").hide();
+                                        tableData = $('#WalkingList').DataTable({
+                                            pagination: "bootstrap",
+                                            filter: true,
+                                            data: dataOut.datares.Data,
+                                            destroy: true,
+                                            paging: false,
+                                            info: false,
+                                            searching: false,
+                                            "columns": [
+                                                { "data": null },
+                                                { "data": "Customer" },
+                                                { "data": "Mobile" },
+                                                { "data": "AssignedTo" },
+                                                { "data": "AssignedDate" },
+
+
+
+                                            ],
+
+                                            scrollCollapse: true,
+                                            paging: false,
+                                            fixedHeader: {
+                                                header: true,
+
+                                            },
+
+                                            "columnDefs": [
+                                                { "orderable": false, "targets": [0, 1, 2, 3, 4] }
+
+
+                                            ],
+
+                                            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                return nRow;
+
+
+                                            },
+
+
+
+                                        });
+                                    }
+                                    else {
+                                       
+                                       
+                                    }
+                                }
+                                else {
+                                    $thisForm.find('[name="ReportNames"]').text('');
+                                }
+
+                            }
+                            else {
+                                $thisForm.find('[name="ReportNames"]').text('');
+                            }
+                        },
+                        complete: function () {
+                        }
+                    });
+
+                    fn_showFilter();
+                }
+                else
+                {
+                    $(ele).prop('disabled', false);
+
+
+                    }
+
+            }
+
+    }
+
+
+
+
+     function generatePdf(ele) {
+         var cdata;
+       
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         
+        let $container = $(ele).closest('[perfect-class="form"]');
+        const obj = {
+
+
+
+            
+            
+            "Target Date": $('#reportrange span').html() ,
+            "Employee": $('input[name="Employee"]').val(),
+          
+           
+
+
+
+        };
+        const obj2 = {
+            //"From ": $('input[name="FromDate"]').val(),
+            //"To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+         var str2 = "";
+         var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str+="Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+
+                    '  '  + '   ' + str2
+
+
+                    //'\n' +
+
+
+                ],
+                [
+                    str
+                ]
+
+
+
+            ],
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black'
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.8; // Adjust the line height value to your preference
+            }
+
+
+        };
+
+
+
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+
+
+                     var head = [];
+                     var ptableData = {};
+                     debugger;
+                     console.log(itemdata, '<<itemdata>>')
+
+                     //itemdata.forEach((i) => {
+
+                     //    var a = i.AssignedDate.split('T')[0];
+
+                     //    i['AssignedDate'] = changeDateFormat(a);
+                     //})
+                     if ($('select[name="FK_Report"] option:selected').val() == 2) {
+                         head = [['Sl No','LeadNo', 'Customer', 'Mobile', 'Assigned To', 'Assigned Date']];
+                         ptableData = {
+                             columns: [
+                                 { title: "Lead No", dataKey: "LeadNo" },
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Assigned To", dataKey: "AssignedTo" },
+                                 { title: "Assigned Date", dataKey: "AssignedDate" },
+                                
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else {
+                         head = [['Sl No', 'Customer', 'Mobile', 'Assigned To', 'Assigned Date']];
+                         ptableData = {
+                             columns: [
+                                
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Assigned To", dataKey: "AssignedTo" },
+                                 { title: "Assigned Date", dataKey: "AssignedDate" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+
+                   
+
+                     console.log(ptableData, 'ptableData---0))0')
+
+                     exportPdf($('select[name="FK_Report"] option:selected').text(), head, cdata, upperhead, "", ptableData, "", $('select[name="FK_Report"] option:selected').text(), "a4", "", "", "P");
+                   
+                },
+             complete: function () {
+
+                
+
+
+
+
+                }
+         });
+    }
+
+
+
+
+
+    function onExell() {
+
+
+        var cdata;
+
+
+        const obj = {
+
+           // "Report Name": $('select[name="FK_Report"] option:selected').text(),
+            "Target Date": $('#reportrange span').html(),
+            "Employee": $('input[name="Employee"]').val(),
+
+
+        };
+        const obj2 = {
+           
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str += "Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+                console.log(cdata, "---cdata----");
+
+
+                if ($('select[name="FK_Report"] option:selected').val() == 2) {
+                    head = [['Sl No', 'LeadNo', 'Customer', 'Mobile', 'Assigned To', 'Assigned Date']];
+                    ptableData = {
+                        columns: [
+                            { title: "Lead No", dataKey: "LeadNo" },
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "Assigned To", dataKey: "AssignedTo" },
+                            { title: "Assigned Date", dataKey: "AssignedDate" },
+
+
+                        ],
+                        rows: itemdata
+
+                    };
+                } else {
+                    head = [['Sl No', 'Customer', 'Mobile', 'Assigned To', 'Assigned Date']];
+                    ptableData = {
+                        columns: [
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "Assigned To", dataKey: "AssignedTo" },
+                            { title: "Assigned Date", dataKey: "AssignedDate" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+
+                }
+
+
+
+                ReportName = `${cdata.Company} \n${cdata.Branch} \n ${$('select[name="FK_Report"] option:selected').text()} \n ${str2} \n ${str} `
+                generateExell(ReportName, head, ptableData, {}, "", $('select[name="FK_Report"] option:selected').text());
+
+              
+
+            }
+        });
+
+    }
+
+
+
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+        function changeDateFormat(date) {
+            /*var date = '2023-06-05';*/
+
+            // Split the date into year, month, and day components
+            var dateComponents = date.split('-');
+
+            // Rearrange the components to form the desired format
+            var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+            console.log(formattedDate); // Output: 05/06/23
+            return formattedDate;
+        }
+        function exportbuttonhide() {
+            document.querySelector('#exppdf').style.display = 'none';
+            console.log('Input value changed:');
+        }
+
+        var inputElements = document.getElementsByClassName('exptbttontoogle');
+        for (var i = 0; i < inputElements.length; i++) {
+            inputElements[i].addEventListener('change', function (event) {
+                // Handle the change event here
+                // var inputValue = event.target.value;
+                document.querySelector('#exppdf').style.display = 'none';
+                console.log('Input value changed:');
+            });
+        }
+        function getfunction() {
+            document.querySelector('#exppdf').style.display = 'none';
+        }
+
+
+    function validationshowandremove() {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name="FK_Report"]').val() != null || $thisForm.find('[name="FK_Report"]').val() != 0 || $thisForm.find('[name="FK_Report"]').val() != "") {
+
+            $('#FK_Report-error').css('display', 'none');
+        }
+        else {
+            $('#FK_Report-error').css('display', 'block');
+        }
+    }
+
+
+</script>
+
+
+
+
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>

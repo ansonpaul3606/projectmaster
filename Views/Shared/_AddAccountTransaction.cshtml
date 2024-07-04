@@ -1,0 +1,1839 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Alshifa
+    Created On	: 15/11/2022
+    Purpose		: Account Transaction
+    -------------------------------------------------------------------------
+    Modification
+    On          : 01/12/2022
+    By		    : Kavya K
+    -------------------------------------------------------------------------
+    Modification On : 19/02/2024
+    By              : Aswanth M
+
+    -------------------------------------------------------------------------*@
+
+
+@model PerfectWebERP.Models.AccountTransactionModel.AccountTransactionView
+
+
+<style>
+    h5 {
+        font-weight: 600;
+        font-family: math;
+    }
+
+    .total {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+
+
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body ">
+        <form id="form" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Transaction Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control" name="TransDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datencheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Effect Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control" name="EffectDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datencheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-classs="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="AhstBranch" id="AhstBranch" perfect-tempTable-Account="AhstBranch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ClearAccountHead(this)">
+
+                                    @if (!(Model.branchHeads is null))
+                                    {
+                                        foreach (var AHT in Model.branchHeads)
+                                        {
+                                            <option value="@AHT.FK_Branch">@AHT.BranchName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Account Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="hidden" name="ID_AccountHeadSubTransaction" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="AhstGroupID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="Voucher" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-Account="Voucher" />
+                                    <select class="form-control" name="AccountType" perfect-tempTable-Account="AccountType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="changeHead(this)">
+                                        <option value="">Please Select </option>
+                                        @if (!(Model.ActTypes is null))
+                                        {
+                                            foreach (var act in Model.ActTypes)
+                                            {
+                                                <option value="@act.ID_Mode">@act.ModeName</option>
+                                            }
+                                        }
+
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                Account Head<span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="AccountHead" perfect-tempTable-Account="AccountHead" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_AccountHead" perfect-tempTable-Account="FK_AccountHead" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <input type="hidden" name="FK_BranchCode" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+
+                                    <div class="input-group-append">
+                                        @*<button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,84,'Account Head List',['AccountSubHead'],['FK_AccountHeadSub','AccountSubHead','AhstParty','TaxGroupID','TransType'],AcTransTransMode),OnSelect(this)" Criterea1="AccountType" Criterea2="AhstBranch" BindName="AccountHead" BindVal="FK_AccountHead" Function="1"></button>*@
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="OnSelectAccountHead(this)" Criterea1="AccountType" Criterea2="AhstBranch" BindName="AccountHead" BindVal="FK_AccountHead" Function="1"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" perfect-tempTable-Account="TaxGroupID" name="TaxGroupID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                A/c Sub Head
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="AccountSubHead" perfect-tempTable-Account="AccountSubHead" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" onchange="fn_loadAccountSubHead(this)" readonly />
+                                    <input type="hidden" name="FK_AccountSubHead" perfect-tempTable-Account="FK_AccountSubHead" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <input type="hidden" name="NetAmount" perfect-tempTable-Account="NetAmount" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <div class="input-group-append">
+                                        <button id="addAccountSubHead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,74,'Account Sub Head List',['FK_AccountHead','AccountHead'],[],AcTransTransMode)" Criterea1="FK_AccountHead" Criterea2="AhstBranch" BindName="AccountSubHead" BindVal="FK_AccountSubHead"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Transaction Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control" name="TransType" perfect-tempTable-Account="TransType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_fillAccountHead(this)">
+                                        <option value="">Please Select </option>
+                                        @*<option value="1">Debit</option>
+                                <option value="2">Credit</option>*@
+
+
+
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                Amount<span class="text-danger">*</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                @*<input type="text" class="form-control text-right" perfect-tempTable-Account="AhstAmount" name="AhstAmount" maxlength="12" id="AhstAmount" perfect-class="formGroupControl" onchange="taxgroupcalc(this)" perfect-ctype="input" perfect-css="input" disabled oninput="decimalpnt(this,'AhstAmount',3)" />*@
+                                <input type="text" class="form-control text-right" perfect-tempTable-Account="AhstAmount" name="AhstAmount" maxlength="12" id="AhstAmount" perfect-class="formGroupControl" onchange="BindTaxDetails(1,'formGroupModalTax', this)" perfect-ctype="input" perfect-css="input" disabled oninput="decimalpnt(this,'AhstAmount',3)" />
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-4" id="rent1">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Tax</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control text-right" placeholder="" name="TaxAmount" id="IdTaxAmount" perfect-tempTable-Account="TaxAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'TaxAmount',3)" maxlength="12" disabled />
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="checkaccountTax(this)"></button>
+                                        <div class="modal fade" perfect-class="formGroupModalTax" id="formGroupModalTax">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content  rounded-0">
+                                                    <div class="modal-header border-0">
+                                                        <h5 class="modal-title">Tax Details</h5>
+                                                        <button type="button" class="close" data-dismiss="modal">
+                                                            <span>&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <table id="zero_config" class="table mb-0  table-striped  text-black">
+                                                        <thead class="bg-primary text-white">
+                                                            <tr>
+                                                                <th class="t-head">SlNo</th>
+                                                                <th class="t-head" style="Display:none">ID_TaxSettings</th>
+                                                                <th class="t-head" style="Display:none">FK_TaxType</th>
+                                                                <th class="t-head">TaxType</th>
+                                                                <th class="t-head">Percentage</th>
+                                                                <th class="t-head">Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="modal-body" id="formGroupModalTaxbody"></tbody>
+                                                        <tfoot>
+                                                        </tfoot>
+                                                    </table>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-primary1" data-dismiss="modal" onclick="BindTaxAmount(this)">Ok</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="temptableError"></span>
+                                @*<div class="col-sm-8 ml-2">
+                            <input type="checkbox" class="form-check-input" name="IncludeTax" id="taxinclude" perfect-class="formCheckInput" perfect-tempTable-Purchase="IncludeTax" onchange="BindTaxDetails(1,'formGroupModalTax', this)" perfect-ctype="checkbox" perfect-css="checkbox"><span perfect-class="formCheckInputText">Include Tax</span>
+
+                        </div>*@
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel"> Party</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" perfect-tempTable-Account="AhstParty" name="AhstParty" id="AhsParty" maxlength="100" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Cheque Date</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control" name="AhstChequeDate" perfect-tempTable-Account="AhstChequeDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" "        />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Cheque No</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" perfect-tempTable-Account="AhstChequeNo" name="AhstChequeNo" maxlength="20" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                <div class="text-danger temptableError"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Receipt No</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-left" perfect-tempTable-Account="AhstReferenceNo" name="AhstReferenceNo" maxlength="15" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                <div class="text-danger temptableError"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Remarks</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <textarea class="form-control " perfect-class="formGroupControl" perfect-tempTable-Account="AhstNarration" name="AhstNarration" maxlength="100" rows="1" placeholder="" perfect-ctype="input" perfect-css="input"></textarea>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">Payment Mode </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="hidden" name="PmMode" perfect-tempTable-Account="PmMode" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="0" />
+                                    <select class="form-control" perfect-tempTable-Account="AhstPaymentMode" name="AhstPaymentMode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        @if (!(Model.PaymentView is null))
+                                        {
+                                            foreach (var Module in Model.PaymentView)
+                                            {
+                                                if (Module.PMDefault == true)
+                                                {
+                                                    <option value="@Module.PaymentmethodID" data-ID="" data-modeparent="@Module.PMMode" selected>@Module.Name</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@Module.PaymentmethodID" data-modeparent="@Module.PMMode">@Module.Name</option>
+                                                }
+
+                                            }
+                                        }
+                                    </select>
+
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-1" text-right">
+                        <button class="btn btn-primary1 resetFeilds" type="button" data-toggle="tooltip" data-placement="top" data-html="true" title="Add Account Transaction" onclick="AccountTransactioncreatetable(this,'Account',[],AccountTransactionOptionsTempOut)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        <button class="btn btn-light1" type="button" id="refresh" data-toggle="tooltip" data-placement="top" data-html="true" onclick="AccountTeansactionclear(this,'Account')"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group row" perfect-class="formGroup">
+
+                            <div class="table-responsive" perfect-tempTable="Account" id="Accounttrans" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="total">
+                            <h5>Cash Total</h5><br />
+                        </div>
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-2 col-form-label">
+                                <span perfect-class="formGroupLabel" id="lblCredit">Credit</span>
+                            </label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control text-right" placeholder="" value="0.00" readonly name="RecieptAmtTotalCashCred" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                            <label class="col-sm-2 col-form-label">
+                                <span perfect-class="formGroupLabel" id="lblCredit">Debit</span>
+                            </label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control text-right" placeholder="" value="0.00" readonly name="PaymentAmtTotalCashDebt" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="total">
+                            <h5>Adjustment Total</h5><br />
+                        </div>
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-2 col-form-label">
+                                <span perfect-class="formGroupLabel" id="lblCredit">Credit</span>
+                            </label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control text-right" placeholder="" value="0.00" readonly name="ReceiptAmtTotalAdCred" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                            <label class="col-sm-2 col-form-label">
+                                <span perfect-class="formGroupLabel" id="lblCredit">Debit</span>
+                            </label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control text-right" placeholder="" value="0.00" readonly name="PaymentAmtTotalAdDebt" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-md-4"style="display:none;">
+                    &nbsp;&nbsp;  &nbsp;&nbsp;  &nbsp;&nbsp; &nbsp;&nbsp;  &nbsp;&nbsp;  &nbsp;&nbsp; &nbsp;&nbsp;  &nbsp;&nbsp;  &nbsp;&nbsp;<br />
+                    <input type="checkbox" class="form-check-input" name="Transfer" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox">Transfer
+                </div>
+                <input type="hidden" min="0" class="form-control text-right" perfect-tempTable-Account="UID" name="UID" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                <input type="hidden" min="0" class="form-control text-right" perfect-tempTable-Account="ID_AccountHeadSubTransaction" name="ID_AccountHeadSubTransaction" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="0" />
+
+                <div class="card-footer text-right" perfect-class="formFooter">
+
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_AcctTrn_update(this,'new')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+
+                    <button id="ptupdate" style="display:none" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_AcctTrn_update(this,'update')"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>
+
+                    <button type="button" id="" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+
+                </div>
+</form>
+
+    </div>
+
+</div>
+
+
+
+
+<script>
+
+    $(document).ready(function () {
+        initFunctions('form');
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        var today = new Date();
+        var day = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+        var month = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+        var year = today.getFullYear();
+
+        $thisForm.find('[name="TransDate"]').attr('max', year + "-" + month + "-" + day);
+        $thisForm.find('[name="FK_BranchCode"]').val(FK_BranchCode);
+        console.log('FK_BrancH>>', FK_Branch)
+        $thisForm.find('[name="AhstBranch"]').val(FK_Branch).selectpicker('refresh');
+        console.log('FK_BranchCode', FK_BranchCode)
+        $thisForm.find('[name="PmMode"]').val(0);
+        //$('#AhstBranch').prop('disabled', true);
+    });
+
+    var $resetFields = 0;
+
+    function fn_fillAccountSubHead(ele)
+    {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $actionDropdown = $thisForm.find('[name="AccountSubHead"]');
+        $actionDropdown.empty();
+        $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'AccountHead': $thisForm.find('[name=AccountHead]').val()
+        };
+
+        $.ajax({
+            url: "@Url.Action("FillActSubhead", "AccountTransaction")",
+            type: "POST",
+            dataType: "json",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Data.length > 0) {
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        $actionDropdown.append($('<option/>', { value: value.ID_AccountHd }).text(value.AccountsHd)).selectpicker('refresh');
+                    });
+                    if ($actionDropdown.attr('perfect-onloadSelect')) {
+                        $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            }
+        });
+    }
+
+    function changeHead(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="FK_AccountHead"]').val('');
+        $thisForm.find('[name="AccountHead"]').val("");
+        $thisForm.find('[name="AccountSubHead"]').val("");
+        $thisForm.find('[name="FK_AccountSubHead"]').val("");
+        $thisForm.find('[name="AhstParty"]').val("");
+
+
+        fillTransType(ele);
+
+        getfunction();
+        fn_fillAccountHead(ele);
+    }
+    function OnSelectAccountHead(ele) {
+        if ($('[name="AccountType"]').val() == "" || $('[name="AccountType"]').val() == 0) {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Please Select Account Type" });
+        }
+        else {
+            GetCmnPopUpSearchValAssign(ele, 84, 'Account Head List', ['FK_AccountSubHead', 'AccountSubHead'], ['FK_AccountSubHead', 'AccountSubHead', 'AhstParty', 'TaxGroupID', 'TransType'], AcTransTransMode);
+        }
+    }
+    function fn_showimportlists(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        switch (parseInt($thisForm.find('[name="Supplier"]').val())) {
+            case 1:
+                GetCmnPopUpSearchValAssign(ele, 169, 'Supplier List', [], ['SupplierID', 'SupplierName', 'CustomeName', 'Statecode'], PurchaseTransMode);
+                break;
+            case 2:
+                GetCmnPopUpSearchValAssign(ele, 173, 'Purchase Order List', [], ['FK_PurchaseOrder', 'SupplierID', 'SupplierName', 'AdvanceAmount', 'Statecode'], PurchaseTransMode);
+
+                break;
+            default:
+                NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'Please Select Import From' });
+                break;
+
+
+
+        }
+    }
+    function fillTransType(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var Acctypval = $thisForm.find('[name = AccountType]').val();
+        let $actionDropdown = $thisForm.find('[name="TransType"]');
+        $actionDropdown.empty();
+        $actionDropdown.append($('<option/>', { value: '' }).text('Please select'));
+        if (Acctypval == "1") {
+            $actionDropdown.append($('<option/>', { value: 1 }).text("Payment")); // Debit
+            $actionDropdown.append($('<option/>', { value: 2 }).text("Receipt")); // Credit
+            //$("#lblCredit").text("Receipt/Deposit Total");
+            //$("#lblDebit").text("Payment/Withdrawal Total");
+            $actionDropdown.selectpicker('refresh');
+        }
+        else if (Acctypval == "2") {
+            $actionDropdown.append($('<option/>', { value: 1 }).text("Deposit")); //Debit
+            $actionDropdown.append($('<option/>', { value: 2 }).text("Withdrawal")); //Credit
+            //$("#lblCredit").text("Receipt/Deposit Total");
+            //$("#lblDebit").text("Payment/Withdrawal Total");
+            $actionDropdown.selectpicker('refresh');
+        } else {
+            //$("#lblCredit").text("Receipt/Deposit Total");
+            //$("#lblDebit").text("Payment/Withdrawal Total");
+            $actionDropdown.selectpicker('refresh');
+        }
+    }
+    function fn_fillAccountHead(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $actionDropdown = $thisForm.find('[name="AccountHead"]');
+        $actionDropdown.empty();
+        $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'Acctypval': $thisForm.find('[name=AccountType]').val()
+        };
+
+        $.ajax({
+            url: "@Url.Action("FillActhead", "AccountTransaction")",
+            type: "POST",
+            dataType: "json",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Data.length > 0) {
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        $actionDropdown.append($('<option/>', { value: value.ID_Account }).text(value.AccountHd)).selectpicker('refresh');
+                    });
+                    if ($actionDropdown.attr('perfect-onloadSelect')) {
+                        $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            }
+        });
+    }
+
+
+    function fn_loadAccountSubHead(ele)
+    {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let FK_AccountSubHead = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_AccountSubHead: $thisForm.find('[name=FK_AccountSubHead] option:selected').text()
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetAccountSubHead", "AccountTransaction")',
+            type: "POST",
+            data: FinancePlanName,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Data != null) {
+                    if (ajaxOutput.Data.length > 1) {
+                        var stateModel = createSelectList({
+                            data: ajaxOutput.Data
+                            //,renameHeader: { "FinancePlanName": "Name"},
+                            //hideColumn: ['FinancePlanTypeID', 'EffectDate'], headingText: 'Finance Plan Details'
+                        });
+                        stateModel.then(function (ret) {
+                            if (ret) {
+                                $thisForm.find('[name=AhstParty]').text(ret.FK_AccountSubHead);
+
+                            }
+                            else {
+                                console.log(ret);
+                            }
+                        });
+                    }
+                    else {
+                        $thisForm.find('[name=AhstParty]').text(ajaxOutput.Data[0].FK_AccountSubHead).selectText;
+                    }
+                }
+            }
+        });
+
+
+    }
+    function datencheck(ele) {
+
+
+      let  $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        //invalid-feedback
+        let EffectDate = $thisForm.find('[name="EffectDate"]').val();
+        let TransDate = $thisForm.find('[name="TransDate"]').val();
+
+        EffectDate = new Date(EffectDate);
+        EffectDate.setHours(0, 0, 0, 0)
+
+        TransDate = new Date(TransDate);
+        TransDate.setHours(0, 0, 0, 0)
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (TransDate > today) {
+
+            $thisForm.find('[name="TransDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Transaction Date should be less than or equal to Todays date')
+            return false;
+        }
+
+        else if (EffectDate > today) {
+
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Effect Date  should be less than or equal to Todays date')
+            return false;
+        }
+        else {
+            $thisForm.find('[name="TransDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            $thisForm.find('[name="TransDate"]').val();
+            $thisForm.find('[name="EffectDate"]').val();
+            return true;
+        }
+    }
+
+    function AccountTransactioncreatetable(ele, tkey, uniq = [], AccountTransactionOptionsTempOut) {
+        debugger
+        $resetFields = 1;
+                let $thisForm = $(ele).closest('[perfect-class="form"]');
+                let tableKey = tkey;
+                let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+                let insertData = {};
+                let tableOptionsTemp = AccountTransactionOptionsTempOut;
+                let unique = (uniq) ? uniq : [];
+
+                let isValid = true;
+                let errorClass = '.temptableError';
+
+                let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+                let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+                let indexname = tkey + 'index';
+                tableOptionsTemp.rowAttribute.push(indexname);
+                tableOptionsTemp.hideColumn.push(indexname);
+                let updateCond = '';
+                let isNew = true;
+
+                if (thisactionIndex > 0) {
+                    //means update
+                    insertData[indexname] = thisactionIndex;
+                    updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+                    isNew = false;
+                }
+                else {
+                    //insert
+                    insertData[indexname] = lastIndex + 1;
+                    $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+                    isNew = true;
+                }
+                //
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="TransDate"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="TransDate"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="TransDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Transaction Date');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="TransDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="EffectDate"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="EffectDate"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="EffectDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Effect date');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="EffectDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="AccountType"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="AccountType"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AccountType"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Account Type');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AccountType"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountSubHead"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountSubHead"]').val() == "") {
+            isValid = true;
+        }
+
+        let Amt = (isNaN($thisForm.find('[perfect-tempTable-' + tableKey + '="AhstAmount"]').val()) ? 0 : $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstAmount"]').val())
+
+        if (parseFloat(Amt) <= 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstAmount"]').val().length == 0) {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Enter Amount');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+              if ($thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountHead"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountHead"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountHead"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Account Head');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="FK_AccountHead"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="TransType"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="TransType"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="TransType"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Transaction Type');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="TransType"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').val() != "" || $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').val() != 0)
+        {
+
+            if ($thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').val() == "")
+            {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Cheque Date');
+            }
+            else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+            }
+        }
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').val() != "" || $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeDate"]').val() != 0) {
+
+            if ($thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').val() == "") {
+                isValid = false;
+                $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter Cheque No.');
+            }
+            else {
+                $thisForm.find('[perfect-tempTable-' + tableKey + '="AhstChequeNo"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+            }
+        }debugger
+                if (unique.length > 0) {
+                    //getting previous data
+                    let prevData = [];
+                    $tblcontainer.find('table > tbody').find('tr').each(function () {
+                        if (isNew) {
+                            prevData.push($(this).data('pData'));
+                        }
+                        else {
+                            if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                                prevData.push($(this).data('pData'));
+                            }
+
+                        }
+
+                    })
+                    unique.forEach(function (key, i) {
+                        let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                        let atname = $thisEle.attr('name');
+                        let cvalue;
+                        if ($thisEle.length != 0) {
+                            let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                            let errmessage = "Already Exists"
+                            if ($thisEle.is('select')) {
+                                cvalue = $thisEle.val();
+                            }
+                            else if ($thisEle.is('input')) {
+
+                                let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+
+                                if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                                else if (inputEleType == 'date') {
+
+                                    cvalue = $thisEle.val();
+                                }
+                                else if (inputEleType == 'hidden') { cvalue = $thisEle.val();    }
+                                else { cvalue = $thisEle.val(); }
+                            }
+                            else {
+                                cvalue = $thisEle.val();
+
+                            }
+
+                            if (prevData.find(a => a[atname] == cvalue)) {
+                                $errorElement.text(errmessage);
+                                isValid = false;
+                            }
+                        }
+                    });
+
+                }
+
+                if (isValid) {
+                    if (isNew) {
+                        debugger
+                        if ($('#ptupdate').is(":visible")) {
+                          let savedPDatas = [];
+                            savedPDatas = $thisForm.data('purData');
+
+                             if (savedPDatas.length > 0 || savedPDatas.length == null || !undefined) {
+                                 if (s == 0) {
+                                     let maxc = Math.max(...savedPDatas.map(o => o.UID))
+                                    //cnt = savedPDatas.length + 1;
+
+                                    cnt = maxc + 1;
+                                     s++;
+
+
+
+                                }
+                                else {
+                                    cnt++;
+                                }
+
+                            }
+                        }
+                        else {
+                            cnt++;
+                        }
+
+                        Taxdet(this);
+                    }
+                    else {
+                        Taxcalled = 1;
+                        Taxret(this);
+                    }
+
+                    Taxcalled = 0;
+
+                    // this section make table column data
+                    $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                        let $this = $(this);
+                        let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                        let nameAttr = $this.attr('name');
+                        if ($this.is('select')) {
+                            tableOptionsTemp.hideColumn.push(nameAttr)
+                            if ($this.val() != null) {
+                                let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                                insertData[nameAttr + '_d'] = selectText;
+                            }
+                            else {
+                                let selectText = ($this.val() == null) ? '' : $this.children(":selected").text();
+                                insertData[nameAttr + '_d'] = selectText;
+                            }
+                            insertData[nameAttr] = $this.val();
+
+                            $this.val('').selectpicker('refresh');
+
+                      
+
+
+                        }
+                        else if ($this.is('input')) {
+
+                            insertData[nameAttr] = $this.val();
+                            $this.val('')
+                        }
+                        else if ($this.is('textarea')) {
+                            insertData[nameAttr] = $this.val();
+                            $this.val('')
+                        }
+                        else if ($this.is('date')) {
+                            insertData[nameAttr] = moment($thisEle.val()).format('DD-MM-YYYY');
+                        }
+                        else if ($this.is('hidden')) {
+                            $this.val(0);
+                        }
+
+                    });
+                    if (isNew) {
+                        debugger
+                        let $this = $(this);
+                        let nameAttr = $this.attr('name');
+                        //this section nake table.table row
+                        if ($tblcontainer.find('table').length == 0) {
+                            $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+
+                        }
+                        else {
+                            let table = $tblcontainer.find('table').DataTable()
+                            table.destroy()
+                            pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+                        }
+
+                    }
+                    else {
+
+                        let table = $tblcontainer.find('table').DataTable()
+                        table.destroy()
+                        pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+                    }
+                    // resetting the edit value
+                    $tblcontainer.attr('perfect-tempTable-action', 0);
+                    BindTotalAmount(ele, insertData.PmMode);
+
+               }
+            }
+
+    var AccountTransactionOptionsTempOut = {
+        iconButton: {
+            buttons: [
+
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+                        debugger
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+                        //filling data in available inputs
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                            }
+                            else if ($thisNode.is('input')) {
+                                let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+                            else if ($thisNode.is('date')) {
+                                savedData[pf_name] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+                        $('#AhstAmount').removeAttr('disabled');
+                        BindTotalAmount($tablecontainer, savedData.AhstPaymentMode);
+
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        debugger
+                        let savedData = $(this).closest('tr').data('pData')
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                        $("#refresh").click();
+                        BindTotalAmount($tablecontainer, savedData.AhstPaymentMode);
+                        RemoveTaxArray(this, savedData.UID);
+                    }
+                },
+            ]
+        },
+        onlyShowColumn: ['Voucher', 'TransType_d', 'AccountHead', 'AccountSubHead', 'AhstNarration', 'AhstChequeNo', 'AhstParty', 'AhstAmount', 'TaxAmount', 'AhstReferenceNo', 'AhstPaymentMode_d', "AhstBranch_d"],
+        rowAttribute: [],
+        renameHeader: { "TransDate": "Trans Date", "EffectDate": "Effect Date", "Voucher": "Voucher", "TransType_d": "Trans Type", "AccountHead": "A/c Head", "AccountSubHead": "A/c Sub Head", "AhstNarration": "Remarks", "AhstChequeDate": "Chq. Date", "AhstChequeNo": "Chq. No", "AhstParty": "Party", "AhstAmount": "Amount", "TaxAmount": "Tax", "AhstReferenceNo": "Receipt No", "AhstPaymentMode_d": "Payment Mode", "AhstBranch_d": "Branch", "PmMode":"PmMode" },
+        hideColumn: ["UID", 'ID_AccountHeadSubTransaction', 'FK_AccountHead', 'FK_AccountSubHead', 'ID_AccountHeadTransaction', 'AccountType_d', 'TaxGroupID', "PmMode","NetAmount"],
+        serialNo: true,
+        isDateType: ["TransDate", "EffectDate","AhstChequeDate"],
+    };
+
+
+    function AccountTeansactionclear(ele, tablekey) {
+        debugger
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="date"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="hidden"]').val('');
+        $('input[type=checkbox]').prop('checked', false);
+
+        let $tblcontainer = $thisform.find('[perfect-tempTable="' + tablekey + '"]');
+        $tblcontainer.attr('perfect-tempTable-action', 0);
+
+        $thisform.find('[name="AhstPaymentMode"]').val("0").selectpicker('refresh');
+        $thisform.find('[name="AhstBranch"]').val(FK_Branch).selectpicker('refresh');
+
+        $thisform.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisform.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+
+
+    }
+
+
+    function BindTotalAmount(ele,PaymentVal) {
+        debugger;
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let payMode = PaymentVal;
+        let totsum = 0;
+        let AmountArray = [];
+        let paymentData = [];
+        let DepositData = [];
+        let ReceiptData = [];
+        let WithdrawalData = [];
+        let paymentDataAd = [];
+        let DepositDataAd = [];
+        let ReceiptDataAd = [];
+        let WithdrawalDataAd = [];
+        let paymentamount = 0.00;
+        let Depositamount = 0.00;
+        let Receiptamount = 0.00;
+        let withdrawalamount = 0.00;
+
+        let paymentamount1 = 0.00;
+        let Depositamount1 = 0.00;
+        let Receiptamount1 = 0.00;
+        let withdrawalamount1 = 0.00;
+
+        let paymentamount2 = 0.00;
+        let Depositamount2 = 0.00;
+        let Receiptamount2 = 0.00;
+        let withdrawalamount2 = 0.00;
+
+        $thisForm.find('[perfect-tempTable="Account"]').find('tbody').find('tr').each(function (i, key) {
+            let rowData = $(this).data('pData');
+            let temp = {
+                "Type": rowData.TransType_d,
+                Amount: parseFloat(rowData.AhstAmount) || 0,
+                TaxAmount: parseFloat(rowData.TaxAmount) || 0,
+                PayMode: rowData.PmMode
+            };
+            AmountArray.push(temp);
+        })
+
+        paymentData = AmountArray.filter(obj => obj.Type === "Payment" && obj.PayMode == "1");
+        paymentDataAd = AmountArray.filter(obj => obj.Type === "Payment" && obj.PayMode !="1");
+        paymentDataAdTally = AmountArray.filter(obj => obj.Type === "Payment" && obj.PayMode != "1" && obj.PayMode !="0");
+
+        DepositData = AmountArray.filter(obj => obj.Type === "Deposit" && obj.PayMode == "1");
+        DepositDataAd = AmountArray.filter(obj => obj.Type === "Deposit" && obj.PayMode != "1");
+        DepositDataAdTally = AmountArray.filter(obj => obj.Type === "Deposit" && obj.PayMode != "1" && obj.PayMode != "0");
+
+
+        ReceiptData = AmountArray.filter(obj => obj.Type === "Receipt" && obj.PayMode == "1" );
+        ReceiptDataAd = AmountArray.filter(obj => obj.Type === "Receipt" && obj.PayMode != "1" );
+        ReceiptDataAdTally = AmountArray.filter(obj => obj.Type === "Receipt" && obj.PayMode != "1" && obj.PayMode != "0" );
+
+        WithdrawalData = AmountArray.filter(obj => obj.Type === "Withdrawal" && obj.PayMode == "1");
+        WithdrawalDataAd = AmountArray.filter(obj => obj.Type === "Withdrawal" && obj.PayMode !="1");
+        WithdrawalDataAdTally = AmountArray.filter(obj => obj.Type === "Withdrawal" && obj.PayMode != "1" && obj.PayMode != "0");
+
+      
+        //d
+        $.each(paymentData, function (keyOne, paymentData) {
+
+            paymentamount += parseFloat(paymentData.Amount) + (isNaN(parseFloat(paymentData.TaxAmount)) ? 0 : parseFloat(paymentData.TaxAmount));
+        });
+        //d
+        $.each(DepositData, function (keyOne, depositData) {
+            Depositamount += parseFloat(depositData.Amount) + (isNaN(parseFloat(depositData.TaxAmount)) ? 0 : parseFloat(depositData.TaxAmount));
+        });
+        //c
+        $.each(WithdrawalData, function (keyOne, withdrawalData) {
+            withdrawalamount += parseFloat(withdrawalData.Amount) + (isNaN(parseFloat(withdrawalData.TaxAmount)) ? 0 : parseFloat(withdrawalData.TaxAmount));
+        });
+        //c
+        $.each(ReceiptData, function (keyOne, receiptData) {
+            Receiptamount += parseFloat(receiptData.Amount) + (isNaN(parseFloat(receiptData.TaxAmount)) ? 0 : parseFloat(receiptData.TaxAmount));
+        });
+
+
+
+        //d
+        $.each(paymentDataAd, function (keyOne, paymentDataAd) {
+            paymentamount1 += parseFloat(paymentDataAd.Amount) + (isNaN(parseFloat(paymentDataAd.TaxAmount)) ? 0 : parseFloat(paymentDataAd.TaxAmount));
+        });
+        //d
+        $.each(DepositDataAd, function (keyOne, depositData) {
+            Depositamount1 += parseFloat(depositData.Amount) + (isNaN(parseFloat(depositData.TaxAmount)) ? 0 : parseFloat(depositData.TaxAmount));
+        });
+        //c
+        $.each(WithdrawalDataAd, function (keyOne, withdrawalData) {
+            withdrawalamount1 += parseFloat(withdrawalData.Amount) + (isNaN(parseFloat(withdrawalData.TaxAmount)) ? 0 : parseFloat(withdrawalData.TaxAmount));
+        });
+        //c
+        $.each(ReceiptDataAd, function (keyOne, receiptData) {
+            Receiptamount1 += parseFloat(receiptData.Amount) + (isNaN(parseFloat(receiptData.TaxAmount)) ? 0 : parseFloat(receiptData.TaxAmount));
+        });
+
+
+        //d
+        $.each(paymentDataAdTally, function (keyOne, paymentDataAd) {
+            paymentamount2 += parseFloat(paymentDataAd.Amount) + (isNaN(parseFloat(paymentDataAd.TaxAmount)) ? 0 : parseFloat(paymentDataAd.TaxAmount));
+        });
+        //d
+        $.each(DepositDataAdTally, function (keyOne, depositData) {
+            Depositamount2 += parseFloat(depositData.Amount) + (isNaN(parseFloat(depositData.TaxAmount)) ? 0 : parseFloat(depositData.TaxAmount));
+        });
+        //c
+        $.each(WithdrawalDataAdTally, function (keyOne, withdrawalData) {
+            withdrawalamount2 += parseFloat(withdrawalData.Amount) + (isNaN(parseFloat(withdrawalData.TaxAmount)) ? 0 : parseFloat(withdrawalData.TaxAmount));
+        });
+        //c
+        $.each(ReceiptDataAdTally, function (keyOne, receiptData) {
+            Receiptamount2 += parseFloat(receiptData.Amount) + (isNaN(parseFloat(receiptData.TaxAmount)) ? 0 : parseFloat(receiptData.TaxAmount));
+        });
+
+
+        $thisForm.find('[name=PaymentAmtTotalCashDebt]').val((paymentamount + Depositamount).toFixed(2));
+
+        $thisForm.find('[name=PaymentAmtTotalAdDebt]').val((paymentamount1 + Depositamount1 + Receiptamount2 ).toFixed(2));
+
+        $thisForm.find('[name=PaymentAmtTotalCashDebt]').val((Depositamount + paymentamount).toFixed(2));
+
+        $thisForm.find('[name=PaymentAmtTotalAdDebt]').val((Depositamount1 + paymentamount1 + withdrawalamount2 + Receiptamount2).toFixed(2));
+
+        $thisForm.find('[name=RecieptAmtTotalCashCred]').val((withdrawalamount + Receiptamount).toFixed(2));
+
+        $thisForm.find('[name=ReceiptAmtTotalAdCred]').val((withdrawalamount1 + Receiptamount1 + Depositamount2 + paymentamount2).toFixed(2));
+
+        $thisForm.find('[name=RecieptAmtTotalCashCred]').val((Receiptamount + withdrawalamount).toFixed(2));
+
+        $thisForm.find('[name=ReceiptAmtTotalAdCred]').val((Receiptamount1 + withdrawalamount1 + paymentamount2 + Depositamount2).toFixed(2));
+
+        if ($resetFields == 1) {
+            $thisForm.find('[name="AhstPaymentMode"]').val("0").selectpicker('refresh');
+            $thisForm.find('[name="AhstBranch"]').val(FK_Branch).selectpicker('refresh');
+            $thisForm.find('[name="PmMode"]').val(0);
+        }
+        $resetFields = 0;
+
+
+    }
+
+
+    var Transfer = false;
+    var EffectDate = "";
+    var TransDate = "";
+    function fn_AcctTrn_update(element, actionType) {
+
+            let $thisForm = $(element).closest('[perfect-class="form"]');
+             Transfer = $thisForm.find('[name=Transfer]').is(":checked");
+            let PaymntTotal = $thisForm.find('[name=PaymentAmtTotal]').val();
+            let RecieptTotal = $thisForm.find('[name=ReceiptAmtTotal]').val();
+             EffectDate = $thisForm.find('[name="EffectDate"]').val();
+        TransDate = $thisForm.find('[name="TransDate"]').val();
+
+        let _receiptAdCred = $thisForm.find('[name="ReceiptAmtTotalAdCred"]').val();
+        let _paymentAdCred = $thisForm.find('[name="PaymentAmtTotalAdDebt"]').val();
+
+            if ($thisForm.valid()) {
+                $(element).prop('disabled', true);
+
+                let AccountTransactionItems = [];
+                $thisForm.find('[perfect-tempTable="Account"]').find('tbody').find('tr').each(function (i, key) {
+
+                    AccountTransactionItems.push($(this).data('pData'));
+                })
+
+
+                let $modal = $thisForm.find('#zero_config');
+                let $modal1 = $thisForm.find('#zero_config');
+
+                if (datencheck(element)) {
+                    if (AccountTransactionItems.length > 0) {
+                        if (Transfer != true) {
+                            if (_receiptAdCred == _paymentAdCred) {
+
+
+                                let ID_AccountHeadSubTransaction = 0;
+                                let AhstGroupID = 0;
+                                let _ActionUrl = "";
+
+
+                                if (actionType == "new") {
+                                    ID_AccountHeadSubTransaction = 0;
+                                    AhstGroupID = 0;
+                                    _ActionUrl = "@Url.Action("AddNewAccountTransaction", "AccountTransaction")";
+                                }
+                                else if (actionType == "update") {
+                                    //ID_AccountHeadSubTransaction = $thisForm.find('[name="ID_AccountHeadSubTransaction"]').val();
+                                    ID_AccountHeadSubTransaction = 0;
+                                    AhstGroupID = $thisForm.find('[name="AhstGroupID"]').val();
+                                    _ActionUrl = "@Url.Action("UpdatAccountTransaction", "AccountTransaction")";
+                                }
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    'ID_AccountHeadSubTransaction': ID_AccountHeadSubTransaction,
+                                    'TransMode': AcTransTransMode,
+                                    'TransDate': TransDate,
+                                    'Effectdate': EffectDate,
+                                    'AccountTransactionItems': AccountTransactionItems,
+                                    'Transfer': Transfer,
+                                    'LastID': LastID_AcTrans,
+                                    'AhstGroupID': AhstGroupID,
+                                    'TaxDetails': tax,
+                                }
+
+                                clearSessionValue(LastIDSessionKey);
+
+                                $.ajax({
+                                    url: _ActionUrl,
+                                    type: "POST",
+                                    data: inputData,
+                                    dataType: "json",
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                        debugger
+                                        if (ajaxOutput.Process.IsProcess) {
+                                           // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Saved Successfully' });
+                                            //});
+                                            $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                            $thisForm.find('[perfect-ctype="input"]').val('');
+                                            $thisForm.find('[perfect-ctype="date"]').val('');
+                                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+                                            if (onSuccess) {
+                                                window[onSuccess]();
+                                                fn_Actionindex_load();
+                                            }
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $(element).prop('disabled', false);
+                                            });
+                                        }
+
+                                       
+                                    },
+                                    complete: function () {
+                                        $(element).prop('disabled', false);
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'AdjustmentCredit Total & AdjustmentDebit Total should be equal' });
+                                $(element).prop('disabled', false);
+                            }
+                        }
+                        else if (Transfer == true) {
+
+                            if (PaymntTotal == RecieptTotal) {
+                                let ID_AccountHeadSubTransaction = 0;
+                                let AhstGroupID = 0;
+                                let _ActionUrl = "";
+
+
+                                if (actionType == "new") {
+                                    ID_AccountHeadSubTransaction = 0;
+                                    _ActionUrl = "@Url.Action("AddNewAccountTransaction", "AccountTransaction")";
+                                }
+                                else if (actionType == "update") {
+                                    ID_AccountHeadSubTransaction = $thisForm.find('[name="ID_AccountHeadSubTransaction"]').val();
+                                    AhstGroupID = $thisForm.find('[name="AhstGroupID"]').val();
+                                    _ActionUrl = "@Url.Action("UpdatAccountTransaction", "AccountTransaction")";
+                                }
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    'ID_AccountHeadSubTransaction': ID_AccountHeadSubTransaction,
+                                    'TransMode': AcTransTransMode,
+                                    'AccountTransactionItems': AccountTransactionItems,
+                                    'Transfer': Transfer,
+                                    'LastID': LastID_AcTrans,
+                                    'AhstGroupID': AhstGroupID,
+                                    'TransDate': TransDate,
+                                    'Effectdate': EffectDate,
+                                    'TaxDetails': tax,
+                                }
+                                $.ajax({
+                                    url: _ActionUrl,
+                                    type: "POST",
+                                    data: inputData,
+                                    dataType: "json",
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                        if (ajaxOutput.Process.IsProcess) {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                            });
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $(element).prop('disabled', false);
+                                            });
+                                        }
+
+                                        $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                        $thisForm.find('[perfect-ctype="input"]').val('');
+                                        $thisForm.find('[perfect-ctype="date"]').val('');
+                                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+                                        if (onSuccess) {
+                                            window[onSuccess]();
+                                            fn_Actionindex_load();
+                                        }
+                                    },
+                                    complete: function () {
+                                        $(element).prop('disabled', false);
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Credit Total & Debit Total should be equal' });
+                                $(element).prop('disabled', false);
+                            }
+                        }
+                        else {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Credit Total & Debit Total should be equal' });
+                            $(element).prop('disabled', false);
+                        }
+                    }
+
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Enter Transaction Data' });
+                        $(element).prop('disabled', false);
+
+                    }
+                }
+                else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Effect Date  should be less than or equal to Todays date' });
+                    $(element).prop('disabled', false);
+                }
+
+            }
+
+
+
+
+    }
+
+            function decimalpnt(ele,id ,range) {
+
+                let input = $('#'+id);
+                ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                let t = ele.value;
+                ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+                input.on('keydown', function () {
+                    if (ele.value.includes('.')) {
+
+                    }
+                    var key = event.keyCode || event.charCode;
+                    if (key == 8 || key == 46) {   }
+                    else {
+                        if (ele.value.length == 9) {
+                            ele.value = ele.value + '.';
+                        }
+                    }
+
+                });
+
+    }
+
+
+    function ResetButton(ele) {
+        fn_Actionindex_load();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        tax = $thisForm.data('prtTaxData');
+    }
+            //function decimalpntminus(ele, id, range) {
+
+            //    let input = $('#' + id);
+            //    ele.value = ele.value.replace(/[^0-9.-]/g, '').replace(/(\..*)\./g, '$1');
+            //    let t = ele.value;
+            //    ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+            //    input.on('keydown', function () {
+            //        if (ele.value.includes('.')) {
+
+            //        }
+            //        var key = event.keyCode || event.charCode;
+            //        if (key == 8 || key == 46) { }
+            //        else {
+            //            if (ele.value.length == 9) {
+            //                ele.value = ele.value + '.';
+            //            }
+            //        }
+
+            //    });
+
+            //}
+            //function minmax(min, max, ele,range) {
+            //    if (min != '' || max != '') {
+            //        let t = ele.value;
+            //        if (parseInt(ele.value) < min || isNaN(parseInt(ele.value))) { ele.value = min; }
+            //        else if (parseInt(ele.value) > max) { ele.value = max; }
+            //        else { ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t; }
+
+            //    }
+            //}
+
+
+            //$(document).ready(function () {
+
+
+            //    let $thisForm = $(this).find('[perfect-class="form"]');
+            //    var today = new Date();
+            //    var day1 = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+            //    var month1 = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+            //    var year1 = today.getFullYear();
+
+            //    $thisForm.find('[name="Serwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+            //    $thisForm.find('[name="Replcwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+
+            //});
+
+
+    function taxgroupcalc(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        var obj = {
+            'Amount': $thisForm.find('[name="AhstAmount"]').val(),
+            'FK_TaxGroup': $thisForm.find('[name="TaxGroupID"]').val(),
+            'IncludeTax': $thisForm.find('[name="IncludeTax"]').is(":checked") == true ? "1" : "0"
+
+        }
+
+
+        $.ajax({
+            data: obj,
+            url: "@Url.Action("GetTaxCalculation", "AccountTransaction")",
+            type: "POST",
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                if (ajaxOutput.data.Process.IsProcess) {
+
+                    var CheckListHTML = '';
+                    let sum = 0;
+                    if (ajaxOutput.data.Data.length > 0) {
+
+
+                        $.each(ajaxOutput.data.Data, function (i, value) {
+                            sum = sum + parseFloat(value.Amount);
+                            if (Taxlist != '') {
+                                $.each(Taxlist, function (key, value1) {
+                                    if (value1.ID_TaxType == value.ID_TaxType) {
+                                        value.Amount = value1.Amount;
+
+                                    }
+                                });
+
+                            }
+                            $thisForm.find('[name="TaxAmount"]').val(parseFloat(sum).toFixed(2));
+                        })
+                    }
+                    else {
+
+                    }
+                    $.each(ajaxOutput.data.Process.Message, function (key, value) {
+                     //   NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                    });
+                }
+                else {
+
+                    $.each(ajaxOutput.data.Process.Message, function (key, value) {
+                       // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        $(ele).prop('disabled', false);
+                    });
+                }
+            }, complete: function () {
+                $(ele).prop('disabled', false);
+            }
+
+        });
+    }
+
+    var Taxcalled = 0;
+    function ShowTax(ele, mod) {
+        Taxcalled = 1;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let taxinfo = {};
+        if ($thisForm.data('pDataTax')) {
+
+            if ($thisForm.data('pDataTax').length > 0) {
+
+                Taxlist = $thisForm.data('pDataTax');
+            }
+            BindTaxDetails("1", 'formGroupModalTax', ele, mod)
+
+            if (mod == 1) {
+                $('#formGroupModalTax').modal('show');
+            }
+            else {
+                $('#formGroupModalTax').modal('hide');
+            }
+        }
+        else {
+            BindTaxDetails("1", 'formGroupModalTax', ele, mod)
+        }
+
+
+    }
+    var Taxlist = [];
+    function BindTaxDetails(Mode, ModalID, ele) {
+        
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let checkInclude = $thisForm.find('[name="IncludeTax"]').is(":checked") == true ? "1" : "0";
+        let checkAmt = $thisForm.find('[name="AhstAmount"]').val();
+        let sum = 0;
+        let $netAmt1 = 0;
+        let txtam = 0;
+      //  if (checkInclude !=0 && checkAmt < 0) {
+        var InputData =
+        {
+            'Amount': $thisForm.find('[name="AhstAmount"]').val(),
+            'FK_TaxGroup': $thisForm.find('[name="TaxGroupID"]').val(),
+            'IncludeTax': $thisForm.find('[name="IncludeTax"]').is(":checked") == true ? "1" : "0"
+
+         }
+            $.ajax({
+                url: "@Url.Action("GetTaxCalculation", "AccountTransaction")",
+                type: "Get",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.data.Process.IsProcess) {
+                        var CheckListHTML = '';
+                     
+                        if (ajaxOutput.data.Data.length > 0) {
+                            
+                            $.each(ajaxOutput.data.Data, function (i, value) {
+                                sum = sum + parseFloat(value.Amount);
+                                if (Taxlist != '') {
+                                    $.each(Taxlist, function (key, value1) {
+                                        if (value1.ID_TaxType == value.ID_TaxType) {
+                                            value.Amount = value1.Amount;
+                                        }
+                                    });
+
+                                }
+                                $thisForm.find('[name="TaxAmount"]').val(parseFloat(sum).toFixed(2));
+                                
+                                CheckListHTML += "<tr>";
+                                CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                CheckListHTML += "<td class='jq_id_td' Style='Display:none'>" + value.ID_TaxSettings + "</td>";
+                                CheckListHTML += "<td class='jq_taxType_td' Style='Display:none'>" + value.FK_TaxType + "</td>";
+                                CheckListHTML += "<td class='jq_taxTypeName_td'>" + value.TaxTyName + "</td>";
+                                CheckListHTML += "<td class='jq_taxPercent_td'>" + value.TaxPercentage + "</td>";
+                                CheckListHTML += "<td class='jq_taxamount_td' ><input  min='0' readonly class='form-control text-right' type='number'  value='" + value.Amount.toFixed(2) + "' /></td>";
+
+                                CheckListHTML += "</tr>";
+                            })
+                        }
+                        else {
+                            CheckListHTML += "<div class='form-group col-md-6'>";
+                            CheckListHTML += "<div class='form-check mb-2'>";
+                            CheckListHTML += "<input type='checkbox' class='form-check-input'>"
+                            CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                            CheckListHTML += "</div></div>"
+                        }
+
+                        let amtNet = parseFloat($thisForm.find('[name="AhstAmount"]').val()) || 0;
+                        $netAmt1 = parseFloat(sum) + amtNet
+                        $thisForm.find('[name="NetAmount"]').val($netAmt1);
+
+                        $("#formGroupModalTaxbody").html(CheckListHTML)
+                        $('#formGroupModalTax').modal('show');
+                    }
+                    else {
+                        $.each(ajaxOutput.data.Process.Message, function (key, value) {
+                           // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Tax no" });
+                           // $("#formGroupModalTaxbody tr").remove();
+                        });
+                    }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+            });
+        txtam = $thisForm.find('[name="TaxAmount"]').val();
+        if (txtam <= 0) {
+            let amtNet = parseFloat($thisForm.find('[name="AhstAmount"]').val()) || 0;
+            $netAmt1 = parseFloat(sum) + amtNet
+            $thisForm.find('[name="NetAmount"]').val($netAmt1);
+        }
+       
+
+    }
+
+    function BindTaxAmount(element) {
+        let $modal = $(element).closest('.modal');
+        let $thisForm = $(element).closest('[perfect-class="form"]');
+        let sum = 0;
+        Taxlist = [];
+        $modal.find('table tbody').find('tr').each(function () {
+            sum = sum + parseFloat($(this).find('.jq_taxamount_td').find('input').val());
+
+            let TaxAmount = {
+                ID_TaxType: $(this).find('.jq_taxType_td').text(),
+                TaxtyName: $(this).find('.jq_taxTypeName_td').text(),
+                TaxAmount: parseFloat($(this).find('.jq_taxamount_td').find('input').val())
+            };
+            Taxlist.push(TaxAmount);
+            $thisForm.data({ pDataTax: Taxlist });
+            //console.log('pdataTax', pDataTax);
+        });
+        $thisForm.find('[name=TaxAmount]').val(parseFloat(sum).toFixed(2));
+        //totalamountcalc(element);
+    }
+
+    function getfunction() {
+
+        $('#AhstAmount').val(0);
+        $('#IdTaxAmount').val(0);
+        $("#formGroupModalTaxbody tr").remove();
+        $('#AhstAmount').removeAttr('disabled');
+    }
+
+    var uval;
+    function uniqueId(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        vals = $thisForm.find('[name=UID]').val();
+        if ($thisForm.find('[name=UID]').val() == null || $thisForm.find('[name=UID]').val() == 0 || $thisForm.find('[name=UID]').val() == '') {
+            uval = 1;
+            $thisForm.find('[name=UID]').val(vals);
+        }
+
+        else if ($thisForm.find('[name=UID]').val() >= 1) {
+            vals = $thisForm.find('[name=UID]').val() + 1;
+            $thisForm.find('[name=UID]').val(vals)
+        }
+    }
+
+
+    var cnt = 0;
+    var $modal = $('#zero_config');
+    var tax = [];
+    var s = 0;
+
+    function Taxdet(ele, Arr) {
+        let $thisForm = $('[perfect-class="form"]');
+
+        let UID = $('[name=UID]').val(cnt);
+
+        let taxamount = $thisForm.find('[name="TaxAmount"]').val();
+        if (taxamount != 0) {
+
+            $modal.find('tbody').find('tr').each(function () {
+
+                let taxinfo = {};
+                taxinfo['UID'] = $('[name=UID]').val();
+                taxinfo['TaxTyName'] = $(this).find('.jq_taxTypeName_td').text();
+                taxinfo['FK_TaxType'] = $(this).find('.jq_taxType_td').text();
+                taxinfo['TaxPercentage'] = $(this).find('.jq_taxPercent_td').text();
+                taxinfo['Amount'] = $(this).find('.jq_taxamount_td').find('input').val();
+                tax.push(taxinfo);
+
+            });
+        }
+        else {
+            let taxinfo = {};
+            taxinfo['UID'] =  parseInt($('[name=UID]').val());
+            taxinfo['TaxTyName'] = "";
+            taxinfo['FK_TaxType'] = "0";
+            taxinfo['TaxPercentage'] = "0";
+            taxinfo['Amount'] = "0";
+            tax.push(taxinfo);
+        }
+    }
+
+    function RemoveTaxArray(ele, id) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let UID = id; /*$('[name=UID]').val();*/
+        var foundItems = [];
+
+        $.each(tax, function (key, value) {
+
+            foundItems = tax.filter(x => x.UID == UID);
+            const indexOfObject = tax.findIndex(object => {
+                return object.UID === UID;
+            });
+
+            tax.splice(indexOfObject, foundItems.length);
+        });
+
+    }
+
+
+    function Taxret(ele) {
+
+        let $thisForm = $('[perfect-class="form"]');
+
+        let UID = $('[name=UID]').val();
+
+        var foundItems = [];
+        if (Taxcalled == 1) {
+
+            //$.each(tax, function (key, value) {
+                //debugger
+                //foundItems = tax.filter(x => x.UID.toString() == UID.toString());
+                //console.log('tax.filter(x => x.UID>', tax.filter(x => x.UID));
+
+                //const indexOfObject = tax.findIndex(object => {
+                //    return object.UID.toString() === UID.toString();
+                //});
+                //console.log('TAXFINDINDEX>', tax);
+                //console.log('foundItems length>', foundItems.length);
+                //console.log('foundItemsDATA>', foundItems);
+
+                //tax.splice(indexOfObject, foundItems.length);
+                //console.log('TAXSPLICED>', tax);
+
+           // });
+            tax = tax.filter(x => x.UID != UID);
+            let taxamount = $thisForm.find('[name="TaxAmount"]').val();
+            if (taxamount != 0) {
+                $modal.find('tbody').find('tr').each(function () {
+                    let taxinfo = {};
+                    taxinfo['UID'] = $('[name=UID]').val();
+                    taxinfo['TaxTyName'] = $(this).find('.jq_taxTypeName_td').text();
+                    taxinfo['FK_TaxType'] = $(this).find('.jq_taxType_td').text();
+                    taxinfo['TaxPercentage'] = $(this).find('.jq_taxPercent_td').text();
+                    taxinfo['Amount'] = $(this).find('.jq_taxamount_td').find('input').val();
+                    tax.push(taxinfo);
+
+                });
+            }
+            else {
+                let taxinfo = {};
+                taxinfo['UID'] = parseInt($('[name=UID]').val());
+                taxinfo['TaxTyName'] = "";
+                taxinfo['FK_TaxType'] = "0";
+                taxinfo['TaxPercentage'] = "0";
+                taxinfo['Amount'] = "0";
+                tax.push(taxinfo);
+            }
+        }
+    }
+    function checkaccountTax(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Amount = $thisForm.find('[name="AhstAmount"]').val();
+
+        if (Amount > 0) {
+            ShowTax(ele, 1);
+        }
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': "Please Enter Amount" });
+        }
+    }
+    var selectedOption = '';
+    var dataModeParentValue = '';
+
+    $('select[name="AhstPaymentMode"]').change(function () {
+        debugger
+        selectedOption = $(this).find('option:selected');
+
+        let $thisform = $('[perfect-class="form"]');
+        dataModeParentValue = selectedOption.data('modeparent');
+        $thisform.find('[perfect-temptable-Account="PmMode"]').val(dataModeParentValue);
+
+        console.log(dataModeParentValue);
+    });
+
+    function ClearAccountHead(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="FK_AccountHead"]').val('');
+        $thisForm.find('[name="AccountHead"]').val("");
+        $thisForm.find('[name="AccountSubHead"]').val("");
+        $thisForm.find('[name="FK_AccountSubHead"]').val("");
+    }
+</script>
+
+

@@ -1,0 +1,808 @@
+﻿
+@{
+    ViewBag.Title = "";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Authorizationlevel-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        const $formContainer = $('#Authorizationlevel-form');
+
+        $(document).ready(function () {
+            AuthorizationlevelInitialLoad();
+        });
+        function AuthorizationlevelInitialLoad()
+        {
+            AuthorizationlevelLoad();
+            @if (ViewBag.PagedAccessRights.UsrrlStView)
+            {
+                <text>fn_Authorizationlevel_Load(this);</text>
+            }
+        }
+        function AuthorizationlevelLoad()
+        {
+             $formContainer.load('@Url.Action("LoadFormAuthorizationLevel", "AuthorizationLevel")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("EffectDate")[0].setAttribute('min', today);
+                $thisForm.attr('perfect-onFormSuccess', 'authorizationlevelInitialLoad');
+            });
+        }
+
+        var validationMessage = {
+            'FK_Module': {
+                'required': 'Please select a Menu Group',
+                'stringonly': 'Invalid Menu Group selected'
+            },
+
+            'SubModule': {
+                'required': 'Please select a Menu List',
+                'stringonly': 'Invalid Menu List selected'
+            },            
+            'EffectDate': {
+                'required': 'Please Enter Effect Date//',
+
+            }
+        };
+
+        function fn_Authorizationlevel_Load(ele)
+        {
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('List');           
+            let pageUrl = "@Url.Action("GetAuthorizationLevelList", "AuthorizationLevel")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                          if (ajaxOutput.Process.IsProcess) {                             
+                              $sidemenu.find('.jq_sidemenu_title').text("Authorization Level");
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Authorizationlevel_Load(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  $sidemenu.find('.jq_sidemenu_title').text("Language");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Authorizationlevel_Load(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+            dropdown: {
+                buttons: [
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editAuthorizationLevel },</text>
+                   }
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteAuthorizationLevel },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+        },       
+        onlyShowColumn: ["SlNo", "EffectDate", "MenuGroup", "MenuList"],
+        hideColumn: [],
+        rowClickAction: editAuthorizationLevel,
+        isDateType: ["EffectDate"],
+        renameHeader: { "SlNo": "Sl No", "EffectDate": "Effect Date", "MenuGroup": "Menu Group", "MenuList": "Menu List"}
+
+    };
+
+
+        function deleteAuthorizationLevel()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+          
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetAuthorizationLevelReasonList", "AuthorizationLevel")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                 
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_AuthorizationLevel: Saveddata.AuthorizationLevelID,
+                                        ReasonID: selectedOption
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAuthorizationLevel", "AuthorizationLevel")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                AuthorizationlevelInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        function editAuthorizationLevel()
+        {          
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');            
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                AuthorizationLevelID: savedData.AuthorizationLevelID
+            };
+
+                $.ajax({
+                 url: '@Url.Action("GetAuthorizationLeveInfo", "AuthorizationLevel")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {                      
+                        if (ajaxOutput.alInfo.Process.IsProcess) {
+                            $formContainer.load('@Url.Action("LoadFormAuthorizationLevel", "AuthorizationLevel")?mtd=@ViewBag.mtd', function () 
+                            {                               
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.alInfo.Data[0] });
+                                $thisForm.find('[name=ID_AuthorizationLevel]').val(ajaxOutput.alInfo.Data[0].AuthorizationLevelID);
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.alInfo.Data[0].EffectDate).format('YYYY-MM-DD'));
+                              
+                                $thisForm.find('[name="FK_Module"]').val(ajaxOutput.alInfo.Data[0].MenuGroupID).selectpicker('refresh');
+                                $thisForm.find('[name="FK_Module"]').trigger('change');
+                                $thisForm.find('[name="SubModule"]').attr('perfect-onloadSelect', ajaxOutput.alInfo.Data[0]['MenuListID']);
+
+                                $thisForm.find('[name="BranchTypeID"]').val(ajaxOutput.alInfo.Data[0].BranchTypeID).selectpicker('refresh');
+                                $thisForm.find('[name="BranchTypeID"]').trigger('change');
+                                $thisForm.find('[name="BranchID"]').attr('perfect-onloadSelect', ajaxOutput.alInfo.Data[0]['BranchID']);
+
+                                $thisForm.find('[name=SkipPreviousLevel]').prop('checked', ajaxOutput.alInfo.Data[0]['SkipPreviousLevel']);
+                                $thisForm.find('[name=ActiveCorrectionOption]').prop('checked', ajaxOutput.alInfo.Data[0]['ActiveCorrectionOption']);
+                              
+                                if (ajaxOutput.subtable.Process.IsProcess) {
+                                 
+                                    fn_fillAuthorizationLevelItem($thisForm, 'AuthorizationLevel', ajaxOutput.subtable.Data, tableOptionsAuthorizationLevelTempOut)
+                                    $thisForm.find('[perfect-tempTable="AuthorizationLevel"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                }
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'AuthorizationlevelLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+    }
+   
+
+        var tableOptionsAuthorizationLevelTempOut = {
+            iconButton: {
+                buttons: [
+                   
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                             
+                                if ($thisNode.is('select')) {                                   
+                                    switch (pf_name) {
+                                        case "FK_BranchType":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                        case "FK_UserGroup":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            $thisNode.trigger('change');
+                                            break;
+                                        case "FK_User":                                      
+                                            $thisNode.attr('perfect-onloadSelect', savedData[pf_name]);                                           
+                                            break;
+                                        case "FK_AmountCriteria":
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                        default:
+                                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                            break;
+                                    }   
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                           fn_setSelectedCriteriaData($thisForm);
+                           
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: {"UserRole":"User Group", "UserName": "User","AldAmountFrom": "Amount From", "AldAmountTo": "Amount To" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+        function fn_fillAuthorizationLevelItem(ele, tkey, data, tableOptionsTempOut) {
+         
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+
+                   
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {     
+                            switch (headerName) {
+                                case "FK_BranchType":
+                                    headerName = "Branch Type";
+                                    break;
+                                case "FK_UserGroup":
+                                    headerName = "User Group";
+                                    break;
+                                case "FK_User":
+                                    headerName = "User";
+                                    break;
+                                case "FK_AmountCriteria":
+                                    headerName = "Amount Criteria";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);                         
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                   
+                });
+                pData["FK_User_d"] = valOne['UserName']
+                insertData.push(pData);
+              
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        }
+
+
+
+
+
+
+
+
+        //------------------------------------------old code
+
+        @*var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: editAuthorizationLevel},
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: deleteAuthorizationLevel
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "EffectDate", "MenuGroup","MenuList","BranchType","Branch"],
+            hideColumn: [],
+            rowClickAction: editAuthorizationLevel,
+            isDateType: ["EffectDate"],
+            renameHeader: { "SlNo": "Sl No", "EffectDate": "Effect Date", "MenuGroup": "Menu Group", "MenuList": "Menu List", "BranchType": "Branch Type", "Branch": "Branch"}
+        };
+
+        var validationMessage = {
+            'MenuGroupID': {
+                'required': 'Please select a MenuGroup',
+                'stringonly': 'Invalid Menu Group selected',
+
+            },
+
+            'MenuListID': {
+                'required': 'Please select a Menu List',
+                'stringonly': 'Invalid Menu List selected',
+
+            },
+            'UserRoleID': {
+                'required': 'Please select a User Group',
+                'stringonly': 'Invalid User group selected',
+
+            },
+            'UsersID': {
+                'required': 'Please select a User',
+                'stringonly': 'Invalid User selected',
+
+            },
+
+            'EffectDate': {
+                'required': 'Please Enter Effect Date',
+
+            }
+        }
+
+      
+
+         
+        function loadAuthorizationLevelAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormAuthorizationLevel", "AuthorizationLevel")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("EffectDate")[0].setAttribute('min', today);
+                $thisForm.attr('perfect-onFormSuccess', 'authorizationlevelInitialLoad');
+            });
+
+        };
+
+
+        function loadauthorizationlevelList() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Authorization Level');
+       
+
+            $.ajax({
+                url: "@Url.Action("GetAuthorizationLevelList", "AuthorizationLevel")",
+                type: "Get",            
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        console.log('Authorization Level', ajaxOutput);
+                        $sidemenu.find('.jq_sidemenu_title').text("Authorization Level");
+
+                        $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sidemenu.find('table').dataTable({ paging: true });
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+        var tableOptionsTempOutFill = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-trash",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-pencil",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        
+                            let indexname = tableKey + 'index';
+                          
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                         
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: { },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+
+          function editAuthorizationLevel() {
+
+            let $thisUser = $(this).closest('tr');
+             let savedData = $thisUser.data('pData');
+
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                    AuthorizationLevelID: savedData.AuthorizationLevelID
+                };
+             console.log(inputData);
+           
+                    $.ajax({
+                 url: '@Url.Action("GetAuthorizationLeveInfo", "AuthorizationLevel")',
+                type: "POST",
+               
+                 data: inputData,
+                dataType: "json",
+              contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+                       
+                            if (ajaxOutput.Process.IsProcess) {
+
+
+                                $('#Authorizationlevel-form').load("@Url.Action("LoadFormAuthorizationLevel", "AuthorizationLevel")", function () {
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.data({ 'pData': ajaxOutput.Data[0] });
+
+
+
+                                    ComDetailsTable_Fill($thisForm, 'cstatus', ajaxOutput.Data[0].SubAuthorizationLevel, tableOptionsTempOutFill)
+
+
+
+
+                                    $thisForm.find('[name="MenuGroup"]').val(ajaxOutput.Data[0].MenuGroup),
+
+                                        $thisForm.find('[name="MenuGroupID"]').val(ajaxOutput.Data[0].MenuGroupID),
+                                        $thisForm.find('[name="MenuList"]').val(ajaxOutput.Data[0].MenuList),
+                                        $thisForm.find('[name="MenuListID"]').val(ajaxOutput.Data[0].MenuListID,
+                                        $thisForm.find('[name="BranchTypeID"]').val(ajaxOutput.Data[0].BranchTypeID).selectpicker('refresh'));
+
+                                       $thisForm.find('[name=BranchTypeID]').trigger('change');
+                                 
+                                      $thisForm.find('[name=BranchID]').attr('perfect-onSelectLoad', ajaxOutput.Data[0].BranchID);
+                                       $thisForm.find('[name=Branch]').attr('perfect-onSelectLoad', ajaxOutput.Data[0].Branch);
+                                        $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.Data[0].EffectDate).format('YYYY-MM-DD')),
+
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                    $thisForm.attr('perfect-onFormSuccess', 'authorizationlevelInitialLoad');
+                                    $sideMenuOptions.close();
+
+                                });
+                            }
+
+
+
+                },
+
+
+            });
+
+        }
+
+
+
+             function deleteAuthorizationLevel() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+
+
+               $.ajax({
+                   url: "@Url.Action("GetAuthorizationLevelReasonList", "AuthorizationLevel")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  Authorization Level Effect Date On :  " + Saveddata.EffectDate + " " + " with Menu Group  : " + Saveddata.MenuGroup + " " + " with Menu List  : " + Saveddata.MenuList + + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), 
+                                        ID_AuthorizationLevel: Saveddata.AuthorizationLevelID,
+
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAuthorizationLevel", "AuthorizationLevel")",
+                                        type: "POST",
+                                        data: inputData, 
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                fn_ComplaintListIndex_initialLoad();
+                                                $.each(data.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+
+
+                                        }
+                                    });
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+
+
+                    }
+                }
+
+            });
+
+
+
+
+        };*@
+
+
+
+    </script>
+}

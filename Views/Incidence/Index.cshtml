@@ -1,0 +1,488 @@
+﻿
+@{
+    ViewBag.Title = "Incidence";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="incidence-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#incidence-form');
+
+        $(document).ready(function () {
+            incidenceInitialLoad();
+
+        });
+
+
+
+        function incidenceInitialLoad() {
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>  loadIncidenceList(); </text>
+              }
+           
+             loadIncidenceAddForm();
+        }
+
+
+           // Function to load Incidence ADD form
+        function loadIncidenceAddForm() {
+
+            $formContainer.load('@Url.Action("LoadIncidenceForm", "Incidence")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'incidenceInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+        function loadIncidenceList(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+       
+      
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Incidence List');
+          let pageUrl = '@Url.Action("GetIncidenceList", "Incidence")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    debugger
+                          if (ajaxOutput.Process.IsProcess) {
+
+
+                              $sidemenu.find('.jq_sidemenu_title').text("Incidence");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncidenceList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Incidence");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncidenceList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+       
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                
+                  @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editIncidence },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteIncidence },</text>
+
+              }
+                 
+                    
+                ],
+                class: "btn btn-success light sharp"
+            },
+           
+            onlyShowColumn: ["SlNo", "Incidence", 'ShortName'],
+            hideColumn: [],
+            rowClickAction: editIncidence,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL NO", "Incidence": "Name", "ShortName": "Short Name" }
+
+        };
+        var validationMessage = {
+            'Incidence': {
+                'required': 'Please Enter Name',
+                'stringonly': 'Invalid  Name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter Short Name',
+                'stringonly': 'Invalid  Short Name',
+                'alphanumeric': 'Invalid Short Name',
+            },
+            'Description': {
+                'required': 'Please Enter  Description',
+
+            },
+            'Mode': {
+                'required': 'Please Select a Mode',
+                'digits': 'Invalid Mode selected'
+            },
+
+        }
+
+
+
+        function editIncidence() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                IncidenceID: Saveddata.IncidenceID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetIncidenceInfoByID", "Incidence")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetIncidenceInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadIncidenceForm", "Incidence")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Incidence)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                    $thisForm.find('[name="Incidence"]').val(ajaxOutput.Data[0].Incidence),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                        $thisForm.find('[name="Description"]').val(ajaxOutput.Data[0].Description),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder),
+                                        $thisForm.find('[name="Mode"]').val(ajaxOutput.Data[0].Mode),
+                                        $thisForm.find('[name="AccountHeadID"]').val(ajaxOutput.Data[0].FK_AccountHead),
+                                        $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AccountHead),
+                                        $thisForm.find('[name="AccountHeadSubID"]').val(ajaxOutput.Data[0].FK_AccountSubHead),
+                                        $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].AccountSubHead),
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'incidenceInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetIncidenceInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+
+                            //loadIncidenceList()
+                },
+
+            });
+
+        }
+
+           // Function to delete Incidence
+
+
+          //---
+
+         // Function to delete customer
+        function deleteIncidence() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            
+            console.log('Delete function', Saveddata)
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetIncidenceDeleteReasonList", "Incidence")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           //var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Incidence + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        IncidenceID: Saveddata['IncidenceID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteIncidenceInfo", "Incidence")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        //--
+
+
+
+
+            @*function deleteIncidence() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+                let inputData = {
+               __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                IncidenceID: Saveddata['IncidenceID']
+            };
+            console.log('Delete function', Saveddata)
+            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Incidence+" ?", cancel: "No", confirm: "Yes" };
+                var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                confirmBoxObj.then(function (selectedOption) {
+                    if (selectedOption) {
+
+                    $.ajax({
+                            url: "@Url.Action("DeleteIncidenceInfo", "Incidence")",
+                            type: "POST",
+                            data: inputData,
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            loadIncidenceList()
+                        }
+                    });
+
+
+                }
+                else {
+
+                    NotificationMessage({ 'message': 'No option selected' });
+                }
+
+            });
+        };*@
+
+
+
+
+    </script>
+
+
+
+}
+
+
+

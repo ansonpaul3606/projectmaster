@@ -1,0 +1,294 @@
+﻿
+<style>
+    .morris-hover {
+        position: absolute;
+        z-index: 1000;
+    }
+    body {
+        background-color: #E0E2DD; font-family: helvetica, open-sans
+    }
+    .graph-wrapper {
+        width: 100%; max-width: 750px ;margin: 0 auto
+    }
+    .graph{
+    height: 300px;
+    width: 100%;
+    max-width: 750px;
+    padding: 25px;
+    background-color: #FFF;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+    }
+</style>
+
+<div class="container">
+    <div class="card flex-lg-column flex-md-row   w-100  mb-0 h-60">
+        <div class="card-header   border-0 pb-0">
+            <h4 class="card-title">Inventory : Sales</h4>
+
+        </div>
+
+
+        <div class="card-body card-body  text-sm-left ">
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-5 col-form-label">
+                            <span perfect-class="formGroupLabel">Month</span>
+                        </label>
+                        <div class="col-sm-7">
+                            <select class="form-control" id="ddlmonth" name="ddlmonth" onchange="Inventory(this)">
+
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-5 col-form-label">
+                            <span perfect-class="formGroupLabel">Year</span>
+                        </label>
+                        <div class="col-sm-7">
+                            <select class="form-control" id='ddlyear' name="Year" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="Inventory(this)"></select>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-5 col-form-label">
+                            <span perfect-class="formGroupLabel">Type</span>
+                        </label>
+                        <div class="col-sm-7">
+                            <select class="form-control" id="ddltype" name="Type" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="Inventory(this)">
+                                <option value="">Please Type</option>
+                                <option value="1">Day</option>
+                                <option value="2">Week</option>
+                                <option value="3" >Stock Re-Order Status</option>
+                                <option value="4">Sales Order Follow Up Status</option>
+                                <option value="5" selected="selected">Moving Product</option>
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-5 col-form-label">
+                            <span perfect-class="formGroupLabel">Model</span>
+                        </label>
+                        <div class="col-sm-7">
+                            <select class="form-control" id="ddlmodel" name="Model" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="Inventory(this)">
+                                <option value="">Please Model</option>
+                                <option value="1">Bar</option>
+                                @*<option value="2">Pie</option>*@
+                                <option value="3">Line</option>
+                                <option value="4" selected="selected">Circle</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" &nsbp&nsbp>
+
+                <div class="col-sm-12 col-12 DgCircle" id="DgCircle">
+                    <div id="morris_bar7" class="morris_chart_height" style="width:300px; height:300px; direction: ltr; margin:0 auto;"></div>
+
+
+
+                    @*<canvas id="morris_bar7" class="morris_chart_height" style="width:300px; height:300px; direction: ltr; margin:0 auto;"></canvas>*@
+                </div>
+            </div>
+
+        </div>
+
+
+
+
+    </div>
+
+</div>
+
+
+
+
+
+@*<script src="~/Content/chart/canvas.js"></script>
+    <script src="~/Content/chart/Chart.js"></script>
+    <script src="~/Assets/vendor/chart.js/Chart.bundle.min.js"></script>*@
+
+<script>
+
+
+    window.onload = function () {
+        
+        var ddlYears = document.getElementById("ddlyear");
+
+        let currentYear = (new Date()).getFullYear();
+
+       
+        for (var i = 2000; i <= currentYear; i++) {
+            var option = document.createElement("OPTION");
+            option.innerHTML = i;
+            option.value = i;
+                   
+            ddlYears.appendChild(option);
+        }
+      
+        $("#ddlyear option:last").attr("selected", "selected");  
+        $("#ddlyear").trigger('change'); //on change value trigger
+
+        //var d = new Date();
+        //var month = d.getMonth()+1;
+
+
+        //$("#ddlmonth").val(month);
+      
+      
+    };
+
+  
+      
+    //Inventory(this);
+
+                   function Inventory(ele) {
+                       let currentYear = (new Date()).getFullYear();                     
+                       $("#morris_bar7").empty();
+
+           $.ajax({
+               url: "@Url.Action("GetInventroyDashBoardGraphDetails", "Home")",
+               data: {
+                   month: document.getElementById("ddlmonth").value,
+                   year: (document.getElementById("ddlyear").value.length > 0 ? document.getElementById("ddlyear").value : parseInt(currentYear))
+               },
+               type: "Get",
+               dataType: "json",
+               contentType: "application/json",
+               success: function (ajaxOutput) {
+
+                   if (ajaxOutput.Process.IsProcess) {                       
+                       let _data = []; let _labels = [];
+                       let chatdata = [];
+                       $.each(ajaxOutput.Data.filter(obj => obj.DashBoard === parseInt(document.getElementById("ddltype").value)), function (key, value) {
+                           chatdata.push({ 'label': value.Field, 'value': value.Value });
+
+                           _data.push(value.Value);
+                           _labels.push(value.Field);
+                       })
+
+
+
+                       switch (document.getElementById("ddlmodel").value) {
+                           case "1":
+
+                               Morris.Bar({
+                                   element: 'morris_bar7',
+                                   data: chatdata,
+                                   xkey: 'label',
+                                   ykeys: ['value'],
+                                   labels: ['value'],
+                                   padding: 10,
+                                   resize: true,
+                                   redraw: true,
+                                   barColors: ["#4287f5"],// "#", "#", "#"
+                                   yLabelFormat: function (y) {
+                                       return parseFloat(y).toLocaleString('en-IN'); + "";
+                                   },
+
+                               });
+                               break;
+
+                           case "2":
+
+                               //Charts.Donut({
+                               //    element: _element,
+                               //    data: _d,
+                               //    colors: _colors,
+                               //}).on('click', function (i, row) {
+                               //    $('#id_modal').modal({ show: true });
+                               //});
+
+
+                               break;
+                           case '3':
+                                Morris.Line({
+                                   // ID of the element in which to draw the chart.
+                                   element: 'morris_bar7',
+                                   // Chart data records -- each entry in this array corresponds to a point on
+                                   // the chart.
+                                   data: chatdata,
+
+                                   // The name of the data record attribute that contains x-values.
+                                   xkey: 'label',
+                                   parseTime: false,
+                                   // A list of names of data record attributes that contain y-values.
+                                   ykeys: ['value'],
+                                   // Labels for the ykeys -- will be displayed when you hover over the
+                                   // chart.
+                                   labels: ['value'],
+                                    lineColors: ['#3ca2c8'],
+                                    yLabelFormat: function (y) {
+                                        return parseFloat(y).toLocaleString('en-IN'); + "";
+                                    },
+                               });
+                            
+                               break;
+                           case "4":
+                               Morris.Donut({
+                                   element: 'morris_bar7',
+                                   data: chatdata,
+
+                                   resize: true,
+                                   redraw: true,
+                                   colors: ["rgb(219, 76, 119)", "rgb(60, 162, 200)", "rgb(16, 85, 154)"],
+                                   formatter: function (y) {
+                                       return parseFloat(y).toLocaleString('en-IN'); + "";
+                                   }
+
+                               });
+                               break;
+                           default:
+                               Morris.Donut({
+                                   element: 'morris_bar7',
+                                   data: chatdata,
+                                   resize: true,
+                                   redraw: true,
+                                   colors: ["rgb(219, 76, 119)", "rgb(60, 162, 200)", "rgb(16, 85, 154)"],
+                                   formatter: function (y) {
+                                       return parseFloat(y).toLocaleString('en-IN'); + "";
+                                   }
+
+                               });
+
+
+
+                               break
+                       }
+
+
+
+
+
+
+
+                   }
+               }
+           });
+       }
+</script>

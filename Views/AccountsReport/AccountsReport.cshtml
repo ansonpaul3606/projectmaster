@@ -1,0 +1,71 @@
+﻿
+@{
+    ViewBag.Title = "AccountsReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="AccountsReport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        const $formContainer = $('#AccountsReport-form');
+        var FK_BranchCode = '';
+        $(document).ready(function () {
+            AccountsReportInitialLoad();
+            $('#jq-sidemenu').hide();
+        });
+
+        function AccountsReportInitialLoad() {
+
+            $formContainer.load('@Url.Action("LoadAccountsReportForm", "AccountsReport")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                let branch =@ViewBag.FK_Branch;
+                 FK_BranchCode = '@ViewBag.Fk_BranchCode';
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="BranchID"]').val(branch).selectpicker('refresh');
+                $thisForm.attr('perfect-onFormSuccess', 'AccountsReportInitialLoad');
+                document.querySelector('#R_DTablediv').style.display = "none";
+            });
+        };
+        var validationMessage = {
+
+
+            'BranchID': {
+                'required': 'Please Select Branch',
+                'digits': 'Please Enter valid Branch'
+
+            },
+            'ID_Report': {
+                'required': 'Please select Report Name',
+
+            },
+            'FromDate': {
+                'required': 'Please select From Date',
+
+            },
+            'ToDate': {
+                'required': 'Please select To Date',
+
+            },
+            'AccountType': {
+                'required': 'Please select Account Type',
+            },
+            'AccountHead': {
+                'required': 'Please select Account Head',
+            }
+            
+
+        };
+    </script>
+}
+
+

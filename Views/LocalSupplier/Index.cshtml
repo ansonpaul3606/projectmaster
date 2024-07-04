@@ -1,0 +1,476 @@
+﻿
+@{
+    ViewBag.Title = "LocalSupplier";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="localsupplier-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+<script type="text/javascript">
+    var LocalSupplierTransMode = "";
+        var validationMessage = {
+            'Name': {
+                'required': 'Please Enter  Name',
+                'stringonly': 'Invalid Supplier Entered'
+        },
+        'GSTINNo': {
+            'required': 'Please Enter GST No.',
+                'stringonly': 'Invalid GST No. Entered'
+        },
+    }
+
+
+        const $formContainer = $('#localsupplier-form');
+
+        $(document).ready(function () {
+            loadLocalSupplier();
+        });
+    
+
+    function loadLocalSupplier() {
+        getSessionValue("ANMfErqHOVO0q0pDVQkKuIuPE9c7qrNMwZ9lL5XTnJ0=", function (result) {
+            LocalSupplierTransMode = result;
+    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> loadLocalSupplierList(this); </text>
+    }
+        });
+        loadLocalSupplierAddForm()
+    }
+          function loadLocalSupplierAddForm() {
+            $formContainer.load('@Url.Action("LoadLocalSupplierForm", "LocalSupplier")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+            });
+        };
+
+        function loadLocalSupplierList(ele) {
+          //  debugger;
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Local Supplier List');
+            let pageUrl = '@Url.Action("GetLocalSupplierList", "LocalSupplier")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: LocalSupplierTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Supplier', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("LocalSupplier");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadLocalSupplierList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: LocalSupplierTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("LocalSupplier");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadLocalSupplierList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+   
+      var tableOptions = {
+            dropdown: {
+                buttons: [              
+                  
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+               {
+                    <text> { displayName: "View", action: editLocalSupplier },</text>
+                }
+                    { type: "divider" },
+
+                     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                        {
+                        <text> { displayName: "Delete", action: deleteLocalSupplier },</text>
+                        }
+
+                    @*{ type: "divider" },
+
+                        @if (ViewBag.PagedAccessRights.UsrrlMsAdd) {
+                        <text> {displayName: "AddToSupplier", action: AddToSupplier },</text>
+                        }*@
+             
+                ],
+                class: "btn btn-success light sharp"
+          },
+
+          onlyShowColumn: ["SlNo", 'GSTINNo', "Name", 'ContactPerson', 'Mobile'],
+          hideColumn: ['SupplierID'],
+          rowClickAction: editLocalSupplier,
+          serialNo: false,
+          renameHeader: {"SlNo": "Sl No.", "GSTINNo": "GST", "Name": "Name", "ContactPerson": "Contact Person", "Mobile": "Mobile"}
+        };
+
+
+    function editLocalSupplier() {
+        
+         debugger;
+            let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');  
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                SupplierID: Saveddata.SupplierID                
+        };
+        console.log("SupplierID",Saveddata.SupplierID);
+            $.ajax({
+                url: '@Url.Action("GetLocalSupplierInfo", "LocalSupplier")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+                    $sideMenuOptions.close();
+                    $formContainer.load('@Url.Action("LoadLocalSupplierForm", "LocalSupplier")', function () {
+                    let $thisForm = $(this).find('[perfect-class="form"]');
+                        if (ajaxOutput.supplierInfo.Process.IsProcess) {   
+
+                            $(this).find('[perfect-class=formTitle]').text('update  ');
+
+                           $thisForm.data({ pData: ajaxOutput.supplierInfo.Data[0] }); 
+
+                            $thisForm.find('[name="Supplier_ID"]').val(ajaxOutput.supplierInfo.Data[0].SupplierID);
+
+                            console.log("Supplier_ID:", ajaxOutput.supplierInfo.Data[0].SupplierID);
+
+                            console.log("SupplierInfo", ajaxOutput.supplierInfo);
+
+                            $thisForm.find('[name="GSTINNo"]').val(ajaxOutput.supplierInfo.Data[0]['GSTINNo']);
+
+                            $thisForm.find('[name="Name"]').val(ajaxOutput.supplierInfo.Data[0].Name);
+
+                            $thisForm.find('[name="ContactPerson"]').val(ajaxOutput.supplierInfo.Data[0].ContactPerson);
+                            
+                            $thisForm.find('[name="Mobile"]').val(ajaxOutput.supplierInfo.Data[0].Mobile);                         
+
+                            $("#AddSupplier").css('display', 'block');
+                            //$thisForm.find('[name="ProductName"]').val(ajaxOutput.ProductdataInfo.Data[0]['ProductName']);
+                            //$thisForm.find('[name="Description"]').val(ajaxOutput.ProductdataInfo.Data[0]['Description']);
+                         
+                           
+                            //ServiceMappingDetailsTable_create($thisForm, 'LocalSupplier', ajaxOutput.Productinfo.Data, tableOptionsSalesOrderItem)
+                            //    $thisForm.find('[perfect-tempTable="LocalSupplier"]').find('table').dataTable({ paging: false, ordering: false });
+                            if (ajaxOutput.Productinfo.Process.IsProcess) {
+                                $thisForm.data({ pData: ajaxOutput.Productinfo.Data[0] });
+                                console.log("Products Info :", ajaxOutput.Productinfo);
+                                fn_fillLocalSupplierItem($thisForm, 'LocalSupplier', ajaxOutput.Productinfo.Data, tableOptionsTempOut )
+                                $thisForm.find('[perfect-tempTable="LocalSupplier"]').find('table').dataTable({ paging: false, ordering: false,searching:false });
+
+                            }
+                            
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.attr('perfect-onFormSuccess', 'loadLocalSupplierList');
+                            $sideMenuOptions.close();
+
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                          //  $thisForm.attr('perfect-onFormSuccess', 'LoadLocalSupplierForm');
+                            
+                        }
+                    
+                            else {
+                            console.log('>_ Inside GetLocalSupplierInfo :false')
+                            console.log(ajaxOutput.Data[0]['GSTINNo'])
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                        }
+
+                    });
+
+                }
+           });
+    }
+
+
+    function deleteLocalSupplier() {
+        // debugger;
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+               $.ajax({
+                   url: "@Url.Action("GetLocalSupplierReasonList", "LocalSupplier")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log('Saveddata.SupplierID', Saveddata.SupplierID)
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_Supplier: Saveddata.SupplierID,
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteLocalSupplierInfo", "LocalSupplier")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        }
+
+
+        function AddToSupplier(ele) {
+            debugger;
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let SupplierID = $thisForm.find('[name="Supplier_ID"]').val().trim();
+            console.log("ID:", test);
+            console.log("Supplier_ID:", SupplierID);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_Supplier: SupplierID
+            };
+            $.ajax({
+                url: '@Url.Action("LocalSupplierToSupplierUpdate", "LocalSupplier")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                        });
+                        $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                        $thisForm.find('[perfect-ctype="input"]').val('');
+                        $thisForm.find('[perfect-ctype="number"]').val('');
+
+                        let onSuccess = $thisForm.attr('perfect-onFormSuccess', 'loadLocalSupplier')
+
+
+                        if (onSuccess) {
+                            window[onSuccess]();
+                            ResetButton($thisForm);
+                            loadLocalSupplierList($thisForm);
+                        }
+                        else {
+                            ResetButton($thisForm);
+                            loadLocalSupplierList($thisForm);
+                        }
+
+                        console.log('> Add new Supplier success data', ajaxOutput);
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+
+            });
+
+        }
+
+    function fn_fillLocalSupplierItem(ele, tkey, data, tableOptionsTempOut) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                    else if ($this.is('input')) {
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        if (inputType == 'checkbox') {
+                            pData[nameAttr] = valOne[nameAttr];
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+                        }
+                        else if (inputType == 'hidden') {
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if (inputType == 'date') {
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                }
+            });
+
+            insertData.push(pData);
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+    }
+
+</script>
+    }

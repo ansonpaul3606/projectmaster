@@ -1,0 +1,1927 @@
+﻿
+
+
+@model PerfectWebERP.Models.LeadGenerateActionModel.LeadGenerateActionViewList
+
+<style>
+    .Leadgen:after {
+        content: ' ';
+        display: block;
+        border: 0.2px solid #e7e3e3e8;
+    }
+
+    .Leadgentitle span {
+        position: relative;
+        z-index: 1;
+        padding-right: 30px;
+    }
+
+    #div_top_hypers {
+        background-color: #eeeeee;
+        display: inline;
+    }
+
+    #ul_top_hypers li {
+        display: inline;
+    }
+
+    .disabledtab {
+        pointer-events: none;
+        cursor: default;
+    }
+
+    .tooltip-inner {
+        border-radius: 0;
+        background: #f4f5f9;
+        color: #030304;
+        font-size: 13px;
+        font-weight: 300;
+        padding: 0.35rem 0.7rem;
+    }
+
+    .Productbody > tr:last-child {
+        font-size: 13px;
+        font-weight: bold;
+    }
+</style>
+
+<br />
+<div class="card" id="followupPartial">
+
+    <div class="card-header">
+        <h4 class="">Follow up Status &nbsp;&nbsp;<i class="las la-angle-double-right mr-2"></i><span id="Followupuser"></span> </h4>
+    </div>
+    <div class="card-body" name="Followup_Action_LoadDiv">
+
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="col-sm-12">
+                    <div class="default-tab">
+
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="tableadinfo" name="tableadinfo" data-toggle="tab" href="#Customerinfo" onclick="fn_ShowHideButton(this,false);"><i class="las la-book-reader mr-2"></i>Lead info</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tabfollowupaction" name="tabfollowupaction" data-toggle="tab" href="#navpills2-1" onclick="GetFollowupaction();fn_ShowHideButton(this,true);"><i class="las la-tty mr-2"></i>Follow up Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tabNextAction" name="tabNextAction" data-toggle="tab" href="#navpills2-2" onclick="fn_ShowHideButton(this,true);"><i class="la la-calendar-plus mr-2"></i> Next Action</a>
+                            </li>
+                            <li class="nav-item" hidden>
+                                <a class="nav-link" id="newlead" data-toggle="tab" name="newlead" href="#navpills2-3" onclick="fn_ShowHideButton(this,true);"><i class="la la-bell mr-2"></i> New Lead</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tabhistory" name="tabhistory" data-toggle="tab" href="#History" onclick="fn_LeadManagement_History(this); fn_ShowHideButton(this,false);"><i class="las la-history mr-2"></i> History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tabImages" name="tabImages" data-toggle="tab" href="#ImagesData" onclick="fn_LeadManagementImages(this); fn_ShowHideButton(this,false);"><i class="fa fa-picture-o mr-2"></i> Images</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tabLocation" name="tabLocation" data-toggle="tab" href="#Location" onclick="fn_LeadManagementLocation(this); fn_ShowHideButton(this,false);"><i class="fa fa-map-marker mr-2"></i> Location  @ViewBag.MapKey</a>
+                            </li>
+                        </ul>
+
+
+                        <div class="tab-content">
+                            <div id="Customerinfo" name="Customerinfo" class="tab-pane active">
+                                <div class="row" style="margin-top:1.5rem;">
+                                    <div class="col-sm-6" name="Leadinfodetails">
+                                    </div>
+                                    <div class="col-sm-6" name="divDetails">
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div id="navpills2-1" class="tab-pane">
+
+
+
+
+                                <div class="row" style="margin-top:1.5rem;">
+                                    <div class="col-sm-12">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Action Type</span>
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+
+                                                    @*<label class="col-sm-8 col-form-label" name="lblAction"></label>*@
+
+                                                    <div class="col-sm-8">
+                                                        <select class="form-control select2-dropdown perfectValidate_string" name="ActMode" id="ActMode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                            <option value="">Please select</option>
+                                                            @if (!(Model.ActioTypeList is null))
+                                                            {
+                                                                foreach (var ActioType in Model.ActioTypeList)
+                                                                {
+                                                                    <option value="@ActioType.ID_ActionType">@ActioType.ActnTypeName</option>
+                                                                }
+                                                            }
+
+                                                        </select>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Follow up By</span>
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control perfectValidate_name FOllowpEmp" placeholder="" name="FOllowpEmp" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            <input type="hidden" name="FK_EmployeeFolo" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                                            <div class="input-group-append">
+                                                                <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetEmployeeeF(this)"></button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Status</span>
+                                                        <input type="hidden" name="FK_ActionStatus" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <select class="form-control" name="ActStatus" onchange="SetDateName(this)" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                                            <option value="">Please select</option>
+                                                            @if (!(Model.ActionStatusList is null))
+                                                            {
+                                                                foreach (var ActionStatus in Model.ActionStatusList)
+                                                                {
+                                                                    <option value="@ActionStatus.ID_Mode">@ActionStatus.ModeName</option>
+                                                                }
+                                                            }
+
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4 divIsQuotation">
+                                                <div class="form-check form-check-inline" perfect-class="formCheck">
+                                                    <label class="form-check-label" perfect-class="formCheckLabel">
+                                                        <input type="checkbox" class="form-check-input" name="IsQuotation" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onclick="Checkboxcheck(this)"><span perfect-class="formCheckInputText">GenerateQuotation</span>
+                                                    </label>
+                                                </div>
+
+                                            </div>
+                                            <div class="col-sm-6 divQuotationdate">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Quotation Expiry Date</span>
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+
+                                                        <input type="date" class="form-control " name="QuotationDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                                                        <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel" name="lblStatusDate">Date</span>
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+
+                                                        <input type="date" class="form-control " name="StatusDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Customer Remarks</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <textarea class="form-control" name="LgActCusComment" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"></textarea>
+                                                        @*<input type="text" class="form-control " name="LgActCusComment" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Employee Remarks</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <textarea class="form-control" name="LgActLeadComment" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"></textarea>
+                                                        @*<input type="text" class="form-control " name="LgActLeadComment" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 OfferAmount">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <label class="col-sm-4 col-form-label">
+                                                        <span perfect-class="formGroupLabel">Offer Price</span>
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <input type="hidden" class="form-control text-right" name="MRP" id="MRP" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                        <input type="hidden" class="form-control text-right" name="OfferPriceOld" id="OfferPriceOld" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                        <input type="text" class="form-control text-right" name="OfferPrice" id="OfferPrice" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'OfferPrice',3)" min="0" maxlength="12" />
+                                                        @*<input type="text" class="form-control " name="LgActCusComment" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 OfferAmount"></div>
+                                            <div class="col-sm-6 CheckboxDiv" style="display:none">
+                                                <div class="form-group row" perfect-class="formGroup">
+                                                    <input type="hidden" id="leadnoval" name="leadnoval" perfect-ctype="hidden" perfect-css="input" />
+                                                    <div class="custom-control custom-switch toggle-switch text-right mr-5 mb-2">
+                                                        <input type="checkbox" class="custom-control-input" id="customSwitch">
+                                                        <label class="custom-control-label" for="customSwitch" data-toggle="tooltip" data-placement="bottom">For all products</label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <div id="navpills2-2" class="tab-pane">
+                                <br />
+                                <div class="row">
+
+                                    <div class="col-sm-6">
+                                        <div class=" form-group row " perfect-class="formGroup">
+
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Action</span>
+
+                                            </label>
+                                            <div class="col-sm-8 ">
+                                                <select class="form-control perfectValidate_string_nm" name="FK_NetAction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.NextActionList is null))
+                                                    {
+                                                        foreach (var NextAction in Model.NextActionList)
+                                                        {
+                                                            <option value="@NextAction.ID_NextAction">@NextAction.NxtActnName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Action Type</span>
+                                                <span class="text-danger"></span>
+                                            </label>
+
+                                            @*<label class="col-sm-8 col-form-label" name="lblAction"></label>*@
+
+                                            <div class="col-sm-8">
+                                                <select class="form-control select2-dropdown perfectValidate_string" name="NxtFK_ActionType" id="NxtFK_ActionType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.ActioTypeList is null))
+                                                    {
+                                                        foreach (var ActioType in Model.ActioTypeList)
+                                                        {
+                                                            <option value="@ActioType.ID_ActionType">@ActioType.ActnTypeName</option>
+                                                        }
+                                                    }
+
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class=" form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Next Follow up Date</span>
+
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <input type="date" class="form-control " name="NextActionDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Priority</span>
+                                            </label>
+                                            <div class="col-sm-8 ">
+                                                <select class="form-control" name="FK_Priority" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                    <option value="">Please select</option>
+                                                    <option value="1">Hot</option>
+                                                    <option value="2">Warm</option>
+                                                    <option value="3">Cold</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">To Department</span>
+                                            </label>
+                                            <div class="col-sm-8">
+
+                                                <select class="form-control perfectValidate_string" name="FK_Departement" perfect-class="formGroupControl" onchange="RemoveEmployee();" perfect-ctype="select" perfect-css="select">
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.DepartementList is null))
+                                                    {
+                                                        foreach (var Departement in Model.DepartementList)
+                                                        {
+                                                            <option value="@Departement.ID_Department">@Departement.DeptName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">To Employee</span>
+                                            </label>
+                                            <div class="input-group col-sm-8">
+                                                @if (!(Model.EmployeeInfoList is null))
+                                                {
+                                                    foreach (var EmployeeInfo in Model.EmployeeInfoList)
+                                                    {
+                                                        <input type="text" class="form-control AssignEmp" placeholder="" name="AssignEmp" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                                    }
+                                                }
+                                                <input type="hidden" name="FK_Employee" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                <div class="input-group-append">
+                                                    @*<button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetEmployeee(this)"></button>*@
+                                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,69,'Employee Details',[],['Branchs','BranchTypeID','FK_Departement','Department','BranchType','Branch','SLNo','FK_Branch'])" Criterea1="FK_Departement" Criterea2="0" Criterea3="0" BindName="AssignEmp" BindVal="FK_Employee"></button>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div id="navpills2-3" class="tab-pane">
+                                <div class="row">
+                                    <div class="col-sm-12 " perfect-class="TempTableProduct">
+                                        <br />
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel">Category</span>
+
+                                            </label>
+                                            <div class="col-sm-4" perfect-class="formGroup">
+                                                @*<select class="form-control" name="ChannelMode" perfect-class="formGroupControl" onchange="GetProName(this)" perfect-ctype="select" perfect-css="select" perfect-tempTable-ProductType="Product/Project">
+                                    <option value="">Please select</option>
+
+                                    <option value="1">Project</option>
+                                    <option value="2">Product</option>
+                                </select>*@
+                                                <select class="form-control perfectValidate_string" name="FK_Category" perfect-class="formGroupControl" onchange="GetProName(this)" perfect-ctype="select" perfect-css="select" perfect-tempTable-ProductType="Category">
+
+
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.CategoryList is null))
+                                                    {
+                                                        foreach (var category in Model.CategoryList)
+                                                        {
+                                                            if (category.Project)
+                                                            {
+
+                                                                string cat = category.CatgName.ToString() + " -Project";
+                                                                <option value="@category.ID_Catg" Project="@category.Project.ToString()" style="color:#b73c50">@cat</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@category.ID_Catg" Project="@category.Project.ToString()">@category.CatgName</option>
+                                                            }
+                                                        }
+                                                    }
+                                                </select>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel" name="lblProName">Product</span>
+
+                                            </label>
+                                            <div class="col-sm-4" perfect-class="formGroup">
+                                                @*PerError*@
+                                                <div class="input-group">
+                                                    <span perfect-class="formGroupLabel"></span>
+                                                    <input type="text" class="form-control" name="ProdName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-ProductType="Name" />
+
+                                                    <input type="hidden" name="ID_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-tempTable-ProductType="ID_Product" perfect-css="input" />
+
+                                                    <div class="input-group-append">
+                                                        <button id="addProduct-jq-searchButton3" class="btn btn-primary fa fa-search" name="ProdBtn" type="button" perfect-css="button" onclick="SearchProduct(this)"></button>
+                                                    </div>
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel">To Department</span>
+                                            </label>
+                                            <div class="col-sm-4" perfect-class="formGroup">
+                                                <select class="form-control perfectValidate_string" name="FK_Departement" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-tempTable-ProductType="Department">
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.DepartementList is null))
+                                                    {
+                                                        foreach (var Departement in Model.DepartementList)
+                                                        {
+                                                            <option value="@Departement.ID_Department">@Departement.DeptName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel">To Employee</span>
+                                            </label>
+                                            <div class="input-group col-sm-4" perfect-class="formGroup">
+                                                <input type="text" class="form-control" placeholder="" name="AssignEmpNew" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-ProductType="Employee" />
+                                                <input type="hidden" name="FK_EmployeeNew" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-tempTable-ProductType="FK_Employee" perfect-css="input" />
+                                                <div class="input-group-append">
+                                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetEmployee(this)"></button>
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+
+                                        </div>
+                                        <div class="form-group row" perfect-class="formGroup">
+
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel">New Action</span>
+
+                                            </label>
+                                            <div class="col-sm-4 " perfect-class="formGroup">
+                                                <select class="form-control perfectValidate_string_nm" name="FK_NetAction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-tempTable-ProductType="Next Action">
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.NextActionList is null))
+                                                    {
+                                                        foreach (var NextAction in Model.NextActionList)
+                                                        {
+                                                            <option value="@NextAction.ID_NextAction">@NextAction.NxtActnName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                            <label class="col-sm-2 col-form-label">
+                                                <span perfect-class="formGroupLabel">New Action Date</span>
+
+                                            </label>
+                                            <div class="col-sm-2" perfect-class="formGroup">
+                                                <input type="date" class="form-control perfectValidate_date" name="NextActionDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" perfect-tempTable-ProductType="Action Date" />
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                            <button class="btn btn-primary1" type="button" title="Add" onclick="createatables(this,'ProductType',['ID_Product'])"><i class="fa fa-plus" aria-hidden="true"></i></button>
+
+                                            <button class="btn btn-light1" type="button" title="Clear" onclick="onclick=" ClearNewAction(this);"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                                        </div>
+
+
+                                        <div class="form-group row" perfect-class="formGroup">
+
+                                            <div class="table-responsive" perfect-tempTable="ProductType" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="History" class="tab-pane">
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" class="form-check-input" id="Mode" name="ViewAll" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_LeadManagement_History(this)" />
+                                                <label class="form-check-label" for="check1">View All Products</label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table  table-striped" id="Product">
+                                                    <thead class="thead-primary">
+                                                        <tr>
+                                                            @*<th>Product</th>*@
+                                                            @*<th>Enquiry About</th>*@
+                                                            @*<th>Description</th>*@
+                                                            <th>Action</th>
+                                                            <th>Action Type</th>
+                                                            <th>Action Date</th>
+                                                            <th>Status</th>
+                                                            <th>Agent Remarks</th>
+                                                            @*<th>Customer Reamrks</th>*@
+                                                            <th>Followed By</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="Productbody" id="ProductTbody">
+                                                        <tr id="0">
+                                                            <td colspan="9" style="text-align:center;">No Records...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12" name="divHistory">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="ImagesData" class="tab-pane">
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <p id="image-text" style="text-align: center; justify-content: center; display: block;"> No Images uploaded.</p>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <img id="leadImageOne" class="client-logo" style="max-height: 300px;max-width:300px;">
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <img id="leadImageTwo" class="client-logo" style="max-height: 300px;max-width:300px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="Location" class="tab-pane">
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-12">
+
+                                        <p id="map-text" style="text-align:center; justify-content:center"> Location not added.</p>
+
+                                        <div class="map-locationtracker" id="maps" style="display:block; width:100%;height:400px;">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_LeadGenerateActionForm_update(this)"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_LeadGenerateActionForm_add(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                <button id="resett" type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+
+
+</div>
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+
+    var LeadAction = "";
+     function GetLeadFromdefault() {
+
+         let $thisForm = $('[perfect-class="form"]');
+                $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "LeadGeneration")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     $.each(ajaxOutput.Data, function (key, value) {
+
+                         $thisForm.find('[name=FK_Departement]').val(value.FK_Department).selectpicker('refresh');
+                         $thisForm.find('[name= AssignEmp]').val(value.EmpFName);
+                         $thisForm.find('[name= FK_Employee]').val(value.ID_Employee);
+
+
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+
+             },
+
+
+         });
+
+
+     }
+    //on load functions
+    $(document).ready(function () {
+        initFunctions('form');
+        GetLeadFromdefault();
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('button[name=add]').addClass('d-none');
+        $thisForm.find('button[name=reset]').addClass('d-none');
+    });
+
+
+    $(".FOllowpEmp").on("keyup change", function (e) {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+        $thisForm.find('[name=FK_EmployeeFolo]').val('0');
+    });
+
+    $(".AssignEmp").on("keyup change", function (e) {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+        $thisForm.find('[name=FK_Employee]').val('0');
+    });
+
+
+    function fn_ShowHideButton(ele,bln) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (bln) {
+            $thisForm.find('button[name=add]').removeClass('d-none');
+            $thisForm.find('button[name=reset]').removeClass('d-none');
+        }
+        else {
+            $thisForm.find('button[name=add]').addClass('d-none');
+            $thisForm.find('button[name=reset]').addClass('d-none');
+        }
+
+    }
+
+    function SetDateName(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let name = $thisForm.find('[name="ActStatus"] option:selected').text();
+
+        if (name != 'Please select') {
+            $thisForm.find('[name="lblStatusDate"]').text(name + ' Date');
+        }
+        else {
+
+
+        }
+
+        if (($thisForm.find('[name="ActStatus"] option:selected').val() == 2) || ($thisForm.find('[name="ActStatus"] option:selected').val() == 4)) {
+            $('#tabNextAction').addClass('disabledtab');
+            $("select[name='FK_Departements']").val('').selectpicker('refresh');
+            $thisForm.find('[name="AssignEmp"]').val('');
+            $("select[name='FK_Priority']").val('').selectpicker('refresh');
+            $thisForm.find('[name="NextActionDate"]').val('');
+            $("select[name='NxtFK_ActionType']").val('').selectpicker('refresh');
+            $("select[name='FK_NetAction']").val('').selectpicker('refresh');
+            $thisForm.find('[name="FK_Employee"]').val(0);
+
+
+        }
+        else {
+            $('#tabNextAction').removeClass('disabledtab');
+        }
+        if ($thisForm.find('[name="ActStatus"] option:selected').val() == 4) {
+            $thisForm.find('[name="StatusDate"]').val(moment().format('YYYY-MM-DD'));
+
+
+        }
+        if ($thisForm.find('[name="ActStatus"] option:selected').val() == 4 || $thisForm.find('[name="ActStatus"] option:selected').val() == 1) {
+            $('.OfferAmount').show();
+            let oldoffer = $thisForm.find('[name="OfferPriceOld"]').val();
+            $thisForm.find('[name="OfferPrice"]').val(Number(oldoffer).toFixed(2));
+        }
+        else {
+            let oldoffer = $thisForm.find('[name="OfferPriceOld"]').val();
+            $thisForm.find('[name="OfferPrice"]').val(Number(oldoffer).toFixed(2));
+            $('.OfferAmount').hide();
+        }
+        console.log('action status', $thisForm.find('[name="FK_ActionStatus"]').val());
+        console.log('value', $thisForm.find('[name="ActStatus"] option:selected').val());
+        if (($thisForm.find('[name="ActStatus"] option:selected').val() == 1) && ($thisForm.find('[name="FK_ActionStatus"]').val() == 4)) {
+
+            $('.divIsQuotation').show();
+           // $thisForm.find('[name="IsQuotation"]').is(':Checked'),
+            $thisForm.find('[name="IsQuotation"]').prop('checked', false);
+            $thisForm.find('[name="QuotationDate"]').val();
+           // $thisForm.find('[name="QuotationDate"]').val(moment().format('YYYY-MM-DD'));
+        }
+        else {
+            $('.divIsQuotation').hide();
+            $('.divQuotationdate').hide(); 
+        }
+       
+
+    }
+
+    function ClearNewAction(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="FK_Category"]').val('');
+        $thisForm.find('[name="ProdName"]').val('');
+        $thisForm.find('[name="ID_Product"]').val('0');
+        $thisForm.find('[name="FK_NetAction"]').val('');
+        $thisForm.find('[name="NextActionDate"]').val('');
+        $thisForm.find('[name="FK_Departement"]').val('');
+        $thisForm.find('[name="AssignEmpNew"]').val('');
+        $thisForm.find('[name="FK_EmployeeNew"]').val('0');
+        $("select[name='FK_Category']").val('').selectpicker('refresh');
+        $("select[name='FK_NetAction']").val('').selectpicker('refresh');
+        $("select[name='FK_Departement']").val('').selectpicker('refresh');
+
+    }
+
+
+
+
+    function GetProName1(ele)
+    {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="ID_Product"]').val(0);
+        $thisForm.find('[name="ProdName"]').val('');
+        let name = $thisForm.find('[name="FK_Category"] option:selected').text();
+
+        if (name != 'Please select') {
+            $thisForm.find('[name="lblProName"]').text(name + ' Name')
+            if (name == 'Project') {
+                $thisForm.find('[name="ProdName"]').attr('perfect-tempTable-ProductType','ProjectName');
+                $thisForm.find('[name="ProdBtn"]').hide();
+
+            }
+            else {
+                $thisForm.find('[name="ProdName"]').attr('perfect-tempTable-ProductType','Name');
+                $thisForm.find('[name="ProdBtn"]').show();
+            }
+
+        }
+    }
+
+     function GetEmployeee(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let dept = 0;
+         if ($thisForm.find('[name=FK_Departement]').val() != 0) {
+              dept = $thisForm.find('[name=FK_Departement]').val();
+         }
+         let inputData = {
+             Dept: dept,
+             __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+         };
+        $.ajax({
+            url: '@Url.Action("GetEmployeeDeptWise", "LeadManagement")',
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                // console.log("Data", data);
+
+                if (ajaxOutput.Process.IsProcess) {
+                    var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['ID_Employee'], headingText: 'Employee Search'});
+                    stateModel.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $thisForm.find('[name=AssignEmp]').val(ret.EmployeeName);
+                            $thisForm.find('[name=FK_Employee]').val(ret.ID_Employee);
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+
+
+
+
+            },
+
+
+        });
+
+
+    }
+
+
+     function GetEmployeeeF(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $.ajax({
+            url: '@Url.Action("GetEmployee", "LeadManagement")',
+            type: "POST",
+          //  data: inputData,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                // console.log("Data", data);
+
+                if (ajaxOutput.Process.IsProcess) {
+                    var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['ID_Employee'], headingText: 'Employee Search'  });
+                    stateModel.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $thisForm.find('[name=FOllowpEmp]').val(ret.EmployeeName);
+                            $thisForm.find('[name=FK_EmployeeFolo]').val(ret.ID_Employee);
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+
+
+
+
+            },
+
+
+        });
+
+
+    }
+
+
+
+     function GetEmployee(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let dept = 0;
+         if ($thisForm.find('[name=FK_Departement]').val() != 0) {
+             dept = $thisForm.find('[name=FK_Departement]').val();
+         }
+         let inputData = {
+             Dept: dept,
+             __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+         };
+        $.ajax({
+            url: '@Url.Action("GetEmployeeDeptWise", "LeadManagement")',
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                // console.log("Data", data);
+
+                if (ajaxOutput.Process.IsProcess) {
+                    var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['ID_Employee'], headingText: 'Employee Search' });
+                    stateModel.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $thisForm.find('[name=AssignEmpNew]').val(ret.EmployeeName);
+                            $thisForm.find('[name=FK_EmployeeNew]').val(ret.ID_Employee);
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+
+
+
+
+            },
+
+
+        });
+
+
+    }
+
+    function GetProName(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="ProdName"]').val('');
+
+
+        let sel = $thisForm.find('[name=FK_Category] option:selected').text();
+
+        let name = $thisForm.find('[name="FK_Category"]').children(":selected").attr('Project')
+
+
+        if (name == 'False' && sel != 'Please select') {
+            $thisForm.find('[name="ProdBtn"]').show();
+        }
+        else {
+            $thisForm.find('[name="ProdBtn"]').hide();
+            $thisForm.find('[name="ID_Product"]').val(0);
+        }
+        if (name == 'False' && sel != 'Please select') {
+            $thisForm.find('[name="lblProName"]').text('Product');
+        }
+        else {
+            $thisForm.find('[name="lblProName"]').text('Model');
+        }
+    }
+      function SearchProduct1(ele) {
+
+        console.log('Search function run')
+        let $this = $(ele).closest('[perfect-class="formGroup"]');
+
+        $.ajax({
+            url: '@Url.Action("GetProduct", "LeadManagement")',
+            type: "Get",
+           // headers: { "token_key": "123456" },
+            //data: { branchID: id },
+            dataType: "json",
+            contentType: "application/json",
+            success: function (successData) {
+                console.log('> Search button click success', successData);
+
+                if (successData.Process.IsProcess) {
+                    var sss = createSelectList({
+                        data: successData.Data, hideColumn: ['ID_Product'], headingText: 'Product Details'
+                    });
+                    sss.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $this.find('[name=ID_Product]').val(ret.ID_Product);
+
+                            $this.find('[name=ProdName]').focus().val(ret.ProductName);
+                            $this.find('table').append($('<tr>').append($('<td/>').text(ret.ProductName)).append($('<td/>').html('&times;').click(function () { $(this).closest('tr').remove() })))
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+
+                }
+                else {
+                    $.each(successData.Process.Message, function (key, value) {
+                        //toastr.warning(value, "Error");
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+
+
+
+            },
+            complete: function () {
+
+                //a.find('.dataTables_wrapper').css('width', '100%');
+            }
+        });
+
+    }
+
+
+    function SearchProduct(ele) {
+
+        console.log('Search function run')
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let $this = $(ele).closest('[perfect-class="formGroup"]');
+        let FK_Category = { FK_Category: $thisForm.find('[name=FK_Category]').val() }
+
+            var obj = {
+                ProdName: $thisForm.find('[name=ProdName]').val(),
+                FK_Category: $thisForm.find('[name=FK_Category]').val()
+
+            }
+
+
+           if ($thisForm.find('[name=FK_Category]').val() != '')
+            {
+                  $.ajax({
+                    url: '@Url.Action("GetProductSearch", "LeadGeneration")',
+                    type: "Get",
+                    headers: { "token_key": "123456" },
+                    data: obj,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (successData) {
+                        console.log('> Search button click success', successData);
+
+                        if (successData.Process.IsProcess) {
+                            if (successData.Data.length> 1) {
+                                var sss = createSelectList({
+                                    data: successData.Data, hideColumn: ['ID_Product'], headingText: 'Product Details',
+
+                                    renameHeader: { "ProdName": "Name", "ProdShortName": "Short Name", "ProdHSNCode": "HSN Code" },
+
+                                });
+
+                                sss.then(function (ret) {
+                                    if (ret) {
+                                        console.log('>_ Search button > list click', ret);
+                                        $this.find('[name=ID_Product]').val(ret.ID_Product);
+
+                                        $this.find('[name=ProdName]').focus().val(ret.ProdName);
+                                        $this.find('table').append($('<tr>').append($('<td/>').text(ret.ProdName)).append($('<td/>').html('&times;').click(function () { $(this).closest('tr').remove() })))
+                                    }
+                                    else {
+                                        console.log(ret);
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                $this.find('[name=ID_Product]').val(successData.Data[0].ID_Product);
+
+                                $this.find('[name=ProdName]').val(successData.Data[0].ProdName);
+                            }
+
+                        }
+                        else {
+                            $.each(successData.Process.Message, function (key, value) {
+                                //toastr.warning(value, "Error");
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+                    },
+                    complete: function () {
+
+                        //a.find('.dataTables_wrapper').css('width', '100%');
+                    }
+                });
+            }
+
+
+        else
+        {
+            NotificationMessage({  'message': 'Please Select Category' });
+        }
+
+    }
+
+    var tableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+                {
+                    icon: "fa fa-trash",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            $thistbl.dataTable({ paging: true });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+
+                    }
+                },
+                {
+                    icon: "fa fa-pencil",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                        console.log('Editclick', savedData);
+                        //filling data in available inputs
+
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+
+                            else if ($thisNode.attr('type').toLocaleLowerCase() == 'date') {
+
+                                console.log('datess', moment(savedData[pf_name]).format('DD/MM/YYYY'))
+
+                                $thisNode.val(moment(savedData[pf_name]).format('DD/MM/YYYY'));
+
+
+                                //$thisNode.val(savedData[pf_name]);
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+
+
+
+                    }
+                },
+            ]
+        },
+        onlyShowColumn: [],
+        hideColumn: [],
+        serialNo: true,
+        renameHeader: {"ProdName":"Product", "AssignEmpNew":"Employee"},
+        rowAttribute: [],
+        isCheckType: []
+    }
+
+
+    function createatables(ele, tkey, uniq) {
+
+
+        console.log('productid', uniq);
+        console.log('tkey', tkey);
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableKey = tkey;
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        let insertData = {};
+        let tableOptionsTemp = tableOptionsTempOut;
+
+        let unique = (uniq) ? uniq : [];
+
+        let isValid = true;
+        let errorClass = '.temptableError';
+
+        //make index
+        console.log('check 1');
+
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+        let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+        let updateCond = '';
+        let isNew = true;
+        if (thisactionIndex > 0) {
+            //means update
+            insertData[indexname] = thisactionIndex;
+            updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+            isNew = false;
+        }
+        else {
+            //insert
+            insertData[indexname] = lastIndex + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+            isNew = true;
+        }
+
+
+
+        ////empty field vaidation
+
+        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+            let $this = $(this);
+            let headerName = $this.attr('perfect-tempTable-' + tableKey);
+            let nameAttr = $this.attr('name');
+            let $errorElement = $this.closest('[perfect-class="formGroup"]').find(errorClass);
+
+            if ($this.is('select')) {
+                if ($this.val().length > 0) {
+                    //something selected
+                    $errorElement.text('');
+                }
+                else {
+                    //noting selected
+                    isValid = false;
+                    $errorElement.text('Please select ' + headerName);
+                    //console.log('reee' + headerName)
+                }
+            }
+            else if ($this.is('input')) {
+
+                let inputType = $this.attr('type').toLocaleLowerCase();
+
+                if (inputType == 'checkbox') {
+
+                    //if need any not checked validation do it here
+                }
+                else if (inputType == 'hidden') {
+
+                    //if need any not checked validation do it here
+                }
+
+
+                else {
+                    if ($this.val().length > 0) {
+
+                        //something selected
+                        $errorElement.text('');
+                    }
+                    else {
+
+                        //noting selected
+                        isValid = false;
+                        $errorElement.text('Please select ' + headerName);
+
+                    }
+                }
+            }
+
+        });
+
+
+
+
+        if (unique.length > 0) {
+
+            //getting previous data
+            let prevData = [];
+            $tblcontainer.find('table > tbody').find('tr').each(function () {
+                if (isNew) {
+                    prevData.push($(this).data('pData'));
+                }
+                else {
+                    if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                        prevData.push($(this).data('pData'));
+                    }
+
+                }
+
+            })
+            console.log('previous data', prevData);
+
+
+            unique.forEach(function (key, i) {
+
+                console.log('unid -> key:' + key + "| index :" + i);
+                let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                //let $thisEle = $thisForm.find('name=["ID_Product"]').val();
+                let headerEleName = $thisEle.attr('perfect-tempTable-' + tableKey);
+                let atname = $thisEle.attr('name');
+                let cvalue;
+
+                //console.log('len')
+
+                if ($thisEle.length != 0) {
+                    let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                    let errmessage = "Product Already exits"
+
+                    //getting current value in cval
+                    if ($thisEle.is('select')) {
+                        cvalue = $thisEle.val();
+                    }
+                    else if ($thisEle.is('input')) {
+
+                        let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+
+                        if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                        else if (inputEleType == 'hidden') { cvalue = $thisEle.val(); }
+                        else { cvalue = $thisEle.val(); }
+                    }
+                    else { cvalue = $thisEle.val(); }
+
+                    // console.log('cvalue ->' + cvalue);
+
+                    //searching in previous data
+                    if (prevData.find(a => a[atname] == cvalue)) {
+                        // console.log('Search =>' + cvalue + '| attr :' + atname)
+                        $errorElement.text(errmessage);
+                        isValid = false;
+                    }
+                }
+            });
+
+
+        }
+
+
+
+
+
+        if (isValid == true) {
+            $thisForm.find("[name='ProductID']").closest('[perfect-class="formGroup"]').find(errorClass).text('');
+
+            console.log('check 4.1');
+            // this section make table column data
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+
+                if ($this.is('select')) {
+
+                    tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                    tableOptionsTemp.hideColumn.push(nameAttr)
+                    //displat text of select
+
+                    //displat text of select
+                    if ($this.val() != null) {
+
+                        let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+
+                    }
+                    else {
+                        let selectText = ($this.val() == null) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    //let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                    //insertData[nameAttr + '_d'] = selectText;
+                    insertData[nameAttr] = $this.val();
+
+
+                    //clear field
+                    $this.val('').selectpicker('refresh');
+                }
+                else if ($this.is('input')) {
+
+                    let inputType = $this.attr('type').toLocaleLowerCase();
+
+                    if (inputType == 'checkbox') {
+
+                        insertData[nameAttr] = $this.is(':checked');
+
+                        tableOptionsTemp.isCheckType.push(nameAttr)
+                        //clear field
+                        $this.prop('checked', false);
+
+                    }
+                    else if (inputType == 'hidden') {
+
+                        tableOptionsTemp.hideColumn.push(nameAttr)
+                        insertData[nameAttr] = $this.val();
+
+                        //clear field
+                        $this.val('');
+                    }
+
+
+                    else if (inputType == 'date') {
+
+
+                        if ($this.val() == '') {
+
+                            insertData[nameAttr] = null;
+                        }
+                        else {
+
+
+                            insertData[nameAttr] = moment($this.val()).format('DD-MM-YYYY');
+
+
+                        }
+
+                        //clear field
+                         $this.val('');
+                    }
+
+                    else {
+                        insertData[nameAttr] = $this.val();
+
+                        //clear field
+                        $this.val('');
+                    }
+                }
+
+
+
+
+
+            });
+            console.log('check 4.2');
+            if (isNew) {
+                console.log('check 4.2.1');
+                //this section nake table.table row
+                if ($tblcontainer.find('table').length == 0) {
+                    console.log('check 4.2.3');
+                    $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+                    // $tblcontainer.find('table').dataTable({ paging: true });
+                }
+                else {
+                    console.log('check 4.2.1');
+                    let table = $tblcontainer.find('table').DataTable()
+                    table.destroy()
+                    pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+
+
+                    //   $tblcontainer.find('table').dataTable({ paging: true });
+                    //   $tblcontainer.DataTable().draw();
+                    //  table.ajax.reload();
+                }
+                console.log('check 4.2.1');
+            }
+            else {
+                console.log('check 4.3');
+                let table = $tblcontainer.find('table').DataTable()
+                table.destroy()
+                console.log('check 4.4');
+                console.log('table', $tblcontainer.find('table'))
+                console.log('check 4.5');
+                pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+
+
+                //$tblcontainer.find('table').dataTable({ paging: true });
+            }
+
+            console.log('values',insertData);
+            // resetting the edit value
+            $tblcontainer.attr('perfect-tempTable-action', 0);
+        }
+    }
+
+
+    function ResetButton(ele) {
+
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[perfect-ctype="input"]').val('');
+        $thisForm.find('[perfect-ctype="date"]').val('');
+        $thisForm.find('[perfect-ctype="hidden"]').val('');
+        //$(':input').val('');
+        $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+    }
+
+
+    function savedata(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        debugger
+        let checkval = false;
+        if ($("#customSwitch").is(':checked')) {
+            checkval = true;
+        }
+        else {
+            checkval = false;
+        }
+        let FolupActData = [];
+        $thisForm.find('[perfect-tempTable="ProductType"]').find('tbody').find('tr').each(function () {
+            FolupActData.push($(this).data('pData'));
+        })
+        let isvalid = true;
+        let QtDate = $thisForm.find('[name="QuotationDate"]').val();
+        console.log('QtDate', QtDate);
+        
+        QtDate = new Date(QtDate);
+        QtDate.setHours(0, 0, 0, 0)
+
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (($thisForm.find('[name="IsQuotation"]').is(':Checked') == true) && ($thisForm.find('[name="ActStatus"] option:selected').val() == 1) && ($thisForm.find('[name="FK_ActionStatus"]').val() == 4)) {
+           
+            if ((QtDate < today) || (QtDate == "") || (QtDate == null) || (QtDate == '' || (QtDate == 'Invalid Date'))) {
+
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Quotation Expiry date should be  greater than or equal to Todays date' });
+                $(ele).prop('disabled', false);
+               // $thisForm.find('[name="IsQuotation"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Todays date and Future date Are Allowed')
+                isvalid = false;
+
+            }
+            else {
+                $thisForm.find('[name="IsQuotation"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+                isvalid = true;
+            }
+           // if (QtDate)
+
+        }
+        else {
+            $thisForm.find('[name="IsQuotation"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            isvalid = true;
+        }
+
+        if (isvalid) {
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'LgActMode': $thisForm.find('[name="ActMode"]').val(),
+                'LgActStatus': $thisForm.find('[name="ActStatus"]').val(),
+                'ActDate': $thisForm.find('[name="StatusDate"]').val(),
+                'LgActNextAction': $thisForm.find('[name="FK_NetAction"]').val(),
+                'ActNextDate': $thisForm.find('[name="NextActionDate"]').val(),
+                'FK_LeadGenerateProduct': $('#ID_LeadGenerateActionhdn').val(),
+                'FK_Departement': $thisForm.find('[name="FK_Departement"]').val(),
+                'FK_Employee': $thisForm.find('[name="FK_Employee"]').val(),
+                'FK_FollowUpBy': $thisForm.find('[name="FK_EmployeeFolo"]').val(),
+                'ActCusComment': $thisForm.find('[name="LgActCusComment"]').val(),
+                'ActLeadComment': $thisForm.find('[name="LgActLeadComment"]').val(),
+                'LeadGenerate': $thisForm.find('[name="FK_LeadGenerate"]').val(),
+                'FK_ActionType': $('[name="NxtFK_ActionType"]').val(),
+                'FK_Priority': $thisForm.find('[name="FK_Priority"]').val(),
+                'checkval': checkval,
+                'ProductDetails': FolupActData,
+                'IsQuotation': $thisForm.find('[name="IsQuotation"]').is(':Checked'),
+                'QuotationDate': $thisForm.find('[name ="QuotationDate"]').val(),
+            };
+            $.ajax({
+                url: "@Url.Action("AddNewLeadGenerateAction", "LeadManagement")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    console.log("Input Data >", inputData)
+                    console.log('checkval', checkval)
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                        });
+
+                        $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                        $thisForm.find('[perfect-ctype="input"]').val('');
+                        $thisForm.find('[perfect-ctype="date"]').val('');
+
+                        // Get the value set in form's perfect-onFormSuccess attribute
+                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                        if (onSuccess) {
+                            window[onSuccess]($thisForm);
+                            Functionrefreshleadcount();
+                            setTimeout(function () {// wait for 5 secs(2)
+                                location.reload(); // then reload the page.(3)
+                            }, 1000);
+                        }
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+
+            });
+        }
+    }
+    // Function to Add LeadGenerateAction
+    function fn_LeadGenerateActionForm_add(ele) {
+        debugger
+        $(ele).prop('disabled', true);
+
+        let FolupActData = [];
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        // debugger
+
+        let LgActStatus = $thisForm.find('[name="ActStatus"]').val() == '' ? null : $thisForm.find('[name="ActStatus"]').val();
+        let FK_NextAction = $thisForm.find('[name="FK_NetAction"]').val() == '' ? null : $thisForm.find('[name="FK_NetAction"]').val();
+        let ActionDate = $thisForm.find('[name="NextActionDate"]').val() == '' ? null : $thisForm.find('[name="NextActionDate"]').val();
+        let FK_Departement = $thisForm.find('[name="FK_Departement"]').val() == '' ? null : $thisForm.find('[name="FK_Departement"]').val();
+        let FK_Employee = $thisForm.find('[name="FK_Employee"]').val() == '' ? null : $thisForm.find('[name="FK_Employee"]').val();
+        let FK_NextFollowupType = $thisForm.find('[name="NxtFK_ActionType"]').val() == '' ? null : $thisForm.find('[name="NxtFK_ActionType"]').val();
+        let FK_Priority = $thisForm.find('[name="FK_Priority"]').val() == '' ? null : $thisForm.find('[name="FK_Priority"]').val();
+       
+
+        if (($thisForm.find('[name="LgActLeadComment"]').val() == "" || $thisForm.find('[name="LgActLeadComment"]').val() == undefined) && ($thisForm.find('[name="ActStatus"]').val() == 2)) {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Enter Employee Remarks' });
+            $(ele).prop('disabled', false);
+        }
+        else if ((LgActStatus == 1) || (LgActStatus == 3 )) {
+            if (FK_NextAction == null) {
+                let confirmationDialogBoxOption = { body: "Are you sure want to complete the lead without the next action ?", cancel: "No", confirm: "Yes" };
+                var confirmBoxObj = ConfirmDialogforSave(confirmationDialogBoxOption);
+                confirmBoxObj.then(function (selectedOption) {
+                    if (selectedOption) {
+
+                        savedata(ele)
+
+                    }
+                    else {
+
+                        $(ele).prop('disabled', false);
+                    }
+                });
+                $(ele).prop('disabled', false);
+            }
+            else {
+                if ((ActionDate == null || FK_Departement == null || FK_Employee == null || FK_NextFollowupType == null) && isvalid) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Next Action Tab: Enter all next action details' });
+
+                    }
+                    else {
+                        savedata(ele)
+
+                    }
+
+                $(ele).prop('disabled', false);
+            }
+
+
+
+        }
+
+
+        else {
+
+           savedata(ele)
+        }
+
+    }
+
+
+
+
+    function ConfirmDialogforSave(input) {
+        var p = new Promise(function (resolve, reject) {
+
+            let hasReason = false;
+            let reasonName = "ReasonID";
+            let headingText = (input && input.heading) ? input.heading : "Confirm Entry";
+            let bodyText = (input && input.body) ? input.body : "Are you Sure you want to do this?";
+            let cancelText = (input && input.cancel) ? input.cancel : "No";
+            let confirmText = (input && input.confirm) ? input.confirm : "Yes";
+            let headingIcon = (input && input.headingIcon) ? input.headingIcon : "fa fa-warning";
+            let headingColor = (input && input.headingColor) ? input.headingColor : "text-primary";
+
+
+            let $modaltitle = $('<h5/>', { class: "modal-title " + headingColor }).append($('<i>', { class: headingIcon })).append($('<span/>', { class: "ml-2" }).text(headingText));
+            let $modalHead = $('<div/>', { class: "modal-header border-0" }).append($modaltitle, $('<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>'));
+            let $modalBody = $('<div/>', { class: "modal-body pt-4" })
+            let $modalFooter = $('<div/>', { class: "modal-footer border-0" });
+            let $modalContent = $('<div/>', { class: "modal-content rounded-0" });
+            let $modalDialog = $('<div/>', { class: "modal-dialog modal-dialog-centered", role: "document" });
+            let $modal = $('<div/>', { class: "modal fade", tabindex: "-1", role: "dialog", "aria-labelledby": "", "aria-hidden": "true", "perfect-class": 'confirmDialogBox' });
+
+
+            if (input && input.reason) {
+                // console.log('SD : reason', input.reason);
+                hasReason = true;
+                let $select = $('<select/>', { class: "form-control", name: reasonName });
+                $select.append($('<option/>', { value: "" }).text("Select a Reason"));
+                $.each(input.reason, function (key, value) {
+                    $select.append($('<option/>', { value: value.ReasonID }).text(value.Reason));
+                });
+
+                $modalBody.append($('<div/>', { class: "col-md-12" }).append(
+                    $('<div/>', { class: "form-group", 'perfect-class': "formGroup" })
+                        .append($('<label/>', { class: "mb-0" }).text(""))
+                        .append($select)
+                        .append($('<div/>', { class: "invalid-feedback animated fadeInUp jq_reason_error d-block" }))
+                ));
+            }
+
+            $modalBody.append($('<div/>', { class: "px-3" }).text(bodyText));
+
+            //remove the model when modal is closed
+            // $modal.modal();
+            $modal.on('hidden.bs.modal', function () {
+                $(this).remove();
+                resolve(false);
+            });
+            let dialog = $('<div/>')
+                .append($('<button/>', { class: "btn btn-primary mr-3" }).text(confirmText).click(function () {
+
+                    if (hasReason) {
+
+                        let $reasonDropdown = $(this).closest('[perfect-class="confirmDialogBox"]').find('[name="' + reasonName + '"]');
+                        if ($reasonDropdown.val()) {
+                            console.log('SD: reason dropdown if val() ', $reasonDropdown.val())
+                            $reasonDropdown.closest('[perfect-class="formGroup"]').find('.jq_reason_error').text('');
+                            resolve($reasonDropdown.val());
+                            $modal.modal('hide');
+                        }
+                        else {
+                            console.log('SD: reason dropdown else val() ', $reasonDropdown.val())
+                            $reasonDropdown.closest('[perfect-class="formGroup"]').find('.jq_reason_error').text('Please select a reason');
+
+                            //$modal.modal('hide');
+                        }
+
+
+
+                    } else {
+                        resolve(true);
+                        $modal.modal('hide');
+                    }
+
+
+
+                }))
+                .append($('<button/>', { class: "btn btn-light" }).text(cancelText).click(function () {
+
+                    resolve(false);
+                    $modal.modal('hide');
+                }))
+
+            $modalBody.find('select').selectpicker('refresh')
+            $modalFooter.append(dialog)
+            $modal.html($modalDialog.html($modalContent.append($modalHead, $modalBody, $modalFooter))).modal({ backdrop: 'static', keyboard: false, show: true })
+
+
+        });
+        return p
+    }
+
+
+
+      function Functionrefreshleadcount(ele) {
+
+
+
+        let inputData = {//<---- Input Json : this is the variable we pass to controller
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'Filterid': 0
+        };
+
+        $.ajax({
+                url: "@Url.Action("GetLeadGenListOnLoad", "LeadManagement")",
+              type: "POST",
+              data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid >0) {
+                        $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                        $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                        $('#tasksbadge').html("" + ajaxOutput.Data[2].Value + "");
+                        $('#Todolist')[0].click();
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+
+
+    }
+
+   function fn_LeadManagement_History(ele) {
+        var rowCount = 0;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let prdOnly = true;;
+        if ($thisForm.find('[name=ViewAll]').is(":checked")) {
+            prdOnly = false;
+        }
+        let inputData = {            //
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'LeadGenerateProduct': $('#ID_LeadGenerateActionhdn').val(),//$thisForm.find('[name="FK_LeadProduct"]').val(),
+            'PrductOnly': prdOnly
+        };
+
+
+        $.ajax({
+            url: '@Url.Action("GetLeadActionHistoryList", "LeadManagement")',
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                $ProductHtml = '';
+                if (ajaxOutput != null) {
+                    $('#ProductTbody').empty();
+                    var ProductData = ajaxOutput.Data;
+
+                        if (ProductData)
+                        {
+                            var EnquiryAbout="";var PrevEnquiryAbout="";
+                            $.each(ProductData, function (i, value) {
+                              EnquiryAbout=value.EnquiryAbout;
+    if(!prdOnly)
+    {
+        if(value.EnquiryAbout.trim()!=PrevEnquiryAbout)
+        {
+            $ProductHtml += "<tr class='trgroup'><td  colspan='6'><b>" + value.EnquiryAbout + "</b></td></tr>";
+            PrevEnquiryAbout= value.EnquiryAbout;
+        }
+    }
+
+                                rowCount = (i + 1);
+                                    LeadAction = value.Action ;
+                                    $ProductHtml += "<tr id=" + rowCount + ">";
+                                    //$ProductHtml += "<td style='width:15%;'>" + value.EnquiryAbout + "</td>";
+                                    $ProductHtml += "<td style='width:12%;'>" + value.Action + "</td>";
+                                    $ProductHtml += "<td style='width:12%;'>" + value.ActionType + "</td>";
+                                    $ProductHtml += "<td style='width:12%;'>" + value.ActionDate + "</td>";
+                                    $ProductHtml += "<td td style='width:15%;'>" + value.Status + "</td>";
+                                    $ProductHtml += "<td style='width:35%;'>" + value.Agentremarks + "</td>";
+                                    $ProductHtml += "<td style='width:12%;'>" + value.FollowedBy + "</td>";
+                                    $ProductHtml += "</tr>";
+
+                            });
+
+                        }
+
+                        else {
+                            $ProductHtml += "<tr id='0'><td colspan='4' style'text-align:center'>No Records..</td></tr>";
+                    }
+
+                    $thisForm.find('#ProductTbody').append($ProductHtml);
+                    if(!prdOnly)
+                    {
+    $('.trgroup').prev().addClass("trbld");
+                    }
+    else{ $('.trgroup').prev().removeClass("trbld");
+                    } Loadmapmap
+
+                }
+                else {
+                    $ProductHtml += "<tr id='0'><td colspan='8' style'text-align:center'>No Records..</td></tr>";
+                    $thisForm.find('#ProductTbody').append($ProductHtml);
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+
+
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+            }
+
+        });
+
+        $(document).on('click', '.CloseEmpModal', function () {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        };
+      
+
+
+       
+    // Function to Update LeadGenerateAction
+    function fn_LeadGenerateActionForm_update(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if ($thisForm.valid()) {
+
+        }
+
+    }
+
+    function RemoveEmployee() {
+
+        $("input[name='AssignEmp']").val('');
+        $("input[name='FK_Employee']").val(0);
+    }
+
+    function Checkboxcheck(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (($thisForm.find('[name="IsQuotation"]').is(':Checked') == true) && ($thisForm.find('[name="ActStatus"] option:selected').val() == 1) && ($thisForm.find('[name="FK_ActionStatus"]').val() == 4) ) {
+            $('.divQuotationdate').show(); 
+            $thisForm.find('[name="QuotationDate"]').val();
+        }
+        
+        else {
+            $('.divQuotationdate').hide();
+            
+
+        }
+    }
+
+</script>

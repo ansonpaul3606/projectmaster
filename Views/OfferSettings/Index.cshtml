@@ -1,0 +1,413 @@
+﻿
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="offerSettings">
+
+        </div>
+    </div>
+</div>
+
+@section  scripts {
+
+
+    <script type="text/javascript">
+        var LastID_offer;
+        var LastIDSessionKey = 'OfferLastID';
+        const $formContainer = $('#offerSettings');
+        $(document).ready(function () {
+
+            fn_OfferSettings_initialLoad();
+
+
+        });
+
+        function fn_OfferSettings_initialLoad(){
+            //LoadAddOfferSettings();
+            LoadOfferdetailsList(this, LoadAddOfferSettings);
+        }
+
+        function LoadAddOfferSettings() {
+
+             $formContainer.load('@Url.Action("LoadOfferSettings", "OfferSettings")', function (){
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                 $thisForm.find('[name="OfrEffectDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.find('[name="OfrExpireDate"]').val(moment().format('YYYY-MM-DD'));
+                 $(".pricefixing").hide();
+                 $("#idbutton2").hide();
+                 $thisForm.attr('perfect-onFormSuccess', 'fn_OfferSettings_initialLoad');
+                 getSessionValue(LastIDSessionKey, function (result) {
+                     LastID_offer = result;
+                 });
+            });
+        }
+
+        var validationMessage =
+        {
+
+            'OfrName': {
+                'required':'Please Enter Offer Name'
+
+            },
+            'OfrEffectDate': {
+                'required': 'Please Enter Effect date'
+            },
+            'OfrExpireDate': {
+                'required': 'Please Enter Expiry date'
+            },
+            'OfrDescription': {
+                'required': 'Please Enter Description'
+            }
+
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                               {
+
+                                <text>   { displayName: "View", action: fn_Offersettings_UpdateForm }, </text>
+                              }
+
+                  { type: "divider" },
+
+                    @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                         {
+                               <text> { displayName: "Delete", action: fn_delete_OfferSetting},</text>
+                        }
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Typename", "OfrName", "OfrEffectDate","OfrExpireDate"],
+            hideColumn: [],
+            rowClickAction: fn_Offersettings_UpdateForm,
+            renameHeader: { "SlNo": "SL No","Typename":"Type", "OfrName": "Offer Name", "OfrEffectDate": "Effect Date", "OfrExpireDate": "Expiry Date"},
+            isDateType: ['OfrEffectDate', 'OfrExpireDate'],
+
+        }
+
+
+
+        function LoadOfferdetailsList(ele, callback) {
+
+
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            //console.log("GHc", SearchName)
+            if (SearchName == undefined) {
+                SearchName = '';
+            }
+
+
+            //let tableOptions = servtableOptions;
+
+
+            $sideMenuOptions.title.find('h4').text('Offer/Price Fixing List');
+            let pageUrl = "@Url.Action("GetOfferdetailsList", "OfferSettings")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ''},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput)
+                    if (ajaxOutput.Process.IsProcess) {
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                       // debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadOfferdetailsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        //$sidemenu.append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control "id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Servicebill_Select(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ''}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("S List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadOfferdetailsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ''}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+                complete: function () {
+
+                if (callback) {
+                    callback();
+                }
+            }
+        });
+
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+      debugger
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+        function fn_delete_OfferSetting() {
+
+            let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        console.log(Saveddata,'sa')
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetOfferReasonList", "OfferSettings")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    debugger;
+                    console.log('ajre', ajaxReasonOutput)
+                    if (ajaxReasonOutput.Process.IsProcess) {
+
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    ID_Offers: Saveddata.ID_Offers,
+                                    ReasonID: ret,
+                                    TransMode: ''
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteOfferSetting", "OfferSettings")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();
+                                                LoadAddOfferSettings();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+
+        }
+
+        function fn_Offersettings_UpdateForm() {
+
+
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $(this).closest('tr').addClass('SelectForDelete');
+            console.log('fd', savedData);
+
+            $formContainer.load('@Url.Action("LoadOfferSettings", "OfferSettings")', function () {
+
+                debugger
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+           
+                $thisForm.find('[name="OfrName"]').val(savedData.OfrName);
+                $thisForm.find('[name="OfrEffectDate"]').val(moment(savedData.OfrEffectDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="OfrExpireDate"]').val(moment(savedData.OfrExpireDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="OfrDescription"]').val(savedData.OfrDescription);
+                $thisForm.find('[name="FK_Offers"]').val(savedData.ID_Offers);
+                $thisForm.find('[name="FK_Type"]').val(savedData.FK_Type);
+                let Mode = $thisForm.find('[name=FK_Type]').val().trim();
+                if (Mode == 1) {
+
+                    $("#divofferdescription").hide();
+                    $("#divoffername").hide();
+                    $(".pricefixing").show();
+                    $("#idbutton1").hide();
+                    $("#idbutton2").show();
+                    //$thisForm.find('[name="OfrName"]').removeClass('perfectValidate_string');
+                    //$thisForm.find('[name="OfrDescription"]').removeClass('perfectValidate_Remarks');
+
+                }
+                else {
+                    $("#divofferdescription").show();
+                    $("#divoffername").show();
+                    $(".pricefixing").hide();
+                    $("#idbutton1").show();
+                    $("#idbutton2").hide();
+                    //$thisForm.find('[name="OfrName"]').addClass('perfectValidate_string');
+                    //$thisForm.find('[name="OfrDescription"]').addClass('perfectValidate_Remarks');
+                }
+                $thisForm.find('[name="OfrActive"]').prop('checked',savedData.OfrActive); 
+
+                let inputData = {
+                    FK_Offers: savedData.ID_Offers,
+
+                };
+
+                $.ajax({
+                    url: '@Url.Action("GetOfferSettingInfoByID", "OfferSettings")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                    type: "POST",
+                    data: inputData,//<---- Input json : data passed to controller
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                        console.log('ajaxOutput', ajaxOutput);
+                        debugger
+
+                        if (ajaxOutput.result.Process.IsProcess) {
+                            if (Mode == 1) {
+                                fn_fillOfferdetails($thisForm, 'Offers', ajaxOutput.result.Data, tableOptionsTempOutPricefixing);
+                            }
+                            else {
+                                fn_fillOfferdetails($thisForm, 'Offers', ajaxOutput.result.Data, tableOptionsTempOut);
+                            }
+                            //$thisForm.find('[name="FK_LeaveType"]').val(ajaxOutput.leave)
+                    
+                        }
+
+
+
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=add]').hide();
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_OfferSettings_initialLoad');
+
+
+
+                    },
+                    //complete: function () {
+                    //    $thisForm.find('[name="FK_LeaveType"]').selectpicker('refresh');
+                    //}
+
+                }); $sideMenuOptions.close();
+            });
+
+        }
+
+    </script>
+
+}

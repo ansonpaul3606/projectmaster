@@ -1,0 +1,358 @@
+﻿
+@{
+    ViewBag.Title = "GoodsTrasferMethod";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="GoodsTrasferMethod-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts{
+
+
+<script>
+
+    const $formContainer = $('#GoodsTrasferMethod-form');
+
+        $(document).ready(function () {
+            GoodsTransferInitialLoad();
+    });
+
+
+    var validationMessage = {
+
+        'GoodsTransName': {
+            'required': 'Please Enter a Name',
+            'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in  Name'
+
+        },
+        'GoodsTransShortName': {
+            'required': 'Please Enter a Short Name',
+            'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+            'alphanumeric': 'Special characters are not allowed in short name'
+        },
+    };
+
+
+
+    function GoodsTransferInitialLoad() {
+
+        loadGoodsTransferAddForm();
+              @*@if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadCountryList(this); </text>
+              }*@
+        loadgoodstransferList(this);
+
+      }
+
+
+           // Fucntion to load Country ADD form
+        function loadGoodsTransferAddForm() {
+
+            $formContainer.load('@Url.Action("LoadGoodsTrasferMethodForm", "GoodsTrasferMethod")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'GoodsTransferInitialLoad');
+            });
+
+        };
+
+
+
+    function loadgoodstransferList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Goods Transfer Method List');
+          let pageUrl = '@Url.Action("GetGoodsTransferList", "GoodsTrasferMethod")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Country', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Country");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadgoodstransferList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+
+                    if (ajaxOutput.Process.Status = "NoData") {
+
+                     $sidemenu.find('.jq_sidemenu_title').text("Country");
+
+                     $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadgoodstransferList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editGoodstransfer },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteGoodsTrasferMethod },</text>
+
+              }
+                ],
+        class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "GoodsTransName", "GoodsTransShortName"],
+        hideColumn: ["ID_GoodsTransferMethod","TotalCount","TransMode","Sort"],
+        rowClickAction: editGoodstransfer,
+        renameHeader: { "SlNo": "SL NO", "GoodsTransName": "Name", "GoodsTransShortName": "ShortName" }
+
+    };
+
+      function editGoodstransfer() {
+
+         let $thisUser = $(this).closest('tr');
+         console.log($thisUser.data());
+         let savedData = $thisUser.data('pData');
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+          let inputData = {
+              'FK_GoodsTransferMethod': savedData.ID_GoodsTransferMethod
+          };
+
+             $.ajax({
+                url: '@Url.Action("GetGoodsTransferInfo", "GoodsTrasferMethod")',
+                type: "POST",
+                data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            console.log('>_ Inside GetCountryInfo', ajaxOutput)
+
+                            $sideMenuOptions.close();
+
+                        $formContainer.load("@Url.Action("LoadGoodsTrasferMethodForm", "GoodsTrasferMethod")", function () {
+
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                            $thisForm.attr('perfect-onFormSuccess', 'countryInitialLoad');
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+
+                            $thisForm.find('[name=ID_GoodsTransferMethod]').val(ajaxOutput.Data[0].ID_GoodsTransferMethod),
+                            $thisForm.find('[name=GoodsTransName]').val(ajaxOutput.Data[0].GoodsTransName),
+                            $thisForm.find('[name=GoodsTransShortName]').val(ajaxOutput.Data[0].GoodsTransShortName),
+                            $thisForm.find('[name=Sort]').val(ajaxOutput.Data[0].Sort)
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                     console.log('>_ Inside GetCountryInfo :false')
+
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+         });
+
+      }
+
+    function deleteGoodsTrasferMethod() {
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+
+               $.ajax({
+                   url: "@Url.Action("GetGoodsTransferReasonList", "GoodsTrasferMethod")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.GoodsTransName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        'ID_GoodsTransferMethod': Saveddata['ID_GoodsTransferMethod'],
+                                        'ReasonID': selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteGoodsTrasferMethodInfo", "GoodsTrasferMethod")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                loadGoodsTransferAddForm();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+
+                   }
+
+               });
+
+      };
+
+</script>
+
+
+
+
+}

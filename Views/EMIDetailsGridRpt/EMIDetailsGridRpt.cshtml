@@ -1,0 +1,105 @@
+﻿
+@{
+    ViewBag.Title = "EMIDetailsGridRpt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group row" perfect-class="formGroup">
+                <div class="col-xl-4"> </div>             
+                <div class="col-xl-4"> </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="jq_LeadManagementIndex_formContainer">
+
+        </div>     
+    </div>
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_LeadManagementIndex_formContainer');
+    var LeadMgtTransMode = '';
+
+    $(document).ready(function () {
+        fn_LeadManagementIndex_initialLoad()
+
+        $('#jq-sidemenu').hide();
+
+    });
+
+    function fn_showFilter() {
+        $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+    }
+
+    function fn_LeadManagementIndex_initialLoad() {
+        fn_LeadMgtIndex_loadLeadMgtAddForm();
+    }
+
+
+    function fn_LeadMgtIndex_loadLeadMgtAddForm() {
+
+        $formContainer.load('@Url.Action("LoadFormEMIMonitoring", "EMIDetailsGridRpt")', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+
+            $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+            $('[name=FK_Branch]').val(@ViewBag.FK_Branch);
+            $thisForm.attr('perfect-onFormSuccess', 'fn_LeadManagementIndex_initialLoad');
+            $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').addClass('d-none');
+            $('[name=Demand]').val(30);
+            let inputData = {      
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'FK_FinancePlanType': $('[name=FK_FinancePlanType]').val().trim(),
+                'FromDate': $('[name=FromDate]').val(),
+                'ToDate': $('[name=ToDate]').val(),
+                'EMINo': $('[name=EMINo]').val().trim(),
+                'FK_Branch': $('[name=FK_Branch]').val().trim(),
+                'FK_Area': $('[name=FK_Area]').val(),
+                'FK_District': $('[name=DistrictID]').val(),
+                'FK_Category': $('[name=FK_Category]').val(),
+                'FK_Product': $('[name=ID_Product]').val(),
+                'FK_Customer': $('[name=FK_Customer]').val(),
+                'Demand': $('[name=Demand]').val().trim(),
+                'PageSize': 10,
+                'PageIndex': 0,
+                'Mode': 0,
+            };
+             $.ajax({
+                 url: "@Url.Action("GetEMICollectionListOnLoad", "EMIDetailsGridRpt")",
+                 type: "POST",
+                 data: inputData,
+                 dataType: "json",
+                 contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+                     debugger;//hi
+                     if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid <= 0) {
+                         $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                         $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                     }
+                     else if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid > 0){                        
+                         $('#todayscollectionbadge').html("" + ajaxOutput.Data[0].Value + "");
+                         $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                         $('#demandbadge').html("" + ajaxOutput.Data[2].Value + "");   
+                     }
+                     else {
+                         if (ajaxOutput.Process.Status == "NoData") { }
+                         else {
+                             $.each(ajaxOutput.Process.Message, function (key, value) {
+                                 NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Data Found' });
+                             });
+                         }
+                     }
+                 },
+                 complete: function () {
+                 }
+            });
+            $("#Todolist")[0].click();
+        });
+    };
+
+</script>
+}

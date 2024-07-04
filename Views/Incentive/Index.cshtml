@@ -1,0 +1,386 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="incentive-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="text/javascript">
+
+
+        var IncTransMode = '';
+        const $formContainer = $('#incentive-form');
+        $(document).ready(function () {
+
+            fn_incentive_initialLoad(this);
+
+        });
+
+        function fn_incentive_initialLoad() {
+            IncTransMode ='@ViewBag.TransMode';
+            LoadAddIncentive();
+            LoadIncetivedetailsList();
+        }
+
+        function LoadAddIncentive() {
+
+            $formContainer.load('@Url.Action("LoadIncentiveform", "Incentive")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+
+                 $thisForm.attr('perfect-onFormSuccess', 'fn_incentive_initialLoad');
+
+            });
+        }
+
+        var validationMessage = {
+            'IncModule': {
+                'required':'Please Select Module',
+            },
+            'IncTrTotalAmount': {
+                'required': 'Please enter Amount',
+                'maxlength': 'Please enter no more than 12 Numbers'
+            },
+            'IncTrDividentPercent': {
+                'required': 'Please enter Percentage'
+            },
+            'TransDate': {
+                'required' : 'Please select Transdate'
+            },
+            'PAmount': {
+                'maxlength': 'Please enter no more than 12 Numbers.'
+            },
+            'IncTrProfitAmount': {
+                'maxlength': 'Please enter no more than 12 Numbers.'
+            }
+
+
+        }
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                               {
+
+                                <text>   { displayName: "View", action: fn_incentive_UpdateForm }, </text>
+                              }
+
+                  { type: "divider" },
+
+                    @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                         {
+                               <text> { displayName: "Delete", action: fn_delete_incentive},</text>
+                        }
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "TransDate", "Module","MasterName", "IncTrTotalAmount", "IncTrDividentPercent","IncTrProfitAmount"],
+            hideColumn: [],
+            rowClickAction: fn_incentive_UpdateForm,
+            renameHeader: { "SlNo": "SL No", "TransDate": "Trans Date", "Module": "Module", "MasterName": "Reference Name","IncTrTotalAmount": "Total Amount1R", "IncTrDividentPercent": "Dividend Percentage1R","IncTrProfitAmount": "Profit Amount1R"   },
+            isDateType: ["TransDate"],
+
+        }
+
+
+        function LoadIncetivedetailsList(ele) {
+
+         let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            //console.log("GHc", SearchName)
+            if (SearchName == undefined) {
+                SearchName = '';
+            }
+
+
+            //let tableOptions = servtableOptions;
+
+
+            $sideMenuOptions.title.find('h4').text('Incentive Payment List');
+            let pageUrl = "@Url.Action("GetIncentiveformList", "Incentive")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: IncTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput)
+                    if (ajaxOutput.Process.IsProcess) {
+                        //debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadIncetivedetailsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        //$sidemenu.append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control "id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Servicebill_Select(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: IncTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Incentive Payment List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadIncetivedetailsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                    "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: IncTransMode}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+
+    }
+
+     function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+      //debugger
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+     }
+
+
+
+        function fn_incentive_UpdateForm() {
+
+           let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $(this).closest('tr').addClass('SelectForDelete');
+            console.log('fd', savedData);
+
+            $formContainer.load('@Url.Action("LoadIncentiveform", "Incentive")', function () {
+
+                //debugger
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.find('[name="IncTrDividentPercent"]').val(savedData.IncTrDividentPercent);
+                $thisForm.find('[name="IncTrProfitAmount"]').val(savedData.IncTrProfitAmount);
+                $thisForm.find('[name="TransDate"]').val(moment(savedData.TransDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="IncTrTotalAmount"]').val(savedData.IncTrTotalAmount);
+                $thisForm.find('[name="IncModule"]').val(savedData.IncTrType).selectpicker('refresh');
+                $thisForm.find('[name="IncNetAmount"]').val(savedData.IncNetAmount);
+                $thisForm.find('[name="IncNetAmount"]').val(savedData.IncNetAmount);
+                savedData.IncTrType == 1 ? $thisForm.find('[name="Project"]').val(savedData.MasterName) : $thisForm.find('[name="BillNo"]').val(savedData.MasterName)
+
+                let inputData = {
+                    ID_IncentiveTransaction: savedData.ID_IncentiveTransaction,
+                    TransMode: IncTransMode
+
+                };
+
+                $.ajax({
+                    url: '@Url.Action("GetIncentiveInfoByID", "Incentive")',
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+                        //console.log('ajaxOutput', ajaxOutput);
+                        //debugger
+
+
+                        $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+
+                        //fillTableSales($thisForm, 'Purchase', ajaxOut.SaleDetails.Data, saltableOptionsTempOut)
+                        if (ajaxOutput.paymentdetail.Data != 0) {
+                            fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                        }
+
+                        if (ajaxOutput.output.Process.IsProcess) {
+                            //debugger
+                            //console.log("ajaxOutput.output.Data", ajaxOutput.output.Data)
+                            fn_BindEditRow(this, ajaxOutput.output.Data, savedData.IncTrType)
+
+                        }
+
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=add]').hide();
+                        //$thisForm.find('button[name=update]').removeClass('d-none');
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_incentive_initialLoad');
+
+
+
+                    },
+
+                }); $sideMenuOptions.close();
+            });
+
+
+        }
+
+        function fn_delete_incentive() {
+
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        console.log(Saveddata,'sa')
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetIncentiveReasonList", "Incentive")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    //debugger;
+                    console.log('ajre', ajaxReasonOutput)
+                    if (ajaxReasonOutput.Process.IsProcess) {
+
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    ID_IncentiveTransaction: Saveddata.ID_IncentiveTransaction,
+                                    ReasonID: ret,
+                                    TransMode: IncTransMode
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteIncentivePay", "Incentive")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();
+                                                LoadAddIncentive();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+        }
+
+    </script>
+
+}
+

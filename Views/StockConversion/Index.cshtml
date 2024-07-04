@@ -1,0 +1,483 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="StockConversion-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        const $formContainer = $('#StockConversion-form');
+        const LastIDSessionKeySTKCONV = 'StockConvLastID';
+        var StockConvTransMode = '';
+        var LastID_StockConversion;
+        $(document).ready(function () {
+            StockConversionInitialLoad();
+        });
+        function StockConversionInitialLoad()
+        {
+            StockConvTransMode = '@ViewBag.TransMode';
+            console.log(StockConvTransMode);
+            StockConversionLoad();
+            @if (ViewBag.PagedAccessRights.UsrrlStView)
+            {
+                <text>fn_StockConversion_Load(this);</text>
+            }
+        }
+        function StockConversionLoad()
+        {
+            $formContainer.load('@Url.Action("LoadFormStockConversion", "StockConversion")' + '?StockConvTransMode=' + StockConvTransMode, function () {            
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                 $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.validate({ messages: validationMessage });
+                var today = new Date().toISOString().split('T')[0];
+                 document.getElementsByName("TransDate")[0].setAttribute('min', today);
+                 $thisForm.attr('perfect-onFormSuccess', 'StockConversionInitialLoad');
+                 $thisForm.find('[name="DepartmentID"]').removeAttr("disabled"); $thisForm.find('[name="DepartmentID"]').selectpicker('refresh');
+                 $thisForm.find('[name="BranchID"]').removeAttr("disabled"); $thisForm.find('[name="BranchID"]').selectpicker('refresh');
+                 $thisForm.find('[name="btnemployeefromid"]').removeAttr("disabled");
+
+
+
+                 getSessionValue(LastIDSessionKeySTKCONV, function (result) {
+                     LastID_StockConversion = result;
+
+                 });
+            });
+        }
+
+        var validationMessage = {
+            'TransDate': {
+                'required': 'Please Enter Effect Date',
+                'min': 'Trans Date should be greater than or equal to Todays date'
+
+            }
+                , 'BranchID': {
+                'required': 'Please Select  Branch',
+                'stringonly': 'Invalid Branch selected'
+            },
+            'DepartmentID': {
+                'required': 'Please Select  Department',
+                'stringonly': 'Invalid Department selected'
+            }
+
+        };
+
+        function fn_StockConversion_Load(ele)
+        {
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Stock Conversion List');
+
+            let pageUrl = "@Url.Action("GetStockConversionList", "StockConversion")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: StockConvTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKeySTKCONV, ajaxOutput.Data[0]["LastID"]);
+
+                              $sidemenu.find('.jq_sidemenu_title').text("Stock Conversion");
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_StockConversion_Load(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  $sidemenu.find('.jq_sidemenu_title').text("Language");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_StockConversion_Load(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+            dropdown: {
+                buttons: [
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editStockConversion },</text>
+                   }
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteStockConversion },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "TransDate", "BranchName", "DepartmentName","Employee"],
+        hideColumn: [],
+        serialNo: false,
+        rowClickAction: editStockConversion,
+        isDateType: ["TransDate"],
+        renameHeader: { "SlNo": "Sl No", "TransDate": "Trans Date", "Employee": "Employee"}
+
+    };
+
+
+        function deleteStockConversion()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetStockConversionReasonList", "StockConversion")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_StockConversion: Saveddata.ID_StockConversion,
+                                        ReasonID: selectedOption,
+                                        TransMode:StockConvTransMode
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteStockConversion", "StockConversion")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                StockConversionInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        function editStockConversion()
+        {
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_StockConversion: savedData.ID_StockConversion
+            };
+
+                $.ajax({
+                 url: '@Url.Action("GetStockConversionInfo", "StockConversion")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput.alInfo.Process.IsProcess) {
+                            $formContainer.load('@Url.Action("LoadFormStockConversion", "StockConversion")', function ()
+                            {
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.alInfo.Data[0] });
+                                $thisForm.find('[name=ID_StockConversion]').val(ajaxOutput.alInfo.Data[0].ID_StockConversion);
+                                $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.alInfo.Data[0].TransDate).format('YYYY-MM-DD'));
+
+                                $thisForm.find('[name="BranchID"]').val(ajaxOutput.alInfo.Data[0].FK_Branch).selectpicker('refresh');
+                                $thisForm.find('[name="BranchID"]').trigger('change');
+
+
+                                $thisForm.find('[name="DepartmentID"]').val(ajaxOutput.alInfo.Data[0].FK_Department).selectpicker('refresh');
+                                $thisForm.find('[name="DepartmentID"]').trigger('change');
+                                console.log(ajaxOutput.alInfo.Data[0]['Employee']);
+                                $thisForm.find('[name="EmployeeName"]').val(ajaxOutput.alInfo.Data[0]['Employee']);
+                                $thisForm.find('[name="FK_Employee"]').val(ajaxOutput.alInfo.Data[0]['FK_Employee']);
+
+                                if (ajaxOutput.subtable.Process.IsProcess) {
+
+                                    fn_fillStockConversionItem($thisForm, 'StockConversion', ajaxOutput.subtable.Data, tableOptionsStockConversionTempOut)
+                                    $thisForm.find('[perfect-tempTable="StockConversion"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                }
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'StockConversionLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+    }
+
+
+
+        var tableOptionsStockConversionTempOut = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                             
+                                 
+                                if ($thisNode.is('select')) {
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                      
+                                        
+                                            $thisNode.val(savedData[pf_name]);
+                                         
+
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                            $("#reset").click();
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: { "SubProName": "Component" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+        function fn_fillStockConversionItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                   
+
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name'); 
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            switch (headerName) {
+                                case "StockMode":
+                                    headerName = "Stock Mode";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                console.log("kkk" + nameAttr);
+                                var val_ = valOne[nameAttr];
+
+                                if (val_ == "" && nameAttr == "Amount") {
+                                    val_ = "0";
+                                }
+                                pData[nameAttr] = val_;
+                            }
+                        }
+                        else {
+                         
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+
+                });
+
+                insertData.push(pData);
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        }
+    </script>
+}

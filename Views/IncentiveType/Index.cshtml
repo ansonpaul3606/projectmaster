@@ -1,0 +1,447 @@
+﻿
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Incentivetype-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#Incentivetype-form');
+        var IncentiveTypeTransMode = '';
+        $(document).ready(function () {
+            IncentivetypeInitialLoad();
+
+        });
+
+
+        function IncentivetypeInitialLoad() {
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text>   loadIncentivetypeList(this); </text>
+              }
+            IncentiveTypeTransMode = '@ViewBag.TransMode';       
+             loadIncentivetypeAddForm();
+        }
+
+
+           // Function to load TaxType ADD form
+        function loadIncentivetypeAddForm() {
+
+            $formContainer.load('@Url.Action("LoadIncentivetypeForm", "IncentiveType")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+               $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+
+
+                $thisForm.attr('perfect-onFormSuccess', 'IncentivetypeInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+        var validationMessage = {
+            'IncTModule': {
+                'required': 'Please Select Module',
+                'digits': 'Invalid Module Selected'
+            },
+           
+
+            'IncTName': {
+                'required': 'Please Enter Name',
+                'maxlength': jQuery.validator.format('Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Name'
+            },
+
+            'IncTShortName': {
+                'required': 'Please Enter  Short Name',
+                'stringonly': 'Invalid   Short Name',
+                'alphanumeric': 'Invalid  Short Name',
+                'maxlength': jQuery.validator.format('Short Name should be less than 10 characters'), 
+            },
+            'AccountHead1': {
+                'required': 'Please Select a Distribution Head',
+                'digits': 'Invalid Distribution Head selected'
+            },
+            'AccountHead': {
+                'required': 'Please Select a Incentive Head',
+                'digits': 'Invalid Incentive Head selected'
+            },
+
+        };
+
+
+        function loadIncentivetypeList(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+
+       
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+           $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetIncentiveTypeList", "IncentiveType")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('IncentiveType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("IncentiveType");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentivetypeList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentivetypeList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+     
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlTyView) {
+        <text> { displayName: "View", action: editIncentiveType },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+             {
+                 <text> { displayName: "Delete", action: deleteIncentiveType },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "IncTName", 'IncTShortName', 'IncTModuleName'],
+            hideColumn: [],
+
+            rowClickAction: editIncentiveType,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "IncTName": "Name", "IncTShortName": "ShortName", "IncTModuleName": "Module"}
+        };
+
+        function editIncentiveType() {
+            debugger
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_IncentiveType: Saveddata.ID_IncentiveType
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetIncentiveTypeInfoByID", "IncentiveType")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                                $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+                                debugger
+                                console.log('>_ Inside GetTaxTypeInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadIncentivetypeForm", "IncentiveType")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].IncentiveType)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    debugger
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                    $thisForm.find('[name="IncTName"]').val(ajaxOutput.Data[0].IncTName),
+                                        $thisForm.find('[name="IncTShortName"]').val(ajaxOutput.Data[0].IncTShortName),
+                                        $thisForm.find('[name="IncTAcposting"]').prop('checked', ajaxOutput.Data[0].IncTAcposting),
+                                  
+                                    $thisForm.find('[name="IncTModule"]').val(ajaxOutput.Data[0].IncTModule).selectpicker('refresh'),
+                                     $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AHeadName),
+                                    $thisForm.find('[name="AHeadName1"]').val(ajaxOutput.Data[0].AHeadName1),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+
+                                     if (ajaxOutput.Data[0].AccountHead == 0) {
+                                        $thisForm.find('[name="AccountHead"]').val('')
+                                    }
+                                     else {
+                                         $thisForm.find('[name="AccountHead"]').val(ajaxOutput.Data[0].AccountHead)
+                                    }
+                                    if (ajaxOutput.Data[0].AccountHead1 == 0) {
+                                        $thisForm.find('[name="AccountHead1"]').val('')
+                                    }
+                                    else {
+                                        $thisForm.find('[name="AccountHead1"]').val(ajaxOutput.Data[0].AccountHead1)
+                                    }
+                                   
+                                  
+
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'IncentrivetypeInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetincentiveTypeInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+
+                            loadIncentivetypeList()
+                },
+
+            });
+
+        }
+
+           // Function to delete IncentiveType
+
+          //---
+         // Function to delete customer
+        function deleteIncentiveType() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetIncentiveTypeDeleteReasonList", "IncentiveType")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       // console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.IncTName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                          
+                           
+                           confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        IncentiveTypeID: Saveddata.ID_IncentiveType,
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteIncentiveTypeInfo", "IncentiveType")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                               
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message':'Deleted Successfully' });
+                                                });
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                              
+                                                loadIncentivetypeAddForm();
+                                                $('.dz-demo-panelshow').removeAttr(show);
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        //--
+
+
+
+    </script>
+
+
+
+}

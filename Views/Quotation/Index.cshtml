@@ -1,0 +1,456 @@
+﻿@{
+    ViewBag.Title = "SalesOrder";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_QuotationIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        var validationMessage = {
+            'SalesOrderDate': {
+                'required': 'Please Select Sales Order date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'CustomeName': {
+                'required': 'Please Enter Customer Name'
+            },
+
+            'MobileNo': {
+                'required': 'Invalid mobile number',
+                'minlength': jQuery.validator.format('Mobile Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('Mobile Should be Less than {0} Characters')
+            },
+            'SalBillTotal': {
+                'required': 'Invalid Sub Total'
+            },
+            'SalNetAmount': {
+                'required': 'Invalid Net Amount'
+            },
+            
+        };
+
+
+        const $formContainer = $('#jq_QuotationIndex_formContainer');
+        // Initial load functions
+        $(document).ready(function () {
+            fn_QuotationIndex_InitialLoad();
+
+        });
+        function fn_QuotationIndex_InitialLoad() {
+
+              fn_loadQuotationForm();
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> fn_loadQuotationList(this); </text>
+              }
+        }
+
+        // Fucntion to load Sales order add form
+        function fn_loadQuotationForm() {
+            $formContainer.load('@Url.Action("LoadFormQuotation", "Quotation")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="SalesOrderDate"]').val(moment().format('YYYY-MM-DD'));
+
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_loadQuotationList');
+                initFunctions($thisForm);
+            });
+        };
+
+        function fn_loadQuotationList(ele)
+        {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Quotation List');
+             let pageUrl = '@Url.Action("GetQuotationList", "Quotation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                          if (ajaxOutput.Process.IsProcess) {
+                              $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LeadGenIndex_loadLeadGen(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+                          }
+                          else
+                          {
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LeadGenIndex_loadLeadGen(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editQuotation },</text>
+                }
+                { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteQuotation },</text>
+                  }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "SoNo", "SoDate",  "SoBillTotal"],
+        hideColumn: ["ID_SalesOrder"],
+        rowClickAction: fn_editQuotation,
+        renameHeader: { "SlNo": "SL NO", "SoNo": "Quotation No", "SoDate": "Date", "SoBillTotal": "Amount" },
+        isDateType: ["SoDate"]
+    };
+
+
+
+        function fn_editQuotation()
+    {
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+
+            let inputData =
+            {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    ID_SalesOrder: Saveddata.ID_SalesOrder
+            };
+            fn_fillQuotationDetails(inputData);
+        }
+
+
+        function fn_fillQuotationDetails(inputData) {
+         $.ajax({
+                url: '@Url.Action("GetQuotationInfo", "Quotation")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.soInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFormQuotation", "Quotation")", function () {
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $thisForm.find('[name="ID_SalesOrder"]').val(ajaxOutput.soInfo.Data[0]['ID_SalesOrder']);
+                                    $thisForm.find('[name="QuotationNo"]').val(ajaxOutput.soInfo.Data[0]['SoNo']);
+                                    $thisForm.find('[name="SalesOrderDate"]').val(moment(ajaxOutput.soInfo.Data[0]['SoDate']).format('YYYY-MM-DD'));
+                                   
+                                    $thisForm.find('[name="ID_Customer"]').val(ajaxOutput.soInfo.Data[0]['FK_Customer']);
+                                    $thisForm.find('[name="ID_LeadGenerate"]').val(ajaxOutput.soInfo.Data[0]['FK_LeadGenerate']);
+                                    $thisForm.find('[name="ID_Quotation"]').val(ajaxOutput.soInfo.Data[0]['FK_Quotation']);
+
+                                    $thisForm.find('[name="CustomeName"]').val(ajaxOutput.soInfo.Data[0]['CusName']);
+                                    $thisForm.find('[name="MobileNo"]').val(ajaxOutput.soInfo.Data[0]['CusMobile']);
+                                    $thisForm.find('[name="SalesOrdExpDate"]').val(moment(ajaxOutput.soInfo.Data[0]['SoDeliverydate']).format('YYYY-MM-DD'));
+
+                                    $thisForm.find('[name="SalBillTotal"]').val(ajaxOutput.soInfo.Data[0]['SoBillTotal']);
+                                    $thisForm.find('[name="OtherCharge"]').val(ajaxOutput.soInfo.Data[0]['SoOthercharges']);
+                                    $thisForm.find('[name="SalOrderDiscount"]').val(ajaxOutput.soInfo.Data[0]['SoDiscount']);
+                                    $thisForm.find('[name="SalOrderRoundoff"]').val(ajaxOutput.soInfo.Data[0]['SoRoundoff']);
+                                    $thisForm.find('[name="SalNetAmount"]').val(ajaxOutput.soInfo.Data[0]['SoNetAmount']);
+                                    $thisForm.find('[name="SoAddress"]').val(ajaxOutput.soInfo.Data[0]['SoAddress']);
+                                    
+                                    if (ajaxOutput.soItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.soItem.Data[0] });
+                                        fn_fillQuotationItem($thisForm, 'Quotation', ajaxOutput.soItem.Data, tableOptionsQuotationItem)
+                                        $thisForm.find('[perfect-tempTable="Quotation"]').find('table').dataTable({ paging: false, ordering: false });
+
+                                    }
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'fn_loadQuotationList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+    }
+        function fn_deleteQuotation()
+        {
+
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+               $.ajax({
+                   url: "@Url.Action("GetQuotationReasonList", "Quotation")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        SalesOrderID: Saveddata['ID_SalesOrder'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteQuotation", "Quotation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_SaleOrderIndex_InitialLoad();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+
+        var tableOptionsQuotationItem = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-trash",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                        }
+                    },
+                    {
+                        icon: "fa fa-pencil",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input'))
+                                {
+
+                                        if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                            $thisNode.prop('checked', savedData[pf_name]);
+                                        }
+                                        else {
+                                            $thisNode.val(savedData[pf_name]);
+                                        }
+                                }
+                                else
+                                {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            serialNo: true,
+            renameHeader: { "FK_Product": "FK_Product", "ProdName": "Product", "SodSalQuantity": "Qty", "SodMRP": "MRP", "Sprice": "Qty*Price", "SodSalPrice": "Price", "SodSalDiscount": "Disc Amt", "SodSalDiscountPercent": "Disc %", "SodSalTaxAmount": "Tax Amount", "SodRemarks": "Remarks" },
+            hideColumn: ['ID_SalesOrderDetails', 'FK_SalesOrder', 'FK_Product'],
+            rowAttribute: [],
+            isCheckType: []
+        };
+        function fn_fillQuotationItem(ele, tkey, data, tableOptionsTempOut) {
+           
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+    </script>
+
+
+
+}

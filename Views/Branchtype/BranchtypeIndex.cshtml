@@ -1,0 +1,485 @@
+﻿
+@{
+    ViewBag.Title = "Branch Type";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="branchtype-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+
+         const $formContainer = $('#branchtype-form');
+
+        $(document).ready(function () {
+           branchtypeInitialLoad();
+
+        });
+
+        var validationMessage = {
+            'Name': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            'BranchModeID': {
+                'required': 'Please Select a Branch Mode',
+                'digits': 'Invalid Branch Mode selected'
+            },
+        };
+
+
+        function branchtypeInitialLoad() {
+
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> fn_branchtypeIndex_loadBranchtype(); </text>
+              }
+         
+            fn_branchtypeIndex_loadAddBranchtype();
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                   
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text>{ displayName: "View", action: editBranchtype },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteBranchtype},</text>
+
+              }
+                  
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","Name", "ShortName"],
+            hideColumn: [],
+            rowClickAction: editBranchtype,
+            //serialNo: true,
+            renameHeader: { "SlNo":"SL NO","BTName": "Name", "BTShortName": "ShortName" }
+        };
+
+           // Fucntion to load Branchtype ADD form
+        function fn_branchtypeIndex_loadAddBranchtype() {
+
+            $formContainer.load('@Url.Action("LoadFormBranchtype", "Branchtype")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'branchtypeInitialLoad');
+            });
+
+        };
+
+       //list branchtype
+
+
+        function fn_branchtypeIndex_loadBranchtype(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Branch Type List');
+          let pageUrl = '@Url.Action("GetBranchTypeList", "Branchtype")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Branchtype', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Branchtype");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_branchtypeIndex_loadBranchtype(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Branchtype");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_branchtypeIndex_loadBranchtype(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+        function fn_branchtypeIndex_loadBranchtype1() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Branch type ');
+
+            let pageUrl = '@Url.Action("GetBranchTypeList", "Branchtype")';
+
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+ 
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('BranchType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Branch  Type");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+
+
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+        function returnajaxPagination1(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    return { pageSize: info.length, pageIndex: info.page }
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": true,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+       
+         function editBranchtype() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+             console.log("Saved data", Saveddata);
+
+
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                BranchtypeID: Saveddata.BranchtypeID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetBranchtypeInfoByID", "Branchtype")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetBranchtypeInfo', ajaxOutput)
+
+                                $sideMenuOptions.close();
+
+                                $formContainer.load("@Url.Action("LoadFormBranchtype", "Branchtype")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Name)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'branchtypeInitialLoad');
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.find('[name="Name"]').val(ajaxOutput.Data[0].Name),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+
+                                        $thisForm.find('[name="BranchModeID"]').val(ajaxOutput.Data[0].BranchModeID).selectpicker('refresh'),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetBranchtypeInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+
+        }
+          // Function to delete Organization
+
+        function deleteBranchtype() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                $.ajax({
+                    url: "@Url.Action("GetBranchtypeDeleteReasonList", "Branchtype")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+                            
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_Branchtype: Saveddata['BranchtypeID'],
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeletebranchtypeInfo", "Branchtype")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+
+
+    </script>
+
+
+
+
+
+}
+

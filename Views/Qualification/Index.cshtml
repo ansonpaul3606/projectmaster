@@ -1,0 +1,299 @@
+﻿
+@{
+    ViewBag.Title = "Qualification";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Qualification-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        //--- Form
+        const $formContainer = $('#Qualification-form');
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                 @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: fn_qualificationIndex_loadQualificationUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: fn_qualificationIndex_deleteQualification },</text>
+
+              }
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","QualificationName",'QualificationShortName'],
+            hideColumn: [],
+           // serialNo: true,
+            renameHeader: {"SlNo":"SL NO", "QualificationName": "Name", "QualificationShortName": "ShortName" },
+            rowClickAction: fn_qualificationIndex_loadQualificationUpdateForm
+        };
+
+
+        $(document).ready(function () {
+            fn_qualificationIndex_initialLoad()
+
+        });
+
+        var validationMessage = {
+            'QualificationName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'QualificationShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            
+        };
+
+
+        function fn_qualificationIndex_initialLoad() {
+            fn_qualificationIndex_loadQualificationAddForm();
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>  fn_qualificationIndex_loadQualification(this); </text>
+              }
+         
+
+        }
+
+    // Fucntion to load DepartmentList
+        function fn_qualificationIndex_loadQualification() {
+
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Qualification ');
+             $.ajax({
+                url:"@Url.Action("GetQualificationList", "Qualification")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        console.log('Qualification', ajaxOutput);
+                        $sidemenu.find('.jq_sidemenu_title').text("Qualification");
+
+                        $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sidemenu.find('table').dataTable({ paging: true, "lengthMenu": [10, 15, 20, 25, 50, 100], pageLength:15});
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+
+
+       
+// Fucntion to load Qualification ADD form
+        function fn_qualificationIndex_loadQualificationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadQualificationForm", "Qualification")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'fn_qualificationIndex_initialLoad');
+
+               // initFunctions($thisForm);
+            });
+
+    };
+
+
+  // Function to load Department Update from
+        function fn_qualificationIndex_loadQualificationUpdateForm() {
+
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                QualificationID: saveddata.QualificationID
+        };
+        console.log('view clicked',saveddata)
+
+            $.ajax({
+                url: "@Url.Action("GetQualificationInfo", "Qualification")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                         $sideMenuOptions.close();
+                        $formContainer.load('@Url.Action("LoadQualificationForm", "Qualification")', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                           // initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                            //console.log('sss', ajaxOutput)
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                            $thisForm.attr('perfect-onFormSuccess', 'fn_qualificationIndex_initialLoad'); // stuff to do after filling data
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            // Fill fields
+
+                            $thisForm.find('[name="QualificationName"]').val(ajaxOutput.Data[0]['QualificationName']);
+                            $thisForm.find('[name="QualificationShortName"]').val(ajaxOutput.Data[0]['QualificationShortName']);
+                            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0]['SortOrder']);
+
+
+                           
+                            
+
+                           
+                        });
+                    }
+                    else {
+                        console.log('>_ Inside GetQualificationInfo :false')
+
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            $('.dataTable tr').removeClass("SelectForDelete");
+                        
+                        });
+                    }
+                },
+
+            });
+
+        }
+
+
+
+        function fn_qualificationIndex_deleteQualification()
+        {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                console.log("Saved data", Saveddata);
+                $.ajax({
+                    url: "@Url.Action("GetQualificationReasonList", "Qualification")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.QualificationName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        QualificationID: Saveddata['QualificationID'],
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteQualification", "Qualification")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                   
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+
+    </script>
+
+}
+

@@ -1,0 +1,523 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Kavya K
+    Created On	: 29/11/2022
+    Purpose		: Page Load
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+     17/12/2022     Kavya K         Listing to side menu
+    -------------------------------------------------------------------------
+    19/12/2022      Kavya K         Deleting data from Side Menu
+    ------------------------------------------------------------------------*@
+
+@{
+    ViewBag.Title = "ProductionWorkFlow";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-sm-12" id="Productionworkflow-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script>
+        const $formContainer = $('#Productionworkflow-form');
+        const LastIDSessionKey = 'ProductionworkflowLastID';
+        var LastID_Productionworkflow;
+
+        var validationMessage = {
+            'ProductName': {
+                'required': 'Please select Product'
+            },
+            'PWDate': {
+                'required': 'Please Enter Effect Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            //'Priority': {
+            //    'required': 'Please Enter Priority'
+            //},
+        };
+
+        $(document).ready(function () {
+
+            fn_Productionworkflow_initialLoad();
+        });
+
+    function fn_Productionworkflow_initialLoad() {
+
+                ProductionWorkFlowTransMode = "";
+           // getSessionValue("Ak5/oJ4uJ1njMkhIbpcFrWg3VIHsw8PcOl+RZG8YI+KowNZhzI9FRynfWL2sOhAh", function (result) {
+                  //  ProductionWorkFlowTransMode = result;
+               // });
+            ProductionWorkFlowTransMode = '@ViewBag.TransMode';
+           
+        loadproductionworkflowList(this, fn_ProductionWorkFlow_AddForm);
+        }
+
+        function fn_ProductionWorkFlow_AddForm()
+        {
+           $formContainer.load('@Url.Action("LoadFormProductionWorkFlow", "ProductionWorkFlow")', function () {
+                $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('button[name=delete]').addClass('d-none');
+                $thisForm.find('[name="PWDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+               $thisForm.attr('perfect-onFormSuccess', 'fn_Productionworkflow_initialLoad');
+               getSessionValue(LastIDSessionKey, function (result) {
+                   LastID_Productionworkflow = result;
+               });
+            });
+        }
+
+
+            function loadproductionworkflowList(ele,callback) {
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Production Work Flow List');
+            let pageUrl = '@Url.Action("GetProductionWorkFlowList", "ProductionWorkFlow")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ProductionWorkFlowTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('ProductionWorkFlow', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("ProductionWorkFlow");
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadproductionworkflowList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProductionWorkFlowTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                            else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey, 0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("ProductionWorkFlow");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadproductionworkflowList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+  var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+               {
+               <text> { displayName: "View", action: editproductionwrkflow },</text>
+               }
+                    { type: "divider" },
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                {
+                 <text> { displayName: "Delete", action: deleteproductionwrkflow },</text>
+                }
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "PWDate", "ProductName"],
+            hideColumn: ["FK_Product"],
+            rowClickAction: editproductionwrkflow,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "PWDate": "Date", "ProductName": "Product" },
+            isDateType: ["PWDate"],
+
+    };
+
+        var Saveddata = "";
+    function editproductionwrkflow() {
+
+        let row = $(this).closest('tr');
+         Saveddata = row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+        console.log("SavedData", Saveddata);
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_ProductionWorkFlow: Saveddata.ID_ProductionWorkFlow,
+            TransMode: ProductionWorkFlowTransMode
+        };
+       fn_fillProductionWorkflowDetails(inputData);
+    }
+
+    function fn_fillProductionWorkflowDetails(inputData) {
+    
+        $.ajax({
+                url: '@Url.Action("GetProductionWorkFlowInfo", "ProductionWorkFlow")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.ProductionWorkFlowInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFormProductionWorkFlow", "ProductionWorkFlow")", function () {
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $(this).find('[perfect-class=formTitle]').text('update')
+
+
+                                    $thisForm.find('[name="ID_ProductionWorkFlow"]').val(ajaxOutput.ProductionWorkFlowInfo.Data[0]['ID_ProductionWorkFlow']);
+                                    console.log("ID_ProductionWorkFlow", $thisForm.find('[name="ID_ProductionWorkFlow"]').val());
+                                    $thisForm.find('[name="PWDate"]').val(moment(ajaxOutput.ProductionWorkFlowInfo.Data[0]['PWDate']).format('YYYY-MM-DD'));
+
+                                    $thisForm.find('[name="ProductName"]').val(Saveddata.ProductName).selectpicker('refresh');
+                                    $thisForm.find('[name="FK_Product"]').val(Saveddata.FK_Product);
+
+                                    if (ajaxOutput.ProductionWorkFlowItem.Process.IsProcess) {
+                                        
+                                        $thisForm.data({pData: ajaxOutput.ProductionWorkFlowItem.Data[0]});
+                                       
+
+                                        fn_ProductionWorkFlowItem($thisForm, 'Stage', ajaxOutput.ProductionWorkFlowItem.Data, ProductionWorkFlowTempOut)
+                                        $thisForm.find('[perfect-tempTable="Stage"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                    }
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'loadproductionworkflowList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+
+                },
+
+            });
+        }
+
+    function fn_ProductionWorkFlowItem(ele, tkey, data, tableOptionsTempOut) {
+      
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                     
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                           
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                          
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                           
+                            if (inputType == 'checkbox') {
+
+
+                              
+                                //if (nameAttr == 'Returnstage') {
+                                //    //valOne.Returnstage = 1;
+                                    pData[nameAttr] = valOne[nameAttr];
+                                //} 
+                                //if (nameAttr == 'AcceptJobs') {
+                                //    //valOne.AcceptJobs = 1;
+                                //    pData[nameAttr] = valOne[nameAttr];
+
+                                //}
+                              
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                                //pData[nameAttr] = valOne[nameAttr];
+                                //tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {                             
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+    var ProductionWorkFlowTempOut = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            debugger;
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                                }
+                                else if ($thisNode.is('input')) {
+                                    let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else if ($thisNode.attr('type').toLocaleLowerCase() == 'date') {
+                                      savedData[pf_name];
+                                    }
+                                    else {
+
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                            $("#btnresetWrkFlw").click();
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: ["ProductName","StageName", "Priority","Returnstage","AcceptJobs"],
+            rowAttribute: [],
+            renameHeader: { "ProductName":"Product","StageName": "Stage", "Priority": "Priority", "Returnstage": "Return to Any Stage", "AcceptJobs": "Accept Jobs" },
+        hideColumn: ['FK_ProductionStage', 'FK_Product'],
+        isCheckType: [],
+            serialNo: true
+    };
+
+        function deleteproductionwrkflow()
+        {
+ 
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            let TransMode = ProductionWorkFlowTransMode;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetProductionWorkFlowReasonList", "ProductionWorkFlow")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record, Product :" + Saveddata.ProductName + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_ProductionWorkFlow:Saveddata.ID_ProductionWorkFlow,
+                                        FK_Reason: selectedOption,
+                                        TransMode: TransMode
+
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteProductionWorkFlow", "ProductionWorkFlow")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            console.log(ajaxOutput.Process.IsProcess);
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_Productionworkflow_initialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+    </script>
+}

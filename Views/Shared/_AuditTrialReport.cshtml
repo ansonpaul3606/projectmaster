@@ -1,0 +1,516 @@
+﻿@model PerfectWebERP.Models.AuditTrialReportModel.auditlist
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+</style>
+
+<div class="card ">
+    <div class="card-header">
+
+        @*<h4 class="card-title col-12">Audit Trial Report<span class="badge light badge-success float-right" perfect-class="formTitle"></span></h4>*@
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+    </div>
+    <div class="card-body">
+
+        <form id="" class="form-valide" perfect-class="form" action="#" meth
+              od="post" perfect-onFormSuccess="">
+            <div class="">
+
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+                    <div class="col-sm-6" style="display:none;">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control rptfilters" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ReportSelect(this)">
+
+                                    <option value="1">Audit Trial Report</option>
+
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divbranch">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm " id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" @*onchange="clearbill(this)"*@>
+
+                                    <option value="0">All</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            if (branchList.BranchID == ViewBag.FK_Branch)
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option> }
+                                            else
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>}
+
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divdep">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm rptfilters" id="DepId" name="DepId" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" @*onchange="clearbill(this)"*@>
+                                    <option value="0">All</option>
+                                    @if (!(Model.deprtmnt is null))
+                                    {
+                                        foreach (var deprtmnt in Model.deprtmnt)
+                                        {
+                                            if (deprtmnt.DepId == ViewBag.FK_Department)
+                                            {
+                                                <option value="@deprtmnt.DepId">@deprtmnt.Depname</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@deprtmnt.DepId">@deprtmnt.Depname</option>
+                                            }
+
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="  form-control  Action rptfilters" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                @*<div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>*@
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp FromDateerror" style="display: none;">From Date should be less than or equal to To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="  form-control  Action rptfilters" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                @*<div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>*@
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp  ToDateerror" style="display: none;">To Date should be Greater than or equal to From Date</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivModule">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Module</span>
+                                <input type="hidden" name="FK_MenuGroup" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm " id="ID_MenuGroup" name="MenuGroup" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="GetSubModule(this)">
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.MenuGroup is null))
+                                    {
+                                        foreach (var MenGrp in Model.MenuGroup)
+                                        {
+
+                                            <option value="@MenGrp.ID_MenuGroup">@MenGrp.MnuGrpName</option>}
+
+
+                                    }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivSubModule">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">SubModule</span>
+                                <input type="hidden" name="FK_MenuList" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm" id="ID_MenuList" name="ID_MenuList" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" @*onchange="clearbill(this)"*@>
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.MenuList is null))
+                                    {
+                                        foreach (var MenLst in Model.MenuList)
+                                        {
+
+                                            <option value="@MenLst.ID_MenuList">@MenLst.MnuLstName</option>}
+
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivUserRole">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">UserRole</span>
+                                <input type="hidden" name="FK_UserRole" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm" id="ID_UserRole" name="UserType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="GetUserList(this)">
+                                    <option value="">Please Select </option>
+
+                                    @*<option value="0">Please Select</option>*@
+
+
+                                    @if (!(Model.UserRole is null))
+                                    {
+                                        foreach (var usrrol in Model.UserRole)
+                                        {
+
+                                            <option value="@usrrol.ID_UserRole">@usrrol.UsrrlName</option>}
+
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivUsers">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">User</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm" id="ID_User" name="ID_Users" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" @*onchange="GetSubModule(this)"*@>
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.Users is null))
+                                    {
+                                        foreach (var usr in Model.Users)
+                                        {
+
+                                            <option value="@usr.ID_Users">@usr.EmpFName</option>}
+
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Reference ID</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="ID_Reference" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                    <input type="text" class="form-control perfectValidate_name " placeholder="" name="Reference No" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="100" />
+                                </div>
+                            </div>
+                        </div>*@
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Reference ID</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_specialCharName_nm" placeholder="" name="ReferenceNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlengh="100" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivActionType">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Action Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="rptfilters form-control perfectValidate_string_nm" id="ID_Action" name="ID_Action" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" @*onchange="clearbill(this)"*@>
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.ActiotypeList is null))
+                                    {
+                                        foreach (var usr in Model.ActiotypeList)
+                                        {
+
+                                            <option value="@usr.ID_Action">@usr.ActionName</option>}
+
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getreport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+    @*<div class="col-sm-6" style="display:none">
+        <div class="form-group row" perfect-class="formGroup">
+            <label class="col-sm-4 col-form-label">
+                <span perfect-class="formGroupLabel">Report Format</span>
+                <span class="text-danger">*</span>
+            </label>
+            <div class="col-sm-8">
+                <select class="form-control" id="Rptype" name="Rptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+
+                    <option value="1" selected>PDF</option>
+                    <option value="2">Excel</option>
+
+                </select>
+            </div>
+        </div>
+    </div>*@
+    <div id="divReportSection">
+
+
+    </div>
+
+
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        initFunctions('form');
+    });
+    function ResetButton(ele) {
+        audittrialreporttInitialLoad();
+    }
+
+    function GetUserList(ele) {
+
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let ID_UserRole = $thisForm.find('[name=UserType]').val();
+       
+
+        $.ajax({
+            
+            url: '@Url.Action("GetUserList", "AuditTrialReport")',
+            type: "POST",
+           data: JSON.stringify({ ID_UserRole: ID_UserRole}),//<---- Input json : data passed to controller
+            dataType: "json",
+           contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                debugger  
+                let $menuDropdown = $thisForm.find('[name=ID_Users]');//<--- Will give place select html element
+
+                    $menuDropdown.empty().selectpicker('refresh');
+                    $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $menuDropdown.append($('<option/>', { "value": value.ID_Users }).text(value.EmpFName)).selectpicker('refresh')
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                           
+                        });
+                    }
+            }
+
+        });
+
+
+
+    }
+
+    function GetSubModule(ele) {
+
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let ID_MenuGroup = $thisForm.find('[name=MenuGroup]').val();
+       
+
+        $.ajax({
+            
+            url: '@Url.Action("GetSubModule", "AuditTrialReport")',
+            type: "POST",
+            data: JSON.stringify({ ID_MenuGroup: ID_MenuGroup}),//<---- Input json : data passed to controller
+            dataType: "json",
+           contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                debugger  
+                let $menuDropdown = $thisForm.find('[name=ID_MenuList]');//<--- Will give place select html element
+
+                    $menuDropdown.empty().selectpicker('refresh');
+                    $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $menuDropdown.append($('<option/>', { "value": value.ID_MenuList }).text(value.MnuLstName)).selectpicker('refresh')
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                           
+                        });
+                    }
+            }
+
+        });
+
+
+
+    }
+    function checkLimit(ele) {
+        debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if')
+            $(".ToDateerror").hide();
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').show();
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than or equal to From Date')
+            return false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').hide();
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+
+    }
+    function getreport(ele) {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        let ReportId = $thisForm.find('[name="ID_Report"]').val();
+        let Report_Id = ReportId;
+         var BranchID = $('#BranchID').val();
+        var DepId = $('#DepId').val();
+        var BranchID = $thisForm.find('[name="BranchID"]').val();
+        var FK_MenuGroup = $thisForm.find('[name="MenuGroup"]').val();
+        var FK_MenuList = $thisForm.find('[name="ID_MenuList"]').val();
+        var FK_UserRole = $thisForm.find('[name="UserType"]').val(); 
+        var FK_Users = $thisForm.find('[name="ID_Users"]').val();
+        var ReferenceNo = $thisForm.find('[name="ReferenceNo"]').val();
+        var Action = $thisForm.find('[name="ID_Action"]').val();
+        
+        console.log('Users:', $thisForm.find('[name="ID_Users"]').val());
+        if ($thisForm.valid()) {
+
+            $("#divReportSection").html("");
+
+            let InputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+               
+                //"FromDate": ShortReportstartdate == null ? "01/01/2023" : ShortReportstartdate,
+                "FromDate": $thisForm.find('[name="FromDate"]').val(),
+                "ToDate": $thisForm.find('[name="ToDate"]').val(),
+                "FK_Branch": BranchID,
+                "FK_Department": DepId,
+                "FK_MenuList": FK_MenuList,
+                "FK_MenuGroup": FK_MenuGroup,                
+                "FK_UserRole": FK_UserRole,
+                "FK_Users": FK_Users,
+                "ReferenceNo": ReferenceNo,
+                "Action": Action,
+                "TransMode": AuditTransMode
+
+            };
+
+            console.log('InputData:', InputData);
+            let pageUrl = '@Url.Action("GetAuditReport", "Report")';
+
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    //var rptmode = $('select[name="ID_Report"] option:selected').val();
+                    console.log('ajaxOutput>>>>>>>>>>>>>>>>>>', ajaxOutput)
+                   
+                        $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+
+
+                        });
+                }
+            });
+        }
+    }
+</script>

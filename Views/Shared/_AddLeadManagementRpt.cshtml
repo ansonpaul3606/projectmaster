@@ -1,0 +1,1999 @@
+﻿@model PerfectWebERP.Models.CustomerTicketsModel.Customerlist
+@{
+    string ColumnName = "", Allignment = ""; string[] Column;
+}
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    #R_DTable > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Lead Reports</h4>
+        </div>
+        <div class="col-xl-7 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_Customer_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+
+        </div>
+        @*<div class="col-xl-1 text-right">
+                <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                    <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                        <a class="dropdown-item" href="#" onclick="onExell(this)">EXCEL </a>
+
+                    </div>
+                </div>
+            </div>*@
+
+    </div>
+    <div class="card-body Customer_rp">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onformsuccess="AccountsReportInitialLoad" novalidate="novalidate">
+            <div class="CustomerReportfilters">
+                <div class="">
+                    <div class="row">
+
+                        <div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Report Name</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.CompName" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" id="Admin" name="Admin" class="form-control" value="@ViewBag.Admin" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" id="Manager" name="Manager" class="form-control" value="@ViewBag.Manager" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <select class="form-control perfectValidate_numeric Action  Actionbill" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" onchange="bindReportField(this)" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        <option value="1">Action List</option>
+                                        <option value="5">New  List</option>
+                                        <option value="2">Follow Up List</option>
+                                        <option value="4">Status List</option>
+                                        <option value="3">Lead Profile</option>
+                                        @*<option value="6">Product-wise Lead List</option>*@
+                                        <option value="7">Lead Closed List</option>
+                                        <option value="8">Lead Summary</option>
+
+                                        @if (ViewBag.CompCategory == "2")//for Travels only
+                                        {
+                                            <option value="9">Destination Wise Customer Details</option>
+                                        }
+                                        <option value="10">Employee Wise Target List</option>
+                                        <option value="11">Lead Assign List</option>
+                                        <option value="12">Lost Lead List</option>
+                                    </select>
+                                    <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 divBranch">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+                                    <input type="hidden" name="FK_BranchMode" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string_nm  rptfilters" id="BranchID" name="BranchID" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true"onchange="clearemployeedetails(this)">
+
+                                        <option value="">All</option>
+
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branchList in Model.BranchList)
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>
+                                            }
+
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivLeadNo">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Lead No</span>
+
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control perfectValidate_numeric Ledger rptfilters" name="Lead" data-id="LeadNo-error" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Lead Number" disabled />
+                                        <input type="hidden" name="LeadNo" class="form-control perfectValidate_numeric Ledger" data-id="LeadNo-error" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,30,'Lead Number List',[])" Criterea1=BranchID Criterea2="0" BindName="Lead" BindVal="LeadNo"></button>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivFromDate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">From Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control perfectValidate_date  FromDate rptfilters Actionbill" id="FromDate" onchange="checkLimit(this)" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date">
+                                    <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror " style="display: none;">Please Select From Date</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivToDate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">To Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control perfectValidate_date  ToDate rptfilters Actionbill" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                    @*<div id="ToDate-error" class="Custominvalid animated fadeInUp producterror limit-check" style="display: none;">Please Select To Date</div>*@
+                                    <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-6 DivDestination">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Destination</span>
+
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" id="Destination" name="Destination" perfect-class="formGroupControl" placeholder=" Enter Destination" perfect-ctype="input" perfect-css="input" maxlength="500" />
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivDepartment" id="DepartmentDiv">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Department</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string_nm" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                        <option value="0">All</option>
+
+                                        @if (!(Model.deprtmnt is null))
+                                        {
+                                            foreach (var deprtmnt in Model.deprtmnt)
+                                            {
+                                                @*if (deprtmnt.DepId == ViewBag.FK_Department)
+                                {
+                                    <option value="@deprtmnt.DepId" selected>@deprtmnt.Depname</option>
+                                }
+                                else
+                                {*@
+                                                <option value="@deprtmnt.DepId">@deprtmnt.Depname</option>
+                                                //}
+
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (ViewBag.Manager || ViewBag.Admin)
+                        {
+                            <div class="col-sm-6 DivEmployeeName">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label rptfilterfields">
+                                        <span perfect-class="formGroupLabel">Employee Name</span>
+
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                            <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                            <div class="input-group-append">
+
+                                                <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="DepartmentID" BindName="Employee" BindVal="Employee_ID" Function="1"></button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+
+
+                        else
+                        {
+                            <div class="col-sm-6 DivEmployeeName">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label rptfilterfields">
+                                        <span perfect-class="formGroupLabel">Employee Name</span>
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+
+                                            <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                                            <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                                            <div class="input-group-append">
+
+                                                <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="Employee" BindVal="Employee_ID" disabled></button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+
+                        <div class="col-sm-6 DivCollectedbyName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Referred By</span>
+
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="Collectedby" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Referred By" disabled />
+                                        <input type="hidden" name="Collectedby_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="Collectedby" BindVal="Collectedby_ID" Function="1"></button>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivAssignTo">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Assign To</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="AssignTo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Assign To" disabled />
+                                        <input type="hidden" name="FK_AssignTo" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" BindName="AssignTo" BindVal="FK_AssignTo" Function="1"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivAssignBy">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Assign By</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="AssignBy" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select AssignBy" disabled />
+                                        <input type="hidden" name="FK_AssignBy" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" BindName="AssignBy" BindVal="FK_AssignBy" Function="1"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivCollectedBy">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Collected By</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="CollectedBy" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select CollectedBy" disabled />
+                                        <input type="hidden" name="FK_CollectBy" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" BindName="CollectedBy" BindVal="FK_CollectBy" Function="1"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivCategory">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Category</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" name="FK_Category" id="FK_Category" perfect-class="formGroupControl" placeholder="Select Catogory" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please select</option>
+                                        @if (!(Model.CategoryList is null))
+                                        {
+                                            foreach (var category in Model.CategoryList)
+                                            {
+
+                                                <option value="@category.ID_Catg">@category.CatgName</option>
+
+                                            }
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivProduct">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Product</span>
+
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" id="ProductName" name="ProductName" perfect-class="formGroupControl" placeholder=" Select Product" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="ID_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,'@ViewBag.ProductMode','Product List',['FK_Category','Catogory'])" Criterea1="FK_Category" Criterea2="0" BindName="ProductName" BindVal="ID_Product" Function="1"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivDistrict">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">District</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " id="District" name="District" perfect-tempTable-Info="District" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                        <input type="hidden" id="DistrictID" name="DistrictID" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="adddistrict-jq-searchButton3" name="distct" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,11,'District List',['AreaID','Area'])" Criterea1="0" Criterea2="0" BindName="District" BindVal="DistrictID" Function="2"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivArea">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Area</span>
+
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Area" disabled />
+                                        <input type="hidden" name="Area_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,14,'Area List',[])" Criterea1="DistrictID" Criterea2="0" BindName="Area" BindVal="Area_ID" Function="1"></button>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivFollowUp">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Follow up Action</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="FK_NetAction" name="FK_NetAction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        @if (!(Model.NextActionList is null))
+                                        {
+                                            foreach (var NextAction in Model.NextActionList)
+                                            {
+                                                <option value="@NextAction.ID_NextAction">@NextAction.NxtActnName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivFollowUpType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Follow up Type</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="FK_ActionType" name="FK_ActionType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        @if (!(Model.Actntyplists is null))
+                                        {
+                                            foreach (var Action in Model.Actntyplists)
+                                            {
+                                                <option value="@Action.ID_ActionType">@Action.ActnTypeName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivLeadType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Priority</span>
+
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <select class="form-control rptfilters" id="FK_Priority" name="FK_Priority" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        <option value="1">Hot</option>
+                                        <option value="2">Warm</option>
+                                        <option value="3">Cold</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivStatus">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Status</span>
+
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <select class="form-control rptfilters" id="Status" name="Status" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please select</option>
+                                        @if (!(Model.StatusList is null))
+                                        {
+                                            foreach (var Status in Model.StatusList)
+                                            {
+                                                <option value="@Status.ID_Mode">@Status.ModeName</option>
+                                            }
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6" style="display:none">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Report Format</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control " id="Rptype" name="Rptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please Select</option>
+                                        <option value="1" selected>PDF</option>
+                                        <option value="2">Excel</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivCriteria">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Grouping</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <select class="form-control " id="Criteria" name="Criteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-selectButtonAction="testing" perfect-elemet="bom" perfect-onloadSelect="">
+                                        <option value="">Please select</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivCriteriaProdLead">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Grouping</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8 ">
+
+                                    <select class="form-control " id="ProdRptCriteria" name="ProdRptCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+
+
+
+                                        <option value="1">Category</option>
+
+                                        <option value="2">Employee</option>
+                                        <option value="3">Product Type</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6" style="display:none">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Report Field Type</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control " id="RpFieldptype" name="RpFieldptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="2">HeaderLogo + WaterMark + Footer </option>
+                                        <option value="3">WaterMark</option>
+                                        <option value="4">HeaderLogo + Footer</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivProductType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Product Type</span>
+
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <select class="form-control rptfilters" id="ProductType" name="ProductType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        <option value="1">Project</option>
+                                        <option value="2">Product</option>
+
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivSummaryType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Summary Type</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="SummMode" name="SummMode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        @if (!(Model.summaryLists is null))
+                                        {
+                                            foreach (var Action in Model.summaryLists)
+                                            {
+                                                <option value="@Action.ID_Mode">@Action.ModeName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivTargetCriteria">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Target Criteria</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="TargetCriteria" name="TargetCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        @if (!(Model.TargetCriteriaList is null))
+                                        {
+                                            foreach (var Target in Model.TargetCriteriaList)
+                                            {
+                                                if (Target.ID_Mode == 1)
+                                                {
+                                                    <option value="@Target.ID_Mode" selected>@Target.ModeName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@Target.ID_Mode">@Target.ModeName</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivNewsummaryType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Summary Type</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="Type_SummMode" name="TypeSumMode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        @if (!(Model.NewListSummary is null))
+                                        {
+                                            foreach (var Action in Model.NewListSummary)
+                                            {
+                                                <option value="@Action.ID_Mode">@Action.ModeName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="ShowReport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+                </div>
+            </div>
+
+            <br />
+            <div class="col-xl-1 text-right">
+                <div class="dropdown div-export" id="exppdfs" style="display:none">
+
+                    <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                        @*<a class="dropdown-item" href="#" onclick="onExell(this)">EXCEL </a>*@
+
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <button type="button" id="exppdf" style="display:none">
+                        <i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:30px;color: #d92222;" onclick="generatePdf(this)"></i>
+                    </button>
+                    <button type="button" id="expxlsx" style="display:none">
+                        <i class="fa fa-file-excel-o" aria-hidden="true" style="font-size:30px;color: #1f8e26;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="tb1" id="divLedgerHead">
+                <table class="table table-responsive-md" id="Accountdetailsids">
+                    <thead class="thead btn-primary" id="ReturnHead">
+                        @*<tr>
+                                <th scope="col" style="text-align:left" colspan="2">Account Details</th>
+                                <th scope="col" style="text-align:left" colspan="2">Address Details</th>
+                            </tr>*@
+                    <tbody id="Accountdetails">
+                        <tr id="0">
+                            <td style="text-align:center;" colspan="9">No Records..</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div id="divReportSection">
+
+
+            </div>
+
+
+
+        </form>
+    </div>
+
+
+</div>
+
+@*<script src="~/Assets/js/jquery-2.1.4.min.js"></script>*@
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+<script>
+
+    head = [];
+    var ptableData;
+    var item = [];
+    var groupBy = "";
+
+    var product;
+    var stages = "";
+    var status = "";
+    var grpby = "";
+    var jabNo = "";
+    var AsDate = "";
+    var Material = "";
+    var Data
+    var comCategory;
+    var reportdetaildata;
+    var ptableData2 = {};
+    const $formContainer = $('#divReportSection');
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+        if (Todate < Fromdate) {
+            console.log('inside limit check if');
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').show();
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date');
+            return false;
+        }
+        else {
+            console.log('inside limit check else');
+
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+    }
+    function bindReportField(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val('');
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+        $thisForm.find('[name="FK_Category"]').val("");
+        $thisForm.find('[name="Area"]').val("");
+        $thisForm.find('[name="Area_ID"]').val("");
+        $thisForm.find('[name="FK_ActionType"]').val("");
+        $thisForm.find('[name="Status"]').val("");
+
+        $thisForm.find('[name="Collectedby"]').val("");
+        $thisForm.find('[name="Collectedby_ID"]').val("");
+        $thisForm.find('[name="ProductName"]').val("");
+        $thisForm.find('[name="ID_Product"]').val("");
+        $thisForm.find('[name="FK_NetAction"]').val("");
+        $thisForm.find('[name="FK_Priority"]').val("");
+        $thisForm.find('[name="Criteria"]').val("");
+        $thisForm.find('[name="ProdRptCriteria"]').val("");
+        $thisForm.find('[name="Lead"]').val("");
+        $thisForm.find('[name="LeadNo"]').val("");
+        $thisForm.find('[name="TargetCriteria"]').val("1").selectpicker('refresh');
+        $thisForm.find('[name="DepartmentID"]').val("0").selectpicker('refresh');
+        $thisForm.find('[name="District"]').val("");
+        $thisForm.find('[name="DistrictID"]').val("");
+        $thisForm.find('[name="FK_AssignTo"]').val("");
+        $thisForm.find('[name="AssignTo"]').val("");
+        $thisForm.find('[name="FK_CollectBy"]').val(0);
+        $thisForm.find('[name="CollectedBy"]').val("");
+      
+
+        let htmldata = "";
+        $('.divBranch').show();
+        $('#divLedgerHead').hide();
+        htmldata = "<tr id='0'>"+
+            "<td style='text-align:center;' colspan='0'>No Records..</td>"+
+            "</tr>";
+        $("#divReportSection").html("");
+        $("#Accountdetails").html(htmldata);
+
+        let x = document.getElementById("exppdf");
+        x.style.display = "none";
+        $('.DivDestination').hide(); $('.DivArea').hide();
+        if ($("#ID_Report").val() == 3) {
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivProduct').hide();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivStatus').hide();
+            $('.DivLeadNo').show();
+            $('.DivCollectedbyName').hide();
+            $('.DivCategory').hide();
+            $('.DivProductType').hide();
+            $('.DivSummaryType').hide();
+            $('#divLedgerHead').show();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+            
+            $('.DivAssignTo').hide();
+
+        }
+        else if ($("#ID_Report").val() == 4) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').show();
+            $('.DivStatus').show();
+            $('.DivCriteria').show();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivLeadNo').hide();
+            $('.DivSummaryType').hide();
+            $('.DivCollectedbyName').show(); $('.DivArea').show();
+            $('.DivCategory').show(); $('.DivProductType').hide();
+
+            $('.DivCriteriaProdLead').hide();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 5) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivProduct').show();
+            $('.DivEmployeeName').show();
+            $('.DivCategory').show();
+            $('.divBranch').show();
+
+            $('.DivProductType').show();
+            $('.DivSummaryType').hide();
+            $('.DivStatus').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivLeadNo').hide();
+            $('.DivCollectedbyName').show();
+            $('#divLedgerHead').hide();
+            $('.DivArea').show();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').show();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 6 || $("#ID_Report").val() == 7) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').hide();
+            $('.DivCriteria').hide();
+            $('.DivStatus').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivLeadNo').hide();
+            $('.DivCollectedbyName').hide();
+            $('.DivSummaryType').hide();
+            $('.DivCategory').show();
+            $('.DivProductType').show();
+
+            $('.DivCriteriaProdLead').hide();
+            $('.divBranch').show();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').show();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 8) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivCategory').show();
+            $('.divBranch').show();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivStatus').hide();
+            $('.DivLeadNo').hide();
+            $('.DivCollectedbyName').hide();
+            $('.DivProductType').hide();
+            $('#divLedgerHead').hide();
+            $('.DivCollectedbyName').hide();
+            $('.DivSummaryType').show();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 9) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivStatus').show();
+            $('.DivCategory').show();
+            $('.DivDestination').show(); $('.DivArea').show();
+            $('.DivCollectedbyName').hide(); 
+            $('.DivEmployeeName').hide();
+            $('.DivProduct').hide();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivLeadNo').hide();
+            $('.DivProductType').hide();
+            $('.DivSummaryType').hide();
+            $('.divBranch').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').show();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 10) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivDestination').hide();
+            $('.DivEmployeeName').show();
+            $('.DivCollectedbyName').hide();
+            $('.DivCategory').hide();
+            $('.DivProduct').hide();
+            $('.DivArea').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivLeadType').hide();
+            $('.DivStatus').hide();
+            $('.DivLeadNo').hide();
+            $('.DivCriteria').show();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivProductType').hide();
+            $('.DivSummaryType').hide();
+            $('.DivTargetCriteria').show();
+            $('.DivDepartment').show();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+        else if ($("#ID_Report").val() == 11) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivDestination').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivCollectedbyName').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignTo').show();
+            $('.DivAssignBy').show();
+            $('.DivCollectedBy').show();
+            $('.DivCategory').hide();
+            $('.DivProduct').hide();
+            $('.DivDistrict').hide();
+            $('.DivSummaryType').hide();
+            $('.DivLeadType').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivStatus').hide();
+            $('.DivDepartment').hide();
+            $('.DivCriteria').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivProductType').hide();
+            $('.DivTargetCriteria').hide();
+            $('.DivLeadNo').hide();
+            
+        }
+        else if ($("#ID_Report").val() == 12) {
+
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivCategory').show();
+            $('.DivProduct').show();
+            $('.DivAssignTo').show();
+            $('.DivCollectedBy').show();
+            $('.divBranch').show();
+            $('.DivDestination').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivCollectedbyName').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivDistrict').hide();
+            $('.DivSummaryType').hide();
+            $('.DivLeadType').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivStatus').hide();
+            $('.DivDepartment').hide();
+            $('.DivCriteria').hide();
+            $('.DivCriteriaProdLead').hide();
+            $('.DivProductType').hide();
+            $('.DivTargetCriteria').hide();
+            $('.DivLeadNo').hide();
+            $('.DivAssignBy').hide();
+            $('.DivFollowUp').hide();
+
+        }
+
+        else {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').show();
+            $('.DivFollowUp').show();
+            $('.DivFollowUpType').show();
+            $('.DivStatus').hide();
+            $('.DivCriteria').show();
+            $('.DivLeadNo').hide();
+            $('.DivCollectedbyName').show();
+            $('.DivArea').show();
+            $('.DivCategory').show();
+            $('.DivProductType').hide();
+            $('.DivSummaryType').hide();
+
+            $('.DivCriteriaProdLead').hide();
+            $('.DivTargetCriteria').hide();
+            $('.DivDepartment').hide();
+            $('.DivNewsummaryType').hide();
+            $('.DivDistrict').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivAssignBy').hide();
+            $('.DivCollectedBy').hide();
+        }
+
+        fn_loadgroupby(this);
+
+        $.getScript("/Scripts/jspdf.min.js", function () {
+            console.log("jspdf.min.js loaded")
+        });
+        $.getScript("/Scripts/jspdf.plugin.autotable.min.js", function () {
+            console.log("jspdf.plugin.autotable.min.js is loaded")
+        });
+    }
+</script>
+<script>
+    function ValidateAddrepdetails(Rptval) {
+
+        var Error = 0;
+        let $inp;
+
+
+        //if (Rptval != 4 && Rptval != 5) { $inp = $(".Action"); }
+        //else if (Rptval == 4 || Rptval == 5) {
+        $inp = $(".Actionbill");
+    //}
+    //    else if (Rptval == 0) { $inp = $(".Action"); }
+
+        let is_empty;
+        $inp.each((i, el) => {
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+            }
+            let ErrorID = $(el).attr('data-id');
+            if (ErrorID != undefined) {
+                if (is_empty) {
+                    $('#' + ErrorID).css('display', 'block');
+
+                    Error++;
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+        return Error;
+    }
+
+    function ShowReport(els) {
+
+        debugger
+        let $thisForm = $(els).closest('[perfect-class="form"]');
+        var _html = " <div id='divLeadMngmntReportList'>" +
+            " <table id = 'LeadMngmntReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+            " <thead class='thead-primary' id='trhd'></thead></table></div>";
+
+        if ($('select[name="ID_Report"] option:selected').val() == "3") {
+            _html = " <div id='divLeadMngmntReportList'>" +
+                " <table id = 'LeadMngmntReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+                " <thead class='thead-primary' id='trhd'></thead></table></div>";
+        }
+        else {
+            _html = '';
+        }
+        $("#divReportSection").html(_html);
+        groupBy = $('thi[name="ProdRptCriteria"] option:selected').text();
+        //groupBy = $thisForm.find('[name=ProdRptCriteria]').text();
+        if (ValidateAddrepdetails($('#ID_Report').val()) <= 0) {
+            if ($('select[name="ID_Report"] option:selected').val() != "3") {
+
+                $thisForm.find('[name=Lead]').removeClass("perfectValidate_numeric");
+                $thisForm.find('[name=LeadNo]').removeClass("perfectValidate_numeric");
+            } else {
+                $thisForm.find('[name=FromDate]').removeClass("perfectValidate_date");
+                $thisForm.find('[name=FromDate]').removeClass("perfectValidate_date");
+                $thisForm.find('[name=Lead]').addClass("perfectValidate_numeric");
+                $thisForm.find('[name=LeadNo]').addClass("perfectValidate_numeric");
+            }
+            var critria_ = "";
+            if ($('select[name="ID_Report"] option:selected').val() == "6" || $('select[name="ID_Report"] option:selected').val() == "7") {
+
+                critria_ = $thisForm.find('[name=ProdRptCriteria]').val();
+            }
+            else {
+                critria_ = $thisForm.find('[name=Criteria]').val();
+            }
+
+            if (checkLimit(els)) {
+                if ($thisForm.valid()) {
+
+                    var inputData = '';
+                    // if ($thisForm.valid()) {
+                    if ($('select[name="ID_Report"] option:selected').val() == "8") {
+                        debugger
+                        let columnCount = 0;
+                        inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                            FromDate: $('input[name="FromDate"]').val(),
+                            ToDate: $('input[name="ToDate"]').val(),
+                            FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                            FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                            FK_Employee: $('input[name="Employee_ID"]').val(),
+                            FK_Priority: $('#FK_Priority').val(),
+                            FollowUpAction: $('#FK_NetAction').val(),
+                            FollowUpType: $('#FK_ActionType').val(),
+                            FK_CollectedBy: $thisForm.find('[name="Collectedby_ID"]').val(),
+                            LeadNo: $thisForm.find('[name="LeadNo"]').val() == "" ? "0" : $thisForm.find('[name="LeadNo"]').val(),
+                            Category: $thisForm.find('[name="FK_Category"]').val(),
+                            FK_Area: $('select[name="SummMode"] option:selected').val(),
+                            Status: $('#Status').val(),
+                            ProductType: $('#ProductType').val(),
+
+                            //SummaryMode: $('select[name="SummMode"] option:selected').val(),
+                            Criteria: critria_,
+                        };
+                    }
+                    else if($('select[name="ID_Report"] option:selected').val() == "11") {
+                        debugger
+                        let columnCount = 0;
+                        inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                            FromDate: $('input[name="FromDate"]').val(),
+                            ToDate: $('input[name="ToDate"]').val(),
+                            FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                            FollowUpAction: $('#FK_NetAction').val(),
+                            FK_AssignTo: $('input[name="FK_AssignTo"]').val(),
+                            FK_AssignBy: $('input[name="FK_AssignBy"]').val(),
+                            FK_CollectBy: $thisForm.find('[name="FK_CollectBy"]').val(),
+                           
+                        };
+                    }
+
+                    else if ($('select[name="ID_Report"] option:selected').val() == "12") {
+                        debugger
+                        let columnCount = 0;
+                        inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                            FromDate: $('input[name="FromDate"]').val(),
+                            ToDate: $('input[name="ToDate"]').val(),
+                            FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                          
+                            FK_AssignTo: $('input[name="FK_AssignTo"]').val(),
+                            Category: $thisForm.find('[name="FK_Category"]').val(),
+                            FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                            FK_CollectBy: $thisForm.find('[name="FK_CollectBy"]').val(),
+
+                        };
+                    }
+                      else if ($('select[name="ID_Report"] option:selected').val() == "5") {
+                          inputData = {
+                              __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                              ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                              FromDate: $('input[name="FromDate"]').val(),
+                              ToDate: $('input[name="ToDate"]').val(),
+                              FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                              FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                              FK_Employee: $('input[name="FK_AssignTo"]').val(),
+                             
+                              FK_CollectedBy: $thisForm.find('[name="Collectedby_ID"]').val(),
+                           
+                              Category: $thisForm.find('[name="FK_Category"]').val(),
+                              FK_Area: $thisForm.find('[name="Area_ID"]').val(),
+                              Status: $('#Status').val(),
+                              ProductType: $('#ProductType').val(),
+                              Criteria: critria_,
+                            
+                              TargetCriteria: $('select[name="ID_Report"] option:selected').val() == "5"
+                                  ? $thisForm.find('[name="TypeSumMode"]').val()
+                                  : $('select[name="TargetCriteria"] option:selected').val(),
+
+                        
+                          };
+                    }
+                    else if ($('select[name="ID_Report"] option:selected').val() == "1") {
+
+                        let columnCount = 0;
+                        inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                            FromDate: $('input[name="FromDate"]').val(),
+                            ToDate: $('input[name="ToDate"]').val(),
+                            FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                            FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                            FK_Employee: $('input[name="FK_AssignTo"]').val(),
+                            FK_Priority: $('#FK_Priority').val(),
+                            FollowUpAction: $('#FK_NetAction').val(),
+                            FollowUpType: $('#FK_ActionType').val(),
+                            FK_CollectedBy: $thisForm.find('[name="Collectedby_ID"]').val(),
+                            LeadNo: $thisForm.find('[name="LeadNo"]').val() == "" ? "0" : $thisForm.find('[name="LeadNo"]').val(),
+                            Category: $thisForm.find('[name="FK_Category"]').val(),
+                            FK_Area: $thisForm.find('[name="Area_ID"]').val(),
+                            Status: $('#Status').val(),
+                            ProductType: $('#ProductType').val(),
+                            Criteria: critria_,
+                            Destination: $("#Destination").val().trim(),
+                            TargetCriteria: $('select[name="ID_Report"] option:selected').val() == "5"
+                                ? $thisForm.find('[name="TypeSumMode"]').val()
+                                : $('select[name="TargetCriteria"] option:selected').val(),
+
+                            DepartmentID: $('select[name="DepartmentID"] option:selected').val(),
+                            //TypeSumMode: $thisForm.find('[name="TypeSumMode"]').val()
+                            FK_District: $("#DistrictID").val(),
+                        };
+                    }
+
+                    else {
+
+                        let columnCount = 0;
+                        inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            ReportMode: $('select[name="ID_Report"] option:selected').val(),
+                            FromDate: $('input[name="FromDate"]').val(),
+                            ToDate: $('input[name="ToDate"]').val(),
+                            FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                            FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                            FK_Employee: $('input[name="Employee_ID"]').val(),
+                            FK_Priority: $('#FK_Priority').val(),
+                            FollowUpAction: $('#FK_NetAction').val(),
+                            FollowUpType: $('#FK_ActionType').val(),
+                            FK_CollectedBy: $thisForm.find('[name="Collectedby_ID"]').val(),
+                            LeadNo: $thisForm.find('[name="LeadNo"]').val() == "" ? "0" : $thisForm.find('[name="LeadNo"]').val(),
+                            Category: $thisForm.find('[name="FK_Category"]').val(),
+                            FK_Area: $thisForm.find('[name="Area_ID"]').val(),
+                            Status: $('#Status').val(),
+                            ProductType: $('#ProductType').val(),
+                            Criteria: critria_,
+                            Destination: $("#Destination").val().trim(),
+                            TargetCriteria: $('select[name="ID_Report"] option:selected').val() == "5"
+                                ? $thisForm.find('[name="TypeSumMode"]').val()
+                                : $('select[name="TargetCriteria"] option:selected').val(),
+
+                            DepartmentID: $('select[name="DepartmentID"] option:selected').val(),
+                            //TypeSumMode: $thisForm.find('[name="TypeSumMode"]').val()
+                            FK_District: $("#DistrictID").val(),
+                        };
+
+                    }
+
+
+                    let pageUrl = '@Url.Action("GetReportData", "LeadManagementRpt")';
+                    $.ajax({
+                        url: pageUrl,
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                            var _gridColumns, _gridgroupby, _gridOrder = [];
+                            debugger
+
+                            if ($("#ID_Report").val() != "3") {
+                                var rptmode = "";
+                                if ($("#ID_Report").val() != "8") {
+                                    rptmode = $('select[name="ID_Report"] option:selected').val();
+                                }
+                                else {
+
+                                    rptmode = $('select[name="ID_Report"] option:selected').val() + $("#SummMode").val();
+
+                                }
+                                $("#divReportSection").load('@Url.Action("ShowReport","Report")?rptMode=' + rptmode, function () {
+                                });
+                            }
+                            else {
+                                let A = document.getElementById("divReportSection");
+                                A.style.display = "block";
+                                debugger
+                                $('#divLeadMngmntReportList').show();
+                                $("#LeadMngmntReportList").removeClass("dataTable");
+
+                                Data = ajaxOutput.Data;
+                                var CheckListHTML1 = '';
+
+                                if (ajaxOutput.Data.length > 0) {
+
+                                    $('#divLedgerHead').show();
+                                    reportdetaildata = ajaxOutput.detailsData;
+
+
+                                    // GetAccountdetaildata = ajaxOutput.Data;
+                                    $.each(ajaxOutput.detailsData, function (i, value) {
+
+
+
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style='text-align:left;paddingright:20px'>" + "Cust No:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_CusNumber_td' style='text-align:left;font-weight:bold'>" + value.CusNumber + "</td>";
+                                        CheckListHTML1 += "<th  style=text-align:left;>" + "Name:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_Name_td' style='text-align:left;font-weight:bold'>" + value.CusName + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Address:" + "</td>";
+                                        CheckListHTML1 += "<td  Class='jq_Address_td' style='text-align:left;font-weight:bold'>" + value.CusAddress + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Mobile:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_mobile_td' style='text-align:left;font-weight:bold'>" + value.Mobile + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Email:" + "</td>";
+                                        CheckListHTML1 += "<td  Class='jq_Email_td' style='text-align:left;font-weight:bold'>" + value.Email + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "LeadNo:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_mobile_td' style='text-align:left;font-weight:bold'>" + value.LeadNo + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Lead Date:" + "</td>";
+                                        CheckListHTML1 += "<td  Class='jq_LeadDate_td' style='text-align:left;font-weight:bold'>" + value.LeadDate + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Lead From:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_mobile_td' style='text-align:left;font-weight:bold'>" + value.LeadFrom + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Current Status:" + "</td>";
+                                        CheckListHTML1 += "<td  Class='jq_CurrntStatus_td' style='text-align:left;font-weight:bold'>" + value.CurrentStatus + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Referred By:" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_LgCollectedBy_td' style='text-align:left;font-weight:bold'>" + value.LgCollectedBy + "</td>";
+                                        CheckListHTML1 += "</tr>";
+
+                                    });
+                                    $("#Accountdetails").html(CheckListHTML1)
+                                    debugger
+                                    _gridColumns =
+                                        [
+                                            { title: "Sl No.", "data": null },
+
+                                            { title: "Product", "data": "Product" },
+                                            { title: "Action", "data": "Action" },
+                                            { title: "Committed Date", "data": "CommittedDate" },
+                                            { title: "Follow Up Through", "data": "FollowUpThrough" },
+                                            { title: "Status", "data": "Status" },
+                                            { title: "Completed Date", "data": "CompletedDate" },
+                                            { title: "Assigned To", "data": "AssignedTo" },
+                                            { title: "Due Days", "data": "DueDays", className: "text-right" },
+                                            { title: "Remarks", "data": "Remarks" },
+                                            { title: "Category", "data": "Category" },
+
+
+                                        ];
+                                    columnCount = 17;
+                                    _gridgroupby = 1; hidecol = [_gridgroupby];
+                                    _gridOrder = [0];//ORDER columnS BY INDEX
+                                }
+                            }
+
+                            if ($("#ID_Report").val() == "3") {
+
+                                if (ajaxOutput.Process.IsProcess) {
+                                    debugger
+                                    ptableData = {
+                                        columns: _gridColumns,
+                                        rows: ajaxOutput.Data
+
+                                    };
+                                 
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "block";
+
+                                    /*Grid fill*/
+                                    debugger
+                                    tableData = $('#LeadMngmntReportList').DataTable({
+                                        
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: ajaxOutput.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": _gridColumns,
+                                        scrollY: 500,
+                                        scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            footer: true
+                                        },
+                                        "order": [[_gridgroupby, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": _gridOrder },
+                                            { "visible": false, "targets": hidecol }
+                                        ],
+                                        drawCallback: function (settings) {
+                                            if (_gridgroupby > 0) {
+                                                debugger
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+
+                                                console.log('rowapi',api, rows);
+                                                api.column(_gridgroupby, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                     
+                                                        $(rows).eq(i).before(
+
+                                                            '<tr class="group"><td colspan="' + columnCount + '" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+
+
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                        createdRow: function (row, data, type) {
+
+                                        },
+                                        "footerCallback": function (row, data, start, end, display) {
+                                            var api = this.api(), data;
+
+                                        },
+
+
+                                    });
+                                    //$("#LeadMngmntReportList thead tr").remove();
+                                }
+                            }
+
+
+                        }
+                    });
+                }
+
+
+            }
+            // }
+        }
+    }
+
+    function ResetButton(ele) {
+        fn_Customer_initialLoad();
+    }
+     function Getdepartmentdefault() {
+
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        //$thisForm.find('[name=BranchTypeID]').val(value.ID_BranchType).selectpicker('refresh');
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                         let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    $(document).ready(function () {
+        debugger
+       
+        Getdepartmentdefault();
+        
+        if ('@ViewBag.Manager'=='True' || '@ViewBag.Admin'=='True') {
+            $('#DepartmentDiv *').prop('disabled', false);
+        }
+        else {
+            $('#DepartmentDiv *').prop("disabled", "disabled");
+        }
+        fn_loadgroupby(this);
+        $.getScript("/Scripts/jspdf.min.js", function () {
+            console.log("jspdf.min.js loaded")
+        });
+        $.getScript("/Scripts/jspdf.plugin.autotable.min.js", function () {
+            console.log("jspdf.plugin.autotable.min.js is loaded")
+        });
+    });
+    function getfunction(ele) {
+        $("#divReportSection").hide();
+    }
+
+
+
+
+
+    function generatePdf(ele) {
+
+        var cdata;
+        var type = $("#ID_Report").val().trim();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        var critria_ = "";
+        if ($('select[name="ID_Report"] option:selected').val() == "6" || $('select[name="ID_Report"] option:selected').val() == "7") {
+
+            critria_ = $thisForm.find('[name=ProdRptCriteria]').val();
+        }
+        else {
+            critria_ = $thisForm.find('[name=Criteria]').val();
+        }
+        const obj = {
+            //ReportMode: $('select[name="ID_Report"] option:selected').val(),
+            FromDate: changeDateFormat($('input[name="FromDate"]').val()),
+            ToDate: changeDateFormat($('input[name="ToDate"]').val()),
+            Product: $('#ProductName').val(),
+            Branch: $('select[name="BranchID"] option:selected').text(),
+            Employee: $("#Employee").val(),
+            Priority: $('#FK_Priority option:selected').text(),
+            FollowUpAction: $('#FK_NetAction option:selected').text(),
+            FollowUpType: $('#FK_ActionType  option:selected').text(),
+            Collectedby: $thisForm.find('[name="Collectedby"]').val(),
+            LeadNo: $thisForm.find('[name="LeadNo"]').val(),
+            Category: $("#FK_Category option:selected").text(),
+            Area: $thisForm.find('select[name="Area_ID"]  option:selected').text(),
+            Status: $('#Status option:selected').text(),
+            ProductType: $('#ProductType option:selected').text(),
+            //Grouping: critria_
+        };
+
+
+
+        const obj2 = {
+
+            //Report: $('select[id="ID_Report"] option:selected').text(),
+
+            //"Target Date": $('#reportrange span').html(),
+        }
+
+
+
+
+        var str = "";
+        var str2 = "";
+        var num = 0
+        for (var i in obj) {
+            debugger
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0 && obj[i] != undefined && obj[i] != "Please select") {
+
+                if (typeof (obj[i]) == "string") {
+                    if (obj[i].trim() != "Please Select" && obj[i].trim() != "") {
+                        debugger
+                        if (num == 0) {
+                            str = "Filter By : ";
+                        }
+
+                        str = str + i + ' : ' + obj[i] + ' , ';
+                    }
+
+                } else {
+                    if (num == 0) {
+                        str = "Filter By : ";
+                    }
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+                num++;
+            }
+
+        };
+
+        for (var i in obj2) {
+            // debugger
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+
+                str2 = str2 + i + ' : ' + obj2[i] + ' , ';
+            }
+
+        };
+
+
+        ////Test code end
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+
+
+                var body = [];
+                var collen = ":";
+                var reportName = "";
+                var upperhead;
+
+
+
+                reportName = $('select[name="ID_Report"] option:selected').text();
+
+
+
+
+
+                if (type == 3) {
+                    if (comCategory == 2) {
+                        head = ["Sl No.", "Destination", "Action", "Committed Date", "Follow Up Through", "Status", "Completed Date", "Assigned To", "Due Days", "Remarks", "Category"];
+                    } else {
+                        head = ["Sl No.", "Product", "Action", "Committed Date", "Follow Up Through", "Status", "Completed Date", "Assigned To", "Due Days", "Remarks", "Category"];
+                    }
+
+
+
+                    if (comCategory == 2) {
+                        ptableData = {
+                            columns: [
+
+                                { title: "Destination", dataKey: "Product" },
+                                { title: "Action", dataKey: "Action" },
+                                { title: "Committed Date", dataKey: "CommittedDate" },
+                                { title: "Follow Up Through", dataKey: "FollowUpThrough" },
+                                { title: "Status", dataKey: "Status" },
+                                { title: "Completed Date", dataKey: "CompletedDate" },
+                                { title: "Assigned To", dataKey: "AssignedTo" },
+                                { title: "Due Days", dataKey: "DueDays", className: "text-right" },
+                                { title: "Remarks", dataKey: "Remarks" },
+                                { title: "Category", dataKey: "Category" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+                    }
+                    else {
+                        ptableData = {
+                            columns: [
+
+                                { title: "Product", dataKey: "Product" },
+                                { title: "Action", dataKey: "Action" },
+                                { title: "Committed Date", dataKey: "CommittedDate" },
+                                { title: "Follow Up Through", dataKey: "FollowUpThrough" },
+                                { title: "Status", dataKey: "Status" },
+                                { title: "Completed Date", dataKey: "CompletedDate" },
+                                { title: "Assigned To", dataKey: "AssignedTo" },
+                                { title: "Due Days", dataKey: "DueDays", className: "text-right" },
+                                { title: "Remarks", dataKey: "Remarks" },
+                                { title: "Category", dataKey: "Category" },
+
+
+                            ],
+                            rows: Data
+
+                        };
+
+                    }
+
+
+
+                    debugger
+                    const obj = {
+
+                        startY: 5,
+                        head: [/*['Account Details', '', 'Address Details', '']*/],
+                        body: [
+                            ['Cust No', reportdetaildata[0].CusNumber, 'Name', reportdetaildata[0].CusName],
+                            ['Address', reportdetaildata[0].CusAddress, 'Mobile', reportdetaildata[0].Mobile],
+                            ['Email', reportdetaildata[0].Email, 'LeadNo', reportdetaildata[0].LeadNo],
+                            ['Lead Date', reportdetaildata[0].LeadDate, 'Lead From', reportdetaildata[0].LeadFrom],
+                            ['Current Status', reportdetaildata[0].CurrentStatus, 'LeadNo', reportdetaildata[0].LeadNo],
+                            ['Email', reportdetaildata[0].Email, 'Referred By', reportdetaildata[0].LgCollectedBy],
+
+
+                        ],
+                        theme: 'striped',
+                        styles: {
+                            //lineWidth: 0.2,
+                            //lineColor: 0,
+                            fontSize: 8
+                        },
+                        headerStyles: {
+                            fillColor: '#2aa2ad', // Set the fill color of the header
+                            textColor: '#FFFFFF' // Set the text color of the header
+                        },
+                        showHead: 'everyPage',
+                        rowPageBreak: 'avoid',
+                        pageBreak: 'auto',
+                        margin: { top: 30, bottom: 40 }
+                    }
+
+                    const inputdata = {
+                        ptitle: reportName,
+                        phead: [head],
+                        cdata,
+                        upperhead,
+                        ptableData,
+                        filename: reportName,
+                        pageSize: "a4",
+                        PageOrientation: "l",
+                        uppertable: obj
+
+                    }
+                    exportPdf2(inputdata);
+                }
+
+                grpby = "Branch";
+            }
+        });
+    }
+
+    function fn_loadgroupby(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var modes;
+        let Inputdata;
+        if ($("#ID_Report").val() != 10) {
+            Inputdata = {
+                Mode : 121,
+                Group : 1
+            }           
+        }
+        else 
+        {
+            if ('@ViewBag.Manager' == 'True' ) {
+                Inputdata = {
+                    Mode : 121,
+                    Group : 3
+                }            
+            }
+            else if ('@ViewBag.Admin' == 'True') {
+                Inputdata = {
+                    Mode : 121,
+                    Group : 2
+                }            
+            }            
+        }
+        $.ajax({
+            url: "@Url.Action("getGroupModeList", "LeadManagementRpt")",
+            type: "POST",
+            data: Inputdata,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                console.log(ajaxOutput)
+                let $menuDropdown = $('[name=Criteria]');//<--- Will give place select html element
+
+                $menuDropdown.empty().selectpicker('refresh');
+                $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+
+
+                if (ajaxOutput.Process.IsProcess) {
+                    debugger
+                    console.log("ajaxOutput>>>>>>>>", ajaxOutput.Data)
+
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        console.log('$menuDropdown', $menuDropdown)
+                        $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                    });
+
+                    if ($menuDropdown.attr('perfect-onloadSelect')) {
+                        $menuDropdown.val($menuDropdown.attr('perfect-onloadSelect')).selectpicker('refresh');
+                        $menuDropdown.attr('perfect-onloadSelect', '');
+                    }
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        //$menuDropdown.val($menuDropdown.attr('perfect-onSelectLoad')).selectpicker('refresh');
+                        //$menuDropdown.attr('perfect-onSelectLoad', '');
+                        NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': value });
+                    });
+                }
+            }
+
+        });
+
+
+    }
+    function clearArea(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name=Area]').val('');
+        $thisForm.find('[name=Area_ID]').val(0);
+    }
+    function getfunctionAssign(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        clearArea(ele)
+    }
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+    function clearemployeedetails(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name=CollectedBy]').val('');
+        $thisForm.find('[name=FK_CollectBy]').val(0);
+        $thisForm.find('[name=AssignBy]').val('');
+        $thisForm.find('[name=FK_AssignBy]').val(0);
+        $thisForm.find('[name=Collectedby]').val('');
+        $thisForm.find('[name=Collectedby_ID]').val(0);
+        $thisForm.find('[name=FK_AssignTo]').val(0);
+        $thisForm.find('[name=AssignTo]').val('');      
+        
+    }
+</script>

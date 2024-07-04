@@ -1,0 +1,456 @@
+﻿@{
+    ViewBag.Title = "CheckList";
+
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="checkList-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+<script type="text/javascript">
+
+    var CklTransMode = '';
+    var LastIDSessionKey = '';
+        const $formContainer = $('#checkList-form');
+        $(document).ready(function () {
+            checkListInitialLoad();
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+             {
+                <text> LoadCheckListList(this); </text>
+             }
+        });
+
+        var validationMessage = {
+            'CkLstName': {
+                'required': 'Please enter a  Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in name'
+            },
+
+            'CkLstShortName': {
+                'required': 'Please enter a Short Name'
+            },
+            'checkCategories': {
+                'required': 'Please select atleast one category.'
+            },
+            'InspectionType': {
+                'required': 'Please select Inspection Type.'
+            }
+
+        };
+
+        function checkListInitialLoad() {
+            CklTransMode = "";
+            CklTransMode = '@ViewBag.TransMode';
+             Drop = "";
+             Drop = '@ViewBag.showcategory';
+            @if (ViewBag.PagedAccessRights.UsrrlMsView)
+             {
+                <text> LoadCheckListList(this); </text>
+             }
+            loadChecklistAddForm();
+        }
+
+    function loadChecklistAddForm()
+    {
+        
+        $formContainer.load('@Url.Action("LoadFormCheckList", "CheckList")', {mtd:'@ViewBag.mtd',trns:'@ViewBag.TransMode'}, function () {
+       
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+
+
+                $thisForm.find('[name=TransMode]').val(CklTransMode);
+                $thisForm.attr('perfect-onFormSuccess', 'checkListInitialLoad');
+                initFunctions($thisForm);
+            });
+        }
+    function LoadCheckListList1(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetCheckListList", "CheckList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransModes: CklTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                   
+                    if (ajaxOutput.Process.IsProcess)
+                    {
+                              $sidemenu.find('.jq_sidemenu_title').text("Checklist List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCheckListList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: CklTransMode }, tableOptions, $table)
+                              });
+                    }
+                    else
+                    {
+                              if (ajaxOutput.Process.Status = "NoData")
+                              {
+                                    $sidemenu.find('.jq_sidemenu_title').text("Checklist");
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCheckListList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                                    let $table = $sidemenu.find('table');
+                                    $table.dataTable({
+                                        "serverSide": true,
+                                        "processing": true,
+                                        "lengthMenu": [],
+                                        "searching": false,
+                                        "ordering": false,
+                                        "deferLoading": ajaxOutput.totalrecord,
+                                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                        "pageLength": ajaxOutput.pageSize,
+                                        "recordsFiltered": ajaxOutput.pageSize,
+                                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: CklTransMode }, tableOptions, $table)
+                                    });
+                              }
+                              else
+                              {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    });
+                              }
+                    }
+                },
+                complete: function () {
+
+                }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+    function LoadCheckListList(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+
+
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+
+          let pageUrl = '@Url.Action("GetCheckListList", "CheckList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: {
+                    pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: CklTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                       // setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+
+                        $sidemenu.find('.jq_sidemenu_title').text("LoadCheckListList");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCheckListList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: CklTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                    else  {
+                              setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCheckListList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: CklTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+
+        <text> { displayName: "View", action: editChecklist},</text>
+    }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                {
+                 <text> { displayName: "Delete", action: deleteChecklist },</text>
+                }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        hideColumn: ["ID_CheckList", "SortOrder", "TotalCount", "TransMode", "ChecklistCategorylist", "ChecklistArray", "Checklist_Categories", "FK_CheckListType_JSON", "FK_CheckListType", "CkLstInspectionType","InspectionListData"],
+        rowClickAction: editChecklist,
+        renameHeader: { "SlNo": "SL NO", "CkLstName": "Name", "CkLstShortName": "Short Name"}
+
+        };
+
+        function editChecklist()
+        {
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = { ID_CheckList: savedData.ID_CheckList, TransMode: CklTransMode};
+            //$('#LoadMenuGroup').empty();
+                $.ajax({
+                 url: '@Url.Action("GetChecklistInfo", "CheckList")',
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+                            $sideMenuOptions.close();
+                            $formContainer.load('@Url.Action("LoadFormCheckList", "CheckList")', {mtd:'@ViewBag.mtd',trns:'@ViewBag.TransMode'}, function () {
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].CkLstName)
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+                            $thisForm.attr('perfect-onFormSuccess', 'checkListInitialLoad');
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            $thisForm.find('[name=ID_CheckList]').val(ajaxOutput.Data[0].ID_CheckList);
+                            $thisForm.find('[name=CkLstName]').val(ajaxOutput.Data[0].CkLstName);
+                            $thisForm.find('[name=CkLstShortName]').val(ajaxOutput.Data[0].CkLstShortName);
+                            $thisForm.find('[name=SortOrder]').val(ajaxOutput.Data[0].SortOrder);
+                                $thisForm.find('[name=TransMode]').val(ajaxOutput.Data[0].TransMode);                                
+
+                                //const jsonArray = JSON.parse(ajaxOutput.Data[0].Checklist_Categories);
+                                //console.log('jsonArray', jsonArray)
+                                $thisForm.find('[name="checkCategories"]').val(ajaxOutput.Data[0].FK_CheckListType).selectpicker('refresh'); ////
+                                $thisForm.find('[name=InspectionType]').val(ajaxOutput.Data[0].CkLstInspectionType).selectpicker('refresh');
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+         });
+        }
+         function deleteChecklist() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetCheckListReasonList", "CheckList")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.CkLstName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_CheckList: Saveddata['ID_CheckList'],
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCheckList", "CheckList")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                checkListInitialLoad();
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+        }
+
+</script>
+}

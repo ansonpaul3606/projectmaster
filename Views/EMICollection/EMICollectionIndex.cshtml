@@ -1,0 +1,614 @@
+﻿@*/*----------------------------------------------------------------------
+    Created By	: Kavya 
+    Created On	: 31/10/2022
+    Purpose		: EMI Collection
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*/**@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Index";
+
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-sm-12" id="EMICollection-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+<script>
+    const LastIDSessionKey = 'EMICollectionLastID';
+    var EMICollectionTransMode = '';
+    var LastID_EMICollection;
+        const $formContainer = $('#EMICollection-form');
+
+        var validationMessage = {
+            'ddlImportsList': {
+                'required': 'Please select Import From from the list'
+            },
+            'TransDate': {
+                'required': 'Please select Trans Date',
+                'max': jQuery.validator.format('Future Date will not Allowed')
+            },
+            'CollectionDate': {
+                'required': 'Please select Collection Date',
+                'max': jQuery.validator.format('Future Date will not Allowed')
+            },
+            'CollectedBy': {
+                'required': 'Please Select Collected By'
+            },
+            'TotalAmount': {
+                'required': 'Please enter Total Amount'
+            },
+            'NetAmount': {
+                'required': 'Please enter Net Amount'
+            },
+             'WaveAmount': {
+                'required': 'Please enter Waive Amount'
+            },
+              'FineAmount': {
+                  'required': 'Please enter Fine Amount '
+            },
+            'PaymentMethod': {
+                'required': 'Please Select Payment Method'
+            },
+        }
+
+        $(document).ready(function () {
+            EMICollectionTransMode = "";
+            //getSessionValue("C9XIc2F1IFVM2qu6V/GeJzWCAp59B5JGwlHiAip3npo=", function (result) {
+            EMICollectionTransMode = '@ViewBag.TransMode';
+            LoadEMICollection();
+            fn_EMIListIndex(this);
+            //});
+        });
+
+        function LoadEMICollection(){
+            
+            fn_EMIListIndex(this, LoadEMICollectionForm);
+        }
+        function LoadEMICollectionForm() {
+            $formContainer.load('@Url.Action("LoadEMICollectionForm", "EMICollection")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="CollectionDate"]').val(moment().format('YYYY-MM-DD'));
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("CollectionDate")[0].setAttribute('max', today);
+                document.getElementsByName("TransDate")[0].setAttribute('max', today);
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'LoadEMICollection');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_EMICollection = result;
+                });        
+             });
+        };
+
+        function fn_EMIListIndex(ele,callback) {
+            let $sidemenu = $sideMenuOptions.body;
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            serchpdfname = SearchName;
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('EMI Collection List');
+            let pageUrl = '@Url.Action("GetEMICollectionList", "EMICollection")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: EMICollectionTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        console.log('Purchase List', ajaxOutput);
+                        $sidemenu.find('.jq_sidemenu_title').text("Purchase Return List");
+
+
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_EMIListIndex(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: EMICollectionTransMode }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            $sidemenu.find('.jq_sidemenu_title').text("Customer Service Registrations");
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_EMIListIndex(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [0],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: EMICollectionTransMode }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        }
+
+
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: fn_fillEmiCollectionDetails },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: deleteEmicollection
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Customer", "CollectDate", "CusTrAmount"],
+            serialNo: false,
+            hideColumn: ["ID_CustomerTransaction", "FK_Customer"],
+            rowClickAction: fn_fillEmiCollectionDetails,
+            renameHeader: { "PrNetAmount": "Net Amount1R", "CusTrAmount": "Amount1R", "CollectDate": "Collect Date" },
+            isDateType: ["CollectDate"],
+            //  rowClickAction: () => { alert("clicked row") }
+    };
+    //loadupdateform
+    function fn_ViewEmicollection() {
+        let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');      
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_CustomerTransaction: Saveddata.ID_CustomerTransaction,
+            TransMode: EMICollectionTransMode,
+        };
+        fn_fillEmiCollectionDetails(inputData, Saveddata);
+    }
+
+
+    function fn_fillEmiCollectionDetails() {
+        let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_CustomerTransaction: Saveddata.ID_CustomerTransaction,
+            TransMode: EMICollectionTransMode,
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetEMICollectionInfo", "EMICollection")',
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function (ajaxOutput)
+            {
+                
+                if (ajaxOutput.Fielddata.Process.IsProcess) {
+                    if (ajaxOutput.Fielddata.Process.IsProcess) {
+                        $formContainer.load('@Url.Action("LoadEMICollectionForm", "EMICollection")?mtd=@ViewBag.mtd', function () {
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $sideMenuOptions.close();
+                            debugger
+                            $thisForm.find('[name="ID_EMICollection"]').val(ajaxOutput.Fielddata.Data[0]['ID_CustomerTransaction']);
+                            $thisForm.find('[name="ddlImportsList"]').val(ajaxOutput.Fielddata.Data[0]['CusTrCusType']).selectpicker('refresh');
+                            $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.Fielddata.Data[0]['TransDate']).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="CollectionDate"]').val(moment(ajaxOutput.Fielddata.Data[0]['CollectDate']).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="TransTypeID"]').val(ajaxOutput.Fielddata.Data[0]['TransType']).selectpicker('refresh');
+                            $thisForm.find('[name="TotalAmount"]').val(Number(ajaxOutput.Fielddata.Data[0]['CusTrAmount']).toFixed(2));
+                            $thisForm.find('[name="FineAmount"]').val(Number(ajaxOutput.Fielddata.Data[0]['CusTrFineAmount']).toFixed(2));
+                            $thisForm.find('[name="WaveAmount"]').val(Number(ajaxOutput.Fielddata.Data[0]['CusTrFineWaiveAmount']).toFixed(2));
+                            $thisForm.find('[name="NetAmount"]').val(Number(ajaxOutput.Fielddata.Data[0]['NetAmount']).toFixed(2));
+                            $thisForm.find('[name="CollectedByID"]').val(ajaxOutput.Fielddata.Data[0]['CusTrCollectedBy']);
+                            $thisForm.find('[name="CollectedBy"]').val(ajaxOutput.Fielddata.Data[0]['CollectedBy']);
+                            $thisForm.find('[name="PaymentMethod"]').val(ajaxOutput.Fielddata.Data[0]['FK_PaymentMethod']).selectpicker('refresh');
+
+
+                            $thisForm.find('[name=CusName]').text(ajaxOutput.Fielddata.Data[0]['Customer']);
+                            $thisForm.find('[name=Mobile]').text(ajaxOutput.Fielddata.Data[0]['CusMobile']);
+                            $thisForm.find('[name=Address]').text(ajaxOutput.Fielddata.Data[0]['CusAddress']);
+                            $("#divCusDetails").css('display', 'block');
+                            $("#divBilldetails").css('display', 'block');
+
+                            if ($thisForm.find('[name="ddlImportsList"]').val() == 1) {
+                                $thisForm.find('[name="ID_Customer"]').val(ajaxOutput.Fielddata.Data[0]['FK_Master']);
+                            }
+                            else if ($thisForm.find('[name="ddlImportsList"]').val() == 2) {
+                                $thisForm.find('[name="ID_Sales"]').val(ajaxOutput.Fielddata.Data[0]['FK_Master']);
+                            }
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').addClass('d-none');
+                            var CheckListHTML = '';
+
+                            $thisForm.find('[name="WaveAmount"]').attr("readonly", true);
+                            $thisForm.find('[name="PaymentMethod"]').attr("readonly", true);
+                            $thisForm.find('[name="TransDate"]').attr("readonly", true);
+                            $thisForm.find('[name="CollectionDate"]').attr("readonly", true);
+                            $thisForm.find('[name="ddlImportsList"]').attr("disabled", "disabled");
+                            $('#addarea-jq-searchButton3').attr("disabled", "disabled");
+                            $('#btnShowList').attr("disabled", "disabled");
+                            $thisForm.find('button[name=delete]').removeClass('d-none');
+                            $thisForm.data({ pData: Saveddata });
+                            if (ajaxOutput.Billdata.Process.IsProcess) {
+                            
+                                //let $CheckListHTML = $('<tr/>');  
+                                //CheckListHTML += "<tr>";
+                                $('#EMIDetailstbody').empty(); 
+                                let totalAmount;
+                               
+                                $('#EMIHead').show();
+                                $('#divBilldetails').show();
+                                $('#EMItable').show();
+                                $.each(ajaxOutput.Billdata.Data, function (i, value) {
+                                    //alert(i)
+                                    totalAmount = parseFloat(value.Amount) + parseFloat(value.Fine);
+                                    let $CheckListHTML = $('<tr/>');
+                                    $CheckListHTML.append("<td class='idcheck'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox'/></td>");
+                                    $CheckListHTML.append("<td class='SlNo' style='text-align: center'>" + value.SLNo + "</td>");
+                                    $CheckListHTML.append("<td class='EMINo' style='text-align: center'>" + value.EMINo + "</td>");
+                                    $CheckListHTML.append("<td class='Product' style='text-align: center'>" + value.Product + "</td>");
+                                    $CheckListHTML.append("<td class='EMDate' style='text-align: center' >" + ConvertJsonDate(value.SalBillDate) + "</td>");
+                                    $CheckListHTML.append("<td class='EMAmount_old' Style='Display:none'>" + value.Amount.toFixed(2) + "</td>");
+                                    $CheckListHTML.append("<td class='FineAmount_old' Style='Display:none'>" + value.Fine + "</td>");
+                                    $CheckListHTML.append("<td class='EMAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='EMIAmount' id='EMIAmount'  onkeypress='return isNumberKey(event)'  value='" + (value.Amount).toFixed(2) + "' maxlength='9' /></td></td>");
+                                    $CheckListHTML.append("<td class='FineAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='EMIFineAmount' id='EMIFineAmount' onkeypress='return isNumberKey(event)'  value='" + (value.Fine).toFixed(2) + "' maxlength='9'/></td></td>");
+                                    $CheckListHTML.append("<td class='ID_Sales' Style='Display:none'>" + 0 + "</td>");
+                                    $CheckListHTML.append("<td class='FK_Customer' Style='Display:none'>" + 0 + "</td>");
+                                    $CheckListHTML.append("<td class='FK_SalesOrder' Style='Display:none'>" + value.FK_SalesOrder + "</td>");
+                                    $CheckListHTML.append("<td class='FK_FinancePlanType' Style='Display:none'>" + value.FK_FinancePlanType + "</td>");
+                                    $CheckListHTML.append("<td class='FK_CustomerWiseEMI' Style='Display:none'>" + value.FK_CustomerWiseEMI + "</td>");
+                                    $CheckListHTML.append("<td class='Total' style='text-align: right'>" + Number(totalAmount).toFixed(2) + "</td>");
+                                    $CheckListHTML.append("<td class='Balance_old' Style='Display:none'>" + value.Balance.toFixed(2) + "</td>");
+                                    $CheckListHTML.append("<td class='Balance' style='text-align: right'>" + value.Balance.toFixed(2) + "</td>");
+                                    $CheckListHTML.append("<td class='LoanStatus' style='text-align: right'><span id='close'>Closing</span><button id='loanstatus" + i + "' data-value='" + value.FK_Closed +"' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class=' fa fa-check fa-2x' style='color:grey'></i></button></td>");
+                                    $CheckListHTML.append("</tr>");   
+                                    $("#EMIDetailstbody").append($CheckListHTML);
+                                    //tick & checkbox button disabled//
+                                    $CheckListHTML.find('.LoanStatus').find('button').attr('disabled', true);
+                                    $CheckListHTML.find('.idcheck').find('input').attr('checked', true);
+                                    $CheckListHTML.find('.idcheck').find('input').attr('disabled', true);
+                                    //tick & checkbox disabled/////
+                                    if (value.FK_Closed == 1) {
+                                        $("#tickicon" + i).css("color", "green");
+                                        $CheckListHTML.find('.EMAmount').find('input').attr('disabled', true);
+                                    }
+                                    else if (value.FK_Closed == 0) {
+                                        $("#tickicon" + i).css("color", "grey");                                       
+                                        $CheckListHTML.find('.EMAmount').find('input').attr('disabled', true);
+                                    }
+                                });   
+                                
+                                //$('#idcheck').hide();
+                                $('#checkall').hide();
+                                calculateTotals(this);
+                            }
+                            else {
+                                CheckListHTML += "<div class='form-group col-md-6'>";
+                                CheckListHTML += "<div class='form-check mb-2'>";
+                                CheckListHTML += "<input type='checkbox' class='form-check-input' >";
+                                CheckListHTML += "<label class='form-check-label' style='text-align:center;' for='check1'><b>No Bill for this customer.</b></label>";
+                                CheckListHTML += "</div></div>";
+                                $("#EMIDetailstbody").html(CheckListHTML);
+                            }
+                            if (ajaxOutput.paymentdetail) {
+                                fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                            }
+                            let netamt = $thisForm.find('[name="NetAmount"]').val() == "" ? 0 : $thisForm.find('[name="NetAmount"]').val();
+                            let billamt = 0;
+                            let bilamt = 0;
+                            if ($thisForm.find('[name=BalAmt]').text() == '') {
+                                bilamt = 0;
+                            }
+                            else {
+                                bilamt = netamt;
+                            }
+
+                            $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+
+                                billamt += parseFloat($(ele).find('.PAmount').text());
+
+                            });
+
+                            bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+                            $thisForm.find('[name=BalAmt]').text((0).toFixed(2));
+                        });
+
+                        
+
+                    }
+                    
+                   
+
+                    //if (ajaxOutput.Billdata.Process.IsProcess) {
+                    //    var CheckListHTML = '';
+                    //    let $CheckListHTML = $('<tr/>');                     
+                    //    $('#EMIDetailstbody').empty();                     
+                    //    if (ajaxOutput.Billdata.Process.IsProcess) {  
+                    //        let totalAmount;                            
+                    //        $.each(ajaxOutput.Billdata.Data, function (i, value) {
+                    //            totalAmount = parseFloat(value.CusTrDetPayAmount) + parseFloat(value.CusTrDetFineAmount);
+                    //            $CheckListHTML.append("<td class='idcheck'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox'/></td>");
+                    //            $CheckListHTML.append("<td class='SlNo' >" + value.SLNo + "</td>");
+                    //            $CheckListHTML.append("<td class='BillNo' >" + value.SalBillNo + "</td>");
+                    //            $CheckListHTML.append("<td class='EMDate' style='text-align: center' >" + ConvertJsonDate(value.SalBillDate) + "</td>");
+                    //            $CheckListHTML.append("<td class='EMAmount_old' Style='Display:none'>" + value.CusTrDetPayAmount.toFixed(2) + "</td>");
+                    //            $CheckListHTML.append("<td class='EMAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='EMIAmount' id='EMIAmount'  onkeypress='return isNumberKey(event)'  value='" + (value.CusTrDetPayAmount).toFixed(2) + "' maxlength='9' /></td></td>");
+                    //            $CheckListHTML.append("<td class='FineAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='EMIFineAmount' id='EMIFineAmount' onkeypress='return isNumberKey(event)'  value='" + (value.CusTrDetFineAmount).toFixed(2) + "' maxlength='9' readonly /></td></td>");
+                    //            $CheckListHTML.append("<td class='ID_Sales' Style='Display:none'>" + 0 + "</td>");
+                    //            $CheckListHTML.append("<td class='FK_Customer' Style='Display:none'>" + 0 + "</td>");
+                    //            $CheckListHTML.append("<td class='FK_SalesOrder' Style='Display:none'>" + value.FK_SalesOrder + "</td>");
+                    //            $CheckListHTML.append("<td class='Total' style='text-align: right'>" + Number(totalAmount).toFixed(2) + "</td>");
+                    //            $CheckListHTML.append("<td class='Balance_old' Style='Display:none'>" + value.Balance.toFixed(2) + "</td>");
+                    //            $CheckListHTML.append("<td class='Balance' style='text-align: right'>" + value.Balance.toFixed(2) + "</td>");
+                    //        });                           
+                    //        $("#EMIDetailstbody").append($CheckListHTML);
+                    //        $('#EMIHead').show();
+                    //        $('#divBilldetails').show();
+                    //        $('#EMItable').show();
+                    //    }
+
+                        
+
+
+                    //    calculateTotals(this);
+
+                    //}
+                    //else {
+                    //    $('#EMIDetailstbody').empty();
+                    //    $('#EMIHead').hide();
+                    //    $('#checkall').is(":checked") == false;
+                    //    //$('#Billdetailstbody').empty();
+                    //    $('#divBilldetails').hide();
+                    //    $.each(ajaxOutput.Process.Message, function (key, value) {
+                    //        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "No Bill Details Found." });
+                    //    });
+                    //}
+                }
+
+
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value)
+                    {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+        });
+    }
+
+    //Delete
+    function deleteEmicollection(ele, Dltfrm) {
+        let $row;
+        let Saveddata;
+        let CustomertrasactionID;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        debugger
+        if (Dltfrm == 1) {          
+            Saveddata = $thisForm.data('pData');
+            CustomertrasactionID = Saveddata.ID_CustomerTransaction;
+        }
+        else {
+             $row = $(this).closest('tr');
+            Saveddata = $row.data('pData');
+            CustomertrasactionID = Saveddata.ID_CustomerTransaction;
+        }
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        console.log("Saved data", Saveddata);
+        $.ajax({
+            url: "@Url.Action("GetPaymentMethodDeleteReasonList", "PaymentMethod")",
+            type: "GET",
+            // data: inputReason,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+                    console.log('Inside res ajax', ajaxReasonOutput.Data)
+                    //confirmation
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to Delete this EMI Collection Details ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                    var res = ConfirmDialog(confirmationDialogBoxOption);
+
+                    res.then(function (ret) {
+                        if (ret) {
+
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                CustomerTransactionID: Saveddata.ID_CustomerTransaction,
+                                ReasonID: ret
+                            };
+                            $.ajax({
+                                url: "@Url.Action("DeleteEMICollection", "EMICollection")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    $formContainer.load('@Url.Action("LoadEMICollectionForm", "EMICollection")', function () {
+                                        if (ajaxOutput.Process.IsProcess) {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                $sideMenuOptions.close();
+                                                LoadEMICollectionForm(ele);
+                                            });
+                                            //removing a data
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+                    });
+                }
+            }
+        });
+    }
+    function fillTableSales(ele, tkey, data, tableOptionsTempOut) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableOptionsTempfill = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+        let indexname = tkey + 'index';
+        tableOptionsTempfill.rowAttribute.push(indexname);
+        tableOptionsTempfill.hideColumn.push(indexname);
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+
+                        tableOptionsTempfill.hideColumn.push(nameAttr);
+
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                    else if ($this.is('input')) {
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+
+                        if (inputType == 'date') {
+
+                            if (valOne[nameAttr] == null) {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                }
+            });
+
+            insertData.push(pData);
+
+        });
+        $tblcontainer.empty();
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+
+    }
+</script>
+    }

@@ -1,0 +1,1074 @@
+﻿@model PerfectWebERP.Models.IncentivePaymentModel.IncentivePaymentViewlist
+<style>
+    .tableFixHead {
+        overflow: auto;
+        height: 210px;
+        /*height:auto;*/
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+
+    th {
+        background: var(--perfect-primary);
+    }
+</style>
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+
+    <div class="card-body Customer_rp">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onformsuccess="AccountsReportInitialLoad" novalidate="novalidate">
+            <div class="CustomerReportfilters">
+                <div class="">
+                    <div class="row">
+
+                        <div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Payment Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" id="ID_IncentivePayment" name="ID_IncentivePayment" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" id="IPGroupID" name="IPGroupID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="date" class="form-control perfectValidate_date" id="IPDate" name="IPDate" data-id="IPDate-error" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+                                </label>
+                                <div class="col-sm-8 ">
+
+                                    <select class="form-control" id="FK_Branch" name="FK_Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ClearEmployeeDepartment(this)">
+                                        <option value="">Please Select</option>
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var brnch in Model.BranchList)
+                                            {
+                                                <option value="@brnch.BranchID">@brnch.BranchName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Department</span>
+                                </label>
+                                <div class="col-sm-8 ">
+
+                                    <select class="form-control " id="FK_Department" name="FK_Department" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ClearEmployee(this)">
+                                        <option value="">Please Select</option>
+                                        @if (!(Model.DepartmentList is null))
+                                        {
+                                            foreach (var dept in Model.DepartmentList)
+                                            {
+                                                <option value="@dept.ID_Department">@dept.DeptName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Employee</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                        <input type="hidden" id="EmployeeID" name="EmployeeID" class="form-control perfectValidate_string" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,117,'Employee List',[],['FK_Department'])" Criterea1="FK_Department" Criterea2="FK_Branch" BindName="Employee" BindVal="EmployeeID" Function="1"></button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <br />
+                        <div class="table-responsive tableFixHead" perfect-tempTable="INCDetails" id="INCtable" style="display:none;">
+                            <div class="table-responsive-lg tableFixHead">
+                                <table class="table table-responsive-sm " id="INC">
+                                    <thead class="btn-primary" id="INCHead">
+                                        <tr>
+                                            <th scope="col" style="text-align:center">Sl.No</th>
+                                            <th scope="col" style="text-align:center">Incentive Type</th>
+                                            <th scope="col" style="display:none;text-align:center">FK_IncentiveType</th>
+                                            <th scope="col" style="text-align:center">Last Processed Date</th>
+                                            <th scope="col" style="text-align:center;width:250px;">Balance Payable</th>
+                                            <th scope="col" style="text-align:center;width:250px;">Payable Amount</th>
+                                            <th scope="col" style="text-align:right;width:250px;">Current Balance</th>
+                                            <th style="display:none;text-align:right">CurrentBalanceOld</th>
+                                            <th style="display:none;text-align:right">PayableAmountOld</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="INCDetailstbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-sm-6" id="NetPayableAmount">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Net Payable</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control perfectValidate_string text-right" id="IPAmount" name="IPAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'IPAmount',3)" maxlength="12" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Payment Method</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-5">
+                                <div class="input-group">
+
+                                    <div class="input-group-append">
+                                        &nbsp;<button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-money" type="button" perfect-css="button" title="Add Payment Method" onclick="GetPaymentlistsalesorder(this)"></button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @*payment method pop up----- Start*@
+                <div class="modal fade" perfect-class="formGroupModalpayment" id="formGroupModalpayment">
+                    <div class="modal-dialog  modal-dialog-centered modal-md" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Payment Method</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                <div class="row">
+
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Method <span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <select class="form-control" perfect-tempTable-Payment="PaymentMethod" name="PaymentMethod" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                        <option value="">Please Select </option>
+                                                        @if (!(Model.PaymentView is null))
+                                                        {
+                                                            foreach (var Module in Model.PaymentView)
+                                                            {
+                                                                if (Module.PMDefault == true)
+                                                                {
+                                                                    <option value="@Module.PaymentmethodID" selected>@Module.Name</option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@Module.PaymentmethodID">@Module.Name</option>
+                                                                }
+                                                            }
+                                                        }
+                                                    </select>
+
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Ref No.</span>
+
+                                            </label>
+                                            <div class="col-sm-8">
+
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control perfectValidate_string_nm" perfect-tempTable-Payment="Refno" name="Refno" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="250" />
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Amount</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control text-right" perfect-tempTable-Payment="PAmount" id="PAmount" name="PAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'PAmount',3)" onchange="Pamount(this)" maxlength="12" />
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-9">
+
+
+                                    </div>
+                                    <div class="col-sm-3 text-right">
+                                        <div class="input-group">
+
+                                            <div class="input-group-append">
+                                                <div>
+                                                    <button type="button" class="btn btn-primary1 " onclick="createtable(this,'Payment',['PaymentMethod'],paytableOptionsTempOut)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                    <button class="btn btn-light1" id="paymentclear" type="button" onclick="productclear(this, 'Payment')"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel" style="font-weight:500;">Bal. Amount :</span>
+
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+
+                                                    <label class="col-form-label">
+                                                        <span perfect-class="formGroupLabel" style="font-weight:500;" name="BalAmt"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+
+                                            <div class="table-responsive" perfect-tempTable-Payment="" perfect-tempTable="Payment" id="Paymentdethead" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                                            <div class="text-danger temptableError"></div>
+
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary light" onclick="SoBillttlnetchck(this)">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    @*<button id="UpdateIncentiveSettings" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_UpdateIncentivePayment(this,'update')"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>*@
+                    <button id="AddIncentiveSettings" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_UpdateIncentivePayment(this,'new')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                </div>
+            </div>
+
+            <br />
+
+
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        if (Admin == 'True') {
+            $('#FK_Branch').prop('disabled', false);
+        }
+        else {
+            $('#FK_Branch').prop('disabled', true);
+        }
+        $('[name=FK_Branch]').val(Branch).selectpicker('refresh');
+    });
+    function ResetButton(ele) {
+        fn_IncentivePaymentIndex_initialLoad();
+    }
+    function ClearPaymentDetails(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        let $Ptblcontainer = $thisForm.find('[perfect-tempTable="Payment"]');
+        //let $tblcontainer = $thisForm.find('[perfect-tempTable="INCDetails"]');
+        $Ptblcontainer.empty();
+       // $tblcontainer.empty();
+        let ttlamt = 0;
+        $thisForm.find('[name=BalAmt]').text(ttlamt.toFixed(2));
+        $('#INCHead').hide();
+        $('#INCDetailstbody').empty();
+        $('#INCtable').hide();
+        $thisForm.find('[name=IPAmount]').val("");
+       
+    }
+    function GetDepartmentByBranch(ele) {
+
+        let $thisForm = $('[perfect-class="form"]');
+        let Module = $thisForm.find('[name=FK_IncentiveType]').children(":selected").attr('Module');
+        let $menuDropdown = $thisForm.find('[name=FK_Department]');//<--- Will give place select html element
+        $menuDropdown.empty();
+        //$menuDropdown.empty().selectpicker('refresh');
+        //if (Module == 1) {
+        let Inputdata = {
+            FK_Branch: $thisForm.find('[name=FK_Branch]').val(),
+        }
+        $.ajax({
+            url: '@Url.Action("GetDepartmentByBranchList", "IncentivePayment")',
+            type: "POST",
+            data: Inputdata,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                if (ajaxOutput.Process.IsProcess) {
+
+                    console.log(ajaxOutput.Data)
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        $menuDropdown.append($('<option/>', { "value": value.ID_Department }).text(value.DeptName)).selectpicker('refresh')
+                    });
+
+                    if ($menuDropdown.attr('perfect-onloadSelect')) {
+                        $menuDropdown.val($menuDropdown.attr('perfect-onloadSelect')).selectpicker('refresh');
+                        $menuDropdown.attr('perfect-onloadSelect', '');
+                    }
+                    //if ($thisForm.find('[name="Activity"]').val() != "") {
+                    //    $thisForm.find('[name="INSActivity"]').val($thisForm.find('[name="Activity"]').val()).selectpicker('refresh');
+
+                    //}
+                }
+
+            },
+            complete: function () {
+
+
+            }
+        });
+        //}
+
+    }
+    function ClearEmployeeDepartment(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+
+        $thisForm.find('[name=FK_Department]').val('').selectpicker('refresh');
+        $thisForm.find('[name=Employee]').val('');
+        $thisForm.find('[name=EmployeeID]').val('');
+        ClearPaymentDetails(ele);
+    }
+    function ClearEmployee(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+
+        $thisForm.find('[name=Employee]').val('');
+        $thisForm.find('[name=EmployeeID]').val('');
+        ClearPaymentDetails(ele);
+    }
+    function getfunction(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        let $tempArr = $thisForm.data('popValueData');
+        $thisForm.find('[name="FK_Department"]').val($tempArr.FK_Department);
+
+        ClearPaymentDetails(ele);
+        ShowBillDetails(ele);
+        
+    }
+
+    function ShowBillDetails(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let PaymentDate = $thisForm.find('[name="IPDate"]').val();
+        let FK_Employee = $thisForm.find('[name="EmployeeID"]').val();
+
+
+        if (FK_Employee > 0) {
+
+            var InputData =
+            {
+                'AsOnDate': PaymentDate,
+                'FK_Employee': FK_Employee,
+            }
+
+            $.ajax({
+                url: "@Url.Action("GetIncentivePaymentDetails", "IncentivePayment")",
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        var CheckListHTML = '';
+                        $('#INCHead').show();
+                        $('#INCDetailstbody').empty();
+                        $('#INCtable').show();
+                        if (ajaxOutput.Data.length > 0) {
+                            let totalAmount;
+                            let CurrentBalance;
+                            $.each(ajaxOutput.Data, function (i, value) {
+                                
+                                let $CheckListHTML = $('<tr/>');
+                                $CheckListHTML.append("<td class='SlNo' style='text-align: center'>" + value.SlNo + "</td>");
+                                $CheckListHTML.append("<td class='IncentiveType' style='text-align: center'>" + value.IncentiveType + "</td>");
+                                $CheckListHTML.append("<td class='FK_IncentiveType' Style='Display:none'>" + value.FK_IncentiveType + "</td>");
+                                $CheckListHTML.append("<td class='LastProcessedDate' style='text-align: center'>" + value.LastProcessedDate + "</td>");
+                                $CheckListHTML.append("<td class='BalancePayable' style='text-align: right'>" + parseFloat(value.BalancePayable).toFixed(2) + "</td>");
+                                $CheckListHTML.append("<td class='PayableAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='PayableAmt' id='PayableAmt'  onkeypress='return isNumberKey(event)'  value='" + parseFloat(value.PayableAmount).toFixed(2) + "' maxlength='12' /></td></td>");
+                                $CheckListHTML.append("<td class='CurrentBalance' style='text-align: right'>" + parseFloat(value.CurrentBalance).toFixed(2) + "</td>");
+                                $CheckListHTML.append("<td class='PayableAmountOld' Style='Display:none'>" + parseFloat(value.PayableAmount).toFixed(2) + "</td>");
+                                $CheckListHTML.append("<td class='CurrentBalanceOld' Style='Display:none'>" + parseFloat(value.CurrentBalance).toFixed(2) + "</td>");
+                                $("#INCDetailstbody").append($CheckListHTML)
+
+                            });
+                        }
+                        else {
+                            CheckListHTML += "<div class='form-group col-md-6'>";
+                            CheckListHTML += "<div class='form-check mb-2'>";
+                            CheckListHTML += "<input type='checkbox' class='form-check-input' >"
+                            CheckListHTML += "<label class='form-check-label' style='text-align:center;' for='check1'><b>No Payment Details Found.</b></label>";
+                            CheckListHTML += "</div></div>"
+                            $("#INCDetailstbody").html(CheckListHTML)
+                        }
+                        calculateTotals(ele);
+                    }
+                    else {
+                        $('#INCDetailstbody').empty();
+                        $('#INCHead').hide();
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "No Payment Details Found." });
+                        });
+                    }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+
+                }
+            });
+
+        }
+
+    }
+
+    $("#INC tbody").on("change", ".PayableAmount", function () {
+        debugger
+        var row = $(this).closest("tr");
+        var PayableAmount = row.find('.PayableAmount').find('input').val() == "" ? "" : row.find('.PayableAmount').find('input').val();
+        var BalancePayable = row.find('.BalancePayable').text() == "" ? "0" : row.find('.BalancePayable').text();
+        var CurrentBalance = row.find('.CurrentBalance').text() == "" ? "0" : row.find('.CurrentBalance').text();
+        var PayableAmountOld = row.find('.PayableAmountOld').text() == "" ? "0" : row.find('.PayableAmountOld').text();
+        var CurrentBalanceOld = row.find('.CurrentBalanceOld').text() == "" ? "0" : row.find('.CurrentBalanceOld').text();
+
+        debugger
+
+        if (parseFloat(PayableAmount) <= parseFloat(BalancePayable)) {
+
+            var CurrentBalance = (parseFloat(BalancePayable) - parseFloat(PayableAmount));
+            row.find('.CurrentBalance').text(parseFloat(CurrentBalance).toFixed(2));
+            calculateTotals(this);
+        }
+        else if (parseFloat(PayableAmount) == "NaN" || PayableAmount=="") {
+            row.find('.PayableAmount').find('input').val(Number(PayableAmountOld).toFixed(2));
+            row.find('.CurrentBalance').text(Number(CurrentBalanceOld).toFixed(2));
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Enter A Valid Amount" });
+            calculateTotals(this);
+        }
+        else {
+            var CurrentBalance = (parseFloat(BalancePayable) - parseFloat(PayableAmount));
+            row.find('.CurrentBalance').text(parseFloat(CurrentBalance).toFixed(2));
+            row.find('.PayableAmount').find('input').val(Number(PayableAmountOld).toFixed(2));
+            row.find('.CurrentBalance').text(Number(CurrentBalanceOld).toFixed(2));
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Payable Amount can't be Greater Than Balance Payable" });
+            calculateTotals(this);
+        }
+    });
+
+    function calculateTotals(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let TotalAmount = 0;
+
+
+        $('#INC').find('tbody tr').each(function (index, ele) {
+            TotalAmount = TotalAmount + parseFloat($(ele).find('.PayableAmount').find('input').val());
+        });
+        $thisForm.find('[name=IPAmount]').val(parseFloat(TotalAmount).toFixed(2));
+
+
+        let billamt = 0;
+        let bilamt = 0;
+        let netamt = $thisForm.find('[name=IPAmount]').val();
+        bilamt = netamt;
+        $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+            billamt += parseFloat($(ele).find('.PAmount').text());
+
+        });
+        bilamt = parseFloat(bilamt) - billamt;
+        $thisForm.find('[name=BalAmt]').text(bilamt.toFixed(2));
+    }
+
+    function createtable(ele, tkey, uniq = [], tableOptionsTempOut) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableKey = tkey;
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        let insertData = {};
+        let tableOptionsTemp = tableOptionsTempOut;
+
+        let unique = (uniq) ? uniq : [];
+
+        let isValid = true;
+        let errorClass = '.temptableError';
+
+        //make index
+
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+        let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+        let updateCond = '';
+        let isNew = true;
+
+        if (thisactionIndex > 0) {
+            //means update
+            insertData[indexname] = thisactionIndex;
+            updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+            isNew = false;
+        }
+        else {
+            //insert
+            insertData[indexname] = lastIndex + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+            isNew = true;
+        }
+        //
+        if (tableKey == 'Payment') {
+            isValid = validpaymntdetail(ele, tableKey, errorClass, isValid);
+        }
+
+
+        if (unique.length > 0) {
+            //getting previous data
+            let prevData = [];
+            $tblcontainer.find('table > tbody').find('tr').each(function () {
+                if (isNew) {
+                    prevData.push($(this).data('pData'));
+                }
+                else {
+                    if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                        prevData.push($(this).data('pData'));
+                    }
+
+                }
+
+            })
+
+
+            unique.forEach(function (key, i) {
+
+                let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                // let headerEleName = $thisForm.find('[name="lblProName"]').text();
+                let atname = $thisEle.attr('name');
+                let cvalue;
+
+
+                if ($thisEle.length != 0) {
+
+                    let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                    let errmessage = key + " Already exits"
+
+                    //getting current value in cval
+                    if ($thisEle.is('select')) {
+                        cvalue = $thisEle.val();
+                        //alert(cvalue);
+                    }
+                    else if ($thisEle.is('input')) {
+
+                        let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+
+                        if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                        else if (inputEleType == 'hidden') { cvalue = $thisEle.val(); }
+                        else { cvalue = $thisEle.val(); }
+                    }
+                    else { cvalue = $thisEle.val(); }
+
+                    //searching in previous data
+                    if (prevData.find(a => a[atname] == cvalue)) {
+
+                        $errorElement.text(errmessage);
+                        isValid = false;
+                    }
+                }
+            });
+        }
+
+
+        if (isValid) {
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+                if ($this.is('select')) {
+                    tableOptionsTemp.hideColumn.push(nameAttr)
+
+                    if ($this.val() != null) {
+                        let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    else {
+                        let selectText = ($this.val() == null) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    insertData[nameAttr] = $this.val();
+
+                    $this.val('').selectpicker('refresh');
+                }
+                else if ($this.is('input')) {
+
+                    insertData[nameAttr] = $this.val();
+                    if (nameAttr == "prodtid") { }
+                    else if (nameAttr == "stkid") { }
+                    else { $this.val(''); }
+                }
+            });
+
+
+
+            if (isNew) {
+
+                //this section nake table.table row
+                if ($tblcontainer.find('table').length == 0) {
+                    $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+                }
+                else {
+                    let table = $tblcontainer.find('table').DataTable()
+                    table.destroy()
+                    pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+                }
+            }
+            else {
+                let table = $tblcontainer.find('table').DataTable()
+                table.destroy()
+                pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+            }
+
+            // resetting the edit value
+            $tblcontainer.attr('perfect-tempTable-action', 0);
+
+            if (tableKey == 'Payment') {
+                BillAmountbinds(ele);
+            }
+        }
+    }
+
+    function GetPaymentlistsalesorder(ele) {
+        $('#formGroupModalpayment').modal({ backdrop: 'static', keyboard: false });
+        $('#formGroupModalpayment').modal('show');
+    }
+
+    function SoBillttlnetchck(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let balamt = $thisForm.find('[name=BalAmt]').text();
+        if (parseFloat(balamt) == 0) {
+            $('#formGroupModalpayment').modal('hide');
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Balance Amt. should be Zero');
+        }
+    }
+    var paytableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                        console.log('Editclick', savedData);
+                        //filling data in available inputs
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+                                let inputType = $thisNode.attr('type').toLocaleLowerCase();
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+                        });
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            //$thistbl.dataTable({ paging: true, searchbtn: false });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                        BillAmountbinds($tablecontainer);
+                        $("#paymentclear").click();
+                    }
+                },
+            ]
+        },
+
+        rowAttribute: [],
+        onlyShowColumn: ['PAmount', 'Refno', 'PaymentMethod_d'],
+        renameHeader: { "PAmount": "Amount1R", "Refno": "Ref No", "PaymentMethod_d": "Method" },
+        hideColumn: ['BalAmt'],
+
+        serialNo: true,
+
+    };
+    function productclear(ele, tablekey) {
+
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="date"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="hidden"]').val('');
+
+        let $tblcontainer = $thisform.find('[perfect-tempTable="' + tablekey + '"]');
+        $tblcontainer.attr('perfect-tempTable-action', 0);
+    }
+    function BillAmountbinds(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let netamt = $thisForm.find('[name="IPAmount"]').val() == "" ? "0" : $thisForm.find('[name="IPAmount"]').val();
+        let billamt = 0;
+        let bilamt = 0;
+
+        if ($thisForm.find('[name=BalAmt]').text() == '') {
+            bilamt = 0;
+        }
+        else {
+            bilamt = netamt;
+        }
+
+        $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+            billamt += parseFloat($(ele).find('.PAmount').text());
+        });
+        bilamt = parseFloat(bilamt) - billamt;
+
+        $thisForm.find('[name=PAmount]').text(bilamt.toFixed(2));
+        $thisForm.find('[name=BalAmt]').text(bilamt.toFixed(2));
+        if (bilamt == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    function Pamount(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let amtp = $thisForm.find('[name="PAmount"]').val() == "" ? "0" : $thisForm.find('[name="PAmount"]').val();
+        $thisForm.find('[name="PAmount"]').val(parseFloat(amtp).toFixed(2))
+    }
+    function decimalpnt(ele, id, range) {
+        //debugger
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            else if (ele.value === '.' && (event.key === '.' || event.keyCode === 190)) {
+                ele.value = '0.00'; // Change the value to '0.00' if only a dot is entered
+                // Prevent the dot from being entered in the input field
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+    function fn_UpdateIncentivePayment(ele, actionType) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementsByName("IPDate")[0].setAttribute('max', today);
+
+        let ID_IncentivePayment = 0;
+        let ActionUrl = "";
+
+        var IncentivePaymentDetails=[];
+        if ($thisForm.valid()) {
+
+            $('#INC').find('tbody tr').each(function (index, ele) {
+
+                var IncPayDetailData = {};
+                IncPayDetailData['FK_IncentiveType'] = $(this).closest("tr").find('.FK_IncentiveType').text();
+                IncPayDetailData['LastProcessedDate'] = $(this).closest("tr").find('.LastProcessedDate').text();
+                IncPayDetailData['BalancePayable'] = $(this).closest("tr").find('.BalancePayable').text();
+                IncPayDetailData['PayableAmount'] = $(this).find('.PayableAmount').find('input').val();
+                IncPayDetailData['CurrentBalance'] = $(this).closest("tr").find('.CurrentBalance').text();
+                IncentivePaymentDetails.push(IncPayDetailData);
+
+            });
+
+            if (IncentivePaymentDetails.length > 0) {
+                if (BillAmountbinds(ele)) {
+                    if (parseFloat($thisForm.find('[name="IPAmount"]').val()) > 0) {
+
+                        let paymentdetails = [];
+                        $thisForm.find('[perfect-tempTable="Payment"]').find('tbody').find('tr').each(function () {
+                            paymentdetails.push($(this).data('pData'));
+                        });
+
+                        $(ele).prop('disabled', true);
+                        if (actionType === "new") {
+                            ID_IncentivePayment = 0;
+                            ActionUrl = "@Url.Action("AddIncentivePayment", "IncentivePayment")";
+                        }
+                        else if (actionType === "update") {
+                            ID_IncentivePayment = $thisForm.find('[name="ID_IncentivePayment"]').val();
+                            ActionUrl = "@Url.Action("UpdateIncentivePayment", "IncentivePayment")";
+                        }
+
+                        let inputData = {
+                            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                            'ID_IncentivePayment': ID_IncentivePayment,
+                            'AsonDate': $thisForm.find('[name="IPDate"]').val(),
+                            'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+                            'FK_Department': $thisForm.find('[name="FK_Department"]').val(),
+                            'TransMode': IncentivePaymentTransMode,
+                            'FK_Employee': $thisForm.find('[name="EmployeeID"]').val(),
+                            'IPAmount': $thisForm.find('[name="IPAmount"]').val(),
+                            'IncentivePaymentDetails': IncentivePaymentDetails,
+                            'PaymentDetail': paymentdetails,
+                            'TransMode': IncentivePaymentTransMode
+                        };
+                        console.log('inputDatass', inputData);
+                        $.ajax({
+                            url: ActionUrl,
+                            type: "POST",
+                            data: inputData,
+                            dataType: "json",
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                            success: function (ajaxOutput) {
+                                if (ajaxOutput.Process.IsProcess) {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                    });
+                                    fn_IncentivePaymentIndex_initialLoad();
+                                    $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                    $thisForm.find('[perfect-ctype="input"]').val('');
+                                    $thisForm.find('[perfect-ctype="date"]').val('');
+                                    $thisForm.find('[perfect-ctype="hidden"]').val('');
+                                }
+                                else {
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    });
+                                }
+
+                            },
+                            complete: function () {
+                                $(ele).prop('disabled', false);
+                            }
+                        });
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Net Payable should be greater than zero" });
+                    }
+                }
+                else {
+                    $(ele).prop('disabled', false);
+                    NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'In Payment Method Balance Amt. Should be  Zero ' });
+                }
+            }
+            else {
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Select Atleaset one Payment" });
+            }
+        }
+    }
+
+    function validpaymntdetail(ele, tableKey, errorClass, isValid) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val() == null) {
+
+            isValid = false;
+            console.log('false', $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val());
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Payment Method');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        if (parseFloat($thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').val()) <= 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').val() == "") {
+            console.log('false', $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val());
+            isValid = false;
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter a value greater than  0');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        return isValid;
+    }
+
+
+
+    function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableOptionsTempfill = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+        let indexname = tkey + 'index';
+        tableOptionsTempfill.rowAttribute.push(indexname);
+        tableOptionsTempfill.hideColumn.push(indexname);
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                console.log('nameAttr', nameAttr)
+                console.log('tfhyrtname', headerName)
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        tableOptionsTempfill.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTempfill.hideColumn.push(nameAttr);
+                        //displat text of select
+
+                        // alert($this.find('[value="' + valOne[nameAttr] + '"]').text());
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                        // alert(valOne[nameAttr]);
+                        //  console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                        //pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        //pData[nameAttr] = valOne[nameAttr].toString();
+                        //if ($this.find('[value="' + valOne[nameAttr] + '"]').text() == "Please select") {
+                        //    pData[nameAttr + '_d'] = "";
+                        //}
+
+
+                    }
+                    else if ($this.is('input')) {
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        console.log(inputType)
+
+                        if (inputType == 'date') {
+
+                            if (valOne[nameAttr] == null) {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                }
+            });
+
+            insertData.push(pData);
+
+
+            //----
+
+        });
+        $tblcontainer.empty();
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+        // $tblcontainer.find('table').dataTable({ paging: true });
+       
+    }
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 46 || charCode > 57))
+            return false;
+
+        return true;
+    }
+</script>

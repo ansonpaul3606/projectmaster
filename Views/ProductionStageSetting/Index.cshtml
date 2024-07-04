@@ -1,0 +1,822 @@
+﻿@{
+    ViewBag.Title = "Production Stage Settings";
+}
+<style>
+</style>
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="productionstagesettings-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        var ProductionsettingTransMode = '';
+        const LastIDSessionKey = 'ProductionsettingLastID';
+        var LastID_Productionsetting;
+        const $formContainer = $('#productionstagesettings-form');
+
+        var validationMessage = {
+            'PSDate': {
+                'required': 'Please Select Effect Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date'),
+                'min': 'Effect Date should be greater than or equal to Todays date'
+            },
+            'ProductName': {
+                'required': 'Please Select Product',
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+            'StageName': {
+                'required': 'Please Select Stage',
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+            'TeamName': {
+                'required': 'Please Select Team',
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+            'PSDurationType': {
+                'required': 'Please Select Duration Type',
+                'digits': 'Invalid Duration selected'
+            },
+            'PSDurationPrd': {
+                'required': 'Please Enter Duration',
+                'digits': 'Invalid Duration entered',
+                'min': 'Please Enter Valid Duration'
+            },
+            'PSPrllCount': {
+                'required': 'Please Enter Parallel Count',
+                'digits': 'Invalid Parallel entered',
+                'min':'Please Enter Valid Parallel Count'
+            },
+            'PSWorkPer': {
+                //'required': 'Please Enter Work Percentage',+
+                'digits': 'Invalid work Percentage entered',
+                'max': "Please Enter Valid Percentage",
+                'min': "Please Enter Valid Percentage",
+            },
+        }
+
+        $(document).ready(function () {
+            productionstagesettingsInitialLoad();
+
+        });
+
+        function productionstagesettingsInitialLoad() {
+            ProductionsettingTransMode = '@ViewBag.TransMode';
+         
+            loadproductionstagesList(this, loadproductionstagesettingsAddForm);
+
+        }
+
+        function loadproductionstagesettingsAddForm() {
+                $formContainer.load('@Url.Action("LoadFormProductionStage", "ProductionStageSetting")', function () {
+                    localStorage.removeItem("ProductionImage");
+                    let $thisForm = $(this).find('[perfect-class="form"]');
+                    $thisForm.find('[name="PSPrllCount"]').val('1');
+                    var today = new Date().toISOString().split('T')[0];
+
+                    $thisForm.find('[name="PSDate"]').val(moment().format('YYYY-MM-DD'));
+                    document.getElementsByName("PSDate")[0].setAttribute('min', today);
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                    $thisForm.attr('perfect-onFormSuccess', 'productionstagesettingsInitialLoad');
+                    getSessionValue(LastIDSessionKey, function (result) {
+                        LastID_Productionsetting = result;
+                    });
+
+            });
+
+        };
+
+        function loadproductionstagesList(ele,callback) {
+
+    let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Product Stage Settings List');
+            let pageUrl = '@Url.Action("GetProductionStageList", "ProductionStageSetting")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ProductionsettingTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              $sidemenu.find('.jq_sidemenu_title').text("Product Stage Settings List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadproductionstagesList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProductionsettingTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                            else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey, 0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product Stage Settings List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountryaddcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadproductionstagesList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransMode: ProductionsettingTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ProductionsettingTransMode};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                      @if (ViewBag.PagedAccessRights.UsrrlTyView)
+               {
+               <text> { displayName: "View", action: editproduction },</text>
+               }
+                    { type: "divider" },
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                {
+                 <text> { displayName: "Delete", action: deleteproduction },</text>
+                }
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "PSDate", "Product", "Team", "Stage"],
+            hideColumn: ["ID_ProductionStage"],
+            rowClickAction: editproduction,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "PSDate": "Date", "Product": "Product", "Team": "Team", "Stage": "Stage" },
+            isDateType: ["PSDate"],
+        };
+
+        var Saveddata = "";
+        function editproduction() {
+
+        let row = $(this).closest('tr');
+         Saveddata = row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+        console.log("SavedData", Saveddata);
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_ProductionStage: Saveddata.ID_ProductionStage,
+            TransMode: ProductionsettingTransMode
+        };
+       fn_fillProductionStageDetails(inputData);
+        }
+
+        function fn_fillProductionStageDetails(inputData) {
+            debugger
+            $.ajax({
+
+                url: '@Url.Action("GetProductionStageInfo", "ProductionStageSetting")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.ProductionStageInfo.Process.IsProcess)
+                            {
+
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFormProductionStage", "ProductionStageSetting")", function () {
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $(this).find('[perfect-class=formTitle]').text('update')
+
+
+                                    $thisForm.find('[name="ID_ProductionStage"]').val(ajaxOutput.ProductionStageInfo.Data[0]['ID_ProductionStage']);
+
+                                    console.log("ID_ProductionStage", ajaxOutput.ProductionStageInfo.Data[0]['ID_ProductionStage']);
+
+
+
+                                    $thisForm.find('[name="PSDate"]').val(moment(Saveddata.PSDate).format('YYYY-MM-DD'));
+
+                                    $thisForm.find('[name="ProductName"]').val(Saveddata.Product).selectpicker('refresh');
+                                    $thisForm.find('[name="ProductID"]').val(Saveddata.FK_Product);
+
+
+                                    $thisForm.find('[name="TeamName"]').val(Saveddata.Team).selectpicker('refresh');
+                                    $thisForm.find('[name="FK_Team"]').val(Saveddata.FK_Team);
+
+                                    $thisForm.find('[name="StageName"]').val(Saveddata.Stage).selectpicker('refresh');
+                                    $thisForm.find('[name="FK_Stage"]').val(Saveddata.FK_Stage);
+
+                                    $thisForm.find('[name="PSDurationPrd"]').val(Saveddata.DurationPrd);
+
+                                    $thisForm.find('[name="PSPrllCount"]').val(Saveddata.PrllCount);
+
+                                    $thisForm.find('[name="PSWorkPer"]').val(Saveddata.WorkPer == "0" ? "" : Saveddata.WorkPer);
+
+                                    $thisForm.find('[name="PSDurationType"]').val(Saveddata.DurationType);
+                                    $thisForm.find('[name="PSRemarks"]').val(Saveddata.Remarks);
+
+                                    $thisForm.find('[name=PSEmpWise]').prop('checked', Saveddata.EmpWise);
+
+                                    if (ajaxOutput.ProductionStageInputItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.ProductionStageInputItem.Data[0]});
+                                        console.log("Input Details", ajaxOutput.ProductionStageInputItem.Data[0]);
+
+                                        fn_ProductionStageInputItem($thisForm, 'MaterialDetailsTable', ajaxOutput.ProductionStageInputItem.Data, ProductionStageInputTempOut)
+                                        $thisForm.find('[perfect-tempTable="MaterialDetailsTable"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                    }
+
+                                    if (ajaxOutput.ProductionStageOutputItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.ProductionStageOutputItem.Data[0] });
+                                        console.log("Output Details", ajaxOutput.ProductionStageOutputItem.Data[0]);
+
+                                        fn_ProductionStageOutputItem($thisForm, 'ProductDetailsTable', ajaxOutput.ProductionStageOutputItem.Data, ProductionStageOutputTempOut)
+                                        $thisForm.find('[perfect-tempTable="ProductDetailsTable"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                    }
+
+
+                                    if (ajaxOutput.ProductionStageResourceItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.ProductionStageResourceItem.Data[0] });
+                                        console.log("Resource Details", ajaxOutput.ProductionStageResourceItem.Data[0]);
+
+                                        fn_ProductionStageResourceItem($thisForm, 'ResourceDetailsTable', ajaxOutput.ProductionStageResourceItem.Data, ProductionStageOutputTempRes)
+                                        $thisForm.find('[perfect-tempTable="ResourceDetailsTable"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                    }
+
+                                    $thisForm.data({ pData: Saveddata });
+                                    $thisForm.data({ pImage: ajaxOutput.Imageselect.Data });
+                                    PssfupDocsList = ajaxOutput.Imageselect.Data;
+
+
+                                    console.log("Image Select", ajaxOutput.Imageselect.Data);
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'loadproductionstagesList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+
+                },
+
+            });
+        }
+
+        function fn_ProductionStageInputItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+                                if (nameAttr == 'PSMStockUpdate') {
+                                    tableOptionsTemp.isCheckType.push(nameAttr);
+                                }
+
+                                // tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+        function fn_ProductionStageOutputItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+                                if (nameAttr == 'PSMStockUpdate') {
+
+
+
+
+
+                                    tableOptionsTemp.isCheckType.push(nameAttr);
+                                }
+
+                                // tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+        function fn_ProductionStageResourceItem(ele, tkey, data, tableOptionsTempRes) {
+            debugger
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempRes;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'hidden') {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+        var ProductionStageInputTempOut = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData');
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            console.log('Editclick', savedData);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                            }
+                            else {
+                                $thistbl.remove();
+                            } $("#btnresetMtrl").click();
+                        }
+                    }
+
+                ]
+            },
+            onlyShowColumn: ["Product_Name", "Quantity", "PSMStockUpdate"],
+            hideColumn: ['FK_Product'],
+            serialNo: true,
+            renameHeader: { "Product_Name": "Product", "Quantity": "Quantity", "PSMStockUpdate":"Effect Stock"},
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+        var ProductionStageOutputTempOut = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData');
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            console.log('Editclick', savedData);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                            }
+                            else {
+                                $thistbl.remove();
+                            } $("#btnresetPdct").click();
+                        }
+                    }
+
+                ]
+            },
+            onlyShowColumn: ["Product", "Quantity","PSMStockUpdate"],
+            hideColumn: ['FK_Product'],
+            serialNo: true,
+            renameHeader: { "Product": "Product", "Quantity": "Quantity","PSMStockUpdate":"Add to Stock" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+        var ProductionStageOutputTempRes = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData');
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            console.log('Editclick', savedData);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                            }
+                            else {
+                                $thistbl.remove();
+                            } $("#btnresetPdct").click();
+                        }
+                    }
+
+                ]
+            },
+            onlyShowColumn: ["ResourceType", "Quantity", "Amount"],
+            hideColumn: ['FK_ProjectResources'],
+            serialNo: true,
+            renameHeader: { "ResourceType": "Resource", "Quantity": "Quantity", "Amount": "Amount" },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+        function deleteproduction() {
+
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            let TransMode = ProductionsettingTransMode;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetProductionStageReasonList", "ProductionStageSetting")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    if (ajaxReasonOutput.Process.IsProcess) {
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record, Product :" + Saveddata.Product + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                        confirmBoxObj.then(function (selectedOption) {
+                            if (selectedOption) {
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    FK_ProductionStage: Saveddata.ID_ProductionStage,
+                                    FK_Reason: selectedOption,
+                                    TransMode: TransMode
+
+                                };
+                                $.ajax({
+                                    url: "@Url.Action("DeleteProductionStage", "ProductionStageSetting")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                        if (ajaxOutput.Process.IsProcess) {
+
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                            });
+                                            productionstagesettingsInitialLoad();
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                                $('.dataTable tr').removeClass("SelectForDelete");
+                            }
+                        });
+                    }
+                    else {
+                    }
+                }
+
+            });
+        };
+    </script>
+}

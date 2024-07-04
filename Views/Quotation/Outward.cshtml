@@ -1,0 +1,696 @@
+﻿@{
+    ViewBag.Title = "Quotation-Outward";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="jq_QuotationIndex_formContainer">
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+        const LastIDSessionKeyQO = 'QuotationOutwardLastID';
+        var QuotationOutwardTransMode = '';
+        var LastID_QuotationOutward;      
+        var warrantydetails = [];
+       
+        var validationMessage = {
+            'QuotationDate': {
+                'required': 'Please select quotation date',
+                'max': jQuery.validator.format('Future date not Allowed'),
+                'min': jQuery.validator.format('Quotation Date should not be less than the date of lead created date.'),
+            },
+            'QuoExpireDate': {
+                'required': 'Please select quotation date',
+                'min': jQuery.validator.format('Expired Date Should be greater than or equal to QuotationDate')
+            },
+            'CustomeName': {
+                'required': 'Please enter contact name',
+                'maxlength': jQuery.validator.format('Contact Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Contact Name'
+            },
+            'ddlImportsList': {
+                'required': 'Please select any one from the list'
+            },
+            'MobileNo': {
+                'required': 'Please enter mobile number',
+                'minlength': jQuery.validator.format('Mobile No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('Mobile No Should be Less than {0} Characters')
+            },
+            'QuotationBillTotal': {
+                'required': 'Please enter sub total'
+            },
+            'QuotationNetAmount': {
+                'required': 'Please enter net amount'
+            },
+            'QuoEntrDate': {
+                'required': 'Please Select Entered Date',
+                'min': jQuery.validator.format('Entered Date should not be less than the date of lead created date.'),
+            },
+
+        };
+
+
+        const $formContainer = $('#jq_QuotationIndex_formContainer');
+        // Initial load functions
+        $(document).ready(function () {
+            fn_QuotationIndex_InitialLoad();
+
+        });
+       
+        function fn_QuotationIndex_InitialLoad() {
+            // getSessionValue("BTQgLv+ebY48FN9pEezgnyVrVumuVVzPVnoCFOjqIsU=", function (result) {
+            debugger
+         
+           
+                QuotationOutwardTransMode = '@ViewBag.TransMode';
+          
+                
+               
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>fn_loadQuotationList(this, fn_loadQuotationForm);  </text>
+              }
+           // });
+
+            fn_loadQuotationForm();
+              
+        }
+
+        // Fucntion to load Quotation add form
+        function fn_loadQuotationForm() {
+
+
+            $formContainer.load('@Url.Action("LoadOutwardQuotation", "Quotation")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+               
+                $thisForm.find('[name="QuotationDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="QuoEntrDate"]').val(moment().format('YYYY-MM-DD'));
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("QuoExpireDate")[0].setAttribute('min', today);
+                document.getElementsByName("QuotationDate")[0].setAttribute('max', today);
+                warrantydetails = [];
+                $thisForm.data({ pOthrChgData: [] })
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_loadQuotationList');
+                initFunctions($thisForm);
+                getNumberGeneration(QuotationOutwardTransMode, 0, $thisForm,'Quotation_No')
+                getSessionValue(LastIDSessionKeyQO, function (result) {
+                    LastID_QuotationOutward = result;
+                   
+                });
+                Quotationoutid = 0;
+            });
+        };
+
+        function fn_loadQuotationList(ele,callback)
+        {            
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+             let pageUrl = '@Url.Action("GetOutwardQuotationList", "Quotation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransModes: QuotationOutwardTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKeyQO, ajaxOutput.Data[0]["LastID"]);
+                        
+                              $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadQuotationList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: QuotationOutwardTransMode }, tableOptions, $table)
+                              });
+                          }
+                          else
+                          {
+                        setSessionValue(LastIDSessionKey, 0);
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Quotation List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadQuotationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: QuotationOutwardTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page,TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editQuotation },</text>
+                }
+                { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteQuotation },</text>
+                  }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "QuoNO", "QuoDate", "QuoNetAmount", "Contact_Name", "Contact_Mob"],
+        hideColumn: ["ID_Quotation", "QuoMode"],
+        rowClickAction: fn_editQuotation,
+        renameHeader: { "SlNo": "SL NO", "QuoNO": "Quotation No", "QuoDate": "Date", "Contact_Name": "Contact Name", "Contact_Mob": "Mobile No", "QuoNetAmount": "Amount"},
+        isDateType: ["QuoDate"]
+       
+    };
+
+         //,        widthColumn:["10","20","30","10","5","7"]
+        var Quotationoutid = 0;
+        function fn_editQuotation()
+        {
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_Quotation: Saveddata.ID_Quotation,
+                QuoMode: Saveddata.QuoMode,
+                TransMode: QuotationOutwardTransMode,
+            };
+            fn_fillQuotationDetails(inputData);
+        }
+
+
+        function fn_fillQuotationDetails(inputData) {
+         $.ajax({
+                url: '@Url.Action("GetQuotationInfo", "Quotation")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.quoInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadOutwardQuotation", "Quotation")?mtd=@ViewBag.mtd", function () {
+                                    debugger
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $(this).find('[perfect-class=formTitle]').text('update')                                   
+                                    if (parseInt(ajaxOutput.quoInfo.Data[0]['QuoFrom']) == 1) {
+                                        $thisForm.find('[name="ID_Customer"]').val(ajaxOutput.quoInfo.Data[0]['FK_Master'])
+                                    }
+                                    else if (parseInt(ajaxOutput.quoInfo.Data[0]['QuoFrom']) == 2) {
+                                        $thisForm.find('[name="FK_Lead"]').val(ajaxOutput.quoInfo.Data[0]['FK_Master'])
+                                    }
+                                    else if (parseInt(ajaxOutput.quoInfo.Data[0]['QuoFrom']) == 3) {
+                                        $thisForm.find('[name="FK_CustomerOthers"]').val(ajaxOutput.quoInfo.Data[0]['FK_Master'])
+                                    }
+                                    console.log($thisForm.find('[name="ID_Customer"]').val());
+                                    $thisForm.find('[name="ddlImportsList"]').attr("disabled", "disabled");
+                                    $thisForm.find('[id="btnShowList"]').attr("disabled", "disabled");
+                                    $thisForm.find('[name="ID_Quotation"]').val(ajaxOutput.quoInfo.Data[0]['ID_Quotation']);
+
+                                    Quotationoutid = ajaxOutput.quoInfo.Data[0]['ID_Quotation'];
+
+                                    $thisForm.find('[name="QuoMode"]').val(ajaxOutput.quoInfo.Data[0]['QuoMode']);
+                                    $thisForm.find('[name="ddlImportsList"]').val(ajaxOutput.quoInfo.Data[0]['QuoFrom']);
+                                    $thisForm.find('[name="QuotationDate"]').val(moment(ajaxOutput.quoInfo.Data[0]['QuoDate']).format('YYYY-MM-DD'));
+                                  
+                                    if (ajaxOutput.quoInfo.Data[0]['QuoExpireDate'] != "/Date(-2209008600000)/") {
+                                        $thisForm.find('[name="QuoExpireDate"]').val(moment(ajaxOutput.quoInfo.Data[0]['QuoExpireDate']).format('YYYY-MM-DD'));
+                                    }        
+
+                                    $thisForm.find('[name="QuotationBillTotal"]').val(Number(ajaxOutput.quoInfo.Data[0]['QuoBillTotal']).toFixed(2));
+                                    $thisForm.find('[name="QuotationDiscount"]').val(Number(ajaxOutput.quoInfo.Data[0]['QuoDiscount']).toFixed(2));
+                                    $thisForm.find('[name="OtherCharge"]').val(Number(ajaxOutput.quoInfo.Data[0]['QuoOthercharges']).toFixed(2));
+                                    $thisForm.find('[name="QuotationRoundoff"]').val(ajaxOutput.quoInfo.Data[0]['QuoRoundoff']);
+                                    $thisForm.find('[name="QuotationNetAmount"]').val(Number(ajaxOutput.quoInfo.Data[0]['QuoNetAmount']).toFixed(2));
+
+                                    fn_showandHideNewCustomerButton($thisForm.find('[name="ddlImportsList"]'));
+                                    $thisForm.find('[name="CustomeName"]').val(ajaxOutput.quoInfo.Data[0]['ContactName']).attr("disabled", "disabled");
+                                    $thisForm.find('[name="MobileNo"]').val(ajaxOutput.quoInfo.Data[0]['ContactMobile']).attr("disabled", "disabled");
+                                    $thisForm.find('[name="QuoAddress"]').val(ajaxOutput.quoInfo.Data[0]['ContactAddress']);
+                                    $thisForm.find('[name="QuoEntrDate"]').val(moment(ajaxOutput.quoInfo.Data[0]['QuoEntrDate']).format('YYYY-MM-DD'));
+                                  
+
+                                    if (ajaxOutput.quoItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.quoItem.Data[0] });
+                                        fn_fillQuotationItem($thisForm, 'Quotation', ajaxOutput.quoItem.Data, tableOptionsQuotationItem)
+                                        $thisForm.find('[perfect-tempTable="Quotation"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                    }
+                                    
+                                  
+                                    if (ajaxOutput.quoWar.Process.IsProcess) {   
+                                        //warrantydetails.push(ajaxOutput.quoWar.Data) 
+                                        $thisForm.data({ pwarranty: ajaxOutput.quoWar.Data })
+                                    }
+                                    //if (ajaxOutput.OtherCharge.Process.IsProcess) {                                        
+                                    //    $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data })
+                                    //}
+                                   
+                                    if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                        let othechg = ajaxOutput.OtherCharge.Data;
+                                        console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                        othrchargelst = [];
+                                        othrchargelst = othrchargelst.concat(othechg);
+                                        console.log('OTH INFOT>', othrchargelst);
+                                        $thisForm.data({ prtothchgData: othrchargelst });
+                                    }
+                                    if (ajaxOutput.ProjectQuotationCriteria.Process.IsProcess) {
+                                        QuotationCriteriaSelect(this, ajaxOutput.ProjectQuotationCriteria.Data);
+                                    }
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'fn_loadQuotationList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+                },
+
+            });
+    }
+        function fn_deleteQuotation()
+        {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetQuotationReasonList", "Quotation")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_Quotation: Saveddata['ID_Quotation'],
+                                        FK_Reason: selectedOption,
+                                        QuoMode: Saveddata.QuoMode
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteQuotation", "Quotation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_QuotationIndex_InitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+
+        var tableOptionsQuotationItem = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+
+                            let sel = $thisForm.find('[name=FK_Category] option:selected').text();
+                            let name = $thisForm.find('[name="FK_Category"]').children(":selected").attr('Project')
+                            $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                            if (name == 'False' && sel != 'Please select') {
+                                $thisForm.find('[name="ProdBtn"]').show();
+                                $thisForm.find('[name="ProdName"]').attr('readonly', true);
+                            }
+                            else {
+                                $thisForm.find('[name="ProdBtn"]').hide();
+                                $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                            }
+                            if (name == 'False' && sel != 'Please select') {
+                                $thisForm.find('[name="lblProName"]').text('Product');
+                                $thisForm.find('[name="lblMRP"]').text('MRP');
+                                $thisForm.find('[name="QpdMRP"]').attr('readonly', true);
+                            }
+                            else {
+                                $thisForm.find('[name="lblProName"]').text('Model');
+                                $thisForm.find('[name="lblMRP"]').text('Cost');
+                                $thisForm.find('[name="QpdMRP"]').attr('readonly', false);
+                            }
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            } fn_bindBillDetails($tablecontainer)
+                            fn_roundoff($tablecontainer);
+                        }
+                    }                 
+                ]
+            },
+            onlyShowColumn: [],
+            serialNo: true,
+            renameHeader: { "FK_Category": "Category", "FK_Product": "FK_Product", "ProdName": "Product/Model", "QpdQuantity": "Qty", "QpdRate": "Rate", "QpdMRP": "MRP", "QpdDiscount": "Disc Amount", "QpdDiscountPercent": "Disc %", "QpdTotalAmount": "Total", "QpdRWRemarks": "Description" },
+            hideColumn: ['ID_QuotationProductDetails', 'FK_Quotation', 'FK_Product','QpdDiscountPercent'],
+            rowAttribute: [],
+            isCheckType: []
+        };
+        var tableOptionsLeadItem = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+
+                            let sel = $thisForm.find('[name=FK_Category] option:selected').text();
+                            let name = $thisForm.find('[name="FK_Category"]').children(":selected").attr('Project')
+                            $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                            if (name == 'False' && sel != 'Please select') {
+                                $thisForm.find('[name="ProdBtn"]').show();
+                                $thisForm.find('[name="ProdName"]').attr('readonly', true);
+                            }
+                            else {
+                                $thisForm.find('[name="ProdBtn"]').hide();
+                                $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                            }
+                            if (name == 'False' && sel != 'Please select') {
+                                $thisForm.find('[name="lblProName"]').text('Product');
+                                $thisForm.find('[name="lblMRP"]').text('MRP');
+                                $thisForm.find('[name="QpdMRP"]').attr('readonly', true);
+                            }
+                            else {
+                                $thisForm.find('[name="lblProName"]').text('Model');
+                                $thisForm.find('[name="lblMRP"]').text('Cost');
+                                $thisForm.find('[name="QpdMRP"]').attr('readonly', false);
+                            }
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                        }
+                    }
+                ]
+            },
+            onlyShowColumn: [/*'Category', 'ProdName', 'QpdQuantity', 'QpdRate', 'QpdMRP', 'QpdDiscount', 'QpdDiscountPercent','QpdTotalAmount'*/],
+            serialNo: true,
+            renameHeader: { "FK_Category_d": "Category", "FK_Product": "FK_Product", "ProdName": "Product/Model", "QpdQuantity": "Qty", "QpdRate": "Rate", "QpdMRP": "MRP", "QpdDiscount": "Disc Amount", "QpdDiscountPercent": "Disc %", "QpdTotalAmount": "Total" },
+            hideColumn: ['ID_QuotationProductDetails', 'FK_Quotation', 'FK_Product', 'QpdDiscountPercent', 'FK_Category'],
+            rowAttribute: [],
+            isCheckType: []
+        };
+       
+        function fn_fillQuotationItem(ele, tkey, data, tableOptionsTempOuts) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOuts;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                switch (nameAttr) {                                  
+                                    case "QpdTotalAmount":
+                                        break;
+                                    default:
+                                        tableOptionsTemp.hideColumn.push(nameAttr);
+                                        break;
+                                }
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+        function QuotationCriteriaSelect(ele, Data) {
+            console.log('Criteria Return>>>>>>', Data);
+            if (Data != null) {
+                if (Data.length > 0) {
+                    $('#QuotationCriteriatbody').empty();
+                    $('#QuotationCriteriatable').show();
+                    let totalAmount;
+                    let CurrentBalance;
+                    $.each(Data, function (i, value) {
+                        let $CheckListHTML = $('<tr/>');
+                        $CheckListHTML.append("<td class='idcheck'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox' checked='true'/></td>");
+                        $CheckListHTML.append("<td class='SlNo' style='text-align: center'>" + value.SlNo + "</td>");
+                        $CheckListHTML.append("<td class='HeaderId' Style='Display:none'>" + value.FK_Header + "</td>");
+                        $CheckListHTML.append("<td class='Header' style='text-align: center'>" + value.Header + "</td>");
+                        $CheckListHTML.append("<td class='QuoCriteria'><input type='text'  class='form-control' perfect-class='formGroupControl' name='QuoCriteria' id='QuoCriteria'  " + `oninput="filterInput(this)"` + " value='" + value.Criteria + "' maxlength='1000' /></td></tr>");
+                        $("#QuotationCriteriatbody").append($CheckListHTML)
+
+                    });
+                }
+            }
+            else {
+                $('#QuotationCriteriatbody').empty();
+                $('#QuotationCriteriatable').hide();
+            }
+        }
+    </script>
+
+
+
+}

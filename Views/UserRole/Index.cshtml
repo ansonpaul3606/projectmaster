@@ -1,0 +1,567 @@
+﻿@{
+    ViewBag.Title = "User Role";
+}
+<style>
+    .accordion__header {
+        padding-top: .7rem;
+        padding-bottom: .7rem;
+    }
+ 
+</style>
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="UserRole-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+
+    <script>
+        var ChangeMOPinSales;
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+                  {
+                    <text>{ displayName: "View", action: editUserRole }, </text>//
+                    //{ displayName: "Go to", action: "" },
+                  }
+                    { type: "divider" },
+                    @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+                            {
+                                <text>{ displayName: "Delete", action: deleteUserRole }</text>
+                            }
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["UserRoleName","UserRoleShortName"],
+            hideColumn: [],
+            rowClickAction: editUserRole,
+            serialNo: true,
+            renameHeader: { "UserRoleName": "Name", "UserRoleShortName": "Short Name" }
+
+        };
+
+        var validationMessage = {
+           
+            'UserRoleName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+            'UserRoleShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+           
+        } 
+
+     
+        $(document).ready(function () {
+
+            //load SubCategory data
+           // Accordinload();
+            initialLoadUserRole();
+          
+        });
+        function initialLoadUserRole() {
+              @if (ViewBag.PagedAccessRights.UsrrlSecurUser || ViewBag.PagedAccessRights.UsrrlAdmin)
+              {
+                 <text>   loadUserRoleList(this); </text>
+              }
+            ChangeMOPinSales = '@ViewBag.Setting';
+           
+            loadUserRoleForm();
+        }
+
+
+        function ShowAccordion(MASTER_ID, CHILD_ID) {
+          
+            $('#' + MASTER_ID).removeClass('collapsed');
+            $('#' + CHILD_ID).addClass('collapse');
+            $('#' + CHILD_ID).addClass('show');
+
+            $('#' + MASTER_ID).attr('aria-expanded',"true");
+
+
+        }
+       
+        
+
+        function loadUserRoleForm() {
+            $('#UserRole-form').load("@Url.Action("LoadUserRoleForm", "UserRole")", function () {
+
+                let $thisForm = $(this).find('[perfect-class=form]');
+
+                $thisForm.validate({ messages: validationMessage });
+               
+                $thisForm.attr('perfect-onFormSuccess', 'initialLoadUserRole')
+
+            });
+            $("#divEditSalesPrice").hide();
+            
+        }
+
+
+        function loadUserRoleList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('User Role List');
+          let pageUrl = '@Url.Action("GetUserRoleList", "UserRole")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('UserRole', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("UserRole");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUserRoleList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("UserRole");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUserRoleList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+        function loadUserRoleList1() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('User Role List');
+        //    alert("ss")
+             let pageUrl = '@Url.Action("GetUserRoleList", "UserRole")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+ 
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('User Role', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("User Role");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+
+
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+     
+            @*$.ajax({
+                url: "@Url.Action("GetUserRoleList", "UserRole")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+
+                    $sidemenu.find('.jq_sidemenu_title').text("Warranty Type list");
+                    if (data.Process.IsProcess) {
+
+                        $sidemenu.html(pft_table_createtable(data.Data, tableOptions))
+                        $sidemenu.find('table').dataTable({ paging: true });
+                    }
+                    else {
+                        $.each(data.Process.Message, function (key, value) {
+                            // toastr.warning(value, "Error");
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+        }*@
+
+
+         function editUserRole() {
+
+            let $thisUser = $(this).closest('tr');
+
+             let savedData = $thisUser.data('pData');
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+             let inputData = {
+                 __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                 UserRoleID: savedData.UserRoleID
+             };
+
+            //dbcall
+
+                 $.ajax({
+                 url: '@Url.Action("GetUserRoleInfo", "UserRole")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                            //$.each(ajaxOutput.Process.Message, function (key, value) {
+                            //    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            //});
+                            if (ajaxOutput.Process.IsProcess) {
+
+                               
+
+                                $('#UserRole-form').load("@Url.Action("LoadUserRoleForm", "UserRole")", function () {
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].UserRoleName)
+                                    console.log('Inside load');
+
+
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                 // ... Custom validation message
+                                //$thisForm.validate({ messages: validationMessage});
+                                // ... Custom validation message
+                                $thisForm.data({ 'pData': ajaxOutput.Data[0] });//setting pdata : which is used to get PostID when updating the  form in partial page
+                                //console.log('ajaxOutput', ajaxOutput.Data[0]);
+
+
+
+                                //console.log(ajaxOutput.Data[0].FK_District);
+
+                                    $thisForm.find('[name=UserRoleName]').val(ajaxOutput.Data[0].UserRoleName),
+                                        $thisForm.find('[name=UserRoleShortName]').val(ajaxOutput.Data[0].UserRoleShortName),
+                                        $thisForm.find('[name="UsrrlAdmin"]').prop('checked', ajaxOutput.Data[0].UsrrlAdmin); 
+                                    $thisForm.find('[name="UsrrlManager"]').prop('checked', ajaxOutput.Data[0].UsrrlManager); 
+                                    $thisForm.find('[name="UsrrlOpr"]').prop('checked', ajaxOutput.Data[0].UsrrlOpr); 
+                                    $thisForm.find('[name="UsrrlTypeAdd"]').prop('checked', ajaxOutput.Data[0].UsrrlTypeAdd); 
+                                    $thisForm.find('[name="UsrrlTypeEdit"]').prop('checked', ajaxOutput.Data[0].UsrrlTypeEdit); 
+                                    $thisForm.find('[name="UsrrlTypeDelete"]').prop('checked', ajaxOutput.Data[0].UsrrlTypeDelete); 
+                                    $thisForm.find('[name="UsrrlSettingsAdd"]').prop('checked', ajaxOutput.Data[0].UsrrlSettingsAdd); 
+                                    $thisForm.find('[name="UsrrlSettingsDelete"]').prop('checked', ajaxOutput.Data[0].UsrrlSettingsDelete); 
+                                    $thisForm.find('[name="UsrrlMsAdd"]').prop('checked', ajaxOutput.Data[0].UsrrlMsAdd); 
+                                    $thisForm.find('[name="UsrrlMsEdit"]').prop('checked', ajaxOutput.Data[0].UsrrlMsEdit); 
+                                    $thisForm.find('[name="UsrrlMsDelete"]').prop('checked', ajaxOutput.Data[0].UsrrlMsDelete); 
+                                   // $thisForm.find('[name="UsrrlMsth"]').prop('checked', ajaxOutput.Data[0].UsrrlMsth); 
+                                    $thisForm.find('[name="UsrrlTrAdd"]').prop('checked', ajaxOutput.Data[0].UsrrlTrAdd); 
+
+                                    $thisForm.find('[name="UsrrlTrEdit"]').prop('checked', ajaxOutput.Data[0].UsrrlTrEdit); 
+
+                                    $thisForm.find('[name="UsrrlTrDelete"]').prop('checked', ajaxOutput.Data[0].UsrrlTrDelete); 
+
+                                   // $thisForm.find('[name="UsrrlAuth"]').prop('checked', ajaxOutput.Data[0].UsrrlAuth); 
+                                    $thisForm.find('[name="UsrrlBrCls"]').prop('checked', ajaxOutput.Data[0].UsrrlBrCls); 
+
+                                    //$thisForm.find('[name="UsrrlTypeSettingsRpt"]').prop('checked', ajaxOutput.Data[0].UsrrlTypeSettingsRpt); 
+                                   // $thisForm.find('[name="UsrrlMsRpt"]').prop('checked', ajaxOutput.Data[0].UsrrlMsRpt); 
+                                    //$thisForm.find('[name="UsrrlTrRpt"]').prop('checked', ajaxOutput.Data[0].UsrrlTrRpt); 
+                                    $thisForm.find('[name="UsrrlDashBoard"]').prop('checked', ajaxOutput.Data[0].UsrrlDashBoard); 
+                                   // $thisForm.find('[name="UsrrlAccRpt"]').prop('checked', ajaxOutput.Data[0].UsrrlAccRpt); 
+
+                                    $thisForm.find('[name="UsrrlMISRpt"]').prop('checked', ajaxOutput.Data[0].UsrrlMISRpt); 
+                                    $thisForm.find('[name="UsrrlTypeView"]').prop('checked', ajaxOutput.Data[0].UsrrlTypeView); 
+                                    $thisForm.find('[name="UsrrlApplicationUser"]').prop('checked', ajaxOutput.Data[0].UsrrlApplicationUser); 
+
+                                    $thisForm.find('[name="UsrrlSettingView"]').prop('checked', ajaxOutput.Data[0].UsrrlSettingView);
+                                    $thisForm.find('[name="UsrrlMasterView"]').prop('checked', ajaxOutput.Data[0].UsrrlMasterView);
+                                    $thisForm.find('[name="UsrrlTransactionView"]').prop('checked', ajaxOutput.Data[0].UsrrlTransactionView); 
+
+                                    $thisForm.find('[name="UsrrlViewReport"]').prop('checked', ajaxOutput.Data[0].UsrrlViewReport);
+                                    $thisForm.find('[name="UsrrlSecurtyUser"]').prop('checked', ajaxOutput.Data[0].UsrrlSecurtyUser);
+                                    $thisForm.find('[name="UsrrlSecurtyBackUp"]').prop('checked', ajaxOutput.Data[0].UsrrlSecurtyBackUp); 
+
+                                    $thisForm.find('[name="UsrrlSecurtyAuth"]').prop('checked', ajaxOutput.Data[0].UsrrlSecurtyAuth);
+                                    $thisForm.find('[name="UsrrlDayBegin"]').prop('checked', ajaxOutput.Data[0].UsrrlDayBegin);
+                                    $thisForm.find('[name="UsrrlPrintReport"]').prop('checked', ajaxOutput.Data[0].UsrrlPrintReport); 
+
+                                    $thisForm.find('[name="UsrrlPrintVoucher"]').prop('checked', ajaxOutput.Data[0].UsrrlPrintVoucher); 
+
+                                    $thisForm.find('[name="UsrrlSettingsEdit"]').prop('checked', ajaxOutput.Data[0].UsrrlSettingsEdit); 
+                                    $thisForm.find('[name="UsrrlEditSalesPrice"]').prop('checked', ajaxOutput.Data[0].UsrrlEditSalesPrice); 
+                                  
+                                $thisForm.find('[name=SortOrder]').val(ajaxOutput.Data[0].SortOrder)
+                                //show update button
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                $thisForm.attr('perfect-onFormSuccess', 'initialLoadUserRole');
+
+
+                                    console.log("value >", ajaxOutput.Data[0].UsrrlSettingsEdit )
+
+                                    $sideMenuOptions.close();
+
+                                    if (ajaxOutput.Data[0].UsrrlSettingsEdit != false || ajaxOutput.Data[0].UsrrlSettingsDelete != false || ajaxOutput.Data[0].UsrrlSettingView != false || ajaxOutput.Data[0].UsrrlSettingsAdd != false) {
+                                        ShowAccordion('MasterAccordion', 'active-header_collapsesix');
+                                    }
+                                     if (ajaxOutput.Data[0].UsrrlTypeAdd != false || ajaxOutput.Data[0].UsrrlTypeEdit != false || ajaxOutput.Data[0].UsrrlTypeDelete != false || ajaxOutput.Data[0].UsrrlTypeView != false) {
+                                        ShowAccordion('MasterAccordionType', 'active-header_collapsefive');
+                                    }
+                                     if (ajaxOutput.Data[0].UsrrlTrAdd != false || ajaxOutput.Data[0].UsrrlTrEdit != false || ajaxOutput.Data[0].UsrrlTrDelete != false || ajaxOutput.Data[0].UsrrlTransactionView != false) {
+                                        ShowAccordion('MasterAccordionTransaction', 'active-header_collapseeight');
+                                    }
+                                     if (ajaxOutput.Data[0].UsrrlMsAdd != false || ajaxOutput.Data[0].UsrrlMsEdit != false || ajaxOutput.Data[0].UsrrlMsDelete != false || ajaxOutput.Data[0].UsrrlMasterView != false) { ShowAccordion('MasterAccordionMaster', 'active-header_collapseseven'); }
+                                    
+                                    if (ajaxOutput.Data[0].UsrrlSecurtyUser != false || ajaxOutput.Data[0].UsrrlSecurtyBackUp != false || ajaxOutput.Data[0].UsrrlSecurtyAuth != false) {
+
+                                        ShowAccordion('MasterAccordionSecurity', 'active-header_collapsenine');
+                                    }
+                                     if (ajaxOutput.Data[0].UsrrlDashBoard != false || ajaxOutput.Data[0].UsrrlMISRpt != false || ajaxOutput.Data[0].UsrrlViewReport != false) { ShowAccordion('MasterAccordionReport', 'active-header_collapseten'); }
+                                     if (ajaxOutput.Data[0].UsrrlBrCls != false || ajaxOutput.Data[0].UsrrlDayBegin != false) { ShowAccordion('MasterAccordionDailyProcess', 'active-header_collapseeleven'); }
+                                     if (ajaxOutput.Data[0].UsrrlPrintReport != false || ajaxOutput.Data[0].UsrrlPrintVoucher != false) { ShowAccordion('MasterAccordionPrint', 'active-header_collapsetwelve'); }
+
+
+
+                                      
+                                });
+
+                                
+                            }
+                            else {
+                                console.log('>_ Inside GetMediaMasterInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+                         },
+
+
+                     });
+
+          }
+
+
+         
+
+          // Function to delete customer
+        function deleteUserRole() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            //console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetUserRoleReasonList", "UserRole")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           //var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.UserRoleName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        UserRoleID: Saveddata['UserRoleID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeletUserRole", "UserRole")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                    loadUserRoleForm();
+                                                });
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+                        }
+                   }
+               });
+
+        };
+
+
+
+
+
+    </script>
+
+
+
+
+
+
+
+
+}

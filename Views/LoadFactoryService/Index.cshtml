@@ -1,0 +1,122 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+   
+    <div class="row">
+        <div class="col-lg-12" id="FactoryService-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+
+
+        const $formContainer = $('#FactoryService-form');
+    $(document).ready(function () {
+
+        fn_LoadFactoryServicepage();
+    });
+
+    function fn_LoadFactoryServicepage(){
+
+
+        $formContainer.load('@Url.Action("LoadFactoryServicepage", "LoadFactoryService")', function () {
+
+            $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+
+                //let $thisForm = $(this).find('[perfect-class="form"]');
+                //$thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+
+                //$thisForm.validate({ messages: validationMessage });
+
+                //$('.amountDiv').hide();
+
+            });
+
+
+        };
+        function get_tab_count(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var InputData = {
+            'Customer': $('[name=Customer]').val().trim(),
+            'FromDate': $('[name=FromDate]').val(),
+            'ToDate': $('[name=ToDate]').val(),
+            'FK_Branch': $('[name=Branch]').val().trim(),
+            'Status': $('[name=Complaintstatus]').val().trim(),
+            'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+            'FK_Product': $('[name=ProductID]').val().trim(),
+            'Mobile': $('[name=Mobile]').val().trim(),
+            'Sortorder': $('[name=Sortorder]').val().trim(),
+            'TicketNumber': $('[name=Ticket]').val().trim(),
+            'pageSize': 15,
+            'pageIndex': 0,
+            'Mode': 1,
+            'FK_Area': $('[name=AreaID]').val().trim(),
+            'FK_Post': $('[name=PostID]').val().trim(),
+            'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+            'DueDays': $('[name=DueDays]').val().trim(),
+        }
+         console.log('FILTER INPUT 2', InputData);
+         let pageUrl = '@Url.Action("GetSearchResults", "Service")';
+         $.ajax({
+             url: pageUrl,
+             type: "POST",
+             data: InputData,
+             dataType: "json",
+             contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+             success: function (ajaxOutput) {
+                 console.log('> Count data', ajaxOutput);
+         
+                 if (ajaxOutput.Process.IsProcess) {
+                     $("#Onhold").attr('style', "" + ajaxOutput.obj.CompletedStatus + "");
+                     $("#pending").attr('style', "" + ajaxOutput.obj.PendingStatus + "");
+                     $("#pickup").attr('style', "" + ajaxOutput.obj.PickupRequestStatus + "");
+                     $("#replacement").attr('style', "" + ajaxOutput.obj.ReplacementRequestStatus + "");
+                     $("#deliveryrequest").attr('style', "" + ajaxOutput.obj.DeliveryRequestStatus + "");
+                     $("#factory").attr('style', "" + ajaxOutput.obj.FactoryServiceStatus + "");
+                     //$("#Onhold").attr('style', "block");
+                     //$("#pending").attr('style', "block");
+                     //$("#pickup").attr('style', "block");
+                     //$("#replacement").attr('style', "block");
+                     //$("#deliveryrequest").attr('style', "block");
+                     //$("#factory").attr('style', "block");
+
+                     $('#todobadge').html("" + ajaxOutput.obj.New + "");
+                     $('#overduebadge').html("" + ajaxOutput.obj.Completed + "");
+                     $('#pendingbadge').html("" + ajaxOutput.obj.Pending + "");
+                     $('#pickupbadge').html("" + ajaxOutput.obj.PickupRequest + "");
+                     $('#replacementbadge').html("" + ajaxOutput.obj.ReplacementRequest + "");
+                     $('#deliverybadge').html("" + ajaxOutput.obj.DeliveryRequest + "");
+                     $('#factorybadge').html("" + ajaxOutput.obj.FactoryService + "");       
+
+
+         
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+         
+             },
+             complete: function () {
+         
+             }
+         });
+    }
+
+
+    </script>
+}

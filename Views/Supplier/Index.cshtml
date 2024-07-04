@@ -1,0 +1,564 @@
+﻿
+@{
+    ViewBag.Title = "Supplier";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="supplier-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#supplier-form');
+
+        $(document).ready(function () {
+            supplierInitialLoad();
+
+        });
+
+
+
+        function supplierInitialLoad() {
+            debugger
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadSupplierList(this); </text>
+              }
+           
+             loadSupplierAddForm();
+        }
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editSupplier },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteSupplier },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Name", 'ContactPerson', 'Address', 'Mobile', 'Country', 'GSTINCode','Mode'],
+            hideColumn: ['GoodsTransID'],
+
+            rowClickAction: editSupplier,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "Name": "Name","GSTINCode": "GST" }
+        };
+
+
+        var validationMessage = {
+           
+            
+            'Name': {
+                'required': 'Please Enter Name',
+                'maxlength': jQuery.validator.format('Name should be less than {0} characters'),
+               // 'specialCharName': 'All Special Character Are not Allowed'
+               
+              
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+            'Address': {
+                'required': 'Please enter Address ',
+                'maxlength': jQuery.validator.format('Address 1 should be less than {0} characters'),
+             //   'specialCharName': 'All Special Character Are not Allowed'
+            },
+
+
+            'CountryID': {
+                'required': 'Please select a Country',
+                'digits': 'Invalid Country selected'
+            },
+
+
+            'StatesID': {
+                'required': 'Please select a State',
+                'digits': 'Invalid State selected'
+            },
+
+            'DistrictID': {
+                'required': 'Please select a District',
+                'digits': 'Invalid District selected'
+            },
+
+            'AreaID': {
+                'required': 'Please select a Area',
+                'digits': 'Invalid Area selected'
+            },
+            'PlaceID': {
+                'required': 'Please select a Place',
+                'digits': 'Invalid Place selected'
+            },
+            'PostID': {
+                'required': 'Please select a Post',
+                'digits': 'Invalid Post selected'
+            },
+            'Mobile': {
+                'required': 'Please enter  mobile',
+                'anyphonenumber': 'Invalid mobile number',
+                'minlength': jQuery.validator.format(' Mobile Number should be more than {0} Number'),
+                'maxlength': jQuery.validator.format(' Mobile Number should be less than {0} Number')
+            },
+           
+
+            'ModeID': {
+                'required': 'Please select a Mode',
+                'digits': 'Invalid Mode selected'
+            },
+
+            'ID_SupplierType': {
+
+                'required': 'Please select a SupplierType',
+                'digits': 'Invalid SupplierType selected'
+
+            }, 
+            
+
+            
+                  'Fax': {
+               
+                      'minlength': jQuery.validator.format('Fax should be more than {0} characters '),
+                      'maxlength': jQuery.validator.format('Fax should be less than {0} characters')
+            },
+            'ContactPerson': {
+                'required': 'Please enter Contact Person name',
+                'maxlength': jQuery.validator.format('Contact Person name should be less than {0} characters'),
+                //'specialCharName': 'All Special Character Are not Allowed'
+            },
+            
+            'Email': {
+             
+                'emailRegex': 'Please Enter Valid Email'
+            },
+
+            'ID_SupplierType': {
+                'required': 'Please select Supplier Type'
+            },
+            'GSTINNo': {
+                'minlength': 'Please Enter at least 15 Character'
+            },
+            'Fax': {
+                'minlength': 'Please Enter at least 10 Character'
+            },
+            'AadharCard': {
+                'minlength': 'Please Enter at least 12 Character'
+            }
+        };
+        console.log("name",validationMessage[0]);
+        //validationMessage[0].focus();
+
+
+           // Function to load Supplier ADD form
+        function loadSupplierAddForm() {
+
+            $formContainer.load('@Url.Action("LoadSupplierForm", "Supplier")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'supplierInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+     
+        function loadSupplierList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+     
+        $sideMenuOptions.title.find('h4').text('Supplier List');
+          let pageUrl = '@Url.Action("GetSupplierList", "Supplier")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: localStorage.getItem("FRM_TRANSMODE")},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Supplier', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Supplier");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadSupplierList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Supplier");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadSupplierList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: localStorage.getItem("FRM_TRANSMODE") };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+   
+
+
+        function editSupplier() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                SupplierID: Saveddata.SupplierID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetSupplierInfoByID", "Supplier")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetSupplierInfo', ajaxOutput)
+
+                                $formContainer.load("@Url.Action("LoadSupplierForm", "Supplier")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Name)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+									
+                                    debugger;
+                                      console.log(ajaxOutput.Data[0],"pData");
+                                 
+                                    $thisForm.find('[name="Name"]').val(ajaxOutput.Data[0].Name),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                            $thisForm.find('[name="Phone"]').val(ajaxOutput.Data[0].Phone),
+                                            $thisForm.find('[name="ContactPerson"]').val(ajaxOutput.Data[0].ContactPerson),
+                                            $thisForm.find('[name="Mobile"]').val(ajaxOutput.Data[0].Mobile),
+                                            $thisForm.find('[name="Email"]').val(ajaxOutput.Data[0].Email),
+                                            $thisForm.find('[name="Address"]').val(ajaxOutput.Data[0].Address),
+                                            $thisForm.find('[name="GSTINNo"]').val(ajaxOutput.Data[0].GSTINNo),
+                                            $thisForm.find('[name="Active"]').prop('checked', ajaxOutput.Data[0].Active),
+                                        $thisForm.find('[name="ModeID"]').val(ajaxOutput.Data[0].Mode).selectpicker('refresh');
+                                         //find('[name="Descriptions"]').val(ajaxOutput.Data[0].Descriptions),
+                                        $thisForm.find('[name="Fax"]').val(ajaxOutput.Data[0].Fax),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder),
+                                        $thisForm.find('[name="Country"]').val(ajaxOutput.Data[0].Country),
+                                        $thisForm.find('[name="CountryID"]').val(ajaxOutput.Data[0].CountryID),
+                                        $thisForm.find('[name="States"]').val(ajaxOutput.Data[0].States),
+                                        $thisForm.find('[name="StatesID"]').val((ajaxOutput.Data[0].StatesID == 0) ? '' : ajaxOutput.Data[0].StatesID),
+                                        $thisForm.find('[name="DistrictID"]').val(ajaxOutput.Data[0].DistrictID),
+                                        $thisForm.find('[name="District"]').val(ajaxOutput.Data[0].District),
+                                        $thisForm.find('[name="PinCode"]').val(ajaxOutput.Data[0].PinCode),
+                                        $thisForm.find('[name="Area"]').val(ajaxOutput.Data[0].Area),
+                                        $thisForm.find('[name="AreaID"]').val(ajaxOutput.Data[0].AreaID),
+                                        $thisForm.find('[name="Post"]').val(ajaxOutput.Data[0].Post),
+                                        $thisForm.find('[name="PostID"]').val(ajaxOutput.Data[0].PostID),
+                                        $thisForm.find('[name="Place"]').val(ajaxOutput.Data[0].Place),
+                                        $thisForm.find('[name="PlaceID"]').val(ajaxOutput.Data[0].PlaceID)
+                                        $thisForm.find('[name="AadharCard"]').val(ajaxOutput.Data[0].AadharCard),
+                                        $thisForm.find('[name="PanNo"]').val(ajaxOutput.Data[0].PanNo),
+                                        $thisForm.find('[name="BankName"]').val(ajaxOutput.Data[0].BankName),
+                                        $thisForm.find('[name="BranchName"]').val(ajaxOutput.Data[0].BranchName),
+                                        $thisForm.find('[name="BankAccount"]').val(ajaxOutput.Data[0].BankAccount),
+                                        $thisForm.find('[name="IFSCCode"]').val(ajaxOutput.Data[0].IFSCCode),
+                                        $thisForm.find('[name="AccountHolderName"]').val(ajaxOutput.Data[0].AccountHolderName),
+                                        $thisForm.find('[name="Number"]').val(ajaxOutput.Data[0].Number),
+                                        $thisForm.find('[name="GoodsTransID"]').val(ajaxOutput.Data[0].GoodsTransID).selectpicker('refresh'),
+                                        $thisForm.find('[name="ID_SupplierType"]').val(ajaxOutput.Data[0].ID_SupplierType).selectpicker('refresh'),
+                                        $thisForm.find('[name="FK_Branch"]').val(ajaxOutput.Data[0].FK_Branch).selectpicker('refresh'),
+										$thisForm.find('[name="OpeningBalance"]').val(ajaxOutput.Data[0].OpeningBalance),
+										$thisForm.find('[name="FK_TransType"]').val(ajaxOutput.Data[0].FK_TransType).selectpicker('refresh'),
+										$thisForm.find('[name="OpeningBalDate"]').val(moment(ajaxOutput.Data[0].OpeningBalDate).format('YYYY-MM-DD'));
+										 $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AccountHeadName);
+										$thisForm.find('[name="AccountHeadID"]').val(ajaxOutput.Data[0].AccountHeadID);
+										if(ajaxOutput.Data[0].OpeningDisplay)
+										{
+									
+									       $thisForm.find('[name="OpeningBalance"]').attr("disabled", "disabled");
+										    $thisForm.find('[name="OpeningBalDate"]').attr("disabled", "disabled");
+										    $thisForm.find('[name="FK_TransType"]').attr("disabled", "disabled");
+											$thisForm.find('[name="AccountHeadID"]').attr("disabled", "disabled");
+											$thisForm.find('[name="HeadPopup"]').attr("disabled", "disabled");
+										  
+										}
+										else
+										{
+											$thisForm.find('[name="OpeningBalance"]').removeAttr("disabled", "disabled");
+										  $thisForm.find('[name="OpeningBalDate"]').removeAttr("disabled", "disabled");
+										  $thisForm.find('[name="FK_TransType"]').removeAttr("disabled", "disabled");
+											 $thisForm.find('[name="AccountHeadID"]').removeAttr("disabled", "disabled");
+											  $thisForm.find('[name="HeadPopup"]').removeAttr("disabled", "disabled");
+               
+										}
+                                        if (ajaxOutput.Data[0].Active)
+                                        {
+                                                 $thisForm.find('[name="Descriptions"]').closest('[perfect-class="formGroup"]').addClass('d-none');
+                                        }
+                                        else
+                                        {
+                                                 $thisForm.find('[name="Descriptions"]').closest('[perfect-class="formGroup"]').removeClass('d-none');
+                                                $thisForm.find('[name="Descriptions"]').val(ajaxOutput.Data[0].Descriptions);
+                                        }
+
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'supplierInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetSupplierInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                },
+
+            });
+
+        }
+
+
+
+
+
+
+            // Function to delete Supplier
+
+        function deleteSupplier() {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                $.ajax({
+                    url: "@Url.Action("GetSupplierdDeleteReasonList", "Supplier")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside reason ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+                            
+                            let confirmationDialogBoxOption = {  body: "Do you want to remove " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        SupplierID: Saveddata.SupplierID,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteSupplierInfo", "Supplier")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Sucessfully' });
+                                                    $sideMenuOptions.close();
+                                                    loadSupplierAddForm();
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+

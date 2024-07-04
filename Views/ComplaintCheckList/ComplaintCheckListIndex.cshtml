@@ -1,0 +1,532 @@
+﻿
+@{
+    ViewBag.Title = "Complaint Check List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_ComplaintCheckListIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        var ComplaintCheckListTransMode;
+        const $formContainer = $('#jq_ComplaintCheckListIndex_formContainer');
+        //--- Common table settings for this page
+        $(document).ready(function () {
+            getSessionValue("FRM_TRANSMODE", function (result) {
+
+                ComplaintCheckListTransMode = result;
+            });
+            fn_ComplaintListIndex_initialLoad();
+
+        });
+
+        function fn_ComplaintListIndex_initialLoad() {
+          
+           
+
+            
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>   loadComplaintCheckList(this); </text>
+              }
+            complaintlist_loadform();
+        }
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  
+                  @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editComplaintChecklist },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteComplaint },</text>
+
+              }
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","Product", "Complaint","ComplaintCheckingDetails","Category"],
+            hideColumn: [],
+           rowClickAction:editComplaintChecklist ,
+            renameHeader: { "SlNo": "SL NO" }
+        };
+
+        var validationMessage = {
+          
+
+            'ComplaintID': {
+                'required': 'Please select a Complaint',
+                //'stringonly': 'Invalid Warranty selected',
+
+            },
+            'CategoryID': {
+                'required': 'Please Select Category',
+                'digits': 'Invalid Category Selected'
+            },
+            'ComplaintDetails': {
+                'required': 'Please Enter a Complaint Details',
+                'stringonly': 'Invalid Complaint Details'
+            }
+        }
+
+       
+
+
+        
+
+
+
+        function complaintlist_loadform() {
+
+            $formContainer.load('@Url.Action("Complaintform", "ComplaintCheckList")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({
+                    // ...
+                    messages: validationMessage
+                    // ...
+                });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_ComplaintListIndex_initialLoad');
+
+                initFunctions($thisForm);
+
+            });
+
+        };
+
+        function loadComplaintCheckList(ele) {
+            debugger;
+        let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+           
+        //$sideMenuOptions.title.find('h4').text('Complaint Check List');
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+             let pageUrl = '@Url.Action("GetComplaintCheckList", "ComplaintCheckList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                    
+                        $sidemenu.find('.jq_sidemenu_title').text("Complaint Check List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadComplaintCheckList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                              });
+                          }
+                          else
+                          {
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Complaint Check List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadComplaintCheckList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+
+            }
+        });
+        }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+       
+
+
+        var tableOptionsTempOut = {
+            iconButton: {
+                buttons: [
+                    
+                    {
+                       icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                  icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: { },
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+            function editComplaintChecklist() {
+
+            let $thisUser = $(this).closest('tr');
+                let savedData = $thisUser.data('pData');
+
+
+                $('.dataTable tr').removeClass("SelectForDelete");
+                $(this).closest('tr').addClass('SelectForDelete');
+            
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    ID_ComplaintCheckList: savedData.ID_ComplaintCheckList
+                };
+             console.log(inputData);
+            //dbcall
+              //  $('#jq_ComplaintCheckListIndex_formContainer').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetComplaintInfo", "ComplaintCheckList")',
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                          
+                            if (ajaxOutput.Process.IsProcess) {
+
+
+                                $('#jq_ComplaintCheckListIndex_formContainer').load("@Url.Action("Complaintform", "ComplaintCheckList")?mtd=@ViewBag.mtd", function () {
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].ComplaintCheckingDetails)
+                                    console.log('Inside load');
+                                    //let $thisForm = $(this).find('[perfect-class="form"]');
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.data({ 'pData': ajaxOutput.Data[0] });//setting pdata : which is used to get PostID when updating the  form in partial page
+
+                                   // ComDetailsTable_Fill($thisForm, 'cstatus', ajaxOutput.Data[0].comlist, tableOptionsTempOutFill)
+                   
+                                    if (ajaxOutput.Process.IsProcess) {
+                                       
+                                        $thisForm.data({ pData: ajaxOutput.Data[0].comlist });
+                                       
+                                        if (ajaxOutput.Data[0].comlist!=null) {
+                                            fn_fillQuotationItem($thisForm, 'cstatus', ajaxOutput.Data[0].comlist, tableOptionsTempOut)
+                                            $thisForm.find('[perfect-tempTable="cstatus"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                                       }                                      
+                                    }
+
+                                    $thisForm.find('[name=ID_ComplaintCheckList]').val(ajaxOutput.Data[0].ID_ComplaintCheckList),
+
+                                        $thisForm.find('[name=ComplaintDetails]').val(ajaxOutput.Data[0].ComplaintCheckingDetails),
+                                            $thisForm.find('[name=ProductName]').val(ajaxOutput.Data[0].Product),
+                                            $thisForm.find('[name=ProductID]').val(ajaxOutput.Data[0].FK_Product),
+                                        $thisForm.find('[name=ComplaintID]').val(ajaxOutput.Data[0].FK_Complaint).selectpicker('refresh'),
+                                      
+                                    $thisForm.find('[name="CategoryID"]').val(ajaxOutput.Data[0].CategoryID).selectpicker('refresh'),
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                   // $thisForm.attr('perfect-onFormSuccess', 'fn_ComplaintListIndex_initialLoad');
+
+                                    $sideMenuOptions.close();
+
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                },
+
+
+            });
+
+        }
+
+
+
+             function deleteComplaint() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+
+                 $('.dataTable tr').removeClass("SelectForDelete");
+                 $(this).closest('tr').addClass('SelectForDelete');
+    
+               $.ajax({
+                   url: "@Url.Action("GetComplaintCheckDeleteReasonList", "ComplaintCheckList")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                          //old delete section
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove check list against " + Saveddata.Product + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                       __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        ID_ComplaintCheckList: Saveddata.ID_ComplaintCheckList,
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteComplaint", "ComplaintCheckList")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",//antiforgery token changed json->x-www-form-urlencode...
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                //loadcomplaintlistForm();
+                                                fn_ComplaintListIndex_initialLoad();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    //toastr.success(value, "Success");
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    // toastr.warning(value, "Error");
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                            //row.remove();
+                                            //$(row).closest('table').reload()
+                                            
+                           
+                                        }
+                                    });
+                                }
+                                else {
+                                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                           //old delete section
+
+                    }
+                }
+
+            });
+
+
+
+
+        };
+
+        function fn_fillQuotationItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                switch (nameAttr) {
+                                    case "QpdTotalAmount":
+                                        break;
+                                    default:
+                                        tableOptionsTemp.hideColumn.push(nameAttr);
+                                        break;
+                                }
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+    </script>
+    }

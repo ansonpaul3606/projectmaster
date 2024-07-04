@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "CustomerReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+
+        <div class="col-lg-12" id="jq_CustomerReport_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_CustomerReport_formContainer');
+     RPTusername = '@ViewBag.Username';
+    $(document).ready(function () {
+        fn_CustomerReport_initialload();
+    });
+    var CustomerRptTransMode = '';
+    function fn_CustomerReport_initialload() {
+        CustomerRptTransMode='@ViewBag.TransMode';  
+
+        fn_loadCustomerReportAddForm();
+    }
+    function fn_showFiltersearchs() {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.closest('.ReportFilter').find('.filter').toggleClass('d-none');
+
+        $thisform.find('[name="CustomerSector"]').val('');
+        $thisform.find('[name="CustomerSectorID"]').val(0);
+        $thisform.find('[name="Individual"]').val('');
+        $thisform.find('[name="CustomerTypeID"]').val(0);
+        $thisform.find('[name="CustomerType"]').val('');
+        $thisform.find('[name="CustomeName"]').val('');
+        $thisform.find('[name="ID_Customer"]').val(0);
+        $thisform.find('[name="ProductName"]').val('');
+        $thisform.find('[name="FK_Product"]').val(0);
+        $thisform.find('[name="States"]').val('');
+        $thisform.find('[name="StatesID"]').val(0);
+        $thisform.find('[name="District"]').val('');
+        $thisform.find('[name="DistrictID"]').val(0);
+        $thisform.find('[name="Area"]').val('');
+        $thisform.find('[name="AreaID"]').val(0);
+        $thisform.find('[name="CategoryID"]').val('').selectpicker('refresh');
+    };
+    function fn_loadCustomerReportAddForm() {
+        $formContainer.load('@Url.Action("LoadCustomerReportForm", "CustomerReport")?mtd=@ViewBag.mtd', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            fn_showFiltersearchs();
+            //$thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'fn_CustomerReport_initialload');
+
+        });
+    }
+    var validationMessage = {
+
+        'ID_Report': {
+            'required': 'Please Select Report Name',
+
+        },
+
+
+
+    };
+</script>
+}
+
+

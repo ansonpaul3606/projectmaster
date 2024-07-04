@@ -1,0 +1,2137 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Amritha
+    Created On	: 08/04/2023
+    Purpose		: SalesScrap
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*@
+
+
+
+@model PerfectWebERP.Models.SaleModel.DropDownListModel
+<style>
+    input[type=file]::file-selector-button {
+        border: 2px solid #e94560;
+        padding: .2em .4em;
+        border-radius: .2em;
+        color: white;
+        background-color: #e94560;
+        transition: 1s;
+    }
+
+    .btn-info2 {
+        color: #fff;
+        background-color: #9eddf0;
+        border-color: #9eddf0;
+    }
+
+    .btn-danger {
+        color: #f09ec2;
+        background-color: #f09ec2;
+        border-color: #f09ec2;
+    }
+
+        .btn-danger:hover {
+            color: #fff;
+            background-color: #e94560;
+            border-color: #e94560;
+        }
+
+    .modal-wxl {
+        max-width: 1361px;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+
+
+        <h4 class="card-title col-12">Scrap Sale</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body ">
+        <form id="form" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Entered Date</span>
+                                <input type="hidden" name="LastID" perfect-ctype="hidden" perfect-css="input" />
+
+                                <input type="hidden" name="FK_Branch" value="@ViewBag.FK_Branch" />
+
+                                <input type="hidden" name="TransMode" perfect-ctype="hidden" />
+                                <input type="hidden" name="ScrapSalesID" perfect-ctype="hidden" />
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="SalScrapEnterDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datencheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_numeric" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var departmentList in Model.DepartmentList)
+                                        {
+                                            <option value="@departmentList.DepartmentID">@departmentList.Department</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Bill Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="LastID" perfect-ctype="hidden" perfect-css="input" />
+
+                                <input type="hidden" name="FK_Branch" value="@ViewBag.FK_Branch" />
+
+                                <input type="hidden" name="TransMode" perfect-ctype="hidden" />
+                                <input type="hidden" name="ScrapSalesID" perfect-ctype="hidden" />
+
+                                <select class="form-control perfectValidate_string" name="BillType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+
+                                    @if (!(Model.BillTypeListView is null))
+                                    {
+                                        foreach (var BillType in Model.BillTypeListView)
+                                        {
+                                            <option value="@BillType.BillTypeID">@BillType.BillType</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Bill Date</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="SalScrapBillDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" readonly max="2050-01-01" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Reference No</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <input type="text" class="form-control perfectValidate_specialCharName" placeholder="" name="SalScrapBillNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="20" />
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Buyer Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_specialCharName psscapitalize" name="BuyerName" id="BuyerName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+
+                                    <input type="hidden" name="FK_Buyer" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addCustomer-jq-searchButton3" data-toggle="tooltip" data-html="true" data-placement="top" class="btn btn-primary" name="btnserv" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this, 99, 'Buyer List', [], ['BuyerMobileNo','BuyerName','CustomeName','BuyerID'])" BindName="BuyerName" BindVal="FK_Buyer" Criterea1="0" Criterea2="0" Function="2"><i class="fa fa-search"></i></button>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Mobile Number</span>
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text fa fa-phone bg-primary text-white"></span>
+                                    </div>
+                                    <input type="text" class="form-control perfectValidate_mobile" placeholder="" name="BuyerMobileNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+
+
+
+
+
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-sm-12">
+                    <div class="daccordion__header">
+                        <span class="accordion__header--text">Product Details</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 " perfect-class="TempTableProduct">
+                            <br />
+                            <div class="row">
+
+                                <div class="col-sm-3" id="idstockmodetransfer">
+
+                                    <div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-4 col-form-label">
+                                            <span perfect-class="formGroupLabel">Stock Mode</span>
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+
+                                                <select class="form-control" id="StockMode" name="StockMode" perfect-class="formGroupControl" perfect-tempTable-Purchase="StockMode" perfect-ctype="select" perfect-css="select" onchange="clearproduct(this)">
+                                                    <option value="">Please Select </option>
+                                                    <option value="1">ActualStock</option>
+                                                    <option value="2">ReturnStock</option>
+                                                </select>
+
+                                            </div>
+                                            <span class="invalid-feedback animated fadeInUp d-block temptableError" style="display:none"></span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                @*<div class="col-sm-3">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Product&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control " perfect-tempTable-Purchase="ProName" name="ProName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                                    <input type="hidden" name="ProductID" perfect-tempTable-Purchase="Item" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <input type="hidden" name="StockId" perfect-tempTable-Purchase="Product" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                                    <div class="input-group-append">
+                                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 32, 'Product Details', [], ['MRPs','SalePrice','StockId'],SalescrapTransMode)" Function="2" BindName="ProName" BindVal="ProductID" Criterea1="FK_Branch" Criterea2="FK_Department" perfect-css="button"></button>
+                                                    </div>
+                                                    <div class="text-danger temptableError"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                <div class="col-sm-3">
+
+                                    <div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-4 col-form-label">
+                                            <span perfect-class="formGroupLabel">Product</span>
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <div class="col-sm-7 PerError">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="Product" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-Purchase="ProName" disabled />
+                                                <input type="hidden" name="ID_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-Purchase="ID_Product" />
+                                                <input type="hidden" name="ID_Stock" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-Purchase="ID_Stock" />
+                                                @*<input type="hidden" name="ID_Stock" perfect-tempTable-Opening="ID_Stock"  class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />*@
+
+                                                <div class="input-group-append">
+                                                    @{
+
+                                                        <button id="prdbtn" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_productpopupcondition(this)" Criterea1="" Criterea2="" Criterea3="" BindName="Product" BindVal="ID_Product" Function="2"></button>
+                                                    }
+                                                </div>
+
+                                            </div>
+
+                                            <span class="invalid-feedback animated fadeInUp d-block temptableError"></span>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-3 col-form-label">Quantity&nbsp;<span class="text-danger">*</span></label>
+                                        <div class="col-sm-8">
+
+                                            <input type="text" class="form-control text-right " perfect-tempTable-Purchase="Quantity" name="Quantity" id="Quantity" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'Quantity',4)" onfocus="this.oldvalue = this.value;" min="0" maxlength="13" />
+                                            <div class="text-danger temptableError"></div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                                @*<div class="row">*@
+
+                                <div class="col-sm-3">
+                                    <div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-3 col-form-label">
+                                            <span perfect-class="formGroupLabel">Price</span>
+
+                                        </label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control text-right" perfect-tempTable-Purchase="MRP" name="MRPs" id="MRPs" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'MRPs',3)" onchange="CalculateNetAmount(this)" />
+                                        </div>
+
+                                        <div class="text-right">
+
+                                            <button class="btn btn-primary1" type="button" data-toggle="tooltip" data-placement="top" data-html="true" title="Add New Product" onclick="createtable(this,'Purchase',['Product'],tableOptionsTempOut)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                            <button class="btn btn-light1" type="button" data-toggle="tooltip" data-placement="top" data-html="true" onclick="productclear(this,'Purchase')"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+
+
+                                <div class="col-sm-3">
+                                    <div class="form-group row" perfect-class="formGroup">
+
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-2">
+                                    <div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-4 col-form-label">&nbsp;</label>
+                                        <div class="col-sm-8">
+
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="table-responsive" perfect-tempTable="Purchase" id="Salescrapsetailshead" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+            <hr />
+            <div class="row">
+
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel"> Bill Total</span>
+
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control text-right" placeholder="" readonly name="SalScrapBillTotal" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel">Other Charges</span>
+
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control text-right" name="OtherCharge" perfect-class="formGroupControl" onchange="totalamountcalc(this)" perfect-ctype="input" perfect-css="input" readonly />
+                                <div class="input-group-append">
+                                    <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-credit-card" type="button" perfect-css="button" onclick="ShowOtherCharges(this,0)" onchange="roundof(this)"></button>
+                                </div>
+                                <div class="modal fade" perfect-class="formGroupModalOtherCharge" id="formGroupModalOtherCharge">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content  rounded-0">
+                                            <div class="modal-header border-0">
+                                                <h5 class="modal-title">Other Charge Details</h5>
+                                                <button type="button" class="close" data-dismiss="modal">
+                                                    <span>&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                                @*<div class="table-responsive" style="max-height: 100%; height: 80%; overflow: auto;">*@
+                                                <table id="zero_configOthercharge" class="table mb-0  table-striped  text-black">
+                                                    <thead class="bg-primary text-white">
+                                                        <tr>
+                                                            <th class="t-head">SlNo</th>
+                                                            <th class="t-head" style="display:none">ID_OtherChargeType</th>
+                                                            <th class="t-head">Type</th>
+                                                            <th class="t-head">Trans Type</th>
+                                                            <th class="t-head">Amount</th>
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="formGroupModalOtherChargebody"></tbody>
+                                                    <tfoot>
+                                                    </tfoot>
+                                                </table>
+                                                @*</div>*@
+                                                @*<div class="modal-body" id="formGroupModalTaxbody">
+                                                    </div>*@
+
+                                                <div class="modal-footer">
+                                                    @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+                                                    <button type="button" class="btn btn-primary light" data-dismiss="modal" onclick="BindOtherChargeAmount(this)">Apply</button>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            &nbsp;&nbsp;&nbsp;
+                            <span perfect-class="formGroupLabel">Tax Amount</span>
+                            @*<span class="text-danger">*</span>*@
+
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control text-right" placeholder="" name="TaxAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" onchange="totalamountcalc(this)" maxlength="10" disabled />
+
+                                <div class="input-group-append">
+                                    <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="ShowTax(this,1)"></button>
+                                    <div class="modal fade" perfect-class="formGroupModalTax" id="formGroupModalTax">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content  rounded-0">
+                                                <div class="modal-header border-0">
+                                                    <h5 class="modal-title">Tax Details</h5>
+                                                    <button type="button" class="close" data-dismiss="modal">
+                                                        <span>&times;</span>
+                                                    </button>
+                                                </div>
+                                                @*<div class="table-responsive" style="max-height: 100%; height: 80%; overflow: auto;">*@
+                                                <table id="zero_config" class="table mb-0  table-striped  text-black">
+                                                    <thead class="bg-primary text-white">
+                                                        <tr>
+                                                            <th class="t-head">SlNo</th>
+                                                            <th class="t-head" style="Display:none">ID_TaxType</th>
+                                                            <th class="t-head">TaxType</th>
+
+                                                            <th class="t-head">Amount</th>
+
+
+
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="modal-body" id="formGroupModalTaxbody"></tbody>
+                                                    <tfoot>
+                                                    </tfoot>
+                                                </table>
+                                                @*</div>*@
+                                                @*<div class="modal-body" id="formGroupModalTaxbody">
+                                                    </div>*@
+                                                <div class="modal-footer">
+                                                    @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+                                                    <button type="button" class="btn btn-primary1" data-dismiss="modal" onclick="BindTaxAmount(this)">Ok</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-8 ml-2">
+                                <input type="checkbox" class="form-check-input" name="IncludeTax" id="taxinclude" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="totalamountcalc(this)"><span perfect-class="formCheckInputText">Include Tax</span>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel">Net Amount</span>
+
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control text-right" placeholder="" readonly name="SalScrapNetAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">Payment Method</label>
+                        <div class="col-sm-5">
+                            <div class="input-group">
+
+                                <div class="input-group-append">
+                                    &nbsp;<button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-money" type="button" perfect-css="button" title="Add Payment Method" onclick="GetPaymentlists(this)"></button>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel"></span>
+
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="form-check form-check-inline" perfect-class="formCheck">
+                                <label class="form-check-label" perfect-class="formCheckLabel">
+                                    <input type="checkbox" class="form-check-input" name="Auction" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox"><span perfect-class="formCheckInputText">Auction</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel">Auction Remarks</span>
+
+                        </label>
+
+                        <div class="col-sm-8">
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                    <span class="formGroupLabel"></span>
+                                </div>
+                                @*<input type="text" class="form-control perfectValidate_string_nm" placeholder="" name="AuctionRemarks" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" rows="3" />*@
+                                <textarea class="form-control perfectValidate_string_nm" perfect-class="formGroupControl" name="AuctionRemarks" rows="3" placeholder="" perfect-ctype="input" perfect-css="input" maxlength="250"></textarea>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal fade" perfect-class="formGroupModalpayment" id="formGroupModalpayment">
+                    <div class="modal-dialog  modal-dialog-centered modal-md" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Payment Method</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                <div class="row">
+
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Method <span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <select class="form-control" perfect-tempTable-Payment="PaymentMethod" name="PaymentMethod" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                        <option value="">Please Select </option>
+
+
+                                                        @if (!(Model.PaymentView is null))
+                                                        {
+                                                            foreach (var Module in Model.PaymentView)
+                                                            {
+                                                                <option value="@Module.PaymentmethodID">@Module.Name</option>
+                                                            }
+                                                        }
+                                                    </select>
+
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Ref No.</span>
+
+                                            </label>
+                                            <div class="col-sm-8">
+
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control perfectValidate_string_nm" perfect-tempTable-Payment="Refno" name="Refno" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="250" />
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Amount</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control text-right" perfect-tempTable-Payment="PAmount" id="PAmount" name="PAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'PAmount',3)" onchange="Pamount(this)" maxlength="12" />
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-9">
+
+
+                                    </div>
+                                    <div class="col-sm-3 text-right">
+                                        <div class="input-group">
+
+                                            <div class="input-group-append">
+                                                <div>
+                                                    <button type="button" class="btn btn-primary1 " onclick="createtable(this,'Payment',['PaymentMethod'],paytableOptionsTempOut)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                    <button class="btn btn-light1" type="button" onclick="productclear(this, 'Payment')"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel" style="font-weight:500;">Bal. Amount :</span>
+
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+
+                                                    <label class="col-form-label">
+                                                        <span perfect-class="formGroupLabel" style="font-weight:500;" name="BalAmt"></span>
+                                                    </label>
+                                                    @*<input type="text" class="form-control" perfect-temptable-payment="BalAmt" name="BalAmt" perfect-class="" perfect-ctype="input" perfect-css="input" readonly="" style="border:white;background:white;font-weight: 500;">*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+
+                                            <div class="table-responsive" perfect-tempTable-Payment="" perfect-tempTable="Payment" id="Paymentdethead" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                                            <div class="text-danger temptableError"></div>
+
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="modal-footer">
+                                    @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+                                    <button type="button" class="btn btn-primary light" onclick="Billttlnetchck(this)">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+
+
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_SalesScrapForm_add(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                <button id="" type="button" class="btn btn-warning mr-3 addcompany-jq-addnewuserUpdate d-none" name="delete" perfect-css="button" onclick="deletescrapsale(this)"><i class="fa fa-refresh fa-spin loaderClass"></i>Delete</button>
+                <button type="button" id="" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+
+
+            </div>
+
+
+        </form>
+        <div class="md-2 modal fade" perfect-class="formGroupModalcustmrformGroupModalcustmr" id="formGroupModalcustmr">
+            <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title">Add Customer</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                        <div class="row">
+
+                            <div class="col-sm-12" id="custmr-savs">
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+
+</div>
+
+
+
+
+<script>
+
+
+
+    $(document).ready(function () {
+
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        var today = new Date();
+        var day1 = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+        var month1 = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+        var year1 = today.getFullYear();
+
+        $thisForm.find('[name="Serwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+        $thisForm.find('[name="Replcwardt"]').attr('min', year1 + "-" + month1 + "-" + day1);
+
+    });
+
+    function ResetButton(ele) {
+        $('.dataTable tr').removeClass("SelectForDelete");
+        fn_SalescrapIndex_initialLoad();
+    }
+
+    function getfunctionAssign(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+    }
+    function productclear(ele, tablekey) {
+
+
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="date"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="hidden"]').val('');
+
+        let $tblcontainer = $thisform.find('[perfect-tempTable="' + tablekey + '"]');
+        $tblcontainer.attr('perfect-tempTable-action', 0);
+
+        if (tablekey = "Purchase") {
+
+        }
+
+    }
+    function datencheck(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let RegDate = $thisForm.find('[name="SalScrapEnterDate"]').val();
+
+        //SalEnterDate = new Date(SalEnterDate);
+
+        //var today = new Date();
+        RegDate = new Date(RegDate);
+        RegDate.setHours(0, 0, 0, 0)
+
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+
+        if (RegDate > today) {
+            $thisForm.find('[name="SalScrapEnterDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Entered date should be less than or equal to Todays date')
+            return false;
+
+        }
+        else {
+
+            $thisForm.find('[name="SalScrapEnterDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+
+
+    function decimalpnt(ele, id, range) {
+
+        let input = $('#' + id);
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+        input.on('keydown', function () {
+            if (ele.value.includes('.')) {
+
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.length == 9) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+
+     var othrchargelst = [];
+      function ShowOtherCharges(ele,mode) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if ($thisForm.data('pOthrChgData')) {
+
+            if ($thisForm.data('pOthrChgData').length > 0) {
+
+                othrchargelst = $thisForm.data('pOthrChgData');
+            }
+
+        }
+
+        BindChargeDetails(ele, mode)
+
+
+     }
+
+
+
+
+       function BindChargeDetails(ele, mode) {
+
+        var InputData =
+        {
+            TransMode: SalescrapTransMode,
+        }
+
+
+        $.ajax({
+            url: "@Url.Action("GetOtherCharges","Sales")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.OtherCharges.Process.IsProcess) {
+                         var CheckListHTML = '';
+
+                         if (ajaxOutput.OtherCharges.Data.length > 0) {
+
+                             $.each(ajaxOutput.OtherCharges.Data, function (i, value) {
+
+                                 let options = ''
+                                     if (othrchargelst != '') {
+
+                                         $.each(othrchargelst, function (key, value1) {
+
+                                             if (value1.ID_OtherChargeType == value.ID_OtherChargeType) {
+
+                                                 value.OctyAmount = value1.OctyAmount;
+                                                 $.each(ajaxOutput.Transtypelist.Data, function (i, valuea) {
+                                                     if (valuea.TransTypeID.toString() == value1.OctyTransType) {
+
+                                                         options += '<option value=' + valuea.TransTypeID + ' selected="selected">' + valuea.TransType + '</option>'
+                                                     }
+                                                     else {
+                                                         options += '<option value=' + valuea.TransTypeID + '>' + valuea.TransType + '</option>'
+                                                     }
+                                                 });
+                                             }
+
+
+                                         });
+
+                                     }
+                                     else
+                                     {
+
+                                         $.each(ajaxOutput.Transtypelist.Data, function (i, valuea) {
+                                             options += '<option value=' + valuea.TransTypeID + '>' + valuea.TransType + '</option>'
+                                         });
+                                         //---
+
+                                     }
+                                 console.log('optionsl', options)
+                                 let $dropdown = '<select class="form-control"name="selector" id="selector" >' + options + '</select>';
+                                 CheckListHTML += "<tr>";
+                                 CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                 CheckListHTML += "<td Class='jq_ID_OtherChargeType_td' Style='Display:none'>" + value.ID_OtherChargeType + "</td>";
+                                 CheckListHTML += "<td Class='jq_Type_td'>" + value.OctyName + "</td>";
+                                 CheckListHTML += "<td class='jq_TransType_td'>" + $dropdown + "</td>";
+                                 CheckListHTML += "<td class='jq_OtherChagAmnt_td' ><input min='0'  class='form-control text-right' onkeypress='return isNumberKey(event)' type='number'  value='" + value.OctyAmount + "' ' /></td> /></td>";
+
+                                 CheckListHTML += "</tr>";
+                             })
+                         }
+                         else {
+                             CheckListHTML += "<div class='form-group col-md-6'>";
+                             CheckListHTML += "<div class='form-check mb-2'>";
+                             CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                             CheckListHTML += "</div></div>"
+                         }
+                         //let $model = createSearchModalDOM();
+                         //$model.modal.find('.modal-body').append(CheckListHTML);
+                         //$model.show
+
+                    $("#formGroupModalOtherChargebody").html(CheckListHTML)
+
+                    if (mode == 0) {
+                        $('#formGroupModalOtherCharge').modal({ backdrop: 'static', keyboard: false })
+                     $('#formGroupModalOtherCharge').modal('show');
+                    }
+                    else {
+
+                       $('#formGroupModalOtherCharge').modal('hide');
+                    }
+
+
+                     }
+                else {
+
+                    $.each(ajaxOutput.OtherCharges.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                  //  $('select').selectpicker('refresh');
+                }
+            });
+            }
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 46 || charCode > 57))
+            return false;
+
+        return true;
+    }
+            function GetPaymentlists(ele)
+            {
+                $('#formGroupModalpayment').modal({ backdrop: 'static', keyboard: false })
+
+                   $('#formGroupModalpayment').modal('show');
+
+             }
+
+
+
+    var otherchgcalled = 0;
+    function BindOtherChargeAmount(ele) {
+        console.log('inside binddatat fn')
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let sum = 0;
+        othrchargelst = [];
+        $modal.find('table tbody').find('tr').each(function () {
+
+            let value = parseFloat($(this).find('.jq_OtherChagAmnt_td').find('input').val());;
+            if ($(this).find('.jq_OtherChagAmnt_td').find('input').val() == '' || $(this).find('.jq_OtherChagAmnt_td').find('input').val() == null) {
+                value = 0;
+            }
+
+            if (parseInt($(this).find('.jq_TransType_td').find('select').val()) == 0) {
+                value = value * 0;
+            }
+            else if (parseInt($(this).find('.jq_TransType_td').find('select').val()) == 1) {
+                value = value * -1;
+            }
+            else {
+                value = value * 1;
+            }
+            sum = sum + value;
+
+            let othrcharge = {
+                ID_OtherChargeType: $(this).find('.jq_ID_OtherChargeType_td').text(),
+                OctyTransType: $(this).find('.jq_TransType_td').find('select').val(),
+                OctyAmount: parseFloat($(this).find('.jq_OtherChagAmnt_td').find('input').val())
+                };
+            othrchargelst.push(othrcharge);
+            $thisForm.data({ pOthrChgData: othrchargelst});
+            console.log('othrchargelst', othrchargelst)
+
+        });
+
+        $thisForm.find('[name=OtherCharge]').val(sum);
+        roundof(ele);
+    }
+    var payele;
+    function createtable(ele, tkey, uniq = [], tableOptionsTempOut) {
+        payele = ele;
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableKey = tkey;
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        let insertData = {};
+        let tableOptionsTemp = tableOptionsTempOut;
+        console.log('tableOptionsTemp', tableOptionsTemp)
+        let unique = (uniq) ? uniq : [];
+
+        let isValid = true;
+        let errorClass = '.temptableError';
+
+        //make index
+        console.log('check 1');
+        let MRPss = $('[name=MRPs]').val() == null || $('[name=MRPs]').val() == "" || $('[name=MRPs]').val() == undefined ? 0 : $('[name=MRPs]').val();
+        $('[name=MRPs]').val(MRPss);
+
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+        let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+        console.log('tableOptionsTemp.rowAttribute', tableOptionsTemp.rowAttribute)
+        let updateCond = '';
+        let isNew = true;
+
+        if (thisactionIndex > 0) {
+            //means update
+            insertData[indexname] = thisactionIndex;
+            updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+            isNew = false;
+        }
+        else {
+            //insert
+            insertData[indexname] = lastIndex + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+            isNew = true;
+        }
+        //
+        if (tableKey == 'Warranty') {
+
+            isValid = validwartdetail(ele, tableKey, errorClass, isValid);
+        }
+        else if (tableKey == 'Payment') {
+            isValid = validpaymntdetail(ele, tableKey, errorClass, isValid);
+        }
+        else if (tableKey == 'Purchase') {
+            isValid = validsaledetail(ele, tableKey, errorClass, isValid);
+        }
+
+        if (unique.length > 0) {
+            //getting previous data
+            let prevData = [];
+            $tblcontainer.find('table > tbody').find('tr').each(function () {
+                if (isNew) {
+                    prevData.push($(this).data('pData'));
+                }
+                else {
+                    if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                        prevData.push($(this).data('pData'));
+                    }
+
+                }
+
+            })
+            console.log('previous data', prevData);
+
+            unique.forEach(function (key, i) {
+                console.log('unid -> key:' + key + "| index :" + i);
+                let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                // let headerEleName = $thisForm.find('[name="lblProName"]').text();
+                let atname = $thisEle.attr('name');
+                let cvalue;
+                console.log('atname', atname);
+                console.log('$thisEle.length', $thisEle.length);
+                if ($thisEle.length != 0) {
+                    console.log('len', $thisEle)
+                    let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                    let errmessage = key + " Already exits"
+
+                    //getting current value in cval
+                    if ($thisEle.is('select')) {
+                        cvalue = $thisEle.val();
+                        //alert(cvalue);
+                    }
+                    else if ($thisEle.is('input')) {
+
+                        let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+                        if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                        else if (inputEleType == 'hidden') { cvalue = $thisEle.val(); console.log('cvalue ->', cvalue); }
+                        else { cvalue = $thisEle.val(); }
+                    }
+                    else { cvalue = $thisEle.val(); }
+
+
+
+                    //searching in previous data
+                    if (prevData.find(a => a[atname] == cvalue)) {
+                        // console.log('Search =>' + cvalue + '| attr :' + atname)
+                        $errorElement.text(errmessage);
+                        isValid = false;
+                    }
+                }
+            });
+
+        }
+
+        console.log('isValid', isValid);
+
+        if (isValid) {
+
+            console.log('check 4.1');
+            // this section make table column data
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                //console.log('nameAttr', nameAttr);
+                console.log('headerName', headerName);
+
+                if ($this.is('select')) {
+             
+
+                    tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                    tableOptionsTemp.hideColumn.push(nameAttr)
+                    //displat text of select
+                    if ($this.val() != null) {
+                        let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    else {
+                        let selectText = ($this.val() == null) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    //tableOptionsTemp.onlyShowColumn.push(nameAttr + '_d')
+                    insertData[nameAttr] = $this.val();
+                    //insertData[nameAttr] = $this.val();
+
+                    $this.val('').selectpicker('refresh');
+
+
+                }
+                else if ($this.is('input')) {
+
+
+                    insertData[nameAttr] = $this.val();
+                    console.log('insertData[nameAttr]', insertData[nameAttr])
+                    if (nameAttr == "prodtid") { }
+                    else if (nameAttr == "stkid") { }
+                    else {
+                        $this.val('');
+                    }
+                }
+                else {
+                    insertData[nameAttr] = $this.val();
+
+                    $this.val('');
+                }
+
+            });
+            console.log('check 4.2', insertData);
+            console.log('check 4.2 tableoption', tableOptionsTemp);
+            if (isNew) {
+                console.log('check 4.2.1');
+                //this section nake table.table row
+                if ($tblcontainer.find('table').length == 0) {
+                    console.log('check 4.2.3');
+                    console.log(insertData);
+                    console.log(',tableOptionsTemp', tableOptionsTemp)
+                    $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+
+                    //  $tblcontainer.find('table').dataTable({ paging: false, ordering: false });
+                }
+                else {
+                    console.log('check 4.2.1');
+                    let table = $tblcontainer.find('table').DataTable()
+                    table.destroy()
+                    pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+
+
+                }
+
+            }
+            else {
+
+                let table = $tblcontainer.find('table').DataTable()
+                table.destroy()
+
+                pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+
+            }
+
+            console.log(insertData);
+            //alert(1);
+            // resetting the edit value
+            $tblcontainer.attr('perfect-tempTable-action', 0);
+
+            if (tableKey == 'Warranty') {
+
+                BindWarrantyAmount(ele);
+            }
+            else if (tableKey == 'Payment') {
+                BillAmountbind(ele);
+            }
+            else if (tableKey == 'Purchase') {
+                $thisForm.find('[name=prdbtn]').removeAttr("disabled", "disabled")
+
+
+
+
+            }
+
+        }
+
+        Binddatadetails(ele);
+        CalculateTotal(ele);
+
+    }
+
+    function Binddatadetails(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let net = 0;
+        $('#Salescrapsetailshead').find('tbody tr').each(function (index, ele) {
+            net = net + parseFloat($(ele).find('.MRPs').text());
+
+
+
+        });
+
+
+        let BillTotal = (net);
+
+        $thisForm.find('[name=SalScrapBillAmount]').val(BillTotal.toFixed(4));
+
+
+    }
+
+    function CalculateTotal(ele, md) {
+
+
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Net = 0;
+        let othercharge = 0;
+
+        let TotalBill = $thisForm.find('[name=MRPs]').val() == "" ? "0" : $thisForm.find('[name=MRPs]').val();
+        TaxAmount = $thisForm.find('[name=TaxAmount]').val() == "" ? "0" : $thisForm.find('[name=TaxAmount]').val();
+
+
+
+        $('#Salescrapsetailshead').find('tbody tr').each(function (index, ele) {
+            Net = Net + (parseFloat($(ele).find('.MRPs').text()));
+
+
+
+        });
+        othercharge = $thisForm.find('[name=OtherCharge]').val() == "" ? "0" : $thisForm.find('[name=OtherCharge]').val();
+
+        let BillTotal = parseFloat(Net);
+
+        $thisForm.find('[name=SalScrapBillTotal]').val(parseFloat(BillTotal.toFixed(2)));
+
+       //CalculateNetAmount(ele);
+        totalamountcalc(ele);
+    }
+
+
+    function CalculateNetAmount(ele, md) {
+        debugger
+
+        let $thisForm;
+        if (md == 1) {
+            $thisForm = $(payele).closest('[perfect-class="form"]');
+        }
+        else {
+            $thisForm = $(ele).closest('[perfect-class="form"]');
+        }
+        let Nettotal = 0;
+        let total = 0;
+        let amount = 0;
+        let TaxAmount = 0;
+
+
+        total = $thisForm.find('[name=SalScrapBillTotal]').val() == "" ? "0" : $thisForm.find('[name=SalScrapBillTotal]').val();
+        amount = $thisForm.find('[name=OtherCharge]').val() == "" ? "0" : $thisForm.find('[name=OtherCharge]').val();
+        TaxAmount = $thisForm.find('[name=TaxAmount]').val() == "" ? "0" : $thisForm.find('[name=TaxAmount]').val();
+        taxamount = $thisForm.find('[name=TaxAmount]').val() == "" ? "0" : $thisForm.find('[name=TaxAmount]').val();
+
+        Nettotal = parseFloat(total) + parseFloat(amount) + parseFloat(taxamount);
+
+        $thisForm.find('[name=SalScrapNetAmount]').val(parseFloat(Nettotal).toFixed(2));
+
+
+        console.log('Nettotal', Nettotal);
+
+        BillAmountbind(ele);
+
+    }
+    function roundof(ele) {
+        debugger
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let biltl = 0;
+        let otherchg = 0;
+        let saldisc = 0;
+        let salroundof = 0;
+        let netat = 0;
+        let advamt = 0;
+        let netamt = 0;
+        let downpayment = 0;
+        biltl = $thisForm.find('[name="SalScrapBillTotal"]').val() == "" ? "0" : $thisForm.find('[name="SalScrapBillTotal"]').val();
+        otherchg = $thisForm.find('[name="OtherCharge"]').val() == "" ? "0" : $thisForm.find('[name="OtherCharge"]').val();
+
+
+        let Net = 0;
+
+
+
+
+            salroundof = Math.round(parseFloat(biltl) + parseFloat(otherchg));
+            netat =parseFloat(salroundof);
+            netamt = netat
+
+
+        $thisForm.find('[name="OtherCharge"]').val(parseFloat(otherchg).toFixed(2))
+
+        $thisForm.find('[name=SalScrapNetAmount]').val(netamt.toFixed(2));
+        let billamt = 0;
+        let bilamt = 0;
+
+
+        bilamt = netamt;
+        $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+            billamt += parseFloat($(ele).find('.PAmount').text());
+
+        });
+        bilamt = parseFloat(bilamt) - billamt;
+
+        $thisForm.find('[name=BalAmt]').text(bilamt.toFixed(2));
+
+
+
+    }
+
+    function BillAmountbind(ele) {
+
+        debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let netamt = $thisForm.find('[name="SalScrapNetAmount"]').val() == "" ? 0 : $thisForm.find('[name="SalScrapNetAmount"]').val();
+        let billamt = 0;
+        let bilamt = 0;
+
+        if ($thisForm.find('[name=BalAmt]').text() == '') {
+            bilamt = 0;
+        }
+        else {
+
+            bilamt = netamt;
+        }
+
+        $thisForm.find('[name=SalScrapNetAmount]').val(Number(netamt).toFixed(2));
+
+        $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+            billamt += parseFloat($(ele).find('.PAmount').text());
+
+        });
+        bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+        $thisForm.find('[name=BalAmt]').text(bilamt.toFixed(2));
+        if (bilamt == 0) {
+
+            return true;
+
+        }
+        else {
+
+            return false;
+
+        }
+    }
+    function Billttlnetchck(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let balamt = $thisForm.find('[name=BalAmt]').text();
+
+
+        if (parseFloat(balamt) == 0) {
+            $('#formGroupModalpayment').modal('hide');
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+        }
+        else {
+
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Balance Amt. should be Zero');
+
+        }
+    }
+
+
+
+    var tableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        let indexname = tableKey + 'index';
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+                        });
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            //$thistbl.dataTable({ paging: true });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                        let $thisItem = $('[perfect-class="TempTableProduct"]');
+                        $thisItem.find('[perfect-ctype="input"]').val('');
+                        $thisItem.find('[perfect-ctype="hidden"]').val('');
+                        $thisItem.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                        let $thisForm = $('[perfect-class="form"]');
+                        $thisForm.find('[name=prdbtn]').removeAttr("disabled", "disabled");
+
+                        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tkey + '"]');
+                        $tblcontainer.attr('perfect-tempTable-action', 0);
+                        CalculateTotal($tablecontainer, 1);
+                        CalculateNetAmount(this, 1);
+                    }
+                },
+            ]
+        },
+            rowAttribute: ['FK_Master', 'EMIProduct', 'downpay', 'AdditionalPay', 'FK_FinancePlanType'],
+        renameHeader: { "MRPs": "Price1R", "ProName": "Product", "SQuantity": "Qty1R", "Quantity": "Qty1R", "Discamt": "Discount1R", "Sprice": "Amount1R", "SalePrice": "Sales Price1R", "NetAmt": "Total1R", "WarrantyTotalAmt": "Warranty1R", "AMCNetTotalAmt": "AMCNetAmount1R" },
+        hideColumn: ['Discp', 'ProductID', 'TaxAmount', 'StockId', 'FK_Master', 'EMIProduct', 'downpay', 'AdditionalPay', 'FK_FinancePlanType', 'Description', 'AMCMType', 'AMCMDuedate', 'AMCMRenewduedate', 'AMCTaxTotalAmt', 'AmcTotalAmount', 'AMCNoOfServices', 'AMCFK_Master', 'AMCRemarks', 'SpdSalFreeQuantity','ID_Product','ID_Stock'],
+        serialNo: true,
+
+
+
+    };
+
+    function validsaledetail(ele, tableKey, errorClass, isValid) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="ProName"]').val().length == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="ProName"]').val().length == null) {
+            isValid = false;
+            console.log('false');
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="ProName"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Product');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="ProName"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').val().length == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').val().length == null) {
+            isValid = false;
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Stock Mode');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="Quantity"]').val() < 1) {
+
+            isValid = false;
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Quantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter a value greater than or equal to 1');
+        }
+        else {
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="Quantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+
+        return isValid;
+
+
+
+    }
+
+
+
+    var paytableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                        console.log('Editclick', savedData);
+                        //filling data in available inputs
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                            }
+                            else if ($thisNode.is('input')) {
+                                let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+
+
+
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            //$thistbl.dataTable({ paging: true, searchbtn: false });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+                        let $thisform = $('[perfect-class="form"]');
+                        $thisform.find('[perfect-temptable-Payment]').closest('[perfect-ctype="input"]').val('');
+                        $thisform.find('[perfect-temptable-Payment]').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                        $thisform.find('[perfect-temptable-Payment]').closest('[perfect-ctype="input"]').val('');
+                        $thisform.find('[perfect-temptable-Payment]').closest('[perfect-ctype="date"]').val('');
+                        $thisform.find('[perfect-temptable-Payment]').closest('[perfect-ctype="hidden"]').val('');
+
+                        BillAmountbind($tablecontainer);
+                    }
+                },
+            ]
+        },
+
+        rowAttribute: [],
+        onlyShowColumn: ['PAmount', 'Refno', 'PaymentMethod_d'],
+        renameHeader: { "PAmount": "Amount1R", "Refno": "Ref No", "PaymentMethod_d": "Method" },
+        hideColumn: ['BalAmt'],
+
+        serialNo: true,
+
+    };
+
+    function validpaymntdetail(ele, tableKey, errorClass, isValid) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val() == null) {
+
+            isValid = false;
+            console.log('false', $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val());
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Payment Method');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').val() < 1) {
+            console.log('false', $thisForm.find('[perfect-tempTable-' + tableKey + '="PaymentMethod"]').val());
+            isValid = false;
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter a value greater than or equal to 1');
+        }
+        else {
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="PAmount"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+
+        return isValid;
+
+    }
+
+    function Billttlnetchck(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let balamt = $thisForm.find('[name=BalAmt]').text();
+
+
+        if (parseFloat(balamt) == 0) {
+            $('#formGroupModalpayment').modal('hide');
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+        }
+        else {
+
+            $thisForm.find('[perfect-tempTable="Payment"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Balance Amt. should be Zero');
+
+        }
+    }
+
+
+
+
+    function Pamount(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let amtp = $thisForm.find('[name="PAmount"]').val() == "" ? "0" : $thisForm.find('[name="PAmount"]').val();
+        $thisForm.find('[name="PAmount"]').val(parseFloat(amtp).toFixed(2))
+    }
+
+    function fn_SalesScrapForm_add(ele) {
+
+                $(ele).prop('disabled', true);
+                let $thisForm = $(ele).closest('[perfect-class="form"]');
+                let salesdetails = [];
+                $thisForm.find('[perfect-tempTable="Purchase"]').find('tbody').find('tr').each(function () {
+                    salesdetails.push($(this).data('pData'));
+                })
+
+                if (salesdetails.length > 0) {
+                    if (datencheck(ele)) {
+                        if ($thisForm.valid()) {
+
+                            if (BillAmountbind(ele)) {
+
+                                debugger
+                                let $thisForm = $(ele).closest('[perfect-class="form"]');
+                                let $modal2 = $thisForm.find('#zero_configOthercharge');
+                                let $modal1 = $thisForm.find('#zero_config');
+                                let OtherCharge = [];
+                                $modal2.find('tbody').find('tr').each(function () {
+
+                                    let OtChargeinfo = {};
+                                    OtChargeinfo['ID_OtherChargeType'] = $(this).find('.jq_ID_OtherChargeType_td').text();
+
+                                    OtChargeinfo['OctyTransType'] = $(this).find('.jq_TransType_td').find('select').val();
+                                    OtChargeinfo['OctyName'] = $(this).find('.jq_Type_td').text();
+                                    OtChargeinfo['OctyAmount'] = $(this).find('.jq_OtherChagAmnt_td').find('input').val();
+                                    console.log('OtChargeinfo', OtChargeinfo);
+                                    OtherCharge.push(OtChargeinfo);
+
+                                });
+                                debugger
+
+                                let paymentdetails = [];
+                                $thisForm.find('[perfect-tempTable="Payment"]').find('tbody').find('tr').each(function () {
+                                    paymentdetails.push($(this).data('pData'));
+                                })
+                                var tax = [];
+                                $modal1.find('tbody').find('tr').each(function () {
+
+                                    let taxinfo = {};
+
+                                    taxinfo['FK_TaxType'] = $(this).find('.jq_taxType_td').text();
+                                    taxinfo['TaxTyName'] = $(this).find('.jq_taxTypeName_td').text();
+
+                                    taxinfo['TaxAmount'] = $(this).find('.jq_taxamount_td').find('input').val();
+                                    console.log('taxinfo', taxinfo);
+
+
+
+                                    tax.push(taxinfo);
+                                    //alert('TAX DET')
+                                });
+
+
+                                let inputData = {
+
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    'ScrapSalesID': 0,
+
+                                    'LastID': LastID_ScrapSales,
+                                    'TransMode': SalescrapTransMode,
+                                    'BillType': $thisForm.find('[name="BillType"]').val(),
+                                    'SalScrapBillNo': $thisForm.find('[name="SalScrapBillNo"]').val(),
+                                    'SalScrapBillDate': $thisForm.find('[name="SalScrapBillDate"]').val(),
+                                    'SalScrapEnterDate': $thisForm.find('[name="SalScrapEnterDate"]').val(),
+                                    'FK_Buyer': $thisForm.find('[name="FK_Buyer"]').val(),
+                                    'BuyerName': $thisForm.find('[name="BuyerName"]').val(),
+                                    'BuyerMobileNo': $thisForm.find('[name="BuyerMobileNo"]').val(),
+                                    'DepartmentID': $thisForm.find('[name="DepartmentID"]').val(),
+
+                                    'SalScrapBillTotal': $thisForm.find('[name="SalScrapBillTotal"]').val(),
+                                    'OtherCharge': $thisForm.find('[name="OtherCharge"]').val(),
+                                    'SalScrapDiscount': $thisForm.find('[name="SalScrapDiscount"]').val(),
+
+                                    'SalScrapNetAmount': $thisForm.find('[name="SalScrapNetAmount"]').val(),
+                                    'IncludeTax': $thisForm.find('[name="IncludeTax"]').is(':Checked'),
+                                    'StockadjonHold': 0,
+                                    'TaxAmount': $thisForm.find('[name="TaxAmount"]').val(),
+                                    'Auction': $thisForm.find('[name="Auction"]').is(':Checked'),
+                                    'AuctionRemarks': $thisForm.find('[name="AuctionRemarks"]').val(),
+                                    'ScrapProductDetails': salesdetails,
+                                    'PaymentDetail': paymentdetails,
+                                    'OtherChgDetails': OtherCharge,
+                                    'TaxAmountDetails':tax,
+
+
+                                };
+                                //clearSessionValue(LastIDSessionKey);
+
+                                console.log('save56', inputData)
+                                $.ajax({
+                                    url: "@Url.Action("AddNewScrapSales", "Sales")",
+                                    type: "POST",
+                                    data: inputData,
+                                    dataType: "json",
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+
+                                        if (ajaxOutput.Process.IsProcess) {
+
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message':'Saved Successfully' });
+
+
+
+
+                                            });
+                                            //ajaxOutput.Process.code
+                                            $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                            $thisForm.find('[perfect-ctype="input"]').val('');
+                                            $thisForm.find('[perfect-ctype="date"]').val('');
+
+                                            // Get the value set in form's perfect-onFormSuccess attribute
+                                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                            //if (onSuccess) {
+
+                                                fn_SalescrapIndex_initialLoad();
+                                            //}
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                            });
+                                        }
+                                    },
+                                    complete: function () {
+                                        $(ele).prop('disabled', false);
+                                    }
+
+                                });
+
+                            }
+                            else {
+                                $(ele).prop('disabled', false);
+                                NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'In Payment Method Balance Amt. Should be  Zero ' });
+                            }
+                        }
+                        else {
+                            $(ele).prop('disabled', false);
+                        }
+                    }
+                    else {
+                        $(ele).prop('disabled', false);
+                    }
+                }
+                    else {
+                    $(ele).prop('disabled', false);
+                    NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'Enter Atleast One Product' });
+
+
+
+                    }
+                }
+
+
+
+
+
+
+
+
+
+    function deletescrapsale(ele)
+        {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Saveddata = $thisForm.data('pData');
+        console.log('Delete function', Saveddata)
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetSalesscrapReasonList", "Sales")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ScrapSalesID: $thisForm.find('[name="ScrapSalesID"]').val(),
+                                        ReasonID: selectedOption,
+                                        TransMode: SalescrapTransMode
+                                    };
+                                    console.log('inputData', inputData)
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteSalesScrap", "Sales")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                //let table = $row.closest('table').DataTable()
+                                                //table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_SalescrapIndex_initialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+
+
+
+    function fn_productpopupcondition(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let stockmode = $thisForm.find('[name="StockMode"]').val() == "" ? "0" : $thisForm.find('[name="StockMode"]').val();
+        let dep = $thisForm.find('[name="DepartmentID"]').val() == "" ? "0" : $thisForm.find('[name="DepartmentID"]').val();
+        if (dep != 0) {
+            if ((stockmode != 0)) {
+                if (stockmode == 2) {
+
+                    document.getElementById("prdbtn").setAttribute("Criterea1", "FK_Branch");
+                    document.getElementById("prdbtn").setAttribute("Criterea2", "DepartmentID");
+                    document.getElementById("prdbtn").setAttribute("Criterea3", "0");
+
+                    GetCmnPopUpSearchValAssign(ele, 104, 'Product List', [], ['Slno', 'ID_Stock', 'Stock'], SalescrapTransMode)
+                }
+                else {
+                    document.getElementById("prdbtn").setAttribute("Criterea1", "FK_Branch");
+                    document.getElementById("prdbtn").setAttribute("Criterea2", "DepartmentID");
+
+                    GetCmnPopUpSearchValAssign(ele, 38, 'Product List', [], ['Slno', 'ID_Stock', 'Stock'], SalescrapTransMode)
+                }
+            }
+            else {
+                NotificationMessage({ 'message': 'Please Select Stock Mode' });
+            }
+        }
+        else {
+            NotificationMessage({ 'message': 'Please Select Department' });
+        }
+      
+    }
+
+    function ShowTax(ele, mod) {
+        debugger
+        Taxcalled = 1;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let taxinfo = {};
+        if ($thisForm.data('pDataTax')) {
+
+            if ($thisForm.data('pDataTax').length > 0) {
+
+                Taxlist = $thisForm.data('pDataTax');
+            }
+            BindTaxDetails("1", 'formGroupModalTax', ele, mod)
+
+            if (mod == 1) {
+                $('#formGroupModalTax').modal('show');
+            }
+            else {
+                $('#formGroupModalTax').modal('hide');
+            }
+        }
+        else {
+            BindTaxDetails("1", 'formGroupModalTax', ele, mod)
+        }
+
+
+    }
+    var Taxlist = [];
+     function BindTaxDetails(Mode, ModalID, ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        var InputData =
+        {
+            FK_Company: $thisForm.find('[name=FK_Company]').val(),
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetTaxAmount", "Sales")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                     if (ajaxOutput.Process.IsProcess) {
+                         var CheckListHTML = '';
+                         let sum = 0;
+                         if (ajaxOutput.Data.length > 0) {
+
+
+                             $.each(ajaxOutput.Data, function (i, value) {
+                                 sum = sum + parseFloat(value.TaxAmount);
+                                 if (Taxlist != '') {
+                                     $.each(Taxlist, function (key, value1) {
+                                         if (value1.ID_TaxType == value.ID_TaxType) {
+                                             value.TaxAmount = value1.TaxAmount;
+                                         }
+                                     });
+
+                                 }
+                                 CheckListHTML += "<tr>";
+                                 CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                 CheckListHTML += "<td class='jq_taxType_td' Style='Display:none'>" + value.ID_TaxType + "</td>";
+                                 CheckListHTML += "<td class='jq_taxTypeName_td'>" + value.TaxTyName + "</td>";
+                                 CheckListHTML += "<td class='jq_taxamount_td' ><input onkeypress='return /[0-9]/i.test(event.key) min='0'  class='form-control text-right' maxlength='10' type='text'  value='" + value.TaxAmount + "' /></td>";
+
+                                 CheckListHTML += "</tr>";
+                             })
+                         }
+                         else {
+                             CheckListHTML += "<div class='form-group col-md-6'>";
+                             CheckListHTML += "<div class='form-check mb-2'>";
+                             CheckListHTML += "<input type='checkbox' class='form-check-input' >"
+                             CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                             CheckListHTML += "</div></div>"
+                         }
+
+
+                         $("#formGroupModalTaxbody").html(CheckListHTML)
+                         $('#formGroupModalTax').modal('show');
+                     }
+                     else {
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+            });
+        }
+    function BindTaxAmount(element) {
+
+        let $modal = $(element).closest('.modal');
+        let $thisForm = $(element).closest('[perfect-class="form"]');
+        let sum = 0;
+        Taxlist = [];
+        $modal.find('table tbody').find('tr').each(function () {
+
+            let value = parseFloat($(this).find('.jq_taxamount_td').find('input').val());
+            if ($(this).find('.jq_taxamount_td').find('input').val() == '' || $(this).find('.jq_taxamount_td').find('input').val() == null || $(this).find('.jq_taxamount_td').find('input').val() == ".") {
+                parseFloat($(this).find('.jq_taxamount_td').find('input').val(0));
+            }
+            sum = sum + parseFloat($(this).find('.jq_taxamount_td').find('input').val());
+
+            let TaxAmount = {
+                ID_TaxType: $(this).find('.jq_taxType_td').text(),
+                TaxtyName: $(this).find('.jq_taxTypeName_td').text(),
+                TaxAmount: parseFloat($(this).find('.jq_taxamount_td').find('input').val())
+            };
+            Taxlist.push(TaxAmount);
+            $thisForm.data({ pDataTax: Taxlist });
+
+        });
+        $thisForm.find('[name=TaxAmount]').val(sum);
+        totalamountcalc(element);
+    }
+
+
+
+    function checkpurrateTax(ele) {
+        debugger
+        ShowTax(ele, 1);
+
+
+    }
+
+    function totalamountcalc(ele) {
+        debugger
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        let otheramt = 0;
+        let Amount = 0;
+        let tax = 0;
+        otheramt = $thisForm.find('[name="OtherCharge"]').val() == "" ? "0" : $thisForm.find('[name="OtherCharge"]').val();
+        Amount = $thisForm.find('[name="SalScrapBillTotal"]').val() == "" ? "0" : $thisForm.find('[name="SalScrapBillTotal"]').val();
+        tax = $thisForm.find('[name="TaxAmount"]').val() == "" ? "0" : $thisForm.find('[name="TaxAmount"]').val();
+
+        let netamount = 0;
+        if ($('#taxinclude').is(":checked")) {
+            netamount = 0;
+            netamount = parseFloat(Amount) + parseFloat(otheramt);
+            $thisForm.find('[name="SalScrapNetAmount"]').val(parseFloat(netamount).toFixed(2));
+        }
+        else {
+            netamount = 0;
+            netamount = parseFloat(Amount)+parseFloat(tax) + parseFloat(otheramt);
+
+            $thisForm.find('[name="SalScrapNetAmount"]').val(parseFloat(netamount).toFixed(2));
+        }
+        //for payment method
+        $thisForm.find('[name=SalScrapNetAmount]').val(netamount.toFixed(2));
+        let billamt = 0;
+        let bilamt = 0;
+
+        bilamt = netamount;
+        $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+            billamt += parseFloat($(ele).find('.PAmount').text());
+        });
+        bilamt = parseFloat(bilamt) - billamt;
+
+        $thisForm.find('[name=BalAmt]').text(bilamt.toFixed(2));
+        //for payment method/////end
+    }
+
+    function clearproduct(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        
+        $thisForm.find('[name=ID_Stock]').val(0);
+        $thisForm.find('[name=ID_Product]').val(0);
+        $thisForm.find('[name=Product]').val('');
+    }
+</script>
+

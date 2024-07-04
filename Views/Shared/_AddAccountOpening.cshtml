@@ -1,0 +1,614 @@
+﻿
+
+
+
+@model PerfectWebERP.Models.AccountOpeningModel.AccountOPeningView
+<style>
+    .btnPerfectDelete {
+        color: red;
+        border: none
+    }
+
+    .DeleteRow2 {
+    }
+
+
+
+    .tableFixHead {
+        overflow: auto;
+        /*height: calc(100% - 30px);*/
+        height: 500px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: #f8f9fa;
+        }
+
+    tfoot {
+        position: sticky;
+        bottom: 0;
+        background-color: #f8f9fa;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 5px 10px;
+    }
+</style>
+
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        @*<span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>*@
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Final Account Group</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 PerError">
+                                <select class="form-control perfectValidate_string" name="AccGroupType" id="AccGroupType1" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_Get_AccGrpType(this, this.value)">
+                                    <option value="">Please select</option>
+                                    @if (!(Model.FinalAccountGroup is null))
+                                    {
+                                        foreach (var FAT in Model.FinalAccountGroup)
+                                        {
+                                            <option value="@FAT.ID_Mode">@FAT.ModeName</option>
+                                        }
+                                    }
+
+                                </select>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="FK_Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_CLearValue(this)">
+                                    <option value="0">All</option>
+                                    @if (!(Model.branchHeads is null))
+                                    {
+                                        foreach (var AHT in Model.branchHeads)
+                                        {
+                                            <option value="@AHT.FK_Branch">@AHT.BranchName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Account Group</span>
+                                <span class="text-danger">*</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="FK_AccGroupType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-elemet="accountGrp" perfect-selectButtonAction="testing" onchange="fn_CLearValue(this)">
+                                    <option value="">Please Select</option>
+
+                                </select>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Financial Year</span>
+                                <span class="text-danger">*</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="FinanceYear" id="financeYear" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_CLearValue(this)"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-primary btn-block" id="id_item_show" onclick="fn_get_OpeningData(this)">Show</button>
+                            </div>
+                            <div class="col-sm-9"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-md-12" id="AccOpenid" style="display:none">
+                        <div class="card">
+                            <div class="card-body" style="padding: 0px">
+                                <div perfect-class="ModuleContainer" id="AccOpentable">
+                                    <div class="table-responsive tableFixHead">
+                                        <table class="table table-hover table-striped text-black">
+                                            <thead class="thead-primary">
+                                                <tr>
+                                                    <th style="display:none">ID_AccountHeadBalance</th>
+                                                    <th style="display:none" class="text-right">FK_Branch</th>
+                                                    <th class="text-left">Branch Code</th>
+                                                    <th class="text-left">Branch</th>
+                                                    <th class="text-left">Account Head</th>
+                                                    <th class="text-left" style="display:none;">FK_AccountHead</th>
+                                                    <th class="text-right">Debit Balance</th>
+                                                    <th class="text-right">Credit Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="AccOpenTbody"></tbody>
+                                            <tfoot id="AccOpenTfoot">
+                                                <tr>
+                                                    <td colspan="3" class="text-right font-weight-bold">Total:</td>
+                                                    <td class="text-right font-weight-bold" id="totalDebit"></td>
+                                                    <td class="text-right font-weight-bold" id="totalCredit"></td>
+                                                    
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    @if (ViewBag.PagedAccessRights.UsrrlMsEdt)
+                    {
+                        <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="UpdateAccountOpening(this,'Update')"><i class="fa fa-refresh fa-spin  loaderClass"></i>Update</button>
+                    }
+                    @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                    {
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="UpdateAccountOpening(this,'Add')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    }
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+
+<script>
+
+
+
+    (function () {
+
+        jQuery("select").selectpicker();
+
+    })();
+
+    $(document).ready(function () {
+        initFunctions('form');
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        debugger;
+
+        var currentDate = new Date();
+        var currentYear = currentDate.getFullYear();
+        var $placeDropdown = $thisForm.find('[name=FinanceYear]');
+        $placeDropdown.empty();
+
+        for (var i = currentYear; i >= currentYear - 5; i--) {
+            var option = document.createElement('option');
+            option.value = option.innerHTML = i;
+            if (i === currentYear) option.selected = true;
+            $placeDropdown.append(option);
+        }
+
+        $placeDropdown.selectpicker('refresh');
+
+
+    });
+
+    function fn_Get_AccGrpType(ele, value) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let grpVal = $thisForm.find('[name="AccGroupType"]').val();
+
+        let $placeDropdown = $thisForm.find('[name=FK_AccGroupType]');
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { "value": "" }).text('Please select')).selectpicker('refresh');
+
+        var InputData = {
+
+            'AccGroupType': $thisForm.find('[name="AccGroupType"]').val(),
+        }
+        $.ajax({
+            url: "@Url.Action("GetDataAccountGroup", "AccountOpening")",
+            type: "POST",
+            data: InputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (data) {
+                if (data.Process.IsProcess) {
+                    debugger
+                    $.each(data.data, function (key, value) {
+                        $placeDropdown.append($('<option/>', { "value": value.FK_AccGroup }).text(value.AccGroupName)).selectpicker('refresh')
+                    });
+                }
+                else {
+                    $.each(data.Process.Message, function (key, value) {
+
+                    });
+                }
+                fn_CLearValue(ele)
+            },
+           
+
+        });
+    }
+
+    function fn_CLearValue(ele) {
+        $("#AccOpenTbody tr").remove();
+       
+            document.getElementById('AccOpenid').style.display = 'none';
+    }
+
+    function fn_get_OpeningData(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        isValid = false;
+
+        let aGTyp = parseInt($thisForm.find('[name=FK_AccGroupType]').val()) || 0;
+        let errorClass = '.temptableError';
+
+        if (aGTyp == 0 || aGTyp == "") {
+            isValid = false;
+            $thisForm.find("[name='FK_AccGroupType']").closest('[perfect-class="formGroup"]').find(errorClass).text('Please select Account Group');
+        }
+        else {
+            isValid = true;
+            $thisForm.find("[name='FK_AccGroupType']").closest('[perfect-class="formGroup"]').find(errorClass).text('');
+
+        }
+
+        if ($thisForm.valid()) {
+
+            if (isValid) {
+
+                var inputData = {
+
+                    'AccGroupType': $thisForm.find('[name="AccGroupType"]').val(),
+                    'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+                    'FK_AccGroupType': $thisForm.find('[name="FK_AccGroupType"]').val(),
+                    'FinYear': $thisForm.find('[name="FinanceYear"]').val(),
+
+                }
+                console.log('inputData', inputData);
+
+                $.ajax({
+                    url: "@Url.Action("GetOpeningAccountData", "AccountOpening")",
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (data) {
+                        debugger
+                        if (data.Process.IsProcess) {
+                            debugger
+                            let ItemData = data.data;
+
+                            //$thisForm.find('[name="AccGroupType"]').attr("disabled", true);
+                            //$thisForm.find('[name="FK_Branch"]').attr("disabled", true);
+                            //$thisForm.find('[name="FK_AccGroupType"]').attr("disabled", true);
+                            //$thisForm.find('[name="FinanceYear"]').attr("disabled", true);
+
+                            $("#AccOpenTbody tr").remove();
+                            if (ItemData) {
+                                document.getElementById('AccOpenid').style.display = 'block';
+
+                                let $tbody = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+                                let totalDebitBalance= 0;
+                                let totalCreditBalance = 0;
+                                debugger
+                                $.each(ItemData, function (i, values) {
+                                    debugger
+                                    if (values.FK_Product != 0) {
+                                        let rowCount = (i + 1);
+                                        let $row = $('<tr/>', { id: rowCount, class: "trvalue" });
+
+                                        $row.append($('<td>', { class: "ID_AccountHeadBalance", style: 'display:none' }).text(values.ID_AccountHeadBalance))
+                                            .append($('<td>', { class: "FK_Branch", style: 'display:none' }).text(values.FK_Branch))
+                                            .append($('<td>', { class: "BranchCode" }).text(values.BranchCode))
+                                            .append($('<td>', { class: "Branch" }).text(values.Branch))
+                                            .append($('<td>', { class: "Name1" }).text(values.Name))
+                                            .append($('<td>', { class: "FK_AccountHead", style: 'display:none'  }).text(values.FK_AccountHead))
+                                            .append($('<td>', { class: "DebitBalance" }).html(
+                                                $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '12', name: "DebitBalance", id: "Iamount", })
+                                                    .val(values.DebitBalance.toFixed(2))
+                                                    .on('keypress', function (event) {
+                                                        return isNumberKey(event);
+                                                    })
+                                                    .on('change', function () {
+
+                                                        let Dval = parseFloat($(this).val()) || 0;
+
+                                                        totalCalculate(this, Dval)
+                                                    })
+                                                    .on('input', function () {
+                                                        decimalpnt(this, 'Iamount', 3);
+                                                    })
+
+
+                                            ))
+
+                                            .append($('<td>', { class: "CreditBalance text-right" }).html(
+                                                $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '12', name: "CreditBalance", id: "Openbal_id" })
+                                                    .val(values.CreditBalance.toFixed(2))
+                                                    .on('keypress', function (event) {
+                                                        return isNumberKey(event);
+                                                    })
+                                                    .on('change', function () {
+                                                        totalCreditCalculate(this)
+                                                    })
+                                                    .on('input', function () {
+                                                        decimalpnt(this, 'Openbal_id', 3);
+                                                    })
+                                            ))
+
+                                        totalDebitBalance += values.DebitBalance;
+                                        totalCreditBalance += values.CreditBalance;
+                                        $('#totalDebit').text(formatInNumber(totalDebitBalance));
+                                        $('#totalCredit').text(formatInNumber(totalCreditBalance));
+                                        $tbody.append($row);
+                                    }
+                                    else {
+                                        $("#AccOpenTbody tr").remove();
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Not Found' })
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                                AccountOpening_initLoad();
+                            }
+                        }
+                        else {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                            AccountOpening_initLoad();
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        var errorResponse = JSON.parse(xhr.responseText);
+                        var errorMessage = errorResponse.Process.Message;
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': errorMessage });
+                    }
+                });
+            }
+        }
+
+    }
+
+
+    function formatInNumber(number) {
+
+        return number.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    }
+
+    function totalCalculate(ele,dval) {
+        totalDebitBalance = 0;
+        totalCreditBalance = 0;
+
+        let currentrow = $(ele).closest("tr");
+        let dbalnce = parseFloat(currentrow.find('.DebitBalance').find('input').val()) || 0.00;
+        let cbalance = parseFloat(currentrow.find('.CreditBalance').find('input').val()) || 0.00;
+
+        $('input[name="DebitBalance"]').each(function () {
+            let value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                totalDebitBalance += value;
+            }
+
+        });
+
+        if (dbalnce > 0) {
+            parseFloat(currentrow.find('.CreditBalance').find('input').val(0.00))
+
+            $('input[name="CreditBalance"]').each(function () {
+                let value = parseFloat($(this).val());
+                if (!isNaN(value)) {
+                    totalCreditBalance += value;
+                }
+            });
+            $('#totalCredit').text(formatInNumber(totalCreditBalance));
+        }
+        $('#totalDebit').text(formatInNumber(totalDebitBalance));
+
+    }
+
+    function totalCreditCalculate(ele) {
+        totalDebitBalance = 0;
+        totalCreditBalance = 0;
+
+        let currentrow = $(ele).closest("tr");
+        let dbalnce = parseFloat(currentrow.find('.DebitBalance').find('input').val()) || 0.00;
+        let cbalance = parseFloat(currentrow.find('.CreditBalance').find('input').val()) || 0.00;
+
+        $('input[name="CreditBalance"]').each(function () {
+            let value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                totalCreditBalance += value;
+            }
+        });
+
+        $('#totalCredit').text(formatInNumber(totalCreditBalance));
+
+        if (cbalance > 0) {
+            parseFloat(currentrow.find('.DebitBalance').find('input').val(0.00))
+            $('input[name="DebitBalance"]').each(function () {
+                let value = parseFloat($(this).val());
+                if (!isNaN(value)) {
+                    totalDebitBalance += value;
+                }
+
+            });
+            $('#totalDebit').text(formatInNumber(totalDebitBalance));
+        }
+    }
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 46 || charCode > 57))
+            return false;
+
+        return true;
+    }
+    function decimalpnt(ele, id, range) {
+        //console.log(ele, 'ele');
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+    function ResetButton(ele) {
+        AccountOpening_initLoad();
+    }
+
+    function UpdateAccountOpening(ele, actiontype) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var itemTable = $('#AccOpenTbody tr.trvalue');
+        var ItemDetails = [];
+        var isValid = false;
+
+
+        let aGTyp = parseInt($thisForm.find('[name=FK_AccGroupType]').val()) || 0;
+        let errorClass = '.temptableError';
+
+        if (aGTyp == 0 || aGTyp == "") {
+            isValid = false;
+            $thisForm.find("[name='FK_AccGroupType']").closest('[perfect-class="formGroup"]').find(errorClass).text('Please select Account Group');
+        }
+        else {
+            isValid = true;
+            $thisForm.find("[name='FK_AccGroupType']").closest('[perfect-class="formGroup"]').find(errorClass).text('');
+
+        }
+
+        if (itemTable.length > 0) {
+                itemTable.each(function () {
+
+                        var ArrItem = {
+
+                            ID_AccountHeadBalance: $(this).find(".ID_AccountHeadBalance").text(),
+                            FK_Branch: $(this).find(".FK_Branch").text(),
+                            BranchCode: $(this).find(".BranchCode").text(),
+                            Branch: $(this).find(".Branch").text(),
+                            Name: $(this).find(".Name1").text(),
+                            FK_AccountHead: $(this).find(".FK_AccountHead").text(),
+                            CreditBalance: $(this).find(".CreditBalance input").val(),
+                            DebitBalance: $(this).find(".DebitBalance input").val()
+
+                        };
+                        ItemDetails.push(ArrItem);
+
+                });
+
+        }
+
+        debugger
+
+        if ($thisForm.valid()) {
+            if (isValid && ItemDetails.length > 0) {
+
+                var InputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    TransMode: AccOPeningTransMode,
+                    'AccGroupType': $thisForm.find('[name="FK_AccGroupType"]').val(),
+                    'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+                    'FK_AccGroupType': $thisForm.find('[name="FK_AccGroupType"]').val(),
+                    'FinYear': $thisForm.find('[name="FinanceYear"]').val(),
+                    AccountOpeningDetails: ItemDetails,
+                    'DebitTotal': $('#totalDebit').val(),
+                    'CreditTotal': $('#totalCredit').val(),
+                    LastID: LastID_AccOPening
+                }
+                clearSessionValue(LastIDSessionKey);
+                let _ActionUrl = "";
+                if (actiontype == "Add") { _ActionUrl = "@Url.Action("AddAccountOpeningdata", "AccountOpening")"; } else { _ActionUrl = "@Url.Action("UpdateAccountOpeningdata", "AccountOpening")"; }
+
+                $.ajax({
+                    url: (actiontype == "Add") ? "@Url.Action("AddAccountOpeningdata", "AccountOpening")" : "@Url.Action("UpdateAccountOpeningdata", "AccountOpening")",
+                    type: "POST",
+                    data: InputData,
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (ajaxOutput) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                            });
+                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                            if (onSuccess) {
+                                window[onSuccess]();
+                            }
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+
+                        }
+                    },
+                    complete: function () {
+                        $(ele).prop('disabled', false);
+                    }
+
+                });
+            }
+            else {
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Add Account Opening Data' })
+            }
+        }
+
+    }
+</script>

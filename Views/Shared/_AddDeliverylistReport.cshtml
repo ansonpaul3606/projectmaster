@@ -1,0 +1,1811 @@
+﻿
+
+
+@model PerfectWebERP.Models.DeliverylistreportModel.Deliveryview
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+
+    <div class="card ">
+
+        <div class="card-header">
+            <div class="col-xl-4">
+                <h4 class="card-title col-12">@ViewBag.PageTitle </h4>
+               
+            </div>
+            <div class="col-xl-4 text-right">
+                <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_DeliveryRepo_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+                <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+                <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                    <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                        <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-body jq_leadgeneration_body" style="min-height:250px">
+            <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+
+                <div class="leadformSesction">
+                    @Html.AntiForgeryToken()
+                    <div class="row">
+
+                        <div class="col-sm-4">
+                            <input type="hidden" name="ID_ProjectMaterialRequest" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Report Name</span>
+
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <select class="form-control perfectValidate_string " name="FK_Mode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="dataechange(this)">
+                                            <option value="">Please Select</option>
+                                            <option value="1">Delivery Assign list</option>
+                                            <option value="2">Delivery Completed list</option>
+                                            <option value="3">Delivery Pending list</option>
+                                            <option value="4">Upcoming Delivery list</option>
+                                            <option value="5">Not Assigned list</option>
+                                        </select>
+
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-sm-4 Divfromdate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Target Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <div id="reportrange" name="datefilter" class="pull-left form-control ActionDate" onchange="RptValidation(this)" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                        <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                        <span></span> <b class="caret"></b>
+                                    </div>
+
+                                    <div id="ToDate-error" class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-sm-4 DivToDate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">As On Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control ActionDate" id="OnDate" data-id="ToDate-error2" name="AsonDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date">
+                                    <div id="ToDate-error2" class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 DivState">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">State</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="States" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="StatesID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addstates-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchVal(this,10,'State List',['CountryID','Country','DistrictID','District','AreaID','Area','PlaceID','Place','Post','PostID'])" Criterea1="0" Criterea2="0" BindName="States" BindVal="StatesID"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 DivDistrict">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">District</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="District" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="DistrictID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="adddistrict-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchVal(this,11,'District List',['StatesID','State','AreaID','Area','PlaceID','Place','Post','PostID'])" Criterea1="0" Criterea2="0" BindName="District" BindVal="DistrictID"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Area</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="Area" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="AreaID" class="form-control perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchVal(this,14,'Area List',['DistrictID','District','PlaceID','Place','Post','PostID'])" Criterea1="0" Criterea2="0" BindName="Area" BindVal="AreaID"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                       
+                        <div class="col-sm-4 DivProduct">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label"><span perfect-class="formGroupLabel">Product</span></label>
+                                <div class="input-group col-sm-8">
+                                    <input type="text" class="form-control" name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="ID_Product" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 32, 'Product Details', [], ['MRPs','SalePrice','StockId','MRP','Department'])" BindName="ProductName" BindVal="ID_Product" Criterea1="0" Criterea2="0" perfect-css="button"></button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                       
+
+
+                        <div class="col-sm-12 card-footer text-right" perfect-class="formFooter">
+                            <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                            <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton();" name="reset">Clear</button>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="">
+                    <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+                </div>
+
+                <div class="col-xl-4">
+                    <h1>
+                        <span perfect-class="formGroupLabel" class="card-title col-12" id="IdReportnames" name="ReportNames"></span>
+                    </h1>
+
+
+                </div>
+                <div id="divDeliveryList">
+                    <table id="DeliveryList" class="table table-hover table-striped text-black" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Customer</th>
+                                <th>Mobile</th>
+                                <th>Area</th>
+                                <th>Assign Date</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Employee</th>
+                                <th>Vehicle</th>
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+                </div>
+                <div id="divDeliveryList1">
+                    <table id="DeliveryList1" class="table table-hover table-striped text-black" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Customer</th>
+                                <th>Mobile</th>
+                                <th>Area</th>
+                                <th>Completed Date</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Employee</th>
+                                <th>Vehicle</th>
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+                </div>
+                <div id="divDeliveryList2">
+                    <table id="DeliveryList2" class="table table-hover table-striped text-black" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Assigned Date</th>
+                                <th>Assigned Time</th>
+                                <th>Customer</th>
+                                <th>Mobile</th>
+                                <th>Area</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Employee</th>
+                                <th>Vehicle</th>
+                                <th>Due Days</th>
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+                </div>
+                <div id="divUpcomingDeliveryList">
+                    <table id="UpcomingDeliveryList" class="table table-hover table-striped text-black" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Assigned Date</th>
+
+                                <th>Customer</th>
+                                <th>Mobile</th>
+                                <th>State</th>
+                                <th>District</th>
+                                <th>Area</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Employee</th>
+                                <th>Vehicle</th>
+                                <th>TransDate</th>
+                                <th>Expected Delivery Date</th>
+                                @*<th>Due Days</th>*@
+                                @*<th>Status</th>*@
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+                </div>
+                <div id="divNotDeliveryList">
+                    <table id="NotDeliveryList" class="table table-hover table-striped text-black" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Order Number</th>
+                                <th>Order Date</th>
+                                <th>Customer</th>
+                                <th>Mobile</th>
+                                <th>Location</th>
+                                <th>Excepted Date</th>
+                                <th>Product</th>
+                                <th>Actual Quantity</th>
+                                <th>Assigned Quantity</th>
+                                <th>Pending Quantity</th>
+                               
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+
+    <script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+    <script>
+
+
+        (function () {
+
+           
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+
+        var deliverystartdate;
+        var deliveryenddate;
+    $(function () {
+
+        $('input[name="datefilter"]').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            }
+        });
+
+        $('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {           
+            deliverystartdate = picker.startDate.format('DD/MM/YYYY');
+            deliveryenddate = picker.endDate.format('DD/MM/YYYY');
+            $('#ToDate-error').text("");
+        });
+
+        $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+            deliverystartdate = null;
+            deliveryenddate = null;
+
+        });
+
+    });
+        $(function () {
+            var start = moment().subtract(29, 'days');
+            var end = moment();
+            function cb(start, end) {
+                $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                deliverystartdate = start.format('DD/MM/YYYY');
+                deliveryenddate = end.format('DD/MM/YYYY');
+            }
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            }, cb);
+            cb(start, end);
+        });
+
+
+
+        function dataechange(ele) {
+           
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            $thisForm.find('[name="datefilter"]').val('');
+            $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+
+            if ($('select[name="FK_Mode"] option:selected').val() == 1 || ($('select[name="FK_Mode"] option:selected').val() == 2)) {
+
+                $('.DivToDate').hide();
+                $('.Divfromdate').show();
+                $('.DivProduct').hide();
+                $('.DivDistrict').hide();
+                $('.DivState').hide();
+                $('.DivStatus').hide();
+                
+
+            }
+            else {
+                $('.DivToDate').show();
+                $('.Divfromdate').hide();
+                $('.DivProduct').hide();
+                $('.DivDistrict').hide();
+                $('.DivState').hide();
+                $('.DivStatus').hide();
+            }
+
+            if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+
+                var start1 = moment();
+                var end1 = moment();
+                function cb(start1, end1) {
+                    $('#reportrange span').html(start1.format('DD/MM/YYYY') + ' - ' + end1.format('DD/MM/YYYY'));
+                    deliverystartdate = start1.format('DD/MM/YYYY');
+                    deliveryenddate = end1.format('DD/MM/YYYY');
+                }
+                $('#reportrange').daterangepicker({
+                    startDate: start1,
+                    endDate: end1,
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Yesterday': [moment(), moment()],
+                        'Last 7 Days': [moment(), moment()],
+                        'Last 30 Days': [moment(), moment()],
+                        'This Month': [moment(), moment()],
+                        'Last Month': [moment(), moment()]
+                    }
+                }, cb);
+                cb(start1, end1);
+                //$thisForm.find('[name="datefilter"]').val(moment().format('YYYY-MM-DD'));
+                $('.DivToDate').hide();
+                $('.Divfromdate').show();
+                $('.DivProduct').show();
+                $('.DivDistrict').show();
+                $('.DivState').show();
+                $('.DivStatus').show();
+            }
+            else {
+
+            }
+            
+        }
+
+        function RptValidation(ele) {
+            debugger
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            var isrptValid;
+            if ($('select[name="FK_Mode"] option:selected').val() == 1 || $('select[name="FK_Mode"] option:selected').val() == 2 || $('select[name="FK_Mode"] option:selected').val() == 4) {
+                if (deliveryenddate == null || deliverystartdate == null) {
+                    isrptValid = false;
+                    $('#ToDate-error').text("Please Select Target Date");
+
+                } else {
+                    $('#ToDate-error').text("");
+                    isrptValid = true;
+                }
+            }
+            else {
+                if ($('input[name="AsonDate"]').val() == undefined || $('input[name="AsonDate"]').val() == '') {
+                    isrptValid = false;
+                    $('#ToDate-error2').text("Please Select As On Date");
+
+                }
+
+                else {
+                    $('ToDate-error2').text("");
+                    isrptValid = true;
+
+                }
+
+            }
+            return isrptValid;
+        }
+       
+
+        
+
+
+    function ResetButton() {
+        fn_DeliveryRepo_initialLoad();
+    }
+    var itemdata = 0;
+    var tableData;
+
+        function geteqReport(ele) {
+            debugger
+            let $tbody;
+            let isvalid = true;
+            //var fromdate = new Date(moment(deliverystartdate));
+            //fromdate.setHours(0, 0, 0, 0);
+            var fromdate = deliverystartdate;
+           
+
+            //var today = new Date();
+            //today.setHours(0, 0, 0, 0);  
+            var today = new Date();
+            var dd = today.getDate();
+
+            var mm = today.getMonth() + 1;
+            var yyyy = today.getFullYear();
+            if (dd < 10) {
+                dd = '0' + dd;
+            }
+
+            if (mm < 10) {
+                mm = '0' + mm;
+            }
+          
+            today = dd+ '/' + mm + '/' + yyyy;
+            console.log(today);
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+
+                if (fromdate < today || fromdate =='Invalid Date') {                   
+                    $('#ToDate-error').text("No Back Date Allowed");
+                    isvalid = false;
+                }
+                else {                  
+                    $('#ToDate-error').text("");
+                    isvalid = true;
+                  
+                }
+               
+
+
+            }
+            //var currentDate = new Date();
+            //var formattedDate = currentDate.toISOString().split('T')[0];
+            //$('input[name="AsonDate"]').val(formattedDate);
+
+            if ($thisForm.valid()&& isvalid) {
+
+                var table = $('#DeliveryList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+                table.clear().draw();
+                var table = $('#DeliveryList1').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+                table.clear().draw();
+                
+                if (RptValidation(ele)) {
+                    if ($('select[name="FK_Mode"] option:selected').val() == 1 || ($('select[name="FK_Mode"] option:selected').val() == 2) || ($('select[name="FK_Mode"] option:selected').val() == 4)) {
+                        var obj = {
+                            FK_Mode: $thisForm.find('[name="FK_Mode"]').val(),
+                            "FromDate": deliverystartdate == null ? "01/01/2023" : deliverystartdate,
+                            "ToDate": deliveryenddate == null ? "01/01/2023" : deliveryenddate,
+                            FK_Delivery: $thisForm.find('[name="FK_Delivery"]').val(),
+                            FK_Area: $thisForm.find('[name="AreaID"]').val(),
+                            FK_State: $thisForm.find('[name="StatesID"]').val(),
+                            FK_District: $thisForm.find('[name="DistrictID"]').val(),
+                            FK_Product: $thisForm.find('[name="ID_Product"]').val(),
+                            FK_Status: $thisForm.find('[name="FK_Status"]').val(),
+
+                        }
+                    }
+                    else {
+                        var obj = {
+                            FK_Mode: $thisForm.find('[name="FK_Mode"]').val(),
+                            "FromDate": $thisForm.find('[name="AsonDate"]').val(),
+                            "ToDate": $thisForm.find('[name="AsonDate"]').val(),
+                            FK_Delivery: $thisForm.find('[name="FK_Delivery"]').val(),
+                            FK_Area: $thisForm.find('[name="AreaID"]').val(),
+
+
+                        }
+
+                    }
+                   
+                   
+                    $.ajax({
+                        url: "@Url.Action("GetDeliveryModelList", "Deliverylist")",
+                        type: "POST",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (dataOut) {
+
+                            console.log('dataOut', dataOut)
+
+                            debugger
+
+                            if (dataOut.datares.Process.IsProcess) {
+                                dataOut.datares.Data.forEach((i) => {
+                                    if (i.AssignedDate != null || i.AssignedDate != undefined) {
+                                        var assigndate = i.AssignedDate.split('T')[0];
+
+                                        i['AssignedDate'] = changeDateFormat(assigndate);
+                                    }
+                                    if (i.TransDate != null || i.TransDate != undefined) {
+                                        var transdate = i.TransDate.split('T')[0];
+
+                                        i['TransDate'] = changeDateFormat(transdate);
+                                    }
+                                   
+                                });
+
+
+                                itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                                if (itemdata == null || itemdata == "") {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "none";
+
+                                } else {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "block";
+                                }
+
+                                if (dataOut.datares.Process.IsProcess) {
+                                    if (itemdata != null) {
+                                        if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+
+                                            let name = $thisForm.find('[name="FK_Mode"] option:selected').text();
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+
+                                            $("#divDeliveryList1").hide();
+                                            $("#divDeliveryList").show();
+                                            $("#divDeliveryList2").hide();
+                                            $("#divUpcomingDeliveryList").hide();
+                                            $("#divNotDeliveryList").hide(); 
+                                            tableData = $('#DeliveryList').DataTable({
+                                                pagination: "bootstrap",
+                                                filter: true,
+                                                data: dataOut.datares.Data,
+                                                destroy: true,
+                                                paging: false,
+                                                info: false,
+                                                searching: false,
+                                                "columns": [
+                                                    { "data": null },
+                                                    { "data": "Customer" },
+                                                    { "data": "Mobile" },
+                                                    { "data": "Area" },
+                                                    { "data": "AssignedDate" },
+                                                    { "data": "Product" },
+                                                    { "data": "Quantity" },
+                                                    { "data": "Employee" },
+                                                    { "data": "Vehicle" },
+
+
+                                                ],
+                                                //scrollY: 550,
+                                                //scrollX: true,
+                                                scrollCollapse: true,
+                                                paging: false,
+                                                fixedHeader: {
+                                                    header: true,
+                                                    //footer: true
+                                                },
+                                                //"order": [[7, "asc"]],
+                                                "columnDefs": [
+                                                    { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8] }
+
+                                                    //{ "visible": false, "targets": 0 }
+                                                ],
+
+                                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                    $("td:first", nRow).html(iDisplayIndex + 1);
+                                                    //$('td:eq(1)', nRow).html('');
+                                                    return nRow;
+
+
+                                                },
+                                               
+                                            });
+                                        }
+                                        else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                                            let name = $thisForm.find('[name="FK_Mode"] option:selected').text();
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+                                            $("#divDeliveryList").hide();
+                                            $("#divDeliveryList1").show();
+                                            $("#divDeliveryList2").hide();
+                                            $("#divUpcomingDeliveryList").hide();
+                                            $("#divNotDeliveryList").hide(); 
+                                            tableData = $('#DeliveryList1').DataTable({
+                                                pagination: "bootstrap",
+                                                filter: true,
+                                                data: dataOut.datares.Data,
+                                                destroy: true,
+                                                paging: false,
+                                                info: false,
+                                                searching: false,
+                                                "columns": [
+                                                    { "data": null },
+                                                    { "data": "Customer" },
+                                                    { "data": "Mobile" },
+                                                    { "data": "Area" },
+                                                    { "data": "AssignedDate" },
+                                                    { "data": "Product" },
+                                                    { "data": "Quantity" },
+                                                    { "data": "Employee" },
+                                                    { "data": "Vehicle" },
+
+
+                                                ],
+
+                                                scrollCollapse: true,
+                                                paging: false,
+                                                fixedHeader: {
+                                                    header: true,
+
+                                                },
+
+                                                "columnDefs": [
+                                                    { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] }
+
+
+                                                ],
+
+                                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                    $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                    return nRow;
+
+
+                                                },
+
+
+
+                                            });
+                                        }
+                                        else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+
+                                            let name = $thisForm.find('[name="FK_Mode"] option:selected').text();
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+                                            $("#divDeliveryList").hide();
+                                            $("#divDeliveryList1").hide();
+                                            $("#divDeliveryList2").hide();
+                                            $("#divUpcomingDeliveryList").show();
+                                            $("#divNotDeliveryList").hide(); 
+                                            tableData = $('#UpcomingDeliveryList').DataTable({
+                                                pagination: "bootstrap",
+                                                filter: true,
+                                                data: dataOut.datares.Data,
+                                                destroy: true,
+                                                paging: false,
+                                                info: false,
+                                                searching: false,
+                                                "columns": [
+                                                    { "data": null },
+                                                    { "data": "AssignedDate" },
+
+                                                    { "data": "Customer" },
+                                                    { "data": "Mobile" },
+                                                    { "data": "State" },
+                                                    { "data": "District" },
+                                                    { "data": "Area" },
+
+                                                    { "data": "Product" },
+                                                    { "data": "Quantity", "className":"text-right" },
+                                                    { "data": "Employee" },
+                                                    { "data": "Vehicle" },
+                                                    { "data": "TransDate" },
+                                                    { "data": "ExpectedDeliveryDate", "className": "text-right" },
+                                                    
+                                                    //{ "data": "Status" },
+
+
+                                                ],
+
+                                                scrollY: 500,
+                                                scrollX: true,
+                                                scrollCollapse: true,
+                                                paging: false,
+                                                fixedHeader: {
+                                                    header: true,
+                                                    footer: true
+                                                },
+
+                                                "columnDefs": [
+                                                    { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12] }
+
+
+                                                ],
+
+                                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                    $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                    return nRow;
+
+
+                                                },
+
+
+
+                                            });
+                                        }
+                                        else if ($('select[name="FK_Mode"] option:selected').val() == 3) {
+
+                                            let name = $thisForm.find('[name="FK_Mode"] option:selected').text();
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+                                            $("#divDeliveryList").hide();
+                                            $("#divDeliveryList1").hide();
+                                            $("#divUpcomingDeliveryList").hide();
+                                            $("#divDeliveryList2").show();
+                                            $("#divNotDeliveryList").hide(); 
+                                            tableData = $('#DeliveryList2').DataTable({
+                                                pagination: "bootstrap",
+                                                filter: true,
+                                                data: dataOut.datares.Data,
+                                                destroy: true,
+                                                paging: false,
+                                                info: false,
+                                                searching: false,
+                                                "columns": [
+                                                    { "data": null },
+                                                    { "data": "AssignedDate" },
+                                                    { "data": "AssignedTime" },
+                                                    { "data": "Customer" },
+                                                    { "data": "Mobile" },
+                                                    { "data": "Area" },
+                                                    { "data": "Product" },
+                                                    { "data": "Quantity" },
+                                                    { "data": "Employee" },
+                                                    { "data": "Vehicle" },
+                                                    { "data": "DueDays" },
+
+
+                                                ],
+
+                                                scrollCollapse: true,
+                                                paging: false,
+                                                fixedHeader: {
+                                                    header: true,
+
+                                                },
+
+                                                "columnDefs": [
+                                                    { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }
+
+
+                                                ],
+
+                                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                    $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                    return nRow;
+
+
+                                                },
+
+
+
+                                            });
+                                        }
+
+                                        else if ($('select[name="FK_Mode"] option:selected').val() == 5) {
+                                            debugger
+                                            let name = $thisForm.find('[name="FK_Mode"] option:selected').text();
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+                                            $("#divDeliveryList").hide();
+                                            $("#divDeliveryList1").hide();
+                                            $("#divUpcomingDeliveryList").hide();
+                                            $("#divDeliveryList2").hide();
+                                            $("#divNotDeliveryList").show();
+                                            
+                                            tableData = $('#NotDeliveryList').DataTable({
+                                                pagination: "bootstrap",
+                                                filter: true,
+                                                data: dataOut.datares.Data,
+                                                destroy: true,
+                                                paging: false,
+                                                info: false,
+                                                searching: false,
+                                                "columns": [
+                                                    { "data": null },
+                                                    { "data": "OrderNumber" },
+                                                    { "data": "OrderDate" },
+                                                    { "data": "Customer" },
+                                                    { "data": "Mobile" },
+                                                    { "data": "Location" },
+                                                    { "data": "ExceptedDate" }, 
+                                                    { "data": "Product" },
+                                                    { "data": "ActualQuantity", "className": "text-right" },
+                                                    { "data": "AssignedQuantity", "className": "text-right"  },
+                                                    { "data": "Pending", "className": "text-right"  },
+                                                   
+
+
+                                                ],
+
+                                                scrollY: 500,
+                                                scrollX: true,
+                                                scrollCollapse: true,
+                                                paging: false,
+                                                fixedHeader: {
+                                                    header: true,
+                                                    footer: true
+                                                },
+                                                "order": [[1, "asc"]],
+                                                "columnDefs": [
+                                                    { "orderable": false, "targets": [0, 2, 3, 4, 5, 6, 7, 8, 9,10] },
+                                                     { "visible": false, "targets": [1] }
+
+                                                ],
+                                                drawCallback: function (settings) {
+                                                    var api = this.api();
+                                                    var rows = api.rows({ page: 'current' }).nodes();
+                                                    var last = null;
+                                                    //console.log(api, rows);
+                                                    api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                        if (last !== group) {
+                                                            $(rows).eq(i).before(
+                                                                '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                            );
+                                                            last = group;
+                                                        }
+                                                    });
+                                                },
+                                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                                    $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                                    return nRow;
+
+
+                                                },
+                                                createdRow: function (row, data, type) {
+
+                                                },
+                                                "footerCallback": function (row, data, start, end, display) {
+                                                    var api = this.api(), data;
+
+                                                },
+
+
+                                            });
+                                        }
+                                        else {
+                                            $thisForm.find('[name="ReportNames"]').text(name);
+
+
+                                            $("#divDeliveryList").hide();
+                                            $("#divDeliveryList1").hide();
+                                            $("#divUpcomingDeliveryList").hide();
+                                            $("#divDeliveryList2").hide();
+                                            $("#divNotDeliveryList").hide();
+                                        }
+
+                                    }
+                                }
+                            }
+                        
+                            else {
+                               
+                                if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                                    debugger
+                                    
+                                    $thisForm.find('[name="ReportNames"]').text("");
+                                    document.getElementById("exppdf").style.display = "none";
+                                    $("#divDeliveryList1").hide();
+                                    $("#divDeliveryList").show();
+                                    $("#divNotDeliveryList").hide();
+                                    $("#divDeliveryList2").hide();
+                                    $("#divUpcomingDeliveryList").hide();
+                                    tableData = $('#DeliveryList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: [],
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                          
+
+
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8] }
+
+                                            //{ "visible": false, "targets": 0 }
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            //$('td:eq(1)', nRow).html('');
+                                            return nRow;
+
+
+                                        },
+
+                                    });
+                                   
+                                }
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                                   
+                                    debugger
+                                    $thisForm.find('[name="ReportNames"]').text("");
+                                    document.getElementById("exppdf").style.display = "none";
+                                    $("#divDeliveryList").hide();
+                                   $("#divDeliveryList1").show();
+                                    $("#divNotDeliveryList").hide();
+                                    $("#divDeliveryList2").hide();
+                                    $("#divUpcomingDeliveryList").hide();
+                                    tableData = $('#DeliveryList1').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: [],
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                          
+
+
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+
+                                        },
+
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8] }
+
+
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                            return nRow;
+
+
+                                        },
+
+
+
+                                    });
+                                   
+                                }
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+                                    debugger
+                                    $thisForm.find('[name="ReportNames"]').text("");
+                                    document.getElementById("exppdf").style.display = "none";
+                                    $("#divDeliveryList").hide();
+                                    $("#divDeliveryList1").hide();
+                                    $("#divDeliveryList2").hide();
+                                    $("#divUpcomingDeliveryList").show();
+                                    $("#divNotDeliveryList").hide();
+                                    tableData = $('#UpcomingDeliveryList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: [],
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        scrollY: 500,
+                                        scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            footer: true
+                                        },
+
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }
+
+
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                            return nRow;
+
+
+                                        },
+
+
+
+                                    });
+                                    
+                                }
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 3) {
+                                    $thisForm.find('[name="ReportNames"]').text("");
+                                    document.getElementById("exppdf").style.display = "none";
+                                    $("#divDeliveryList").hide();
+                                    $("#divDeliveryList1").hide();
+                                    $("#divDeliveryList2").show();
+                                    $("#divUpcomingDeliveryList").hide();
+                                    $("#divNotDeliveryList").hide();
+                                    tableData = $('#DeliveryList2').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: [],
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                       
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+
+                                        },
+
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }
+
+
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                            return nRow;
+
+
+                                        },
+
+
+
+                                    });
+                                }
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 5) {
+                                    $thisForm.find('[name="ReportNames"]').text("");
+                                    document.getElementById("exppdf").style.display = "none";
+                                    $("#divDeliveryList").hide();
+                                    $("#divDeliveryList1").hide();
+                                    $("#divDeliveryList2").hide();
+                                    $("#divUpcomingDeliveryList").hide();
+                                    $("#divNotDeliveryList").show();
+                                    
+                                    tableData = $('#NotDeliveryList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: [],
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+
+                                        },
+
+                                        "order": [[1, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+                                            { "visible": false, "targets": [1] }
+
+                                        ],
+
+                                        drawCallback: function (settings) {
+                                            var api = this.api();
+                                            var rows = api.rows({ page: 'current' }).nodes();
+                                            var last = null;
+                                            //console.log(api, rows);
+                                            api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                if (last !== group) {
+                                                    $(rows).eq(i).before(
+                                                        '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                    );
+                                                    last = group;
+                                                }
+                                            });
+                                        },
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                            return nRow;
+
+
+                                        },
+                                        createdRow: function (row, data, type) {
+
+                                        },
+                                        "footerCallback": function (row, data, start, end, display) {
+                                            var api = this.api(), data;
+
+                                        },
+
+
+
+                                    });
+                                }
+                                else {
+                                    $thisForm.find('[name="ReportNames"]').text("");
+
+                                    $("#divDeliveryList").hide();
+                                    $("#divDeliveryList1").hide();
+                                    $("#divUpcomingDeliveryList").hide();
+                                    $("#divDeliveryList2").hide();
+                                    $("#divNotDeliveryList").hide();
+                                }
+
+                                 
+                                }
+
+                          
+                        },
+                        complete: function () {
+                        }
+                    });
+
+                    fn_showFilter();
+                }
+                else
+                {
+                    $(ele).prop('disabled', false);
+                
+
+                }
+
+            }
+        
+        }
+
+
+
+        
+        function generatePdf(ele) {
+            debugger
+        var cdata;
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+         let tabMode = $('select[name="FK_Mode"] option:selected').val();
+
+        const obj = {      
+
+
+            "Target Date": $('#reportrange span').html(),
+            "Area": $('input[name="Area"]').val(),
+            "As on Date": changeDateFormat($('input[name="AsonDate"]').val())
+
+        };
+        const obj2 = {
+          
+            
+         }
+         if (tabMode == 3 || tabMode == 5) {
+             delete obj['Target Date'];
+
+         }
+         else {
+             delete obj['As on Date'];
+         }
+       
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+         var str2 = "";
+         var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str+="Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+       
+       
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+
+                    '  '  + '   ' + str2
+
+
+                    //'\n' +
+
+
+                ],
+                [
+                    str
+                ]
+
+
+
+            ],
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black'
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.8; // Adjust the line height value to your preference
+            }
+
+
+        };
+                 
+
+                          
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+
+
+                     var head = [];
+                     var ptableData = {};
+                     debugger;
+                     console.log(itemdata, '<<itemdata>>')
+
+                     //itemdata.forEach((i) => {
+
+                     //    var a = i.AssignedDate.split('T')[0];
+                      
+                     //    i['AssignedDate'] = changeDateFormat(a);
+                     //})
+                     if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                         head = [['Sl No', 'Customer', 'Mobile', 'Area', 'Assigned Date', 'Product', 'Quantity', 'Employee', 'Vehicle']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Area", dataKey: "Area" },
+                                 { title: "Assigned Date", dataKey: "AssignedDate" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Vehicle", dataKey: "Vehicle" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else if ($('select[name="FK_Mode"] option:selected').val() == 2){
+                         head = [['Sl No', 'Customer', 'Mobile', 'Area', 'Completed Date', 'Product', 'Quantity', 'Employee', 'Vehicle']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Area", dataKey: "Area" },
+                                 { title: "Completed Date", dataKey: "AssignedDate" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Vehicle", dataKey: "Vehicle" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+
+                        
+                         head = [['Sl No', 'AssignedDate', 'Customer', 'Mobile', 'State', 'District', 'Area', 'Product', 'Quantity', 'Employee', 'Vehicle', 'TransDate','ExpectedDeliveryDate']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 { title: "Assigned Date", dataKey: "AssignedDate" },
+                               
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "State", dataKey: "State" },
+                                 { title: "District", dataKey: "District" },
+                                 { title: "Area", dataKey: "Area" },
+                                
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Vehicle", dataKey: "Vehicle" },
+                                 { title: "Trans Date", dataKey: "TransDate" },
+                                 { title: "ExpectedDeliveryDate", dataKey: "ExpectedDeliveryDate" },
+
+                                 //{ title: "Status", dataKey: "Status" },
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else if ($('select[name="FK_Mode"] option:selected').val() == 5) {
+                         head = [['Sl No', 'OrderDate', 'Customer', 'Mobile', 'Location','ExceptedDate', 'Product', 'ActualQuantity','AssignedQuantity','PendingQuantity']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                
+                                 { title: "OrderDate", dataKey: "OrderDate" },
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Location", dataKey: "Location" },
+                                 { title: "Excepted Date", dataKey: "ExceptedDate" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "ActualQuantity", dataKey: "ActualQuantity" },
+                                 { title: "AssignedQuantity", dataKey: "AssignedQuantity" },
+                                 { title: "PendingQuantity", dataKey: "Pending" },
+                               
+
+                             ],
+                             rows: itemdata
+                          
+
+                         };
+                         grpvariable = "OrderNumber"
+                     }
+                     else {
+                         head = [['Sl No', 'Assigned Date', 'Assigned Time', 'Customer', 'Mobile', 'Area','Product', 'Quantity', 'Employee', 'Vehicle', 'Due Days',]];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 { title: "Assigned Date", dataKey: "AssignedDate" },
+                                 { title: "Assigned Time", dataKey: "AssignedTime" },
+                                 { title: "Customer", dataKey: "Customer" },
+                                 { title: "Mobile", dataKey: "Mobile" },
+                                 { title: "Area", dataKey: "Area" },                                 
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Vehicle", dataKey: "Vehicle" },
+                                 { title: "Due Days", dataKey: "DueDays" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                    
+                    // let Rptname;
+                     //let rptvalue = $thisForm.find('[name="FK_Mode"]').val();
+
+                     //if (rptvalue == 1) {
+                     //    Rptname = 'Delivery Pending List'
+                     //}
+                     //else {
+                     //    Rptname = 'Delivery Completed List'
+                     //}
+
+
+                     console.log(ptableData, 'ptableData---0))0')
+
+                     exportPdf($('select[name="FK_Mode"] option:selected').text(), head, cdata, upperhead, "", ptableData, grpvariable, "", "a4", "", "", "l");
+
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+                
+
+              
+
+                }
+         });
+    }
+
+
+
+        
+
+    function onExell() {
+
+        debugger
+        var cdata;       
+        let tabModes = $('select[name="FK_Mode"] option:selected').val();
+
+        const obj = {
+
+
+
+           
+           // "Report Name": $('select[name="FK_Mode"] option:selected').text(),
+            "Target Date": $('#reportrange span').html(),
+            "Area": $('input[name="Area"]').val(),
+            "As on Date": changeDateFormat($('input[name="AsonDate"]').val())
+        };
+        const obj2 = {
+            //"From ": $('input[name="FromDate"]').val(),
+            //"To": $('input[name="ToDate"]').val()
+        }
+
+        if (tabModes == 3 || tabModes == 5) {
+            delete obj['Target Date'];
+
+        }
+        else {
+            delete obj['As on Date'];
+        }
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str += "Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+                console.log(cdata, "---cdata----");
+
+
+                if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                    head = [['Sl No', 'Customer', 'Mobile', 'Area', 'Assigned Date', 'Product', 'Quantity', 'Employee', 'Vehicle']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "Area", dataKey: "Area" },
+                            { title: "Assigned Date", dataKey: "AssignedDate" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Quantity", dataKey: "Quantity" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Vehicle", dataKey: "Vehicle" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+                }
+                else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                    head = [['Sl No', 'Customer', 'Mobile', 'Area', 'Completed Date', 'Product', 'Quantity', 'Employee', 'Vehicle']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "Area", dataKey: "Area" },
+                            { title: "Completed Date", dataKey: "AssignedDate" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Quantity", dataKey: "Quantity" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Vehicle", dataKey: "Vehicle" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+
+                }
+                else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+                    head = [['Sl No', 'AssignedDate', 'Customer', 'Mobile', 'State', 'District', 'Area', 'Product', 'Quantity', 'Employee', 'Vehicle', 'Trans Date','ExpectedDeliveryDate']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            { title: "Assigned Date", dataKey: "AssignedDate" },
+                           
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "State", dataKey: "State" },
+                            { title: "District", dataKey: "District" },
+                            { title: "Area", dataKey: "Area" },
+
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Quantity", dataKey: "Quantity" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Vehicle", dataKey: "Vehicle" },
+                            { title: "Trans Date", dataKey: "TransDate" },
+                            { title: "Expected Delivery Date", dataKey: "ExpectedDeliveryDate" },
+
+                            //{ title: "Status", dataKey: "Status" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+
+                }
+
+                else if ($('select[name="FK_Mode"] option:selected').val() == 5) {
+                    head = [['Sl No', 'OrderDate', 'Customer', 'Mobile', 'Location','ExceptedDate', 'Product', 'ActualQuantity', 'AssignedQuantity', 'PendingQuantity']];
+                    ptableData = {
+                        columns: [
+                           
+
+
+                            { title: "OrderDate", dataKey: "OrderDate" },
+                            { title: "Customer", dataKey: "Customer" },
+                            { title: "Mobile", dataKey: "Mobile" },
+                            { title: "Location", dataKey: "Location" },
+                            { title: "Excepted Date", dataKey: "ExceptedDate" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "ActualQuantity", dataKey: "ActualQuantity" },
+                            { title: "AssignedQuantity", dataKey: "AssignedQuantity" },
+                            { title: "PendingQuantity", dataKey: "Pending" },
+
+
+                        ],
+                        rows: itemdata
+
+                    };
+                    grpvariable = "OrderNumber";
+                }
+                 else {
+                    head = [['Sl No', 'Assigned Date', 'Assigned Time', 'Customer', 'Mobile', 'Area', 'Product', 'Quantity', 'Employee', 'Vehicle', 'Due Days',]];
+                ptableData = {
+                    columns: [
+                        //{ title: "SLNo", dataKey: "SLNo" },
+                        { title: "Assigned Date", dataKey: "AssignedDate" },
+                        { title: "Assigned Time", dataKey: "AssignedTime" },
+                        { title: "Customer", dataKey: "Customer" },
+                        { title: "Mobile", dataKey: "Mobile" },
+                        { title: "Area", dataKey: "Area" },
+                        { title: "Product", dataKey: "Product" },
+                        { title: "Quantity", dataKey: "Quantity" },
+                        { title: "Employee", dataKey: "Employee" },
+                        { title: "Vehicle", dataKey: "Vehicle" },
+                        { title: "Due Days", dataKey: "DueDays" },
+
+                    ],
+                    rows: itemdata
+
+                };
+
+            }
+
+
+
+                ReportName = `${cdata.Company} \n${cdata.Branch} \n ${$('select[name="FK_Mode"] option:selected').text()} \n ${str2} \n ${str} `
+                generateExell(ReportName, head, ptableData, {}, grpvariable, 'str');
+
+               // generateExell(ptitle, phead, ptableData, mergeRangesdata, grpvariable, filename) {
+
+                //ReportName = `${cdata.Company} \n${cdata.Branch}\n   ${Namehead}   \n  ${str2} \n ${str} `
+                //generateExell(ReportName, [head], ptableData, "", "", Namehead , str);
+
+            }
+        });
+
+    }
+
+
+
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+        function changeDateFormat(date) {
+            /*var date = '2023-06-05';*/
+
+            // Split the date into year, month, and day components
+            var dateComponents = date.split('-');
+
+            // Rearrange the components to form the desired format
+            var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+            console.log(formattedDate); // Output: 05/06/23
+            return formattedDate;
+        }
+        function exportbuttonhide() {
+            document.querySelector('#exppdf').style.display = 'none';
+            console.log('Input value changed:');
+        }
+
+        var inputElements = document.getElementsByClassName('exptbttontoogle');
+        for (var i = 0; i < inputElements.length; i++) {
+            inputElements[i].addEventListener('change', function (event) {
+                // Handle the change event here
+                // var inputValue = event.target.value;
+                document.querySelector('#exppdf').style.display = 'none';
+                console.log('Input value changed:');
+            });
+        }
+        function getfunction() {
+            document.querySelector('#exppdf').style.display = 'none';
+        }
+
+
+
+
+
+    </script>
+
+
+
+
+    <script src="~/Scripts/exportFile.js"></script>
+    <script src="~/Scripts/jspdf.min.js"></script>
+    <script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+    <script src="~/Scripts/xlsx.min.js"></script>

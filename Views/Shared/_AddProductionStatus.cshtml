@@ -1,0 +1,1303 @@
+﻿
+@model PerfectWebERP.Models.ProductionStatusModel.ProductionStatusView
+<style>
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />
+<div class="card ">
+    <div class="card-header">
+
+        <div class="col-xl-9">
+            <h4 class="card-title col-12">Production Status</h4>
+        </div>
+
+        <div class="col-xl-2 text-right no-gutters divProdStatusTabs">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_jobcrdasgnIndexAddForm()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div><div class="col-xl-1 text-right">
+            <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+        </div>
+
+    </div>
+    <div class="card-body jq_productionstatus_body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+
+            <div class="leadformSesction divProdStatusTabs">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Production Stage</label>
+                            <select id="ProjectStages" class="form-control" name="FK_ProjectStages" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ChangeTeam(this)">
+                                <option value="">Please select</option>
+                                @if (!(Model.StageList is null))
+                                {
+                                    foreach (var Stage in Model.StageList)
+                                    {
+                                        <option value="@Stage.ID_ProjectStages">@Stage.PrStName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Team</label>
+                            <select id="ProjectTeam" class="form-control" name="FK_ProjectTeam" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="onChangeCriteria()">
+                                <option value="">Please select</option>
+                                @if (!(Model.TeamList is null))
+                                {
+                                    foreach (var Team in Model.TeamList)
+                                    {
+                                        <option value="@Team.ID_ProjectTeam">@Team.ProjTeamName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3" style="display:none">
+                        <div class="form-group">
+                            <label>Project</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="ProjectName" perfect-class="formGroupControl" placeholder=" Select Project" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="FK_Project" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this, 77, 'Project List', [], ['EndDate'])" form="form-jobcard" Criterea1="0" Criterea2="0" BindName="ProjectName" BindVal="FK_Project" Function="1"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Product</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="ProductName" perfect-class="formGroupControl" placeholder=" Select Product" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="FK_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,81,'Product List',['FK_Product'],'')" Criterea1="FK_Project" Criterea2="0" BindName="ProductName" BindVal="FK_Product" Function="1"></button>
+
+                                    @*<button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,81,'Product List',[])" form="form-jobcard" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="FK_Product"></button>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <span class="text-danger">*</span>
+                            <input type="date" class="form-control" name="FromDate" perfect-class="formGroupControl perfectValidate_date" perfect-ctype="date" perfect-css="date" onchange="onChangeCriteria()" />
+                            <div class="text-danger temptableError" id="FromDateErr"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>To Date</label> <span class="text-danger">*</span>
+                            <input type="date" class="form-control " name="ToDate" perfect-class="formGroupControl perfectValidate_date" perfect-ctype="date" perfect-css="date" onchange="onChangeCriteria()" />
+                            <div class="text-danger temptableError" id="ToDateErr"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Target From</label>
+
+                            <input type="date" class="form-control " name="TargetFromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="onChangeCriteria()" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Target To</label>
+                            <input type="date" class="form-control " name="TargetToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="onChangeCriteria()" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Employee</label> <span class="text-danger">*</span>
+                            <div class="input-group">
+
+                                @if (!(Model.EmployeeInfoList is null))
+                                {
+                                    foreach (var EmployeeInfo in Model.EmployeeInfoList)
+                                    {
+                                        <input type="text" class="form-control perfectValidate_string_nm EmployeeF" value="@EmployeeInfo.EmpFName" placeholder="" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    }
+                                }
+                                <input type="hidden" name="FK_Employee" value="@Model.FK_Employee" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" name="UserCode" value="@Model.UserCode" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    @*<button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetEmployeeSer(this)"></button>*@
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,61,'Employee Details',[])" Criterea1="0" Criterea2="0" Criterea3="UserCode" BindName="Employee" BindVal="FK_Employee" Function="1"></button>
+
+
+                                </div> <div class="text-danger temptableError" id="EmployeeErr"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-9">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label> </label>
+                            <div class="input-group">
+                                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary" name="Search" perfect-css="button" onclick="   fn_LeadSearchbyfilter(this);"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+
+                                <button type="button" id="clear" class="btn btn-light1" perfect-css="button" onclick="Cleardetailsfilter(this)" style="margin-left:5px;">Clear</button>
+
+
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+
+
+
+                </div>
+
+
+            </div>
+
+            @*<br/>*@
+            <div class="row divProdStatusTabs">
+                <div class="col-xl-12">
+
+                    <div class="default-tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="Todolist" data-toggle="tab" href="#home" onclick="fn_ProductionStatus_search(this,1,tableOptions)"><i class="las la-tasks  mr-2"></i> To-do List &nbsp;&nbsp;<span><label id="todobadge" class="badge badge-circle badge-info">0</label></span> </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="OverdueList" data-toggle="tab" href="#profile" onclick="fn_ProductionStatus_search(this,2,tableOptions)"><i class="las la-exclamation mr-2"></i> Overdue&nbsp;&nbsp;<label id="overduebadge" class="badge badge-circle badge-primary">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="UpcomingList" data-toggle="tab" href="#contact" onclick="fn_ProductionStatus_search(this,3,tableOptions)"><i class="las la-scroll mr-2"></i>Upcoming Jobs&nbsp;&nbsp;<label id="tasksbadge" class="badge badge-circle badge-success">0</label></a>
+                            </li>
+                            @*<li class="nav-item">
+                                    <a class="nav-link" id="MyLeadsList" data-toggle="tab" href="#myleads" onclick="fn_ProductionStatus_search(this,4,tableOptions)"><i class="las la-scroll mr-2"></i>Incomplete Jobs&nbsp;&nbsp;<label id="myleadsbadge" class="badge badge-circle badge-warning">0</label></a>
+                                </li>*@
+
+
+
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="home" role="tabpanel">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="home" id="home"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="profile">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="profile" id="profile"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="contact">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="contact" id="contact"></div>
+
+                                </div>
+                            </div>
+                            @*<div class="tab-pane fade" id="myleads">
+                                    <br />
+                                    <div class="row">
+
+                                        <div class="table-responsive col-md-12 SearchLoadDiv" name="myleads" id="myleads"></div>
+
+                                    </div>
+                                </div>*@
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:none;" id="exportpdf"></div>
+
+            @*<div id="pssExportTable">
+                    <div class="row">
+                        <div class="table-responsive col-md-12 SearchLoadDiv" name="pssExportTable" id="pssExportTable"></div>
+                    </div>
+                </div>*@
+
+            <div class="jq_ProductionStatus_followup_status">
+
+            </div>
+        </form>
+
+        <input type="hidden" id="ID_JobCardFollowUphdn" />
+        <input type="hidden" id="ID_JobCardAssignhdn" />
+        <input type="hidden" id="FK_Employeehdn" />
+        <input type="hidden" id="ID_JobCardHdn" />
+    </div>
+</div>
+<div class="modal fade " id="modalProdStatusDtls" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><span id="headerPssTrackInfo"></span>Production Status</h5>
+                <button type="button" class="close" onclick="closeEmpAssignDetails()" id="modalledgers" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                <div class="row">
+                    @*<div class="col-sm-12" id="ProdStatusDtls">
+
+                        </div>*@
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnSave" onclick="SaveProductionStatusMarking(this);" class="btn btn-primary">Save</button>
+                <button type="button" id="modalledgerclose" class="btn btn-light1" onclick="closeEmpAssignDetails()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@*<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+    <script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>*@
+<script>
+
+ //on load functions
+    $(document).ready(function () {
+        //$('.dividsearch').hide();
+
+
+        initFunctions('form');
+      
+    });
+    function closeEmpAssignDetails() {
+        $("#modalProdStatusDtls").modal('hide');
+       
+    }
+
+   
+     function ChangeTeam(ele) {
+
+         document.getElementById("exppdf").style.display = "none";
+
+        let $thisForm = $(ele).find('[perfect-class="form"]');
+        let ddlStages = $('select[name=FK_ProjectStages]');
+        let $ID_ProjectStages = "0";
+
+
+        $ID_ProjectStages = $(ddlStages).val() == "" ? "0" : $(ddlStages).val();
+
+        $formContainer.load("@Url.Action("LoadProductionStatus", "ProductionStatus")?ID_ProjectStages=" + $ID_ProjectStages, function () {
+
+
+
+            $formContainer.find('.jq_jobcardassign_body').find('.leadformSesction').removeClass('d-none');
+            $('select[name=FK_ProjectStages]').val($ID_ProjectStages == "0" ? "" : $ID_ProjectStages);
+
+            $("#FromDate").val(moment().format('YYYY-MM-DD'));
+            $("#ToDate").val(moment().format('YYYY-MM-DD'));
+
+        });
+
+    }
+
+
+    $(".ProductNameF").on("keyup change", function (e) {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name=ProdType]').val()==2) {
+            $thisForm.find('[name=ID_Product]').val('0');
+
+        }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+    var tableOptions = {
+
+        onlyShowColumn: ['SlNo', 'JobCardNo','Employee', 'Quantity', 'ProductName', 'StartDate', 'TargetDate', 'JobCardDetails' ],
+        hideColumn: ["FK_JobCardAssign", "FK_Product", "FK_Employee" ],
+         rowClickAction: fn_LoadJobAssignDetails,
+        serialNo: false,
+        renameHeader: {
+            "SlNo": "Sl No", "JobCardNo": "Job Card No", "ProductName": "Product", "StartDate": "Start Date", "TargetDate": "Target Date", "JobCardDetails": "Job Card Details", "Quantity":"Assigned Quantity"},
+
+        isDateType: ['StartDate', 'TargetDate'],
+        customIcon: ["Preference"]
+
+    };
+
+
+
+    var tableOptionspdf = {
+
+        onlyShowColumn: ['SlNo', 'JobCardNo', 'Employee', 'Quantity', 'ProductName', 'StartDate', 'TargetDate', 'JobCardDetails'],
+        hideColumn: ["FK_JobCardAssign", "FK_Product", "FK_Employee" ],
+        rowClickAction: fn_LoadJobAssignDetails,
+        serialNo: false,
+        renameHeader: {
+            "SlNo": "Sl No", "JobCardNo": "Job Card No", "ProductName": "Product", "StartDate": "Start Date", "TargetDate": "Target Date", "JobCardDetails": "Job Card Details", "Quantity": "Assigned Quantity"
+        },
+        isDateType: ['StartDate', 'TargetDate'],
+        customIcon: ["Preference"]
+
+
+    };
+    function popitup(url) {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+        if (window.focus) { newwindow.focus() }
+        return false;
+    }
+
+    function fn_LeadSearchbyfilter(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let FK_Product = 0, FK_Project = 0, ProjectName = '', ProductName = "", FK_ProjectStages = 0,
+            FK_ProjectTeam = 0, FromDate = "", ToDate = "", TargetFromDate = "", TargetToDate = "";
+        FromDate = $thisForm.find('[name=FromDate]').val();
+        ToDate = $thisForm.find('[name=ToDate]').val();
+        TargetFromDate = $thisForm.find('[name=TargetFromDate]').val();
+        TargetToDate = $thisForm.find('[name=TargetToDate]').val();
+        FK_Employee = $thisForm.find('[name=FK_Employee]').val();
+        var _cntinue = true; $("#FromDateErr").text(""); $("#ToDateErr").text("");
+        if (FromDate == null || FromDate == "") {
+
+            $("#FromDateErr").text("Please Select From Date"); _cntinue = false;
+
+        }
+        if (ToDate == null || ToDate == "") {
+            $("#ToDateErr").text("Please Select To Date"); _cntinue = false;
+
+        }
+        if (_cntinue) {
+            if (FromDate > ToDate) {
+                $("#FromDateErr").text("From Date should be less than To Date"); _cntinue = false;
+
+            }
+        }
+        if (_cntinue) {
+            $thisForm.find('[name=home]').empty();
+            $thisForm.find('[name=profile]').empty();
+            $thisForm.find('[name=contact]').empty();
+            $thisForm.find('[name=myleads]').empty();
+            //$thisForm.find('[name=leadRequest]').empty();
+            $(".nav-link").removeClass("active");
+            $('#Todolist').addClass('active');
+
+            if ($thisForm.find('[name=FK_ProjectStages]').val() > 0) {
+                FK_ProjectStages = $thisForm.find('[name=FK_ProjectStages]').val();
+                projname = '';
+            }
+            if ($thisForm.find('[name=FK_ProjectTeam]').val() > 0) {
+                FK_ProjectTeam = $thisForm.find('[name=FK_ProjectTeam]').val();
+            }
+            if ($thisForm.find('[name=FK_Project]').val() > 0) {
+                FK_Project = $thisForm.find('[name=FK_Project]').val();
+                projname = $thisForm.find('[name=ProjectName]').val().trim();
+            }
+            if ($thisForm.find('[name=FK_Product]').val() > 0) {
+                FK_Product = $thisForm.find('[name=FK_Product]').val();
+                ProductName = $thisForm.find('[name=ProductName]').val().trim();
+            }
+
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'FK_ProjectStages': FK_ProjectStages,
+                'FromDate': FromDate,
+                'ToDate': ToDate,
+                'FK_Product': FK_Product,
+                'ProjectName': ProjectName,
+                'FK_Employee': FK_Employee,
+                'FK_Project': FK_Project,
+                'TargetFromDate': TargetFromDate,
+                'TargetToDate': TargetToDate,
+                'FK_ProjectTeam': FK_ProjectTeam,
+                'Filterid': 0,
+                'PageSize': 10,
+                'PageIndex': 0
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetJobCards", "ProductionStatus")",
+                type: "POST",
+                data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Data != null) {
+                        if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterId > 0) {
+
+                            $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                            $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                            $('#tasksbadge').html("" + ajaxOutput.Data[2].Value + "");
+                            $('#Todolist')[0].click();
+                            $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_productionstatus_body').find('.SearchLoadDiv')).offset().top }, 1000);
+
+                        }
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+        }
+    }
+
+
+    var MstrId;
+    var datapdf;
+    var titlepdf;
+    var pdfpageindex;
+    var pdfpagesize;
+    var Data;
+
+    function fn_ProductionStatus_search(ele, MasterId, Tableoption) {
+
+        $('#followupPartial').empty();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let $formDivContainer;
+        let FK_Product = 0, FK_Project = 0, ProjectName = '', ProductName = "", FK_ProjectStages = 0,
+            FK_ProjectTeam = 0, FromDate = "", ToDate = "", TargetFromDate = "", TargetToDate = "", FK_Employee = 0;
+
+        FromDate = $thisForm.find('[name=FromDate]').val();
+        ToDate = $thisForm.find('[name=ToDate]').val();
+        TargetFromDate = $thisForm.find('[name=TargetFromDate]').val();
+        TargetToDate = $thisForm.find('[name=TargetToDate]').val();
+        FK_Employee = $thisForm.find('[name=FK_Employee]').val().trim();
+
+        var _cntinue = true; $("#FromDateErr").text(""); $("#ToDateErr").text(""); $("#EmployeeErr").text("");
+        if (FromDate == null || FromDate == "") {
+
+            $("#FromDateErr").text("Please Select From Date"); _cntinue = false;
+
+        }
+        if (ToDate == null || ToDate == "") {
+            $("#ToDateErr").text("Please Select To Date"); _cntinue = false;
+
+        }
+        if (FK_Employee == "") {
+            $("#EmployeeErr").text("Please Select Employee"); _cntinue = false;
+
+        }
+
+        if (_cntinue) {
+            if (FromDate > ToDate) {
+                $("#FromDateErr").text("From Date should be less than To Date"); _cntinue = false;
+
+            }
+        }
+        if (_cntinue) {
+
+            let $pssExportTable = $thisForm.find('[name=pssExportTable]');
+            $pssExportTable.empty();
+
+
+
+            if ($thisForm.find('[name=FK_ProjectStages]').val() > 0) {
+                FK_ProjectStages = $thisForm.find('[name=FK_ProjectStages]').val();
+                projname = '';
+            }
+            if ($thisForm.find('[name=FK_ProjectTeam]').val() > 0) {
+                FK_ProjectTeam = $thisForm.find('[name=FK_ProjectTeam]').val();
+            }
+            if ($thisForm.find('[name=FK_Project]').val() > 0) {
+                FK_Project = $thisForm.find('[name=FK_Project]').val();
+                projname = $thisForm.find('[name=ProjectName]').val().trim();
+            }
+            if ($thisForm.find('[name=FK_Product]').val() > 0) {
+                FK_Product = $thisForm.find('[name=FK_Product]').val();
+                ProductName = $thisForm.find('[name=ProductName]').val().trim();
+            }
+
+
+            if (MasterId == 1) {
+                titlepdf = "To-do List";
+                $formDivContainer = $thisForm.find('[name=home]');
+                $formDivContainer.empty();
+                $thisForm.find('[name=home]').empty();
+
+            }
+            else if (MasterId == 2) {
+                titlepdf = "Overdue";
+                $formDivContainer = $thisForm.find('[name=profile]');
+                $formDivContainer.empty();
+                $thisForm.find('[name=profile]').empty();
+            }
+            else if (MasterId == 3) {
+                titlepdf = "Upcoming Tasks";
+                $formDivContainer = $thisForm.find('[name=contact]');
+                $formDivContainer.empty();
+                $thisForm.find('[name=contact]').empty();
+
+            }
+            else if (MasterId == 4) {
+                titlepdf = "My Leads";
+                $formDivContainer = $thisForm.find('[name=myleads]');
+                $formDivContainer.empty();
+                $thisForm.find('[name=myleads]').empty();
+            }
+            else if (MasterId == 5) {
+                titlepdf = "Lead Request";
+                $formDivContainer = $thisForm.find('[name=leadRequest]');
+                $formDivContainer.empty();
+                $thisForm.find('[name=leadRequest]').empty();
+            }
+
+
+            let inputData = {
+                'FromDate': FromDate,
+                'ToDate': ToDate,
+                'FK_Product': FK_Product,
+                 'TargetFromDate': TargetFromDate,
+                'TargetToDate': TargetToDate,
+                 'Filterid': MasterId,
+                'FK_Employee': FK_Employee,
+                 'PageSize': 10,
+                'PageIndex': 0
+            };
+
+            datapdf = inputData;
+            let pageUrl = '@Url.Action("GetJobCards", "ProductionStatus")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput,'--ajaxOutput---')
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterId <= 0) {
+                        MstrId = MasterId;
+                        if (ajaxOutput.Data.length >= 1) {
+                            document.querySelector('#exppdf').style.display = "block";
+                        } else {
+                            document.querySelector('#exppdf').style.display = "none";
+                        }
+                        Data = ajaxOutput.Data;
+                        $formDivContainer.append( $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, Tableoption)))
+                        datapdf = {
+                            'FromDate': FromDate,
+                             'ToDate': ToDate,
+                            'FK_Product': FK_Product,
+                             'TargetFromDate': TargetFromDate,
+                            'TargetToDate': TargetToDate,
+                            'Filterid': MasterId,
+                            'FK_Employee': FK_Employee,
+                            'PageSize': ajaxOutput.totalrecord,
+                            'PageIndex': 0
+                        };
+                        let $table = '';
+
+                        $table = $formDivContainer.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [
+                                [10, 15, 20, 25, 50, 100, 0],
+                                ["10", "15", "20", "25", "50", "100", "All"]
+                            ],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.PageIndex * ajaxOutput.PageSize,
+                            "pageLength": ajaxOutput.PageSize,
+                            "recordsFiltered": ajaxOutput.PageSize,
+                            'FromDate': FromDate,
+                            'ToDate': ToDate,
+                            'FK_Product': FK_Product,
+                            'TargetFromDate': TargetFromDate,
+                            'TargetToDate': TargetToDate,
+                            'Filterid': MasterId,
+                            'FK_Employee': FK_Employee,
+                            "ajax": returnajaxPaginations({
+                                apiurl: pageUrl,
+                                pageSize: ajaxOutput.PageSize,
+                                 FromDate: FromDate,
+                                ToDate: ToDate,
+                                FK_Product: FK_Product,
+                                 TargetFromDate: TargetFromDate,
+                                 TargetToDate: TargetToDate,
+                                Filterid: MasterId,
+                                FK_Employee: FK_Employee
+                            }, Tableoption, $table, titlepdf)
+                        });
+
+                        fn_setExportTableHead($table, titlepdf, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10], "landscape", $thisForm);
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_productionstatus_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                    else {
+                        document.querySelector('#exppdf').style.display = "none";
+                        $formDivContainer.html("<p style='text-align:center;' >No Records..</p>");
+                        $('#followupPartial').html("");
+
+                    }
+
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+    }
+
+
+
+
+
+
+
+    function returnajaxPaginations(ajaxInfo, tableOptions, tableid, title) {
+
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+
+                    let input = {
+                        PageSize: info.length,
+                        PageIndex: info.page,
+                          FromDate: ajaxInfo.FromDate,
+                        ToDate: ajaxInfo.ToDate,
+                        FK_Product: ajaxInfo.FK_Product,
+                        FK_Employee: ajaxInfo.FK_Employee,
+                        Filterid: ajaxInfo.Filterid,
+                        TargetFromDate: ajaxInfo.TargetFromDate,
+                        TargetToDate: ajaxInfo.TargetToDate
+
+                    };
+
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                console.log(dtajaxOutput, "--dtajaxOutput--");
+                Data = dtajaxOutput.Data;
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [
+                       [10, 15, 20, 25, 50, 100, 0],
+                        ["10", "15", "20", "25", "50", "100", "All"]
+                    ],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.PageIndex * dtajaxOutput.PageSize,
+                    "pageLength": dtajaxOutput.PageSize,
+                    "recordsFiltered": dtajaxOutput.PageSize,
+                    "ajax": returnajaxPaginations(ajaxInfo, tableOptions, tableid, title)
+                })
+                fn_setExportTableHead(tableid, title, [0, 2, 3, 4, 5, 6, 7, 8, 9])
+            },
+
+        }
+    }
+
+
+    function fn_LeadManagementActionFormClear(ele) {
+        $(ele).closest('.jq_ProductionStatus_followup_status').empty();
+    }
+
+
+
+    function fn_LoadJobAssignDetails(view) {
+        let views = 0;
+        if (view == 1) {
+            views = 1;
+        }
+        else {
+            views = 0;
+        }
+         let $formFolowDivContainer = $('.jq_ProductionStatus_followup_status');//(this).closest('[perfect-class="form"]').closest('.jq_productionstatus_body').find
+        let $thisRow = $(this).closest('tr');
+        let saveddata = $thisRow.data('pData');
+        var ID_JobCardFollowUp = $('#ID_JobCardFollowUphdn').val().trim() == "" ? "0" : $('#ID_JobCardFollowUphdn').val().trim();
+
+    var FK_JobCardAssign= $('#ID_JobCardAssignhdn').val().trim()==""? saveddata.FK_JobCardAssign:$('#ID_JobCardAssignhdn').val().trim();
+    var FK_Employee= $('#FK_Employeehdn').val().trim()==""? saveddata.FK_Employee:$('#FK_Employeehdn').val().trim();
+
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID:FK_JobCardAssign,
+                FK_Employee: FK_Employee,
+                ID_JobCardFollowUp: ID_JobCardFollowUp,
+                View: views
+        };
+
+         $.ajax({
+                url: "@Url.Action("ProductionStatusDetails", "ProductionStatus")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+
+
+                    $formFolowDivContainer.load('@Url.Action("LoadProductionStatusDetailsMarking", "ProductionStatus")', function () {
+                        let $thisForm = $formFolowDivContainer.find('[perfect-class="form"]');$sideMenuOptions.close();
+                        if (ajaxOutput.Assign != null) {
+   var  Assign=ajaxOutput.Assign;
+                            initFunctions($thisForm); console.log(Assign);
+                          $thisForm.find('[name=mdlJobCardNo]').text(Assign.JobCardNo);
+                          $thisForm.find('[name=mdlJobCardDetails]').text(Assign.JobCardDetails);
+                          $thisForm.find('[name=mdlStartDate]').text(Assign.JcaStartDate);
+                        //  $thisForm.find('[name=mdlStartTime]').text(Assign.JcaStartTime);
+                          $thisForm.find('[name=mdlTargetDate]').text(Assign.JcaTargetDate);
+                          $thisForm.find('[name=ProductStage]').text(Assign.Stage);
+                          $thisForm.find('[name=AssignedQty]').text(Assign.Quantity);
+                          $thisForm.find('[name=ProductName]').text(Assign.ProductName);
+                          $thisForm.find('[name=Completed]').val(Assign.JcfCompletedQty);
+                          $thisForm.find('[name=Returned]').val(Assign.JcfReturnedQty);
+                          $thisForm.find('[name=Damaged]').val(Assign.JcfDamagedQty);
+                          $thisForm.find('[name=FK_ReturnProjectStage]').val(Assign.FK_ReturnProjectStage);
+                          $thisForm.find('[name=StageName]').val(Assign.ReturnProjectStage);
+
+                          $thisForm.find('[name=hdnmdlID_JobCardFollowUp]').val(Assign.ID_JobCardFollowUp);
+                          $thisForm.find('[name=hdnmdlFK_JobCardAssign]').val(Assign.FK_JobCardAssign);
+                          $thisForm.find('[name=hdnmdlID_JobCardAssignDetails]').val(Assign.ID_JobCardAssignDetails);
+                          $thisForm.find('[name=hdnmdlFK_Product]').val(Assign.FK_Product);
+                          $thisForm.find('[name=hdnmdlFK_ProjectStages]').val(Assign.FK_ProjectStages);
+                            $thisForm.find('[name=hdnmdlFK_Employee]').val(Assign.FK_Employee);
+                            $thisForm.find('[name=hdnmdlReturnStage]').val(Assign.ReturnStage);
+
+                            if (Assign.ReturnStage) {
+                                $('#divRetrn').show();
+                            } else {
+                                $('#divRetrn').hide();
+                            }
+                            $('.jq_productionstatus_body').animate({ scrollTop: $formFolowDivContainer.offset().top }, 800);
+                            
+                            var $ProductHtml = "";
+                            $('#ProductTbody').empty(); var id = 0; var usedQtyId = "";
+                            let Product = 0;
+                            $.each(ajaxOutput.FollowUpDetailsList, function (i, value) {
+                                
+                                usedQtyId = "clsUsedQty" + id;
+                                rowCount = (i + 1);
+                                LeadAction = value.Action;                                
+                                let Qty = "";
+                                let QtyEdit = 0;
+                                if (Product != value.ID_Product) {
+                                    Qty = value.ReqQuantity;
+                                }
+                                Product = value.ID_Product;
+                                let stocklabel=""
+                                if (value.ID_Stock == 0) {
+                                    stocklabel = "No Stock";
+                                }
+
+                                $ProductHtml += "<tr id=" + rowCount + ">";
+                                $ProductHtml += "<td>" + rowCount + "</td>";
+                                $ProductHtml += "<td style='display:none' class='clsID_Product'>" + value.ID_Product + "</td>";
+                                $ProductHtml += "<td style='display:none'  class='clsID_Stock'>" + value.ID_Stock + "</td>";
+                                $ProductHtml += "<td class='clsProduct'>" + value.Product + "</td>";
+                                $ProductHtml += "<td>" + value.BatchNo + "</td>";
+                                $ProductHtml += "<td style='display:none'>" + value.MRP + "</td>";
+                                $ProductHtml += "<td style='display:none'>" + value.SalPrice + "</td>";
+                                $ProductHtml += "<td style='text-align:right'>" + value.PurRate + "</td>";
+                                $ProductHtml += "<td>" + value.ExpiryDate+ "</td>";
+                                $ProductHtml += "<td style='text-align:right'>" + value.CurrentQuantity + "</td>";
+                                $ProductHtml += "<td style='text-align:right' class='clsReqQty'>" + Qty + "</td>";
+                                //$ProductHtml += "<td style='style='display:none' '>" + value.Quantity + "</td>";
+                                $ProductHtml += "<td style='width:25%;'><input type='text' id='" + usedQtyId + "'  class='form-control clsUsedQty' oninput='DecmalCheck(this,3);'  value='" + value.Quantity/*QtyEdit*/ + "' /><input type='hidden' class='form-control clshdnUsedQty' value='" + value.Quantity/*QtyEdit*/ + "'  /> </td>";
+                                $ProductHtml += "<td style='text-align:left;color:#fc0303' class='clsStockStatus'>" + stocklabel + "</td>";
+                                $ProductHtml += "</tr>";
+                                id++;
+                            });
+                            $thisForm.find('#ProductTbody').append($ProductHtml);
+
+                            if (ID_JobCardFollowUp > 0) {
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+                            }
+                            else {
+                                $thisForm.find('button[name=add]').removeClass('d-none');
+                                $thisForm.find('button[name=update]').addClass('d-none');
+                            }
+
+                       }
+    @*let $formFolowDivProdStatusDtls = $formFolowDivContainer.closest('[perfect-class="form"]').closest('.jq_productionstatus_body').find('.ProdStatusDtls');
+
+                            $formFolowDivProdStatusDtls.load('@Url.Action("LoadProductionStatusCmpleteMarking", "ProductionStatus")?ID=' + FK_JobCardAssign + "&&FK_Employee=" +FK_Employee+"&&ID_JobCardFollowUp=" + ID_JobCardFollowUp, function () {
+                        $sideMenuOptions.close();
+                    });*@
+     });
+             }
+         });
+
+    }
+    function fn_LeadManagementIndex_deleteLeadManagement() {
+    }
+     function fn_LeadGenerateForm_add(ele)
+ {
+	let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+	 if ($thisForm.valid())
+	 {
+	 }
+ }
+ // Function to Add LeadGenerate
+ function fn_LeadGenerateForm_add(ele)
+ {
+	let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+	 if ($thisForm.valid())
+	 {
+	 }
+ }
+    $('.clsUsedQty').focus(function () {
+        $(this).select();
+    });
+
+   
+
+
+
+
+ // Function to Update LeadGenerate
+ function fn_LeadGenerateForm_update(ele)
+ {
+	let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+	 if ($thisForm.valid())
+	{
+
+	}
+
+    }
+
+
+
+    function Cleardetailsfilter(ele) {
+
+
+        document.getElementById('exppdf').style.display = "none";
+        let $container = $(ele).closest('[perfect-class="form"]');
+
+        
+        $container.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+
+        $container.find('[name=FK_ProjectStages]').val('');
+        $container.find('[name=FromDate]').val('');
+        $container.find('[name=ToDate]').val('');
+        //$container.find('[name=Employee]').val('');
+        $container.find('[name=ProductName]').val('')
+        $container.find('[name=ID_Product]').val('0');
+
+    }
+
+    function generatePdf(ele) {
+        var cdata;
+        var ReportName;
+
+        const obj = {
+            "Project Stage": $('select[name="FK_ProjectStages"] option:selected').text(),
+            "Team": $('select[name="FK_ProjectTeam"] option:selected').text(),
+            Product: $('input[name="ProductName"] ').val(),
+            //"Target From": $('input[name="TargetFromDate"] ').val(),
+            //"Target To": $('input[name="TargetToDate"] ').val(),
+            "Target From": $('input[name="TargetFromDate"] ').val() == "" ? $('input[name="TargetFromDate"] ').val() : changeDateFormat($('input[name="TargetFromDate"] ').val()),
+            "Target To": $('input[name="TargetToDate"] ').val() == "" ? $('input[name="TargetToDate"] ').val() : changeDateFormat($('input[name="TargetToDate"] ').val()),
+            Employee: $('input[name="Employee"]').val(),
+        };
+        const obj2 = {
+            "From ": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+
+        let num = 0;
+        for (var i in obj) {
+
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+                
+                if (num == 0) {
+                    str = "Filtre By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+
+
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+                 var head = [];
+                 var ptableData = {};
+                 
+
+
+                 if (MstrId == 1) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "Todolist";
+                 }else if (MstrId == 2) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "OverdueList";
+                 } else if (MstrId == 3) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "UpcomingList";
+                 }
+
+
+
+                 var upperhead = {
+
+
+                     columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+                     columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+                     body: [
+
+                         [
+
+                             ReportName + '   ' + str2 +
+
+
+                             '\n' + str
+
+
+                         ],
+                         //[
+                         //    str
+                         //]
+
+
+
+                     ],
+
+                     theme: 'plain',
+                     styles: {
+                         // fillColor: '#3366ff',
+                         color: 'black',
+                         rowHeight: 1 // Adjust the row height value to reduce the space between rows
+                     },
+                     didDrawCell: function (data) {
+                         data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+                     }
+
+
+
+                 };
+
+
+
+
+
+
+
+                 exportPdf("PRODUCTION STATUS", [head], cdata, upperhead, "", ptableData, "", ReportName, "a4");
+                    //abc('AccountGeneralReport', [head], cdata, upperhead, footerdata, ptableData, "Branch", "Report");
+
+                }
+         });
+    }
+
+    function onExell() {
+
+        var ReportName;
+        var cdata;
+
+        const obj = {
+            "Project Stage": $('select[name="FK_ProjectStages"] option:selected').text(),
+            "Team": $('select[name="FK_ProjectTeam"] option:selected').text(),
+            Product: $('input[name="ProductName"] ').val(),
+            "Target From": $('input[name="TargetFromDate"] ').val() == "" ? $('input[name="TargetFromDate"] ').val() : changeDateFormat($('input[name="TargetFromDate"] ').val()),
+            "Target To": $('input[name="TargetToDate"] ').val() == "" ? $('input[name="TargetToDate"] ').val() : changeDateFormat($('input[name="TargetToDate"] ').val()),
+            Employee: $('input[name="Employee"]').val(),
+        };
+        const obj2 = {
+            "From ": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+        var str = "";
+        var str2 = "";
+
+        let num = 0;
+        for (var i in obj) {
+
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+                
+                if (num == 0) {
+                    str = "Filtre By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+
+
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+
+
+        ///Test --start
+        $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+
+                 if (MstrId == 1) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "Todolist";
+                 } else if (MstrId == 2) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "OverdueList";
+                 } else if (MstrId == 3) {
+                     head = ["Sl .No", "JobCard No", "Job Card Details", "Employee", "Product", "Assigned Quantity"],
+                         ptableData = {
+                             columns: [
+
+
+                                 { title: "JobCard No", dataKey: "JobCardNo" },
+                                 { title: "	Job Card Details", dataKey: "JobCardDetails" },
+                                 { title: "	Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "ProductName" },
+                                 { title: "Assigned Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: Data
+
+                         };
+                     ReportName = "UpcomingList";
+                 }
+
+               let  ReportNameExcel = `${cdata.Company} \n${cdata.Branch}\n    ${ReportName} Report    \n  ${str2} \n ${str} `
+
+                 generateExell(ReportNameExcel, [head], ptableData, "", "", ` ${ReportName} Report `);
+                }
+         });
+        ///Test --end
+
+
+
+
+
+
+
+
+    }
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+    function onChangeCriteria() {
+        document.getElementById('exppdf').style.display = "none";
+    }
+    function getfunction() {
+        document.getElementById('exppdf').style.display = "none";
+    }
+
+
+</script>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>

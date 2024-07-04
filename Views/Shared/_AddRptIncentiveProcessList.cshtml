@@ -1,0 +1,1174 @@
+﻿@model PerfectWebERP.Models.RptIncentiveProcessListModel.RptIncentiveProcessListModelview
+@{
+    string ColumnName = "", Allignment = ""; string[] Column;
+}
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+
+    .tableFixHead {
+        overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+        height: 350px; /* gives an initial height of 200px to the table */
+    }
+
+
+    .custom-label-class {
+        color: red;
+        font: 300;
+        background-color: antiquewhite;
+    }
+
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+
+    #Suppliertopdetails {
+        background-color: #CFD8DC;
+    }
+
+        #Suppliertopdetails > thead {
+            position: sticky;
+            top: 0;
+        }
+
+    .tb1 {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    /*.tb1 tbody tr td {
+            border-color: white;
+        }
+    .jq_supplier_td, .jq_address_td, .jq_gstin_td, .jq_opening_td, .jq_openingdate_td {
+        font-weight: bold;
+    }*/
+    .table1 {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .tb1 tbody tr td {
+        border: 1px solid white;
+        padding: 8px;
+        text-align: left;
+        background-color: #CFD8DC; /* Set background color of cells to white */
+    }
+
+
+
+    .loader-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7); /* semi-transparent white background */
+        z-index: 1000; /* adjust z-index as needed */
+        justify-content: center;
+        align-items: center;
+        color: darkcyan;
+    }
+
+    .loader {
+        width: 180px;
+        height: 100px;
+    }
+</style>
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12"> @ViewBag.PageTitle<span class="badge light badge-success float-right" perfect-class="formTitle"></span></h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @*@Html.AntiForgeryToken()*@
+                <div class="row">
+
+
+                    <div class="col-sm-6 ReportName">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label  ">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control perfectValidate_string" name="RptName" id="RptName" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="GetIncentiveReportList(this)">
+
+                                    <option value="">Please select</option>
+                                    <option value="1">Incentive Process List</option>
+                                    <option value="2">Incentive Paid List</option>
+                                    <option value="3">Incentive Outstand List</option>
+                                    <option value="4">Incentive Ledger</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivReportType LedgerReport OutstandReportDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields ">
+                                <span perfect-class="formGroupLabel">Report Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control rptfilters" name="ReportType" perfect-class="formGroupControl" id="ID_Report" perfect-ctype="select" perfect-css="select" onchange="showgrouping(this)">
+                                    <option value="">Please Select</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-6 DivFromDate LedgerReport OutstandReportDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields" id="Fromdt">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate rptfilters " id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                                <div class="Custominvalid animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate LedgerReport OutstandReportDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields" id="Todt">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate rptfilters " id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="Custominvalid animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divasondate OutstandReportNonDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields" id="Asondt">
+                                <span perfect-class="formGroupLabel">AsOn Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate rptfilters " id="AsOnDate" data-id="ToDate-error" name="AsOnDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="Custominvalid animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 Divbranch OutstandReportDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control  rptfilters" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="ResetDepartment(this);ResetEmployee(this)">
+
+                                    <option value="">All</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivDepartment LedgerReport">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control  rptfilters" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="ResetEmployee(this)">
+
+                                    <option value="">All</option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var deprtmnt in Model.DepartmentList)
+                                        {
+                                            <option value="@deprtmnt.DepartmentID">@deprtmnt.DepartmentName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 LedgerReport OutstandReportDetailed">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Incentive Type</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+
+
+                                <select class="form-control  rptfilters" name="FK_IncentiveType" id="FK_IncentiveType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                    <option value="0">Please Select </option>
+                                    @if (!(Model.IncentivetypeList is null))
+                                    {
+                                        foreach (var Module in Model.IncentivetypeList)
+                                        {
+                                            <option value="@Module.IncentiveTypeID">@Module.IncentiveType</option>
+                                        }
+                                    }
+                                </select>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    @if (ViewBag.Manager || ViewBag.Admin)
+                    {
+                        <div class="col-sm-6 DivEmployeeName ">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+                                    <span class="text-danger idempstar"></span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="DepartmentID" BindName="Employee" BindVal="Employee_ID"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+
+
+                    else
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+                                    <span class="text-danger idempstar"></span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="DepartmentID" BindName="Employee" BindVal="Employee_ID" disabled></button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="col-sm-6 DivPaymode LedgerReport">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields ">
+                                <span perfect-class="formGroupLabel">Payment Mode</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control  rptfilters" id="PaymentMode" name="PaymentMode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    @if (!(Model.PaymentModeList is null))
+                                    {
+                                        foreach (var List in Model.PaymentModeList)
+                                        {
+                                            <option value="@List.ID_Mode">@List.ModeName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 DivGrouping LedgerReport">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields ">
+                                <span perfect-class="formGroupLabel">Grouping</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control rptfilters" name="GroupBy" id="Criteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="0">Please select</option>
+                                    <option value="1">Employee</option>
+                                    <option value="2">Incentive Type</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="ShowReport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                <div id="loading" class="loader-container">
+                    <img src="~/Assets/images/output-onlinegif.gif" alt="Loading..." class="loader">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <button type="button" id="exppdf" style="display:none">
+                        <i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:30px;color: #d92222;" onclick="generatePdf(this)"></i>
+                    </button>
+                    <button type="button" id="expxlsx" style="display:none">
+                        <i class="fa fa-file-excel-o" aria-hidden="true" style="font-size:30px;color: #1f8e26;"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="tb1">
+                <table class="table table-responsive-lg" id="Supplierdetailsids">
+                    <thead class="thead btn-primary" id="ReturnHead">
+                        <tr>
+                            <th scope="col" style="text-align:left" colspan="2">Employee Details</th>
+                            <th scope="col" style="text-align:left" colspan="2"></th>
+
+                        </tr>
+                    <tbody id="Suppliertopdetails">
+                        <tr id="0">
+
+                            <td style="text-align:center;" colspan="9">No Records..</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+
+
+            <div class="tableFixHead igf" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridtransactionDetails" id="Gridtransactiontableid">
+
+
+
+                    <table class="table table-responsive-lg" id="Gridtransactiondetailsid">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                @*<th scope="col" style="text-align:left">Date</th>*@
+                                <th scope="col" style="text-align:left">Incentive Type</th>
+                                <th scope="col" style="text-align:left">Payment Method</th>
+                                <th scope="col" style="text-align:right">Payable</th>
+                                <th scope="col" style="text-align:right">Paid</th>                                
+                                <th scope="col" style="text-align:right">Balance</th>
+                                @*<th class="th" scope="col" style="text-align:left"></th>*@
+                            </tr>
+
+                        <tbody id="Gridtransactiondetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="divReportSection">
+
+
+            </div>
+
+        </form>
+    </div>
+
+
+</div>
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+<script>
+    const $formContainers = $('#divReportSection');
+    (function () {
+        // jQuery('form').validate();//<----- Validate/initialize our form on page load
+        $('select').selectpicker();
+        //$('.Fieldsid').hide();
+    })();
+
+
+    $(document).ready(function () {
+        console.log('FK_Employee', @ViewBag.FK_Employee)
+        //showandhidefield(this);
+        Getdepartmentdefault();
+        $('.DivGrouping').hide();
+        HideShow(this);
+        hideLoader();
+    });
+
+    head = [];
+    var ptableData;
+    var item = [];
+    var groupBy = "";
+
+    var product;
+    var stages = "";
+    var status = "";
+    var grpby = "";
+    var jabNo = "";
+    var AsDate = "";
+    var Material = "";
+    var Data
+    var comCategory;
+    var reportdetaildata;
+    var ptableData2 = {};
+
+       function Getdepartmentdefault() {
+
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        //$thisForm.find('[name=BranchTypeID]').val(value.ID_BranchType).selectpicker('refresh');
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    function checkLimit(ele) {
+
+        let $thisForm = $('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+        let mindate = "1899/12/31";
+        mindate = new Date(mindate);
+        mindate.setHours(0, 0, 0, 0)
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        debugger
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+            return false;
+        }
+        else if (Todate < mindate) {
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else if (Fromdate < mindate) {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+
+    function showgrouping() {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        let reporttype = $thisForm.find('[name="ReportType"]').val();
+        let RptName = $thisForm.find('[name="RptName"]').val();
+        HideShow(this)
+        $thisForm.find('[name="GroupBy"]').val("0").selectpicker('refresh');
+        if ((reporttype == 1 && RptName == 1) || (reporttype == 1 && RptName ==2)) {
+            $('.DivGrouping').show();
+        }
+        else {
+            $('.DivGrouping').hide();
+        }      
+        
+    }
+    function getfunctionAssign(ele) {
+    }
+
+    var GetAccountdetaildata;
+    var reportdetaildata;
+
+    function ShowReport(ele) {
+        debugger
+
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementsByName("AsOnDate")[0].setAttribute('max', today);
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var _html = " <div id='divLeadMngmntReportList'>" +
+            " <table id = 'LeadMngmntReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+            " <thead class='thead-primary' id='trhd'></thead></table></div>";
+
+        if ($('#ID_Report').val() == "4") {
+            _html = " <div id='divLeadMngmntReportList'>" +
+                " <table id = 'LeadMngmntReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+                " <thead class='thead-primary' id='trhd'></thead></table></div>";
+        }
+        else {
+            _html = '';
+        }
+        $("#Suppliertopdetails").html('');
+        $("#Gridtransactiondetailsbody").html('');
+        $('#Suppliertopdetails').hide();
+        $('#Gridtransactiontableid').hide();
+        document.querySelector('#exppdf').style.display = 'none';
+        document.querySelector('.igf').style.display = "none";
+        document.querySelector('.tb1').style.display = 'none';
+
+        let table = $('#LocationTable').DataTable();
+        table.destroy();
+        $("#divReportSection").html(_html);
+        let RptName = $thisForm.find('[name="RptName"]').val();
+        let date = true;
+        if (RptName != 4) {
+            date = checkLimit(ele);
+        }
+        
+        if (date) {
+            if ($thisForm.valid()) {
+                var inputData = '';
+                inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                    FromDate: $('input[name="FromDate"]').val(),
+                    ToDate: $('input[name="ToDate"]').val(),
+                    AsOndate: $('input[name="AsOnDate"]').val(),
+
+                    FK_Branch: $('select[name="BranchID"] option:selected').val(),
+                    FK_Department: $('select[name="DepartmentID"] option:selected').val(),
+                    FK_IncentiveType: $('select[name="FK_IncentiveType"] option:selected').val(),
+                    ReportType: $('select[name="ReportType"] option:selected').val(),
+                    GroupBy: $('select[name="GroupBy"] option:selected').val(),
+                    FK_Employee: $('input[name="Employee_ID"]').val(),
+                    TransMode: IncentiveRptTransMode,
+                    ReportMode: $('select[name="RptName"] option:selected').val(),
+                    PaymentMode: $('select[name="PaymentMode"] option:selected').val(),
+
+                };
+                var Report_Id = $thisForm.find('[name="ReportType"]').val();
+                let pageUrl = '@Url.Action("GetIncentiveProcessReportList1", "Report")';
+                showLoader();
+                $.ajax({
+                    url: pageUrl,
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+                        var rptmode = "";
+                        var _gridColumns, _gridgroupby, _gridOrder = [];
+                        debugger
+                      
+                        if ($("#ID_Report").val() != "4") {
+                            hideLoader();
+                            $("#divReportSection").load('@Url.Action("ShowReport","Report")?rptMode=' + Report_Id, function () {
+                            });
+
+                        }
+                        else {
+                            hideLoader();
+                            reportdetaildata = ajaxOutput.detailsData;
+                            var CheckListHTML1 = '';
+
+                            if (ajaxOutput.detailsData.length > 0) {
+                                $('#Suppliertopdetails').show();
+                                $.each(ajaxOutput.detailsData, function (i, value) {
+                                    CheckListHTML1 += "<tr>";
+                                    CheckListHTML1 += "<th style='text-align:left;paddingright:20px'>" + "Employee Name:" + "</th>";
+                                    CheckListHTML1 += "<td  Class='Empname' style='text-align:left;font-weight:bold'>" + value.EmployeeName + "</td>";
+                                    CheckListHTML1 += "<th  style=text-align:left;>" + "Branch:" + "</th>";
+                                    CheckListHTML1 += "<td  Class='Branchname' style='text-align:left;font-weight:bold'>" + value.BranchName + "</td>";
+                                    CheckListHTML1 += "</tr>";
+                                    CheckListHTML1 += "<tr>";
+                                    CheckListHTML1 += "<th style=text-align:left;>" + "Department:" + "</td>";
+                                    CheckListHTML1 += "<td  Class='Department' style='text-align:left;font-weight:bold'>" + value.DepartmentName + "</td>";
+                                    CheckListHTML1 += "<th style=text-align:left;></td>";
+                                    CheckListHTML1 += "<td  Class='Department' style='text-align:left;font-weight:bold'></td>";
+                                    CheckListHTML1 += "</tr>";
+                                });
+
+                                $("#Suppliertopdetails").html(CheckListHTML1);
+                                //getgridtransactionout(ele);
+
+                            }
+
+                            if ($("ID_Report" == 4)) {
+                                if (ajaxOutput.Process.IsProcess) {
+                                    document.querySelector('#exppdf').style.display = 'block'; 
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.tb1').style.display = 'block';
+
+                                    var CheckListHTML = '';
+                                    console.log('length:', ajaxOutput.Data.length);
+                                    $("#Gridtransactiondetailsbody").empty();
+
+                                    if (ajaxOutput.Data.length > 0) {
+                                        $('#Gridtransactiontableid').show();
+
+
+                                        Data = ajaxOutput.Data;
+
+                                        $.each(ajaxOutput.Data, function (i, value) {
+                                            let rowCount = (i + 1);
+
+                                            let isLastRow = (i === ajaxOutput.Data.length - 1);
+                                            let paymentMethodStyle = isLastRow ? "font-weight:bold;" : "";
+
+                                            CheckListHTML += "<tr>";
+                                            CheckListHTML += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                            //CheckListHTML += "<td Class='jq_date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+                                            CheckListHTML += "<td  Class='jq_IncentiveType_td' style='text-align:center width:20px'>" + value.IncentiveType + "</td>";
+                                            CheckListHTML += "<td class='jq_PaymentMethod_td' style='text-align:center width:20px;" + paymentMethodStyle + "'>" + value.PaymentMethod + "</td>";
+                                            CheckListHTML += "<td class='jq_payable_td' style='text-align:right;font-weight:bold'>" + value.Payable + "</td>";
+                                            CheckListHTML += "<td class='jq_paid_td' style='text-align:right;font-weight:bold'>" + value.Paid + "</td>";
+                                            CheckListHTML += "<td class='jq_balance_td' style='text-align:right;font-weight:bold'>" + value.Balance + "</td>";                                            
+                                        });
+
+
+
+
+                                    }
+                                    else {
+                                        $('#Gridtransactiontableid').show();
+                                        $("#Gridtransactiondetailsbody").empty();
+                                        $('#Gridtransactiontableid').hide();
+                                        CheckListHTML += "<div class='form-group col-md-6'>";
+                                        CheckListHTML += "<div class='form-check mb-2'>";
+                                        CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                                        CheckListHTML += "</div></div>"
+                                    }
+
+
+
+                                }
+
+
+                                else {
+                                    document.querySelector('#exppdf').style.display = "none";
+
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    $('#Gridtransactiontableid').hide();
+
+                                    CheckListHTML += "<div class='form-group col-md-6'>";
+                                    CheckListHTML += "<div class='form-check mb-2'>";
+                                    CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                                    CheckListHTML += "</div></div>"
+
+                                }
+                                $("#Gridtransactiondetailsbody").html(CheckListHTML);
+                            }
+
+                        }
+
+
+                    },
+                    complete: function () {
+                        hideLoader(); // Hide loading animation after AJAX request completes
+                    }
+                });
+            }
+        }
+    }
+
+    function generatePdf(ele) {
+
+        var cdata;
+
+        var _ReportName = "Incentive Ledger";
+        let $container = $(ele).closest('[perfect-class="form"]');
+        const obj = {
+
+            Branch: $('select[name="BranchID"] option:selected').text(),
+
+            "Employee Name": $('input[name="Employee"]').val()
+        };
+        const obj2 = {
+
+
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        //var str2 = "";
+        var str2 = `Report : ${_ReportName} Report`;
+        var num = 0;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                if (num === 0) {
+                    str = "Filter By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+
+
+        if (obj2['From'] && obj2['To']) {
+            //debugger
+            str2 = str2 + ` ,For the Period  ${changeDateFormat(obj2['From'])} - ${changeDateFormat(obj2['To'])}`;
+        }
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+                    str2 +
+                    '\n' + str
+                ],
+            ],
+
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black',
+                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+            }
+
+
+
+        };
+
+        ///Test
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+
+                //LeadType = 'My Leads';
+                var head = [];
+                var ptableData = {};
+
+
+                head = ["Sl.No",/* "Date",*/ "Incentive Type", "Payment Method", "Payable", "Paid", "Balance"];
+
+                ptableData = {
+                    columns: [
+
+                        //{ title: "Sl.No", dataKey: "SlNo" },
+                        //{ title: "Date", dataKey: "Date" },
+                        { title: "Incentive Type", dataKey: "IncentiveType" },
+                        { title: "Payment Method", dataKey: "PaymentMethod" },
+                        { title: "Payable", dataKey: "Payable" },
+                        { title: "Paid", dataKey: "Paid" },
+                        { title: "Balance", dataKey: "Balance" },                       
+                    ],
+                    rows: Data
+
+                };
+                console.log(Data, 'Data>>??//1')
+
+
+                // exportPdf("ACCOUNTS REPORT", [head], cdata, upperhead, "", ptableData, "", "Lead Type", "a4", '', '', 'l');
+
+                debugger
+                const obj = {
+
+                    startY: 5,
+                    head: [['Employee Details', '', '', '']],
+                    body: [
+                        ['Employee', reportdetaildata[0].EmployeeName, 'Branch', reportdetaildata[0].BranchName],
+                        ['Department', reportdetaildata[0].DepartmentName]
+
+                    ],
+                    theme: 'striped',
+                    styles: {
+                        //lineWidth: 0.2,
+                        //lineColor: 0,
+                        fontSize: 8
+                    },
+                    headerStyles: {
+                        fillColor: '#2aa2ad', // Set the fill color of the header
+                        textColor: '#FFFFFF' // Set the text color of the header
+                    },
+                    showHead: 'everyPage',
+                    rowPageBreak: 'avoid',
+                    pageBreak: 'auto',
+                    margin: { top: 30, bottom: 40 }
+                }
+
+                const inputdata = {
+                    ptitle: "Incentive Ledger Report",
+                    phead: [head],
+                    cdata,
+                    upperhead,
+                    ptableData,
+                    filename: _ReportName,
+                    pageSize: "a4",
+                    PageOrientation: "l",
+                    uppertable: obj
+
+                }
+                exportPdf2(inputdata);
+
+
+
+            }
+
+
+
+        });
+    }
+
+
+
+
+
+    function ResetButton() {
+
+        IncentiveprocesslistreportInitialLoadAddForm();
+    }
+
+    function GetIncentiveReportList(ele) {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        let Module = $thisForm.find('[name=RptName]').val();
+        let mode;
+        $('.DivGrouping').hide();
+        HideShow(ele);
+        if (Module == 1) {
+            mode = { group: 3 }
+        }
+        else if (Module == 2) {
+            mode = { group: 4 }
+        }
+        else if (Module == 3) {
+            mode = { group: 5 }
+        }
+        else if (Module == 4) {
+            mode = { group: 6 }
+        }
+        let $menuDropdown = $thisForm.find('[name=ReportType]');//<--- Will give place select html element
+        $menuDropdown.empty().selectpicker('refresh');
+
+        //$menuDropdown.empty().selectpicker('refresh');
+        if (Module !="") {
+
+            $.ajax({
+                url: '@Url.Action("getReportModeList", "RptIncentiveProcessList")',
+                type: "POST",
+                data: mode,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log("ajaxOutput>>>>>>>>>", ajaxOutput)
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        console.log(ajaxOutput.Data)
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                        });
+                    }
+
+                },
+                complete: function () {
+                    clearFields(ele)
+                    showgrouping();
+                }
+            });
+        }
+        else {
+            $thisForm.find('[name="ReportType"]').val("").selectpicker('refresh');
+        }
+    }
+
+    function HideShow(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        debugger
+        let ReportName = $thisForm.find('[name=RptName]').val();
+        let ReportType = $thisForm.find('[name=ReportType]').val();
+        if (ReportName == 2) {
+            $('.LedgerReport').show();
+            $('.DivPaymode').show();
+            $thisForm.find('[name="PaymentMode"]').val("0").selectpicker('refresh');
+            $thisForm.find('[name=Employee_ID]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=FromDate]').addClass('perfectValidate_string');
+            $thisForm.find('[name=ToDate]').addClass('perfectValidate_string');
+            $('.OutstandReportNonDetailed').hide();
+            $(".idempstar").text('');
+            $('.DivEmployeeName').show();
+            $('.Divasondate').hide();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+
+            $('#FromDate').addClass('rptfilters');
+            $('#Fromdt').addClass('rptfilterfields');
+            $('#ToDate').addClass('rptfilters');
+            $('#Todt').addClass('rptfilterfields');
+            $('#AsOnDate').removeClass('rptfilters');
+            $('#Asondt').removeClass('rptfilterfields');
+        }
+        else if (ReportName == 3 && ReportType == 1) {
+            $thisForm.find('[name=Employee_ID]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=FromDate]').addClass('perfectValidate_string');
+            $thisForm.find('[name=ToDate]').addClass('perfectValidate_string');
+            $thisForm.find('[name=AsOnDate]').removeClass('perfectValidate_string');
+            $('.LedgerReport').hide();
+            $('.DivPaymode').hide();
+            $('.OutstandReportDetailed').show();
+            $('.OutstandReportNonDetailed').hide();
+            $('.DivEmployeeName').hide();
+            $('.Divasondate').hide();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+
+            $('#FromDate').addClass('rptfilters');
+            $('#Fromdt').addClass('rptfilterfields');
+            $('#ToDate').addClass('rptfilters');
+            $('#Todt').addClass('rptfilterfields');
+            $('#AsOnDate').removeClass('rptfilters');
+            $('#Asondt').removeClass('rptfilterfields');
+        }
+        else if (ReportName == 3 && ReportType == 2) {
+            $thisForm.find('[name=Employee_ID]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=FromDate]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=ToDate]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=AsOnDate]').addClass('perfectValidate_string');
+            $('.LedgerReport').hide();
+            $('.DivPaymode').hide();
+            $('.OutstandReportDetailed').show();
+            $('.OutstandReportNonDetailed').show();
+            $('.DivEmployeeName').hide();
+            $('.Divasondate').show();
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+
+            $('#FromDate').removeClass('rptfilters');
+            $('#Fromdt').removeClass('rptfilterfields');
+            $('#ToDate').removeClass('rptfilters');
+            $('#Todt').removeClass('rptfilterfields');
+            $('#AsOnDate').addClass('rptfilters');
+            $('#Asondt').addClass('rptfilterfields');
+        }
+        else if (ReportName == 4) {
+            $('.LedgerReport').hide();
+            $thisForm.find('[name=Employee_ID]').addClass('perfectValidate_string');
+            $(".idempstar").text('*');
+            $thisForm.find('[name=FromDate]').removeClass('perfectValidate_string');
+            $thisForm.find('[name=ToDate]').removeClass('perfectValidate_string');
+            $('.OutstandReportNonDetailed').show();
+            $('.DivEmployeeName').show();
+            $('.Divasondate').hide();
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+
+            $('#FromDate').removeClass('rptfilters');
+            $('#Fromdt').removeClass('rptfilterfields');
+            $('#ToDate').removeClass('rptfilters');
+            $('#Todt').removeClass('rptfilterfields');
+            $('#AsOnDate').removeClass('rptfilters');
+            $('#Asondt').removeClass('rptfilterfields');
+        }
+        else {
+            $('.LedgerReport').show();
+            $('.DivPaymode').hide();
+            $thisForm.find('[name="PaymentMode"]').val("0").selectpicker('refresh');
+            $thisForm.find('[name=Employee_ID]').removeClass('perfectValidate_string');
+            $(".idempstar").text('');
+            $thisForm.find('[name=FromDate]').addClass('perfectValidate_string');
+            $thisForm.find('[name=ToDate]').addClass('perfectValidate_string');
+            $('.OutstandReportNonDetailed').hide();
+            $('.DivEmployeeName').show();
+            $('.Divasondate').hide();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+
+            $('#FromDate').addClass('rptfilters');
+            $('#Fromdt').addClass('rptfilterfields');
+            $('#ToDate').addClass('rptfilters');
+            $('#Todt').addClass('rptfilterfields');
+            $('#AsOnDate').removeClass('rptfilters');
+            $('#Asondt').removeClass('rptfilterfields');
+        }
+
+        $("#Suppliertopdetails").html('');
+        $("#Gridtransactiondetailsbody").html('');
+        $('#Suppliertopdetails').hide();
+        $('#Gridtransactiontableid').hide();
+        document.querySelector('#exppdf').style.display = 'none';
+        document.querySelector('.igf').style.display = "none";
+        document.querySelector('.tb1').style.display = 'none';
+    }
+    function clearFields(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        Getdepartmentdefault();
+        $thisForm.find('[name="FK_IncentiveType"]').val("0").selectpicker('refresh');
+        $thisForm.find('[name=Employee_ID]').val("");
+        $thisForm.find('[name=Employee]').val("");
+        $thisForm.find('[name="GroupBy"]').val("0").selectpicker('refresh');
+        $("#divReportSection").html('');
+    }
+
+    function ResetEmployee(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+
+        $thisForm.find('[name=Employee_ID]').val("");
+        $thisForm.find('[name=Employee]').val("");
+    }
+    function ResetDepartment(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name="DepartmentID"]').val('@ViewBag.DepartmentID').selectpicker('refresh');
+    }
+
+    function showLoader() {
+        // Show loader by setting display property to 'flex'
+        document.getElementById('loading').style.display = 'flex';
+    }
+
+    function hideLoader() {
+        // Hide loader by setting display property to 'none'
+        document.getElementById('loading').style.display = 'none';
+    }
+
+</script>

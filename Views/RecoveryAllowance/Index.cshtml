@@ -1,0 +1,439 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="recoveryallowance-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#recoveryallowance-form');
+
+        $(document).ready(function () {
+            recoveryallowanceInitialLoad();
+
+        });
+
+        var validationMessage = {
+
+            'ALWName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ALWShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+            'ALWMode':
+            {
+                'required': 'Please select a Mode'
+            },
+            'ALWType':
+            {
+                'required': 'Please select a Type'
+            }
+            //'FK_Master':
+            //{
+            //    'required': 'Please select a Customer type'
+            //}
+        };
+
+
+
+        function recoveryallowanceInitialLoad() {
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadRecoveryAllowanceList(this); </text>
+              }
+       
+            
+             loadRecoveryAllowanceAddForm();
+        }
+
+          function loadRecoveryAllowanceAddForm() {
+
+            $formContainer.load('@Url.Action("LoadRecoveryAllowanceForm", "RecoveryAllowance")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'recoveryallowanceInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+        function loadRecoveryAllowanceList(ele) {
+           let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        //console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Recovery Allowance List');
+          let pageUrl = '@Url.Action("GetRecoveryAllowanceList", "RecoveryAllowance")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              //console.log('ProductType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("RecoveryAllowance");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addrecoveryallowance-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadRecoveryAllowanceList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("RecoveryAllowance");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addrecoveryallowance-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadRecoveryAllowanceList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+                                  
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                }
+            });
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+          var tableOptions = {
+            dropdown: {
+                buttons: [
+                
+                  @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editRecoveryAllowance },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteRecoveryAllowance },</text>
+
+              }
+                ],
+                class: "btn btn-success light sharp"
+              },
+              onlyShowColumn: ["SlNo", "ALWName", "ALWShortName", "Mode"],
+              hideColumn: [],
+              rowClickAction: editRecoveryAllowance,
+              renameHeader: { "SlNo": "SlNo", "ALWName": "Name", "ALWShortName": "Short Name" }
+
+              //onlyShowColumn: ["ALWName", "ALWShortName", "Mode"],
+              //hideColumn: ["ID_Allowance", "ID_AllowanceType", "ALWType", "FK_AllowanceType","FK_AccountHead", "FK_AccountHeadSub", "AccountHead", "AccountHeadSub", "AHeadName", "ReasonID", "FK_Company", "ASHeadName", "SortOrder", "ModeList", "TotalCount"],
+              //rowClickAction: editRecoveryAllowance,
+              //renameHeader: { "ALWName": "Name", "ALWShortName": "Short Name"}
+        };
+
+
+     
+
+        function deleteRecoveryAllowance() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+     
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetRecoveryAllowanceDeleteReasonList", "RecoveryAllowance")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                          // let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.ALWName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_AllowanceType: Saveddata['ID_AllowanceType'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteRecoveryAllowanceInfo", "RecoveryAllowance")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+        };
+       
+
+
+        function editRecoveryAllowance() {
+             let $thisRec = $(this).closest('tr');
+            let savedData = $thisRec.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = { FK_AllowanceType: savedData.ID_AllowanceType };
+          
+            $('#LoadRecoveryAllowanceForm').empty();
+                $.ajax({
+                 url: '@Url.Action("GetRecoveryAllowanceInfo", "RecoveryAllowance")',
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput.Process.IsProcess) {                           
+                            $formContainer.load("@Url.Action("LoadRecoveryAllowanceForm", "RecoveryAllowance")", function ()
+                            {                            
+                              
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.data({ pData: ajaxOutput.Data[0] });
+                               
+                                $thisForm.find('[name=ID_AllowanceType]').val(ajaxOutput.Data[0].ID_AllowanceType);
+                                $thisForm.find('[name=ALWName]').val(ajaxOutput.Data[0].ALWName);
+                                $thisForm.find('[name=ALWShortName]').val(ajaxOutput.Data[0].ALWShortName);
+
+
+                                $thisForm.find('[name="ALWMode"]').val(ajaxOutput.Data[0].ALWMode).selectpicker('refresh');
+                                $thisForm.find('[name="ALWMode"]').trigger('change');
+                                $thisForm.find('[name="ALWType"]').attr('perfect-onloadSelect', ajaxOutput.Data[0]['ALWType']);
+
+                                $thisForm.find('[name="Mode"]').trigger('change');
+                               
+
+                                $thisForm.find('[name="AccountHead"]').val(ajaxOutput.Data[0].AccountHead);
+                                $thisForm.find('[name="AccountHeadSub"]').val(ajaxOutput.Data[0].AccountHeadSub);
+                                $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AHeadName);
+                                $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].ASHeadName);
+
+                                $sideMenuOptions.close();     
+                                $thisForm.attr('perfect-onFormSuccess', 'recoveryallowanceInitialLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });     
+
+        }
+
+
+
+        
+
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

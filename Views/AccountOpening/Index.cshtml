@@ -1,0 +1,60 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="AccountOPening-form">
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#AccountOPening-form');
+
+        var AccOPeningTransMode = '';
+        const LastIDSessionKey = 'AccountOpeningLastID';
+        var LastID_AccOPening;
+        $(document).ready(function () {
+
+            AccountOpening_initLoad();
+        });
+
+        function AccountOpening_initLoad() {
+
+            StndbyTransMode = '@ViewBag.TransMode';
+            LoadAddAccountOpening();
+            //LoadStandbyRecoveryList(this);
+        }
+
+        var validationMessage = {
+            'AccGroupType': {
+                'required': 'Please Select Final Account Group'
+            },
+            'FK_AccGroupType': {
+                'required': 'Please Select Account Group'
+            }
+        }
+
+        function LoadAddAccountOpening() {
+
+                $formContainer.load('@Url.Action("LoadAccountOpening", "AccountOpening")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                 //$thisForm.find('[name="StbyRecoveryDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'AccountOpening_initLoad');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_AccOPening = result;
+                });
+            });
+        }
+    </script>
+}
+
+

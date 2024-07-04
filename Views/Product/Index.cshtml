@@ -1,0 +1,1075 @@
+﻿@{
+    ViewBag.Title = "Product";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_ProductIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+        var ViewMultiUnitItem = '';
+        //--- Form
+        const $formContainer = $('#jq_ProductIndex_formContainer');
+        
+       
+
+
+
+        // Initial load functions
+        $(document).ready(function () {
+            fn_ProductIndex_initialLoad();
+            
+        });
+        function fn_ProductIndex_initialLoad() {
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>    fn_ProductIndex_loadProduct(this); </text>
+              }
+        
+            fn_ProductIndex_loadProductAddForm();
+
+        }
+
+
+      
+
+        function fn_ProductIndex_loadProduct(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+        $sideMenuOptions.title.find('h4').text('Product List');
+          let pageUrl = '@Url.Action("GetProductListView", "Product")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: localStorage.getItem("FRM_TRANSMODE") },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Supplier', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Supplier");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"   value="' + SearchName +'" /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_ProductIndex_loadProduct(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_ProductIndex_loadProduct(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: localStorage.getItem("FRM_TRANSMODE") };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+   
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: fn_ProductIndex_loadProductUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: fn_ProductIndex_deleteCustomer },</text>
+
+              }
+                   
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","ProdName", 'ProdShortName'],
+            rowClickAction: fn_ProductIndex_loadProductUpdateForm,
+            
+            renameHeader: {  "SlNo":"SL No","ProdName": "Name", "ProdShortName": "Short Name" },
+            hideColumn: [],
+            //  isDateType: [],
+            //  rowClickAction: () => { alert("clicked row") }
+        };
+        // Fucntion to load Customer ADD form
+        function fn_ProductIndex_loadProductAddForm() {
+            
+            $formContainer.load('@Url.Action("LoadProductForm", "Product")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                //$thisForm.find('[name="ExpiryDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'fn_ProductIndex_initialLoad');
+                initFunctions($thisForm);
+            });
+
+        };
+
+
+
+
+        var validationMessage = {
+            'ProdName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ProdShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            'CategoryID': {
+                'required': 'Please Select a Category',
+                'digits': 'Invalid Category selected'
+            },
+            'Mode': {
+                'required': 'Please Select a Mode',
+                'digits': 'Invalid Mode selected'
+            },
+            'UnitID': {
+                'required': 'Please Select a Unit',
+                'digits': 'Invalid Unit selected'
+            },
+
+            'TaxGroupID': {
+                'required': 'Please Select a TaxGroup',
+                'digits': 'Invalid Unit selected'
+            },
+
+            'ProdHSNCode': {
+                'maxlength': jQuery.validator.format('HSNCode should be less than {0} characters')
+            },
+
+              'ProdCode': {
+                'maxlength': jQuery.validator.format('Product Code should be less than {0} characters')
+            },
+            'ProdQRCode': {
+                'maxlength': jQuery.validator.format('QR Code should be less than {0} characters')
+            },
+               'ProdBarcode': {
+                'maxlength': jQuery.validator.format('Bar Code should be less than {0} characters')
+            },
+
+               'ProdMinLevel': {
+                'maxlength': jQuery.validator.format('Minimum Level should be less than {0} ')
+            },
+               'ProdMaxLevel': {
+                'maxlength': jQuery.validator.format('Maximum Level should be less than {0} ')
+            },
+             'ProdReorderLevel': {
+                'maxlength': jQuery.validator.format('Re Order Level should be less than {0} ')
+            },
+              'ProdReorderQuantity': {
+                'maxlength': jQuery.validator.format('Re Order Quantity should be less than {0} ')
+            }
+        };
+
+
+
+        function fn_ProductIndex_loadProductUpdateForm() {
+            debugger;
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ProductID: saveddata.ProductID
+            };
+           
+            $.ajax({
+                url: "@Url.Action("GetProductInfo", "Product")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    console.log('ajaxout', ajaxOutput)
+                    $formContainer.load('@Url.Action("LoadProductForm", "Product")', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        $thisForm.validate({ messages: validationMessage });
+                       
+                    if (ajaxOutput.prInfo.Process.IsProcess) {
+                        //process is success
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                        
+                            $thisForm.data({ pData: ajaxOutput.prInfo.Data[0] });
+                        console.log('sssNew', ajaxOutput.prInfo.Data[0])
+                      
+                        $thisForm.find('[name="ProductID"]').val(ajaxOutput.prInfo.Data[0]['ProductID']);
+                            $thisForm.find('[name="Mode"]').val(ajaxOutput.prInfo.Data[0]['Mode']).selectpicker('refresh');
+                        $thisForm.find('[name="ProdName"]').val(ajaxOutput.prInfo.Data[0]['ProdName']);
+                        fn_bindropdownvalue(ajaxOutput.prInfo.Data[0]['Mode'], $thisForm, ajaxOutput.prInfo.Data[0]);
+                            $thisForm.find('[name="ProdShortName"]').val(ajaxOutput.prInfo.Data[0]['ProdShortName']);
+                            $thisForm.find('[name="ProdHSNCode"]').val(ajaxOutput.prInfo.Data[0]['ProdHSNCode']);
+                            $thisForm.find('[name="ProdMinLevel"]').val(ajaxOutput.prInfo.Data[0]['ProdMinLevel']);
+                            $thisForm.find('[name="ProdMaxLevel"]').val(ajaxOutput.prInfo.Data[0]['ProdMaxLevel']);
+                            $thisForm.find('[name="ProdReorderLevel"]').val(ajaxOutput.prInfo.Data[0]['ProdReorderLevel']);
+                            $thisForm.find('[name="ProdReorderQuantity"]').val(ajaxOutput.prInfo.Data[0]['ProdReorderQuantity']);
+                            $thisForm.find('[name="ProdMaterialDetails"]').val(ajaxOutput.prInfo.Data[0]['ProdMaterialDetails']);
+                            $thisForm.find('[name="ProdSales"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdSales']);
+                            $thisForm.find('[name="ProdSalesReturn"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdSalesReturn']);
+                            $thisForm.find('[name="ProdPurchase"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdPurchase']);
+                            $thisForm.find('[name="ProdPurchaseReturn"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdPurchaseReturn']);
+                            $thisForm.find('[name="ProdStockTransfer"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdStockTransfer']);
+                            $thisForm.find('[name="ProdProductionIn"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdProductionIn']);
+                        $thisForm.find('[name="ProdProductionOut"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdProductionOut']);
+                       
+                        if (ajaxOutput.prInfo.Data[0]['ProdSales'] == true && ajaxOutput.prInfo.Data[0]['ProdSalesReturn'] == true && ajaxOutput.prInfo.Data[0]['ProdPurchase'] == true
+                            && ajaxOutput.prInfo.Data[0]['ProdPurchaseReturn'] == true && ajaxOutput.prInfo.Data[0]['ProdStockTransfer'] == true && ajaxOutput.prInfo.Data[0]['ProdProductionIn'] == true
+                            && ajaxOutput.prInfo.Data[0]['ProdProductionOut'] == true && ajaxOutput.prInfo.Data[0]['ProdLead'] == true && ajaxOutput.prInfo.Data[0]['ProdProject'] == true) {
+
+
+                            $thisForm.find('[name="ProdAll"]').prop('checked', true);
+
+                        }
+                            $thisForm.find('[name="ProdQRCode"]').val(ajaxOutput.prInfo.Data[0]['ProdQRCode']);
+                        $thisForm.find('[name="ProdBarcode"]').val(ajaxOutput.prInfo.Data[0]['ProdBarcode']);
+                        $thisForm.find('[name="ProdCode"]').val(ajaxOutput.prInfo.Data[0]['ProdCode']);
+                            $thisForm.find('[name="CategoryID"]').val(ajaxOutput.prInfo.Data[0]['CategoryID']).selectpicker('refresh');
+                            $thisForm.find('[name="ManufacturerID"]').val(ajaxOutput.prInfo.Data[0]['ManufacturerID']).selectpicker('refresh');
+                        $thisForm.find('[name="UnitID"]').val(ajaxOutput.prInfo.Data[0]['UnitID']).selectpicker('refresh');
+                        $thisForm.find('[name="TaxGroupID"]').val(ajaxOutput.prInfo.Data[0]['TaxGroupID']).selectpicker('refresh');
+                        $thisForm.find('[name="SubCategotyID"]').val(ajaxOutput.prInfo.Data[0]['SubCategotyID']).selectpicker('refresh');
+                        $thisForm.find('[name="ProdNonStockItem"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdNonStockItem']);
+                        $thisForm.find('[name="ProdLead"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdLead']);
+                        $thisForm.find('[name="ProdProject"]').prop('checked', ajaxOutput.prInfo.Data[0]['ProdProject']);
+                        $thisForm.find('[name="MaxAmount"]').val(ajaxOutput.prInfo.Data[0]['MaxAmount']);
+                        $thisForm.find('[name="MinAmount"]').val(ajaxOutput.prInfo.Data[0]['MinAmount']);
+
+
+                        $thisForm.find('[name="MRP"]').val(ajaxOutput.prInfo.Data[0]['MRP']);
+                        $thisForm.find('[name="SalPrice"]').val(ajaxOutput.prInfo.Data[0]['SalPrice']);
+                        $thisForm.find('[name="BranchID"]').val(ajaxOutput.prInfo.Data[0]['BranchID']).selectpicker('refresh');
+                        $thisForm.find('[name="DepartmentID"]').val(ajaxOutput.prInfo.Data[0]['DepartmentID']).selectpicker('refresh');
+                        $thisForm.find('[name="ProductionCost"]').val(ajaxOutput.prInfo.Data[0]['ProductionCost']);
+                        $thisForm.find('[name="PurRate"]').val(ajaxOutput.prInfo.Data[0]['PurRate']);
+                        $thisForm.find('[name="OpeningQuantity"]').val(ajaxOutput.prInfo.Data[0]['OpeningQuantity']);
+                        $thisForm.find('[name="OpeningStbyQuantity"]').val(ajaxOutput.prInfo.Data[0]['OpeningStbyQuantity']);
+                        //$thisForm.find('[name="QRCode"]').val(ajaxOutput.prInfo.Data[0]['QRCode']);
+                        //$thisForm.find('[name="BarCode"]').val(ajaxOutput.prInfo.Data[0]['BarCode']);
+                        $thisForm.find('[name="BatchNo"]').val(ajaxOutput.prInfo.Data[0]['BatchNo']);
+                        $thisForm.find('[name="ExpiryDate"]').val(moment(ajaxOutput.prInfo.Data[0]['ExpiryDate']).format('YYYY-MM-DD'));
+                       
+
+                        
+                        // stuff to do after filling data
+                            //$sideMenuOptions.close();//<---  Close side menu
+                            //$thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                            //$thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+                       
+                       
+
+                       
+                    }
+                        
+                    if (ajaxOutput.tax.Process.IsProcess) {
+                      
+                        
+                            
+                            $thisForm.data({ pData: ajaxOutput.tax.Data[0] });
+                            console.log('sss4665', ajaxOutput.tax.Data[0]);
+                            $thisForm.find('[perfect-tempTable="taxType"]').html(tempTabledateCreate({ data: ajaxOutput.tax.Data, templeTableKey: "taxType" }));
+                            
+                       
+                        }
+
+                        console.log('ssse455', ajaxOutput.subproduct);
+                    if (ajaxOutput.subproduct.Process.IsProcess) {
+                        
+                        //process is success
+                     
+                        console.log('sss', ajaxOutput.subproduct.Data[0]);
+                            
+                            
+                            //console.log('sss', $thisForm)
+                            
+                            $thisForm.data({ pData: ajaxOutput.subproduct.Data[0] });
+                            console.log('sss4', ajaxOutput.subproduct.Data[0]);
+                        $thisForm.find('[perfect-ProductType="ProductType"]').html(ProductdataCreate({ data: ajaxOutput.subproduct.Data, templeTableKey: "ProductType" }));
+                           
+
+                      
+                        }
+                       
+                        if (ajaxOutput.warrDtls.Process.IsProcess) {
+                            $thisForm.data({ pData: ajaxOutput.warrDtls.Data[0] });
+                            fn_fillWarrantyItem($thisForm, 'Warranty', ajaxOutput.warrDtls.Data, tableOptionsproductWarranty)
+                           // $thisForm.find('[perfect-tempTable="Warranty"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                        }
+                        if (ajaxOutput.VMultiUnit.Process.IsProcess) {
+                            debugger;
+                            ViewMultiUnitItem = ajaxOutput.VMultiUnit.Data;
+                          
+                        }
+                        
+
+
+                         $sideMenuOptions.close();//<---  Close side menu
+                         $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                         $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                         $thisForm.attr('perfect-onFormSuccess', 'fn_ProductIndex_initialLoad');
+                    });
+                    
+                }
+            });
+        };
+        var tableOptionsWarrantyItem = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                                }
+                                else if ($thisNode.is('input')) {
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            });
+
+                            
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                        }
+                    }
+                ]
+            },
+            onlyShowColumn: [],
+            serialNo: true,
+            renameHeader: { "FK_WarrantyType": "Warranty Type", "ProdWtyRepDurPrdU": "Replacement Period", "ProdWtyRepDurType_d": "", "ProdWtySerDurPrd": "Service Period", "ProdWtySerDurType_d": "" },
+            hideColumn: [],
+            rowAttribute: [],
+            isCheckType: []
+        };
+        function fn_fillWarrantyItem(ele, tkey, data, tableOptionsWarrantyItem) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsWarrantyItem;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                          
+                            switch (headerName) {
+                                case "FK_WarrantyType":
+                                    headerName = "Warranty Type";
+                                    break;
+                                case "ProdWtyRepDurType":
+                                    headerName = "Rep.Duration Type";
+                                    break;
+                                case "ProdWtySerDurType":
+                                    headerName = "Ser.Duration Type";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+        function tempTabledateCreate(inputData) {
+           
+            let hide = ["ID_TaxType"];
+           
+
+
+            let $table1 = $('<table/>', { class: "table mb-0  table-striped  text-black" });
+            let $thead = $('<thead/>', { class: "bg-primary text-white" })
+            let $tbody = $('<tbody/>');
+
+            if (inputData['data']) {
+                //create heading
+                console.log('in if data', inputData['data']);
+                let rhead = $('<tr/>', { class: "btn-reveal-trigger" });
+                $.each(inputData.data[0], function (key, value) {
+                    console.log('in if data>head create', key + "|" + value);
+                    if (!hide.includes(key)) {
+                        rhead.append($('<th/>').text(key));
+                    }
+                });
+
+                $thead.html(rhead.append('<th/>'));
+
+                $.each(inputData.data, function (key, value) {
+                    let rbody = $('<tr/>', { class: "btn-reveal-trigger" });
+                    console.log('in if data>body create');
+                    $.each(value, function (keyOne, valueOne) {
+                        console.log('in if data>body>td create', keyOne + '|' + valueOne);
+
+                        if (!hide.includes(keyOne)) {
+                            if (typeof valueOne == "boolean") {
+                                rbody.append($('<td/>', { 'perfect-tempTable-td-name': keyOne }).html($('<i/>', { class: (valueOne ? "fa fa-check text-success" : "fa fa-times text-danger") })))
+                            }
+                            else {
+                                rbody.append($('<td/>', { 'perfect-tempTable-td-name': keyOne }).text(valueOne))
+                            }
+                        }
+
+                    });
+
+                    rbody.data({ 'pData': value });
+                    console.log('rbody>', value)
+                    $tbody.append(rbody.append($('<td/>', { class: "d-flex" }).append($('<button/>', { class: "btn btnPerfectGrid shadow btn-xs sharp mr-1" }).html($('<i/>', { class: 'fa fa-trash btnPerfectGridDelete' }))
+                        .click(function () {
+                            if ($(this).closest('tbody').find('tr').length == 1) {
+                                $(this).closest('table').remove();
+                            } else {
+                                $(this).closest('tr').remove();
+                            }
+                        }))));
+
+                });
+            }
+            $table1.append($thead).append($tbody);
+
+            return $table1;
+        }
+
+        function ProductdataCreate(inputData) {
+
+            let hide = ["ID_Product"];
+
+
+
+            let $table = $('<table/>', { class: "table mb-0  table-striped  text-black" });
+            let $thead = $('<thead/>', { class: "bg-primary text-white" })
+            let $tbody = $('<tbody/>');
+
+            if (inputData['data']) {
+                //create heading
+                console.log('in if data', inputData['data']);
+                let rhead = $('<tr/>', { class: "btn-reveal-trigger" });
+                $.each(inputData.data[0], function (key, value) {
+                    console.log('in if data>head create', key + "|" + value);
+                    if (!hide.includes(key)) {
+                        let _head = key;
+                        switch (_head) {
+                            case "SprodSubProduct":
+                                _head = "Sub Product";
+                                break;
+                            case "ProdName":
+                                _head = "Product";
+                                break;
+                            default:
+                                break;
+                        };
+                        rhead.append($('<th/>').text(_head))
+                        //rhead.append($('<th/>').text(key));
+                    }
+                });
+
+                $thead.html(rhead.append('<th/>'));
+
+                $.each(inputData.data, function (key, value) {
+                    let rbody = $('<tr/>', { class: "btn-reveal-trigger" });
+                    console.log('in if data>body create');
+                    $.each(value, function (keyOne, valueOne) {
+                        console.log('in if data>body>td create', keyOne + '|' + valueOne);
+
+                        if (!hide.includes(keyOne)) {
+                            if (typeof valueOne == "boolean") {
+                                rbody.append($('<td/>', { 'perfect-ProductType-td-name': keyOne }).html($('<i/>', { class: (valueOne ? "fa fa-check text-success" : "fa fa-times text-danger") })))
+                            }
+                            else {
+                                rbody.append($('<td/>', { 'perfect-ProductType-td-name': keyOne }).text(valueOne))
+                            }
+                        }
+
+                    });
+
+                    rbody.data({ 'pData': value });
+                    console.log('rbody>', value)
+                    $tbody.append(rbody.append($('<td/>', { class: "d-flex" }).append($('<button/>', { class: "btn btnPerfectGrid shadow btn-xs sharp mr-1" }).html($('<i/>', { class: 'fa fa-trash btnPerfectGridDelete' }))
+                        .click(function () {
+                            if ($(this).closest('tbody').find('tr').length == 1) {
+                                $(this).closest('table').remove();
+                            } else {
+                                $(this).closest('tr').remove();
+                            }
+                        }))));
+
+                });
+            }
+            $table.append($thead).append($tbody);
+
+            return $table;
+        }
+        function ResetButton(ele) {
+
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let pData = $thisForm.data('pData');
+            if (pData) {
+
+                $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                $thisForm.find('[perfect-ctype="input"]').val('');
+                $thisForm.find('[perfect-ctype="digit"]').val('');
+              
+            }
+
+            $thisForm.validate().resetForm();
+            fn_ProductIndex_initialLoad();
+        }
+        function Deleteproduct() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                ProductID: Saveddata.ProductID
+            };
+
+            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.ProdName+" ?", cancel: "No", confirm: "Yes" };
+            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+            //$row.remove();
+            //let $table = $row.closest('table').dataTable()
+            //$table.fnClearTable()
+
+
+           
+            res.then(function (ret) {
+                if (ret) {
+                   // toastr.success("Clicked yes in the comfirmation box", "Confirmation Box in table");
+
+                    $.ajax({
+                        url: "@Url.Action("DeleteProductInfo", "Product")",
+                        type: "POST",
+                        // headers: { "token_key": "1234" },
+                        data: JSON.stringify(inputData),
+                        // dataType: "json",
+                        contentType: "application/json",
+                        success: function (data) {
+
+                            if (data.Process.IsProcess) {
+
+                                $.each(data.Process.Message, function (key, value) {
+                                    //toastr.success(value, "Success");
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                            }
+                            else {
+                                $.each(data.Process.Message, function (key, value) {
+                                   // toastr.warning(value, "Error");
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                            //row.remove();
+                            //$(row).closest('table').reload()
+                            loadCustomerList()
+                        }
+                    });
+
+
+                }
+                else {
+                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                    NotificationMessage({ 'message': 'No option selected' });
+                }
+
+            });
+        };
+
+
+  function fn_ProductIndex_deleteCustomer() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+      $('.dataTable tr').removeClass("SelectForDelete");
+      $(this).closest('tr').addClass('SelectForDelete');
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetProductReasonList", "Product")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                          
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  " + Saveddata.ProdName + "  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('Product> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ProductID: Saveddata['ProductID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("Deleteproduct", "Product")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+        function fn_bindropdownvalue(Mode, $thisForm, selectData) {
+            debugger;
+            Mode = Mode;
+            console.log(selectData, 'selectData11111111111');
+            console.log(Mode, 'Mode11111')
+        //let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+
+         $.ajax({
+                 url: "@Url.Action("GetBindata", "Product")",
+                type: "POST",
+
+             data: JSON.stringify({ Mode: Mode }),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+               
+                 console.log('valuesaarrrr',ajaxOutput)
+                 let $ManuDropdown = $thisForm.find('[name=ManufacturerID]');
+                 let $UnitDropdown = $thisForm.find('[name=UnitID]');
+                 let $CatDropdown = $thisForm.find('[name=CategoryID]');
+                 let $SubCatDropdown = $thisForm.find('[name=SubCategotyID]');
+                 let $TaxgroupDropdown = $thisForm.find('[name=TaxgroupID]');
+                 let $MultiUnitDropdown = $thisForm.find('[name=FK_Unit]');
+
+                 $ManuDropdown.empty().selectpicker('refresh');
+                 $UnitDropdown.empty().selectpicker('refresh');
+                 $CatDropdown.empty().selectpicker('refresh');
+                 $SubCatDropdown.empty().selectpicker('refresh');
+                 $TaxgroupDropdown.empty().selectpicker('refresh');
+                 $MultiUnitDropdown.empty().selectpicker('refresh');
+
+                 $ManuDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+                 $UnitDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+                 $CatDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+                 $SubCatDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+                 $TaxgroupDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+                 //$MultiUnitDropdown.append($('<option/>', { "value": "" }).text('Please Select')).selectpicker('refresh')
+
+                 if (ajaxOutput) {
+                     $.each(ajaxOutput.ManufactureList, function (key, value) {
+                         $ManuDropdown.append($('<option/>', { "value": value.ID_Manufacturer }).text(value.ManufName)).selectpicker('refresh')
+                     });
+                     $.each(ajaxOutput.CategoryList, function (key, value) {
+                         $CatDropdown.append($('<option/>', { "value": value.CategoryID }).text(value.CategoryName)).selectpicker('refresh')
+                     });
+                     $.each(ajaxOutput.UnitList, function (key, value) {
+                         $UnitDropdown.append($('<option/>', { "value": value.ID_Unit }).text(value.UnitName)).selectpicker('refresh')
+                     });
+                     $.each(ajaxOutput.TaxgroupList, function (key, value) {
+                         $TaxgroupDropdown.append($('<option/>', { "value": value.TaxGroupID }).text(value.TaxGroupName)).selectpicker('refresh')
+                     });
+                     $.each(ajaxOutput.SubCategoryList, function (key, value) {
+                         if (selectData['CategoryID'] == value.CategoryID) {
+                             $SubCatDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                         }
+                         
+                     });
+
+                     $.each(ajaxOutput.MultipleUnitList, function (key, value) {
+                         console.log(selectData['UnitID'] === value.FK_Unit, 'UnitIDssssssssssssssssssssssssss');
+                         if (selectData['UnitID'] === value.FK_Unit) {
+
+                         }
+                         else {
+                             $MultiUnitDropdown.append($('<option/>', { "value": value.FK_Unit }).text(value.UnitName)).selectpicker('refresh')
+                         }
+                     });
+
+                     $CatDropdown.val(selectData['CategoryID']).selectpicker('refresh');
+                     $ManuDropdown.val(selectData['ManufacturerID']).selectpicker('refresh');
+                     $UnitDropdown.val(selectData['UnitID']).selectpicker('refresh');
+                     $TaxgroupDropdown.val(selectData['TaxGroupID']).selectpicker('refresh');
+                     $SubCatDropdown.val(selectData['SubCategotyID']).selectpicker('refresh');
+
+                     var multiUnitArray = Array.from($thisForm.find('[name=FK_Unit]'));
+                     console.log('multiUnitArrayqq>', multiUnitArray);
+                     var ViewMultiUnitItem1 = ViewMultiUnitItem; 
+                     var count = ViewMultiUnitItem1.length;
+                     if (count > 0) {
+                        
+                      
+                         var options = Array.from($thisForm.find('[name=FK_Unit]').find('option'));
+                         options.forEach(option => {
+                             //debugger;
+                             Object.values(ViewMultiUnitItem1).forEach(unitName => {
+                               
+                                 console.log("unitName:", unitName.UnitName);
+                                 console.log("option.textContent:", option.textContent);
+                                 //console.log("unitName.trim():", unitName.trim());
+                                 //console.log("option.textContent.trim():", option.textContent.trim());
+                                 if (unitName.UnitName === option.textContent ) {
+                                     option.selected = true; // Set the option as selected
+                                     // You can also set aria-selected attribute if needed
+                                      option.setAttribute('aria-selected', 'true');
+                                 }
+                             });
+
+                         });
+                         
+                         var selectedUnitNames = ViewMultiUnitItem1.map(function (item) {
+                             return item.UnitName;
+                         });
+                         var unitNamesString = selectedUnitNames.join(', ');
+
+                         const dropdown = document.getElementById('mySelect');
+                         dropdown.dispatchEvent(new Event('change'));
+                         //options.forEach((option, i2)=> {
+                         //    debugger
+                         //    console.log(ViewMultiUnitItem1 && ViewMultiUnitItem1[i2]['UnitName'] && ViewMultiUnitItem1[i2]['UnitName'].includes(option.textContent.trim()));
+                         //    if (ViewMultiUnitItem1 && ViewMultiUnitItem1[i2]['UnitName'] && ViewMultiUnitItem1[i2]['UnitName'].includes(option.textContent.trim())) {
+                         //        option.selected = true; // Set the option as selected
+                         //        // You can also set aria-selected attribute if needed
+                         //        option.setAttribute('aria-selected', 'true');
+                         //    }
+                         //    //if (ViewMultiUnitItem1.UnitName.includes(option.textContent.trim())) {
+                         //    //    debugger;
+                         //    //    //option.selected = true;
+                         //    //    option.attr('aria-selected') = true;
+                         //    //}
+                         //});
+
+                         //var ViewMultiUnitItem1 = ViewMultiUnitItem; 
+                         //console.log(options, 'options');
+                         
+
+
+
+                         //// Create a comma-separated string of UnitName values
+                         //
+                       
+                         // Populate the dropdown with options
+                       
+                         // Set selected options based on the selectedValuesArray
+                         
+
+
+
+
+                         //$MultiUnitDropdown.val(unitNamesString);
+
+
+
+
+
+
+
+
+                         //var selectedFK_Units = ViewMultiUnitItem1.map(function (item) {
+                         //    return item.UnitName;
+                         //});
+                        
+                         // Refresh the selectpicker if needed (assuming it's using a plugin)
+                         //$MultiUnitDropdown.selectpicker('refresh');
+                         //ViewMultiUnitItem1.forEach(function (item) {
+                         //    //if ($MultiUnitDropdown.(item.FK_Unit) !== -1) {
+                         //        var SelectedOptions = $('#' + Field).multiselect("getChecked").map(function () {
+                         //            return this.value;
+                         //        }).get();
+
+
+                         //        //$menuDropdown.find('option[value="' + item.FK_Unit + '"]').prop('selected', true);
+                         //    //}
+                         //});
+
+                     }
+                     //if (ajaxOutput.VMultiUnit.Process.IsProcess) {
+                     //    let $menuDropdown = $thisForm.find('[name=FK_Unit]');
+                     //    var data = ajaxOutput.VMultiUnit.Data;
+
+
+                     //    // Clear existing options from the dropdown
+                     //    $menuDropdown.empty();
+
+                     //    // Loop through the data and append options to the dropdown
+                     //    data.forEach(function (value) {
+                     //        debugger;
+                     //        var option = $('<option></option>'); // Create a new option element using jQuery
+                     //        option.text(value.UnitName); // Set the text of the option
+                     //        option.val(value.FK_Unit); // Set the value of the option
+                     //        $menuDropdown.append(option); // Append the option to the dropdown
+                     //    });
+
+                     //}
+
+
+
+
+
+                     console.log('seelctdata',selectData)
+                    
+                    
+
+                 }
+                 else {
+                    
+                         NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'No Data Found' });
+                     
+                 }
+                 
+                     }
+
+                 });
+
+        
+    }
+    </script>
+
+
+
+}

@@ -1,0 +1,1853 @@
+﻿@model PerfectWebERP.Models.MaterialRequestReportsModel.MaterialRequestReportView
+
+
+<style>
+
+    .tableFixHead {
+        overflow: auto;
+        height: 550px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_MaterialRepo_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body " style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <input type="hidden" name="ID_ProjectMaterialRequest" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_string" id="FK_Mode" name="FK_Mode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="clearthefields(this); getfunction(); ToggleControls(this);">
+                                        <option value="">Please Select</option>
+                                        <option value="1">Material Request List</option>
+                                        <option value="2">Pending Request List </option>
+                                        <option value="3">Allocation List  </option>
+                                        <option value="4">Project-wise Material Details</option>
+
+                                    </select>                                                                                                                                                                  
+
+                                </div>
+                                <div class="text-danger temptableError" id="FK_Mode-error"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-4 " id="divTarget">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Target Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" name="datefilter" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" class="form-control ActionDate" onchange="RptValidation(this); getfunction()" />
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" id="DivAsonDate" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date AsonDate" id="AsonDate" data-id="AsonDate-error" name="AsonDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="RptValidation(this);">
+                                <div id="AsonDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label name="lblProject" class="col-sm-4 col-form-label">Project</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="Project" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="ProjectID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 41, 'Project Details',[],['ProjectDate'])" BindName="Project" BindVal="ProjectID" perfect-css="button" Function="1"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Stage</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control" name="StageID" perfect-selectButtonAction="testing" perfect-class="formGroupControl" onchange="GetTeam(this); getfunction()" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+
+                                    @if (!(Model.StageList is null))
+                                    {
+                                        foreach (var cat in Model.StageList)
+                                        {
+                                            <option value="@cat.StageID">@cat.StageName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4" id="divTeam">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Team</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="TeamID" perfect-selectButtonAction="testing" onchange="ClearEmployee(this); getfunction()" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+
+                                    @if (!(Model.TeamList is null))
+                                    {
+                                        foreach (var cat in Model.TeamList)
+                                        {
+                                            <option value="@cat.TeamID">@cat.TeamName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" id="divEmp">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span id="lblEmpl" perfect-class="formGroupLabel">Employee</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="EmployeeID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                    <div class="input-group-append">
+                                        <button id="addemployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,51,'Employee List',['TeamID','Team'],['DepartmentID'])" criterea1="TeamID" bindname="Employee" bindval="EmployeeID" Function="1"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" id="divProduct">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Product</span>
+                            </label>
+
+                            <div class="col-sm-8 PerError">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="Product" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-Opening="Product" disabled />
+                                    <input type="hidden" name="ProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-Opening="ProductID" />
+
+                                    <div class="input-group-append">
+                                        @{
+
+                                            <button id="prdbtn" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_productpopupcondition(this)" Criterea1="" Criterea2="" Criterea3="" BindName="Product" BindVal="ProductID" Function="1"> </button>
+                                        }
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                </div>
+            </div>
+
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+
+
+            <div id="divMaterialList">
+                <table id="MaterialList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Material Request No</th>
+                            <th>Project</th>
+                            <th>Requested Date</th>
+                            <th>Stage</th>
+                            <th>Team</th>
+                            <th>Employee</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+            <div id="divMaterialList1">
+                <table id="MaterialList1" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Material Request No</th>
+                            <th>Project</th>
+                            <th>Pending Date</th>
+                            <th>Stage</th>
+                            <th>Team</th>
+                            <th>Employee</th>
+                            <th>Product</th>
+                            <th>Requested Quantity</th>
+                            <th>Allocated Quantity</th>
+                            <th>Balance Quantity</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+            <div id="divMaterialList2">
+                <table id="MaterialList2" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Project</th>
+                            <th>Requested Date</th>
+                            <th>Allocation Date</th>
+                            <th>Stage</th>
+                            <th>Team</th>
+                            <th>Employee</th>
+                            <th>Product</th>
+                            <th>Requested Quantity</th>
+                            <th>Allocated Quantity</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+            <div id="divProjectWiseMaterialList" style="display:none">
+                <table id="ProjMaterialList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Project</th>
+                            <th>Stage</th>
+                            <th>Product</th>
+                            <th>Assigned</th>
+                            <th>Requested</th>
+                            <th>Allotted</th>
+                            <th>Used</th>
+                            <th>Damage</th>
+                            <th>Wastage</th>
+                            <th>Returned</th>
+                            <th>Excess</th>
+                            <th>Surplus</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+    var jobcartstartdate;
+    var jobcartenddate;
+    $(function () {
+
+        $('input[name="datefilter"]').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            }
+        });
+
+        $('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {
+            let bcd = $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+            console.log("abc", picker.startDate.format('MM/DD/YYYY'), picker.endDate.format('MM/DD/YYYY'));
+
+            jobcartstartdate = picker.startDate.format('DD/MM/YYYY');
+            jobcartenddate = picker.endDate.format('DD/MM/YYYY');
+
+            $('#ToDate-error').text("");
+
+        });
+
+        $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+            jobcartstartdate = null;
+            jobcartenddate = null;
+
+        });
+
+    });
+   function clearthefields(ele){
+       let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+       $thisForm.find('[name="datefilter"]').val('');
+    }
+    function RptValidation(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let FK_Mode = $thisForm.find('[name="FK_Mode"]').val();
+
+        var isrptValid;
+
+        if (FK_Mode == "") {
+            isrptValid = false;
+            $('#FK_Mode-error').text("Please Select Report");
+        }
+        else {
+            isrptValid = true;
+            $('#FK_Mode-error').text("");
+        }
+
+       if (FK_Mode != "4") {
+            if ($('input[name="datefilter"]').val() == undefined || $('input[name="datefilter"]').val() == '') {
+                isrptValid = false;
+                $('#ToDate-error').text("Please Select Target Date");
+
+            }
+
+            else {
+                $('#ToDate-error').text("");
+               // $('#FK_Mode').text("");
+                isrptValid = true;
+
+            }
+        }
+        else {
+            if ($('input[name="AsonDate"]').val() == undefined || $('input[name="AsonDate"]').val() == '') {
+                isrptValid = false;
+                $('#AsonDate-error').text("Please Select As on Date");
+            }
+            else {
+                $('#AsonDate-error').text("");
+                isrptValid = true;
+
+            }
+        }
+        return isrptValid;
+    }
+
+
+    function ResetButton(ele) {
+        fn_MaterialRepo_initialLoad();
+    }
+    var itemdata = 0;
+    var tableData;
+
+    function geteqReport(ele) {
+
+
+        document.querySelector('#exppdf').style.display = 'none';
+        let $tbody;
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+      //  $("#EqSerList tr").remove();
+
+        let FK_Mode = $thisForm.find('[name="FK_Mode"]').val();
+     
+
+
+        //if ($thisForm.valid()) {
+
+            var table = $('#MaterialList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+            table.clear().draw();
+
+
+
+        if (RptValidation(ele)) {
+            debugger
+
+              
+                if (FK_Mode != 4) {
+                    $("#divProjectWiseMaterialList").hide();
+                    var obj = {
+                        "FromDate": jobcartstartdate == null ? "01/01/2023" : jobcartstartdate,
+                        "ToDate": jobcartenddate == null ? "01/01/2023" : jobcartenddate,
+                        FK_Mode: FK_Mode,
+                        FK_Project: $thisForm.find('[name="ProjectID"]').val(),
+                        FK_Stages: $thisForm.find('[name="StageID"]').val(),
+                        FK_Team: $thisForm.find('[name="TeamID"]').val(),
+                        FK_Employee: $thisForm.find('[name="Employee"]').val(),
+                        ProductID: $thisForm.find('[name="ProductID"]').val(),
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("GetMaterialModelList", "MaterialRequestReports")",
+                        type: "POST",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (dataOut) {
+
+                            debugger
+                            console.log('dtot', dataOut);
+
+                            var _gridColumns, _gridgroupby, _gridOrder = [];
+                            var hidecol = [];
+                            debugger
+                            if (dataOut.datares.Process.IsProcess) {
+
+                                document.querySelector('#exppdf').style.display = 'block';
+                                //if (dataOut.datares.Data) {
+                                //    dataOut.datares.Data.forEach((i) => {
+
+                                //        var a = i.RequestDate.split('T')[0];
+
+                                //        i['RequestDate'] = changeDateFormat(a);
+                                //    });
+                                //}
+
+                                itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                                if (itemdata == null || itemdata == "") {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "none";
+
+                                } else {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "block";
+                                }
+
+
+                                if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                                    if (dataOut.datares.Data) {
+                                        dataOut.datares.Data.forEach((i) => {
+
+                                            var a = i.RequestDate.split('T')[0];
+
+                                            i['RequestDate'] = changeDateFormat(a);
+                                        });
+                                    }
+
+                                    $("#divMaterialList2").hide();
+                                    $("#divMaterialList").show();
+                                    $("#divMaterialList1").hide();
+                                    $("#divProjectWiseMaterialList").hide();
+
+                                    tableData = $('#MaterialList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "RequestNo" },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "Quantity" },
+
+
+                                        ],
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
+
+                                            { "visible": false, "targets": 1 }
+                                        ],
+                                        drawCallback: function (settings) {
+                                            debugger
+                                            if (1 > 0) {
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+                                                //console.log(api, rows);
+                                                api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                        $(rows).eq(i).before(
+                                                            '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+                                }
+
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+
+                                    if (dataOut.datares.Data) {
+                                        dataOut.datares.Data.forEach((i) => {
+
+                                            var a = i.RequestDate.split('T')[0];
+
+                                            i['RequestDate'] = changeDateFormat(a);
+                                        });
+                                    }
+
+                                    $("#divMaterialList").hide();
+                                    $("#divMaterialList1").show();
+                                    $("#divMaterialList2").hide();
+                                    $("#divProjectWiseMaterialList").hide();
+
+                                    tableData = $('#MaterialList1').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "RequestNo" },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "RequestQty" },
+                                            { "data": "AllocatedQty" },
+                                            { "data": "BalanceQty" },
+
+
+                                        ],
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+
+                                            { "visible": false, "targets": 1 }
+                                        ],
+                                        drawCallback: function (settings) {
+                                            debugger
+                                            if (1 > 0) {
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+                                                //console.log(api, rows);
+                                                api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                        $(rows).eq(i).before(
+                                                            '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+
+                                }
+                                else {
+                                    dataOut.datares.Data.forEach((i) => {
+
+                                        var a = i.AllocatedDate.split('T')[0];
+
+                                        i['AllocatedDate'] = changeDateFormat(a);
+                                    });
+                                    debugger
+                                    $("#divMaterialList").hide();
+                                    $("#divMaterialList2").show();
+                                    $("#divMaterialList1").hide();
+
+
+                                    tableData = $('#MaterialList2').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "AllocatedDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "RequestedQty" },
+                                            { "data": "AllocatedQty" },
+
+
+                                        ],
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+
+                                            { "visible": false, "targets": 1 }
+                                        ],
+
+                                        drawCallback: function (settings) {
+                                            debugger
+                                            if (1 > 0) {
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+                                                //console.log(api, rows);
+                                                api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                        $(rows).eq(i).before(
+                                                            '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+                                    // $('#divMaterialList2').destroy();
+
+                                }
+
+                            }
+                            else {
+                                document.querySelector('#exppdf').style.display = 'none';
+                                if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                                    if (dataOut.datares.Data) {
+                                        dataOut.datares.Data.forEach((i) => {
+
+                                            var a = i.RequestDate.split('T')[0];
+
+                                            i['RequestDate'] = changeDateFormat(a);
+                                        });
+                                    }
+
+                                    $("#divMaterialList2").hide();
+                                    $("#divMaterialList").show();
+                                    $("#divMaterialList1").hide();
+
+                                    tableData = $('#MaterialList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "RequestNo" },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "Quantity" },
+
+
+                                        ],
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] },
+
+                                            { "visible": false, "targets": 1 }
+                                        ],
+                                        drawCallback: function (settings) {
+                                            debugger
+                                            if (1 > 0) {
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+                                                //console.log(api, rows);
+                                                api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                        $(rows).eq(i).before(
+                                                            '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+                                }
+                                else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                                    $("#divMaterialList").hide();
+                                    $("#divMaterialList1").show();
+                                    $("#divMaterialList2").hide();
+
+                                    tableData = $('#MaterialList1').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "RequestNo" },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "RequestQty" },
+                                            { "data": "AllocatedQty" },
+                                            { "data": "BalanceQty" },
+
+
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] }
+
+                                            //{ "visible": false, "targets": 0 }
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+
+                                }
+
+                                else {
+                                    debugger
+                                    $("#divMaterialList").hide();
+                                    $("#divMaterialList2").show();
+                                    $("#divMaterialList1").hide();
+
+                                    tableData = $('#MaterialList2').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Project" },
+                                            { "data": "RequestDate" },
+                                            { "data": "AllocatedDate" },
+                                            { "data": "Stage" },
+                                            { "data": "Team" },
+                                            { "data": "Employee" },
+                                            { "data": "Product" },
+                                            { "data": "RequestedQty" },
+                                            { "data": "AllocatedQty" },
+
+
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }
+
+                                            //{ "visible": false, "targets": 0 }
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+
+                                }
+
+                            }
+
+
+                        },
+                        complete: function () {
+                        }
+                    });
+                }
+                else {
+                     var obj = {
+                         AsOnDate: $thisForm.find('[name="AsonDate"]').val() ,
+                        FK_Project: $thisForm.find('[name="ProjectID"]').val(),
+                        FK_Stage: $thisForm.find('[name="StageID"]').val(),
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("GetProjectwiseMaterialDetails", "MaterialRequestReports")",
+                        type: "POST",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (dataOut) {
+
+
+
+
+
+                            debugger
+                            console.log('dtot', dataOut);
+
+                            var _gridColumns, _gridgroupby, _gridOrder = [];
+                            var hidecol = [];
+                            debugger
+                            if (dataOut.datares.Process.IsProcess) {
+
+                                document.querySelector('#exppdf').style.display = 'block';
+                                //if (dataOut.datares.Data) {
+                                //    dataOut.datares.Data.forEach((i) => {
+
+                                //        var a = i.RequestDate.split('T')[0];
+
+                                //        i['RequestDate'] = changeDateFormat(a);
+                                //    });
+                                //}
+
+                                itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                                if (itemdata == null || itemdata == "") {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "none";
+
+                                } else {
+
+                                    let x = document.getElementById("exppdf");
+                                    x.style.display = "block";
+                                }
+
+
+
+                                    //if (dataOut.datares.Data) {
+                                    //    dataOut.datares.Data.forEach((i) => {
+
+                                    //        var a = i.RequestDate.split('T')[0];
+
+                                    //        i['RequestDate'] = changeDateFormat(a);
+                                    //    });
+                                    //}
+
+                                    $("#divMaterialList2").hide();
+                                $("#divMaterialList").hide();
+                                    $("#divMaterialList1").hide();
+                                $("#divProjectWiseMaterialList").show();
+
+                                tableData = $('#ProjMaterialList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Project" },
+                                            { "data": "Stage" },
+                                            { "data": "Product" },
+                                            { "data": "Assigned", className: "text-right" },
+                                            { "data": "Requested", className: "text-right"  },
+                                            { "data": "Allotted", className: "text-right" },
+                                            { "data": "Used", className: "text-right"  },
+                                            { "data": "Damage", className:"text-right" },
+                                            { "data": "Wastage", className: "text-right"  },
+                                            { "data": "Returned", className: "text-right"  },
+                                            { "data": "Excess", className: "text-right"  },
+                                            { "data": "Surplus", className: "text-right"  },
+
+
+                                        ],
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8,9,10,11,12] },
+
+                                            { "visible": false, "targets": 1 }
+                                        ],
+                                        drawCallback: function (settings) {
+                                            debugger
+                                            if (1 > 0) {
+                                                var api = this.api();
+                                                var rows = api.rows({ page: 'current' }).nodes();
+                                                var last = null;
+                                                //console.log(api, rows);
+                                                api.column(1, { page: 'current' }).data().each(function (group, i) {
+
+                                                    if (last !== group) {
+                                                        $(rows).eq(i).before(
+                                                            '<tr class="group"><td colspan="13" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                        );
+                                                        last = group;
+                                                    }
+                                                });
+                                            }
+                                        },
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                    });
+
+
+
+                            }
+                            else {
+                                document.querySelector('#exppdf').style.display = 'none';
+
+                                    $("#divMaterialList2").hide();
+                                $("#divMaterialList").hide();
+                                    $("#divMaterialList1").hide();
+                                $("#divProjectWiseMaterialList").show();
+
+                                tableData = $('#ProjMaterialList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Project" },
+                                            { "data": "Stage" },
+                                            { "data": "Product" },
+                                            { "data": "Assigned", className: "text-right"  },
+                                            { "data": "Requested", className: "text-right" },
+                                            { "data": "Allotted", className: "text-right" },
+                                            { "data": "Used", className: "text-right"  },
+                                            { "data": "Damage", className: "text-right"  },
+                                            { "data": "Wastage", className: "text-right"  },
+                                            { "data": "Returned", className: "text-right" },
+                                            { "data": "Excess", className: "text-right"  },
+                                            { "data": "Surplus", className: "text-right"  },
+
+
+                                        ],
+                                        "language": {
+                                            "emptyTable": "No data available"
+                                        },
+                                        //scrollY: 550,
+                                        //scrollX: true,
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+                                            //footer: true
+                                        },
+                                        //"order": [[7, "asc"]],
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] }
+
+                                            //{ "visible": false, "targets": 0 }
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            return nRow;
+                                        },
+                                });
+
+                                $("#ProjMaterialList tbody").html("");
+                                }
+
+
+
+
+
+                        },
+                        complete: function () {
+                        }
+                    });
+
+                }
+                fn_showFilter();
+        }
+
+            else {
+            $(ele).prop('disabled', false);
+        
+                //   NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'Please Select Target Date' })
+
+            }
+
+        //}
+    }
+
+
+
+
+ function generatePdf(ele) {
+        var cdata;
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let $container = $(ele).closest('[perfect-class="form"]');
+     var obj = [];
+
+     var asondate_ = new Date($('input[name=AsonDate]').val());
+     var asondate = moment(asondate_).format('DD/MM/YYYY')
+
+
+
+     if ($('select[name="FK_Mode"] option:selected').val() == "4") {
+
+         obj = {
+             "Report Name": $('select[name="FK_Mode"] option:selected').text(),
+             "As on Date": asondate,
+             "Project": $('input[name="Project"]').val().trim() == "" ? "All" : $('input[name="Project"]').val(),
+             "Stage": $('select[name="StageID"]option:selected').text().trim().toUpperCase() != "PLEASE SELECT" ? "All" : $('select[name="StageID"]option:selected').text(),
+
+
+
+
+
+         };
+     }
+     else {
+         obj = {
+
+
+
+             // Employee: $container.find('[name="FK_Employee"]').val(),
+             "Report Name": $('select[name="FK_Mode"] option:selected').text(),
+             "Target Date": $('input[name=datefilter]').val(),
+             "Project": $('input[name="Project"]').val(),
+             "Stage": $('select[name="StageID"]option:selected').text().trim().toUpperCase() != "PLEASE SELECT" ? "All" : $('select[name="StageID"]option:selected').text(),
+             "Team": $('select[name="TeamID"]option:selected').text(),
+             "Employee": $('input[name="Employee"]').val(),
+             "Product": $('input[name="Product"]').val(),
+
+
+
+
+
+         };
+     }
+        const obj2 = {
+            //"From ": $('input[name="FromDate"]').val(),
+            //"To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+         var str2 = "";
+         var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str+="Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+     };
+     if (obj2 != null) {
+         for (var i in obj2) {
+             if (obj2[i] != "" && obj2[i] != undefined) {
+
+                 str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+             }
+
+         };
+     }
+
+        var upperhead = {
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+            body: [
+                [
+
+                    '  '  + '   ' + str2
+
+
+                    //'\n' +
+
+
+                ],
+                [
+                    str
+                ]
+
+
+
+            ],
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black'
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.8; // Adjust the line height value to your preference
+            }
+
+
+        };
+
+
+
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+             success: function (ajaxOutput) {
+                 debugger
+
+                     cdata = ajaxOutput;
+
+
+
+                     var head = [];
+                     var ptableData = {};
+                     debugger;
+                     console.log(itemdata, '<<itemdata>>')
+
+                     //itemdata.forEach((i) => {
+
+                     //    var a = i.AssignedDate.split('T')[0];
+
+                     //    i['AssignedDate'] = changeDateFormat(a);
+                     //})
+                     if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                         head = [['Sl No','Project', 'Requested Date', 'Stage', 'Team', 'Employee', 'Product', 'Quantity']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 //{ title: "Material Request No", dataKey: "RequestNo" },
+                                 { title: "Project", dataKey: "Project" },
+                                 { title: "Request Date", dataKey: "RequestDate" },
+                                 { title: "Stage", dataKey: "Stage" },
+                                 { title: "Team", dataKey: "Team" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Quantity", dataKey: "Quantity" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                         head = [['Sl No', 'Project', 'Pending Date', 'Stage', 'Team', 'Employee', 'Product', 'Request Quantity', 'Allocated Quantity', 'Balance Quantity']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 //{ title: "Material Request No", dataKey: "RequestNo" },
+                                 { title: "Project", dataKey: "Project" },
+                                 { title: "Pending Date", dataKey: "RequestDate" },
+                                 { title: "Stage", dataKey: "Stage" },
+                                 { title: "Team", dataKey: "Team" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Request Qty", dataKey: "RequestQty" },
+                                 { title: "Allocated Qty", dataKey: "AllocatedQty" },
+                                 { title: "Balance Qty", dataKey: "BalanceQty" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                     else if ($('select[name="FK_Mode"] option:selected').val() == 3) {
+                         debugger
+                         head = [['Sl No', 'Requested Date', 'Allocated Date', 'Stage', 'Team', 'Employee', 'Product', 'Requested Quantity', 'Allocated Quantity']];
+                     ptableData = {
+                     columns: [
+                         //{ title: "SLNo", dataKey: "SLNo" },
+                         //{ title: "Project", dataKey: "Project" },
+                         { title: "Requested Date", dataKey: "RequestDate" },
+                         { title: "Allocated Date", dataKey: "AllocatedDate" },
+                         { title: "Stage", dataKey: "Stage" },
+                         { title: "Team", dataKey: "Team" },
+                         { title: "Employee", dataKey: "Employee" },
+                         { title: "Product", dataKey: "Product" },
+                         { title: "Requested Quantity", dataKey: "RequestedQty" },
+                         { title: "Allocated Quantity", dataKey: "AllocatedQty" },
+
+                     ],
+                     rows: itemdata
+
+                 };
+                 }
+                  else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+                         debugger
+                         head = [['Sl No', 'Project', 'Stage', 'Product', 'Assigned', 'Requested', 'Allotted', 'Used', 'Damage', 'Wastage',  'Returned', 'Excess', 'Surplus']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 //{ title: "Project", dataKey: "Project" },
+                                 { title: "Project", dataKey: "Project" },
+                                 { title: "Stage", dataKey: "Stage" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Assigned", dataKey: "Assigned", className: "text-right"  },
+                                 { title: "Requested", dataKey: "Requested", className: "text-right" },
+                                 { title: "Allotted", dataKey: "Allotted", className: "text-right" },
+                                 { title: "Used", dataKey: "Used", className: "text-right" },
+                                 { title: "Damage", dataKey: "Damage", className: "text-right" },
+                                 { title: "Wastage", dataKey: "Wastage", className: "text-right"  },
+                                 { title: "Returned", dataKey: "Returned", className: "text-right"  },
+                                 { title: "Excess", dataKey: "Excess", className: "text-right" },
+                                 { title: "Surplus", dataKey: "Surplus", className: "text-right" },
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     } else {
+                         head = [['Sl No', 'Requested Date', 'Allocated Date', 'Stage', 'Team', 'Employee', 'Product', 'Requested Quantity', 'Allocated Quantity']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 //{ title: "Project", dataKey: "Project" },
+                                 { title: "Requested Date", dataKey: "RequestDate" },
+                                 { title: "Allocated Date", dataKey: "AllocatedDate" },
+                                 { title: "Stage", dataKey: "Stage" },
+                                 { title: "Team", dataKey: "Team" },
+                                 { title: "Employee", dataKey: "Employee" },
+                                 { title: "Product", dataKey: "Product" },
+                                 { title: "Requested Quantity", dataKey: "RequestedQty" },
+                                 { title: "Allocated Quantity", dataKey: "AllocatedQty" },
+
+
+                             ],
+                             rows: itemdata
+
+                         };
+                     }
+                    // let Rptname;
+                     //let rptvalue = $thisForm.find('[name="FK_Mode"]').val();
+
+                     //if (rptvalue == 1) {
+                     //    Rptname = 'Delivery Pending List'
+                     //}
+                     //else {
+                     //    Rptname = 'Delivery Completed List'
+                     //}
+
+                 var grp = "";
+                 console.log(ptableData, 'ptableData---0))0')
+                 if ($('select[name="FK_Mode"] option:selected').val() == 3) {
+                     grp = "Project";
+                 } else {
+                       grp = "RequestNo";
+                 }
+                 try {
+                     let fileName = $('select[name="FK_Mode"] option:selected').text();
+                     exportPdf($('select[name="FK_Mode"] option:selected').text(), head, cdata, upperhead, "", ptableData, grp, fileName, "a4", "", "", "P");
+                 } catch (ex) {
+
+                 }
+
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+
+
+
+
+                }
+         });
+    }
+
+
+
+
+
+    function onExell() {
+
+
+        var cdata;
+
+
+        var obj = [];
+        if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+            var asondate_ = new Date($('input[name=AsonDate]').val());
+            var asondate = moment(asondate_).format('DD/MM/YYYY')
+
+
+
+            // Employee: $container.find('[name="FK_Employee"]').val(),
+            obj = {
+                "Report Name": $('select[name="FK_Mode"] option:selected').text(),
+                "As on Date": asondate,
+                "Project": $('input[name="Project"]').val().trim() == "" ? "All" : $('input[name="Project"]').val(),
+                "Stage": $('select[name="StageID"]option:selected').text().trim().toUpperCase() != "PLEASE SELECT" ? "All" : $('select[name="StageID"]option:selected').text(),
+
+
+
+        };
+    }  else {
+            obj = {
+
+
+
+                // Employee: $container.find('[name="FK_Employee"]').val(),
+                "Report Name": $('select[name="FK_Mode"] option:selected').text(),
+                "Target Date": $('input[name=datefilter]').val(),
+                "Project": $('input[name="Project"]').val(),
+                "Stage": $('select[name="StageID"]option:selected').text(),
+                "Team": $('select[name="TeamID"]option:selected').text(),
+                "Employee": $('input[name="Employee"]').val(),
+                "Product": $('input[name="Product"]').val(),
+
+
+
+
+
+            };
+        }
+        const obj2 = {
+            //"From ": $('input[name="FromDate"]').val(),
+            //"To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str += "Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+                console.log(cdata, "---cdata----");
+
+
+                if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                    head = [['Sl No', 'Project', 'Requested Date', 'Stage', 'Team', 'Employee', 'Product', 'Quantity']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                           // { title: "Material Request No", dataKey: "RequestNo" },
+                            { title: "Project", dataKey: "Project" },
+                            { title: "Request Date", dataKey: "RequestDate" },
+                            { title: "Stage", dataKey: "Stage" },
+                            { title: "Team", dataKey: "Team" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Quantity", dataKey: "Quantity" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+                }
+                else if ($('select[name="FK_Mode"] option:selected').val() == 2) {
+                    head = [['Sl No', 'Project', 'Pending Date', 'Stage', 'Team', 'Employee', 'Product', 'Request Quantity', 'Allocated Quantity','Balance Quantity']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            //{ title: "Material Request No", dataKey: "RequestNo" },
+                            { title: "Project", dataKey: "Project" },
+                            { title: "Pending Date", dataKey: "RequestDate" },
+                            { title: "Stage", dataKey: "Stage" },
+                            { title: "Team", dataKey: "Team" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Request Qty", dataKey: "RequestQty" },
+                            { title: "Allocated Qty", dataKey: "AllocatedQty" },
+                            { title: "Balance Qty", dataKey: "BalanceQty" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+                } else if ($('select[name="FK_Mode"] option:selected').val() == 4) {
+                    debugger
+                    head = [['Sl No', 'Project', 'Stage', 'Product', 'Assigned', 'Requested', 'Allotted', 'Used', 'Damage', 'Wastage', 'Returned', 'Excess', 'Surplus']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            //{ title: "Project", dataKey: "Project" },
+                            { title: "Project", dataKey: "Project" },
+                            { title: "Stage", dataKey: "Stage" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Assigned", dataKey: "Assigned", className: "text-right" },
+                            { title: "Requested", dataKey: "Requested", className: "text-right"  },
+                            { title: "Allotted", dataKey: "Allotted", className: "text-right" },
+                            { title: "Used", dataKey: "Used", className: "text-right"  },
+                            { title: "Damage", dataKey: "Damage", className: "text-right" },
+                            { title: "Wastage", dataKey: "Wastage", className: "text-right" },
+                            { title: "Returned", dataKey: "Returned", className: "text-right"  },
+                            { title: "Excess", dataKey: "Excess", className: "text-right"  },
+                            { title: "Surplus", dataKey: "Surplus", className: "text-right"  },
+
+                        ],
+                        rows: itemdata
+
+                    };
+                }
+
+                else {
+                    head = [['Sl No', 'Requested Date', 'Allocated Date', 'Stage', 'Team', 'Employee', 'Product', 'Requested Quantity', 'Allocated Quantity']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            //{ title: "Project", dataKey: "Project" },
+                            { title: "Requested Date", dataKey: "RequestDate" },
+                            { title: "Allocated Date", dataKey: "AllocatedDate" },
+                            { title: "Stage", dataKey: "Stage" },
+                            { title: "Team", dataKey: "Team" },
+                            { title: "Employee", dataKey: "Employee" },
+                            { title: "Product", dataKey: "Product" },
+                            { title: "Requested Quantity", dataKey: "RequestedQty" },
+                            { title: "Allocated Quantity", dataKey: "AllocatedQty" },
+
+
+                        ],
+                        rows: itemdata
+
+                    };
+                }
+                if ($('select[name="FK_Mode"] option:selected').val() == 3) {
+                    var grp = "Project";
+                } else {
+                    var grp = "RequestNo";
+                }
+
+
+                    ReportName = `${cdata.Company} \n${cdata.Branch} \n ${$('select[name="FK_Mode"] option:selected').text()} \n ${str2} \n ${str} `
+                generateExell(ReportName, head, ptableData, {}, grp, 'str');
+
+
+               // generateExell(ptitle, phead, ptableData, mergeRangesdata, grpvariable, filename) {
+
+                //ReportName = `${cdata.Company} \n${cdata.Branch}\n   ${Namehead}   \n  ${str2} \n ${str} `
+                //generateExell(ReportName, [head], ptableData, "", "", Namehead , str);
+
+            }
+        });
+
+    }
+
+
+
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+        function changeDateFormat(date) {
+            /*var date = '2023-06-05';*/
+
+            // Split the date into year, month, and day components
+            var dateComponents = date.split('-');
+
+            // Rearrange the components to form the desired format
+            var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+            console.log(formattedDate); // Output: 05/06/23
+            return formattedDate;
+        }
+        function exportbuttonhide() {
+            document.querySelector('#exppdf').style.display = 'none';
+            console.log('Input value changed:');
+        }
+
+        var inputElements = document.getElementsByClassName('exptbttontoogle');
+        for (var i = 0; i < inputElements.length; i++) {
+            inputElements[i].addEventListener('change', function (event) {
+                // Handle the change event here
+                // var inputValue = event.target.value;
+                document.querySelector('#exppdf').style.display = 'none';
+                console.log('Input value changed:');
+            });
+        }
+    function getfunction() {
+        document.querySelector('#exppdf').style.display = 'none';
+        
+    }
+    function ToggleControls(ele) {
+        debugger;
+        let FK_Mode = $(ele).val();
+
+        if (FK_Mode == "4") {
+            $("#divProduct").hide();
+            $("#divEmp").hide();
+            $("#divTeam").hide();
+            $("#DivAsonDate").show();
+            $("#divTarget").hide();
+        } else {
+            $("#divProduct").show();
+            $("#divEmp").show();
+            $("#divTeam").show();
+            $("#DivAsonDate").hide();
+            $("#divTarget").show();
+        }
+    }
+
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+
+     function GetTeam(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+       let ProjectID = $thisForm.find('[name=ProjectID]').val();
+             let StageID = $thisForm.find('[name=StageID]').val();
+             ClearEmployee(ele);
+
+            //let inputData = {
+            //    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            //    LeadGenerateID: $thisForm.find('[name=Lead]').val().trim()
+            //};
+            $.ajax({
+                url: "@Url.Action("GetProjectTeam", "MaterialRequestReports")",
+                type: "POST",
+
+                data: JSON.stringify({ FK_Project: ProjectID, FK_Stage: StageID  }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    let $placeDropdown = $thisForm.find('[name=TeamID]');//<--- Will give place select html element
+                    $placeDropdown.empty().selectpicker('refresh');
+                    $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.TeamID }).text(value.TeamName)).selectpicker('refresh')
+
+                        });
+                        if ($placeDropdown.attr('perfect-onloadSelect')) {
+                            $placeDropdown.val($placeDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                        }
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                        });
+                    }
+                }
+
+
+
+            });
+
+
+     }
+
+     function fn_GetEmployee(ele) {
+
+
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $placeDropdown = $thisForm.find('[name=EmployeeID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+        let StageID = $(ele).val();
+        let ProjectID = $thisForm.find('[name=ProjectID]').val()
+         $.ajax({
+                 url: "@Url.Action("GetEmployees", "MaterialRequestReports")",
+                type: "POST",
+
+             data: JSON.stringify({ FK_Stage: StageID, FK_Project: ProjectID}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                             $.each(ajaxOutput.Data, function (key, value) {
+                                 $placeDropdown.append($('<option/>', { "value": value.EmployeeID }).text(value.EmployeeName)).selectpicker('refresh')
+                                 });
+
+
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+    function ClearEmployee(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[name=EmployeeID]').val(0);
+        $thisForm.find('[name=Employee]').val('');
+    }
+
+     function fn_productpopupcondition(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //let stockmode = $thisForm.find('[name=StockMode]').val();
+
+        GetCmnPopUpSearchVal(ele, 40, 'Product Details', [])
+
+    }
+
+
+</script>
+

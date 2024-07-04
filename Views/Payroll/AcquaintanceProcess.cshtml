@@ -1,0 +1,622 @@
+﻿@{
+    ViewBag.Title = "Acquaintance Process";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="AcquaintanceProcess-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+<script>
+        const $formContainer = $('#AcquaintanceProcess-form');
+
+
+        $(document).ready(function () {
+            AcquaintanceProcessInitialLoad();
+        });
+
+    function AcquaintanceProcessInitialLoad() {
+        loadAcquaintanceProcessAddForm();
+        loadAcquaintanceProcessList(this);
+    }
+
+        var validationMessage = {
+            'PaperName': {
+                'required': 'Please Enter Paper Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Name'
+            },
+            'PaperShortName': {
+                'required': 'Please Enter Short Name',
+                'maxlength': jQuery.validator.format(' Short Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Short Name'
+            },
+            'SortNo': {
+                'required': 'Please Select Sort Number'
+            },
+             'ModuleName': {
+                'required': 'Please Select a Type'
+            },
+            'FromDate': {
+                'required': 'Please Select From Date',
+            },
+            'ToDate': {
+                'required': 'Please Select To Date',
+            },
+            //'FK_Branch': {
+            //    'required': 'Please Select Branch',
+            //},
+            //'FK_Department': {
+            //    'required': 'Please Select Department',
+            //},
+        };
+
+
+
+    function loadAcquaintanceProcessAddForm() {
+        debugger
+        $formContainer.load('@Url.Action("LoadAcquaintanceProcess", "Payroll")', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="ProcessDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'AcquaintanceProcessInitialLoad');
+        });
+     }
+    function loadAcquaintanceProcessList(ele) {
+        debugger
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+        $sideMenuOptions.title.find('h4').text('Salary Process List');
+        let pageUrl = '@Url.Action("GetSalaryProcessList", "Payroll")';
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 10, pageIndex: 0, Name: SearchName },
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Process.IsProcess) {
+                    $sidemenu.find('.jq_sidemenu_title').text("Salary Process List");
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " "id="serchname" name="SearchName" value="' + SearchName+'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadAcquaintanceProcessList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": ajaxOutput.totalrecord,
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                        "pageLength": ajaxOutput.pageSize,
+                        "recordsFiltered": ajaxOutput.pageSize,
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                    });
+                }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Salary Process List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " "id="serchname" name="SearchName" value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadAcquaintanceProcessList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                { displayName: "View", action: fn_salaryProcessById },
+                { type: "divider" },
+                { displayName: "Delete", action: deleteAcquaintanceProcess }
+            ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "ProcessedDate", "EmployeeName","FromDate", "ToDate", "Branch","Department"],
+        hideColumn: ["GroupID","FK_Employee", "FK_Branch","FK_Department"],
+        rowClickAction: fn_salaryProcessById,
+        renameHeader: { "SlNo": "SL NO", "EmployeeName":"Employee", "ProcessedDate": "Processed Date", "FromDate": "Salary From", "ToDate":"Salary To" },
+        isDateType: ["FromDate", "ToDate","ProcessedDate"],
+    };
+
+    function deleteAcquaintanceProcess() {
+        debugger
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetPaperDeleteReasonList", "Paper")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  this Salary Process  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        'FK_Branch': Saveddata.FK_Branch,
+                                        'FK_Department': Saveddata.FK_Department,
+                                        'FK_Employee': Saveddata.FK_Employee,
+                                        'FromDate': ConvertJsonDate(Saveddata.FromDate),
+                                        'ToDate': ConvertJsonDate(Saveddata.ToDate),
+                                        'ProcessDate': ConvertJsonDate(Saveddata.ProcessedDate),
+                                        'FK_Reason': selectedOption,
+                                        'GroupID': Saveddata.GroupID,
+                                        'UserAction': 2,
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("UpdateSalaryInfo", "Payroll")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                AcquaintanceProcessInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+    }
+    function ConvertJsonDate(Jsondate) {
+        var date = "";
+        if (Jsondate != "" && Jsondate != null && Jsondate != undefined) {
+            var dateString = Jsondate.substr(6);
+            var currentTime = new Date(parseInt(dateString));
+            var month = currentTime.getMonth() + 1;
+            if (month <= 9) {
+                month = "0" + month;
+            }
+            var day = currentTime.getDate();
+            if (day <= 9) {
+                day = "0" + day;
+            }
+            var year = currentTime.getFullYear();
+            date = day + "/" + month + "/" + year;
+
+
+        }
+        return date;
+    }
+    function fn_salaryProcessById() {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+        SalaryDetails = [];
+        $thisForm.find('[name="FK_Branch"]').val(Saveddata.FK_Branch).selectpicker('refresh');
+        $thisForm.find('[name="FK_Department"]').val(Saveddata.FK_Department).selectpicker('refresh');
+        $thisForm.find('[name=FK_Employee]').val(Saveddata.FK_Employee),
+        $thisForm.find('[name=EmployeeName]').val(Saveddata.EmployeeName),
+        $thisForm.find('[name=FromDate]').val(moment(Saveddata.FromDate).format('YYYY-MM-DD'));
+        $thisForm.find('[name=ToDate]').val(moment(Saveddata.ToDate).format('YYYY-MM-DD'));
+        $thisForm.find('[name=ProcessDate]').val(moment(Saveddata.ProcessedDate).format('YYYY-MM-DD'));
+
+        $thisForm.find('button[name=Save]').addClass('d-none');
+        $thisForm.find('button[name=Clear]').addClass('d-none');
+        let inputData =
+        {
+            'FK_Branch': Saveddata.FK_Branch,
+            'FK_Department': Saveddata.FK_Department,
+            'FK_Employee': Saveddata.FK_Employee,
+            'FromDate': ConvertJsonDate(Saveddata.FromDate),
+            'ToDate': ConvertJsonDate(Saveddata.ToDate)
+        };
+        $("#SalaryProcessItemHead").empty();
+        $.ajax({
+
+            url: "@Url.Action("GetSalaryProcessListByID", "Payroll")",
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                console.log("ajaxOutput data:", ajaxOutput)
+
+                if (ajaxOutput.SalaryData.Process.IsProcess) {
+                    $thisForm.find('button[name=ClearProcess]').removeClass('d-none');
+                    $thisForm.find('button[name=Process]').addClass('d-none');
+                    if (ajaxOutput.SalaryData.Data.length > 0) {
+                        $sideMenuOptions.close();
+                        $("#SalaryProcessItemHead").empty();
+                        fn_fillAcquaintanceProcessData($thisForm, 'SalaryProcess', ajaxOutput.SalaryData.Data, tableOptionsAcquaintanceView)
+                        $thisForm.find('[perfect-tempTable="SalaryProcess"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.SalaryData.Data, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                    if (ajaxOutput.SalaryData.Data == null) {
+                        $("#SalaryProcessItemHead").empty();
+                        fn_fillAcquaintanceProcessData($thisForm, 'SalaryProcess', ajaxOutput.SalaryData.Data, tableOptionsAcquaintanceView)
+                        $thisForm.find('[perfect-tempTable="SalaryProcess"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                    }
+                }
+              
+            },
+            complete: function () {
+                $(this).prop('disabled', false);
+            }
+        });
+
+    }
+    @*function fn_showSalaryDataDetails() {
+
+
+       let $thisForm = $('[perfect-class="form"]');
+
+
+       let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        let inputData =
+        {
+            'FK_Branch': Saveddata.FK_Branch,
+            'FK_Department': Saveddata.FK_Department,
+            'FK_Employee': Saveddata.FK_Employee,
+            'FromDate': ConvertJsonDate(Saveddata.FromDate),
+            'ToDate': ConvertJsonDate(Saveddata.ToDate),
+            'FK_SalaryProcess': Saveddata.ID_SalaryProcess
+        };
+
+
+        $.ajax({
+
+
+           url: "@Url.Action("GetSalaryProcessEmpData", "Payroll")",
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+
+               console.log("ajaxOutput data:", ajaxOutput)
+
+
+               if (ajaxOutput.SalaryDataDetails.Process.IsProcess) {
+                    debugger
+                    if (ajaxOutput.SalaryDataDetails.Data.length > 0) {
+                        $thisForm.find('[name=EmpCode]').val(Saveddata.EmpCode);
+                        $thisForm.find('[name=Empname]').val(Saveddata.Empname);
+                        //var Singlesalaryobject = [];
+                        //if (SalaryDetails != null) {
+                        //    Singlesalaryobject = SalaryDetails.filter(obj => obj.FK_Employee.toString() === (savedData.FK_Employee).toString());
+                        //}
+
+
+                       $("#divSalaryProcessDtls").empty();
+                        $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                            let tempDiv = `<div class="col-sm-6">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-5 col-form-label">
+                                                <span perfect-class="formGroupLabel" name="lblProName">${value.TypeName}</span>
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control text-right EmployeeSalaryDetails" name="${value.TypeName}" TypeName="${value.TypeName}"
+                                                     ID_PaySlipTransSub="${value.ID_SalaryProcessDetails}" FK_ID_PaySlipTrans="${value.FK_SalaryProcess}"  FK_AllowanceType="${value.FK_AllowanceType}" ShortName="${value.ShortName}"
+                                                     FK_Employee="${value.FK_Employee}" ALWMode="${value.ALWMode}" ALWType="${value.ALWType}"  GrossPay="${value.GrossPay}"  perfect-class="formGroupControl"
+                                                     perfect-ctype="input" perfect-css="input"  maxlength="12" onkeypress='return isNumberKey(event)'  value="${Number(value.AlsDetAmount).toFixed(2)}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            $("#divSalaryProcessDtls").append(tempDiv)
+                        });
+                        $('#formGroupModalSalary').modal('show');
+                    }
+                    $thisForm.find('button[name=UpdateProcess]').addClass('d-none');
+                }
+                else {
+                    $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+            complete: function () {
+                $(this).prop('disabled', false);
+            }
+        });
+
+
+   }*@
+@*function fn_showSalaryDataDetails() {
+    debugger;
+
+    let $thisForm = $('[perfect-class="form"]');
+    let $row = $(this).closest('tr');
+    let savedData = $row.data('pData');
+    let inputData = {
+        'FK_Branch': savedData.FK_Branch,
+        'FK_Department': savedData.FK_Department,
+        'FK_Employee': savedData.FK_Employee,
+        'FromDate': ConvertJsonDate(savedData.FromDate),
+        'ToDate': ConvertJsonDate(savedData.ToDate),
+        'FK_SalaryProcess': savedData.ID_SalaryProcess
+    };
+
+    $.ajax({
+        url: "@Url.Action("GetSalaryProcessEmpData", "Payroll")",
+        type: "POST",
+        data: inputData,
+        dataType: "json",
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+        success: function (ajaxOutput) {
+            console.log("ajaxOutput data:", ajaxOutput);
+
+            if (ajaxOutput.SalaryDataDetails.Process.IsProcess) {
+                debugger;
+                if (ajaxOutput.SalaryDataDetails.Data.length > 0) {
+                    $thisForm.find('[name=EmpCode]').val(savedData.EmpCode);
+                    $thisForm.find('[name=Empname]').val(savedData.Empname);
+
+                    $("#divSalaryProcessDtls").empty();
+                    let tempDiv = "";
+                    let closediv1 = false;
+                    let closediv2 = false;
+
+                    $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                        console.log("Data before loop:", ajaxOutput.SalaryDataDetails.Data);
+                        if (value.ALWMode == 1 && !closediv1) {
+                            tempDiv += "<div class='col-sm-6'>";
+                            closediv1 = true;
+                        } else if (value.ALWMode == 2 && !closediv2) {
+                            alert(value.ALWMode);
+                            if (tempDiv !== "") {
+                                tempDiv += "</div><div class='col-sm-6'>";
+                                closediv2 = true;
+                            }
+                        }
+                      
+
+                        tempDiv += `<div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-5 col-form-label">
+                                            <span perfect-class="formGroupLabel" name="lblProName">${value.TypeName}</span>
+                                        </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control text-right EmployeeSalaryDetails" name="${value.TypeName}" TypeName="${value.TypeName}"
+                                                 ID_PaySlipTransSub="${value.ID_SalaryProcessDetails}" FK_ID_PaySlipTrans="${value.FK_SalaryProcess}"  FK_AllowanceType="${value.FK_AllowanceType}" ShortName="${value.ShortName}"
+                                                 FK_Employee="${value.FK_Employee}" ALWMode="${value.ALWMode}" ALWType="${value.ALWType}"  GrossPay="${value.GrossPay}"  perfect-class="formGroupControl"
+                                                 perfect-ctype="input" perfect-css="input"  maxlength="12" onkeypress='return isNumberKey(event)'  value="${Number(value.AlsDetAmount).toFixed(2)}"/>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                    });
+
+                    if (closediv2) {
+                        tempDiv += "</div>";
+                    }
+
+                    $("#divSalaryProcessDtls").html(tempDiv);
+
+                   
+
+                    $('#formGroupModalSalary').modal('show');
+                    grosspaycalculate();
+                    totaldeductioncalculate();
+                    calculateNetAmount();
+                }
+            } else {
+                $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                });
+            }
+        },
+        complete: function () {
+            $(this).prop('disabled', false);
+        }
+    });
+    }*@
+    function fn_showSalaryDataDetails() {
+    debugger;
+
+    let $thisForm = $('[perfect-class="form"]');
+    let $row = $(this).closest('tr');
+    let savedData = $row.data('pData');
+    let inputData = {
+        'FK_Branch': savedData.FK_Branch,
+        'FK_Department': savedData.FK_Department,
+        'FK_Employee': savedData.FK_Employee,
+        'FromDate': ConvertJsonDate(savedData.FromDate),
+        'ToDate': ConvertJsonDate(savedData.ToDate),
+        'FK_SalaryProcess': savedData.ID_SalaryProcess
+    };
+
+    $.ajax({
+        url: "@Url.Action("GetSalaryProcessEmpData", "Payroll")",
+        type: "POST",
+        data: inputData,
+        dataType: "json",
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+        success: function (ajaxOutput) {
+
+            if (ajaxOutput.SalaryDataDetails.Process.IsProcess) {
+                debugger;
+                if (ajaxOutput.SalaryDataDetails.Data.length > 0) {
+                    $thisForm.find('[name=EmpCode]').val(savedData.EmpCode);
+                    $thisForm.find('[name=Empname]').val(savedData.Empname);
+
+                    $("#divSalaryProcessDtls").empty();
+                    let tempDiv = "";
+                    let closediv1 = false;
+                    let closediv2 = false;
+
+                    $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                        console.log("Data before loop:", ajaxOutput.SalaryDataDetails.Data);
+
+                        if (value.ALWMode == 1 && !closediv1) {
+                            tempDiv += "<div class='col-sm-6'>";
+                            closediv1 = true;
+                        } else if (value.ALWMode == 2 && !closediv2) {
+                            if (tempDiv !== "") {
+                                tempDiv += "</div><div class='col-sm-6'>";
+                                closediv2 = true;
+                            }
+                        }
+
+                        tempDiv += `<div class="form-group row" perfect-class="formGroup">
+                                        <label class="col-sm-5 col-form-label">
+                                            <span perfect-class="formGroupLabel" name="lblProName">${value.TypeName}</span>
+                                        </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control text-right EmployeeSalaryDetails" name="${value.TypeName}" TypeName="${value.TypeName}"
+                                                 ID_PaySlipTransSub="${value.ID_SalaryProcessDetails}" FK_ID_PaySlipTrans="${value.FK_SalaryProcess}"  FK_AllowanceType="${value.FK_AllowanceType}" ShortName="${value.ShortName}"
+                                                 FK_Employee="${value.FK_Employee}" ALWMode="${value.ALWMode}" ALWType="${value.ALWType}"  GrossPay="${value.GrossPay}"  perfect-class="formGroupControl"
+                                                 perfect-ctype="input" perfect-css="input"  maxlength="12" onkeypress='return isNumberKey(event)'  value="${Number(value.AlsDetAmount).toFixed(2)}" readonly/>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                    });
+
+                    // Move this outside the loop
+                    if (closediv2) {
+                        tempDiv += "</div>";
+                    }
+
+                    $("#divSalaryProcessDtls").html(tempDiv);
+
+                    $('#formGroupModalSalary').modal('show');
+                    grosspaycalculate();
+                    totaldeductioncalculate();
+                    calculateNetAmount();
+
+                    $("#grosspaycal").prop("disabled",true);
+                    $("#TotalDeductionscal").prop("disabled", true);
+                    $("#NetAmountcal").prop("disabled", true);
+
+                    $("#UpdateSalary").hide();
+                }
+            } else {
+                $.each(ajaxOutput.SalaryDataDetails.Data, function (key, value) {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                });
+            }
+        },
+        complete: function () {
+            $(this).prop('disabled', false);
+        }
+    });
+}
+
+    var tableOptionsAcquaintanceView = {
+
+        onlyShowColumn: ['Empname', 'EmpCode', 'NetAmount'],
+        serialNo: true,
+        renameHeader: { "Empname": "Employee Name", "EmpCode": "Employee Code", "NetAmount" : "NetAmount1R"},
+        rowClickAction: fn_showSalaryDataDetails,
+        hideColumn: ['ID_SalaryProcess', 'FK_Employee', 'FK_Department', 'FK_Branch', 'FK_EmployeeType', 'FromDate', 'ToDate', 'TransDate', 'GroupID', 'ProcessDate'],
+        rowAttribute: ['FK_Employee','FK_Employee', 'FK_Department', 'FK_Branch', 'FK_EmployeeType', 'FromDate', 'ToDate', 'TransDate', 'GroupID', 'ProcessDate'],
+        isCheckType: []
+    };
+
+
+</script>
+}

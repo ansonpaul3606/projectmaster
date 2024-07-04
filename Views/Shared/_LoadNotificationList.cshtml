@@ -1,0 +1,172 @@
+﻿
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title col-12">Notification List</h4>
+    </div>
+    <div class="card-body jq_Notification_body">
+
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">           
+            <div class="">
+                @Html.AntiForgeryToken()
+
+                <table id="NotificationList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th>Sender</th>
+                            <th>Title</th>
+                            <th>Message</th>
+                            <th>Send On</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(document).ready(function () {
+        initFunctions('form');
+       
+        $.ajax({
+              url: '@Url.Action("NotificationList", "Home")',
+              type: "POST",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                console.log(ajaxOutput.ListData,"ajaxOutput.ListData")
+                    if (ajaxOutput.Process.IsProcess) {
+                        tableData = $('#NotificationList').DataTable({
+                            pagination: "bootstrap",
+                            filter: true,
+                            data: ajaxOutput.ListData,
+                            destroy: true,
+                            lengthMenu: [5, 10, 25],
+                            pageLength: 10,
+                            info: false,
+                            "ordering": false,
+                            "columns": [
+                                { "data": "ID_Notification", "width": 0 },   
+                                { "data": "Message", "width": 0 }, 
+                                { "data": "EmpFName", "width": 0 }, 
+                                { "data": "IsRead", "width": 0 }, 
+                                { "data": "TransMode", "width": 0 },
+                                { "data": "FK_Master", "width": 0 },
+                                { "data": "Redirect", "width": 0 }, 
+                                {
+                                    "data": "EmpImgValue",
+                                    "render": function (value, type, row, meta) {
+                                        let ImgUrl, ImgWidth;
+                                        if (value.length > 0) {
+                                            ImgUrl = value;
+                                            ImgWidth = 35;
+                                        }
+                                        else {
+                                            ImgUrl = '/Assets/images/profile/17.jpg'
+                                            ImgWidth = 35;
+                                        }
+                                       
+                                        return '<img title="' + row.EmpFName+'" alt="Avatar" style="border-radius: 50px"  width="' + ImgWidth + '" height="' + ImgWidth + '" src="' + ImgUrl + '">';
+                                    }
+                                },
+                                {
+                                    "data": "Title",
+                                    "render": function (value, type, row, meta) {
+                                        let strMsg = value;
+                                       
+                                        if (!row.IsRead) {
+                                            strMsg = '<b>' + strMsg + '</b>'
+                                        }
+                                        if (row.Redirect) {
+                                            strMsg = `<a style="color: coral;" title='Click to open page' href="../Home/LoadPages?mid=${row.FK_Master}&tmode=${row.TransMode}">${strMsg}</a>`;
+                                        }
+                                        return strMsg;
+                                    }
+                                },
+                                {
+                                    "data": "Message",
+                                    "render": function (value, type, row, meta) {
+                                        let strMsg = value;
+                                        if (value.length > 100) {
+                                     
+                                            strMsg = value.substring(0, 100) + " ...";
+                                        }  
+                                       
+                                        if (!row.IsRead) {
+                                            strMsg = '<b>' + strMsg+'</b>'
+                                        }
+                                        return strMsg;
+                                    },
+                                    
+                                },  
+                                {
+                                    "data": "SendOn"
+                                },         
+                                {
+                                    "data": null,
+                                    "render": function (value, type, row, meta) {    
+                                        return '<button data-id="' + row.ID_Notification + '"data-title="' + row.Title + '" data-msg="' + row.Message + '" onclick="ShowNotification(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Read"><i class="fa fa fa-envelope btnPerfectGridEdit"></i></button><button onclick="fn_NotificationDelete(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Delete"><i class="fa fa-trash btnPerfectGridDelete"></i></button><button onclick="fn_MarkAsRead(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Mark as read"><i class="fa fa-envelope-open-o btnPerfectGridOpen"></i></button>';
+                                    
+                                     //   return '<button data-id="' + row.ID_Notification + '" data-msg="' + row.Message + '" onclick="ShowNotification(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Read"><i class="fa fa fa-envelope btnPerfectGridEdit"></i></button><button onclick="fn_NotificationDelete(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Delete"><i class="fa fa-trash btnPerfectGridDelete"></i></button><button onclick="fn_MarkAsRead(this)" class="btn btnPerfectGrid shadow btn-xs sharp mr-1" type="button" title="Mark as read"><i class="fa fa-envelope-open-o btnPerfectGridOpen"></i></button>';
+                                    }
+                                }                              
+                            ]
+                            ,
+                          
+                            "columnDefs": [
+                                {
+                                    "targets": [0,1,2,3,4,5,6],
+                                    "visible": false,
+                                    "searchable": false
+                                },
+                                { "width": "100px", "targets": [11] }
+                            ]
+
+                        });
+                    }
+                    else {
+                        $('#NotificationList').DataTable({
+                            info: false,
+                            "ordering": false,
+                            paging: false,
+                            searching:false,
+                            "language": {
+                                "emptyTable": "You don't have notification"
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                }
+            });
+    });
+    function fn_MarkAsRead(element) {
+        let tempArr = $('#NotificationList').DataTable().row($(element).closest("tr")).data()
+        console.log('tempArr', tempArr);
+        updateReadDeleteNotification(tempArr.ID_Notification, 'edit', function () {
+            fn_NotificationList_InitialLoad();
+        });
+    }
+    function fn_NotificationDelete(element) {
+        let tempArr = $('#NotificationList').DataTable().row($(element).closest("tr")).data()
+        updateReadDeleteNotification(tempArr.ID_Notification, 'delete', function () {
+            fn_NotificationList_InitialLoad();
+        });
+    }
+    $('#modalNotification').on('hidden.bs.modal', function () {
+        fn_NotificationList_InitialLoad();
+    })
+</script>
+
+
+

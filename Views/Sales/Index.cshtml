@@ -1,0 +1,639 @@
+﻿@{
+    ViewBag.Title = "Sales";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_SaleIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+<script type="text/javascript">
+        const LastIDSessionKey = 'SalesLastID';
+    var SalesTransMode = '';
+  //  var SalesTransModes = '';
+    var LastID_Sales;
+    var ChekStandBy1 = '@ViewBag.ChekStandBy';
+    var LoginedStatecode = '';
+    var MultiUnit = false;
+   
+    //var sesionStockCheck1 = Session["StandbyChk.Data[0].GsValue"];
+
+    debugger
+
+        //--- Form
+        const $formContainer = $('#jq_SaleIndex_formContainer');
+        // Initial load functions
+    $(document).ready(function () {
+       
+            fn_SaleIndex_initialLoad();
+            
+       
+        });
+        function fn_SaleIndex_initialLoad() {
+             //  getSessionValue("HtqR27UjgippE5CibBD2xQ==", function (result) {
+            SalesTransMode = '@ViewBag.TransMode';
+            SalesTransModes= '@ViewBag.TransMode';
+              ChekStandBy1 = '@ViewBag.ChekStandBy';
+            LoginedStatecode='@ViewBag.state';
+            MultiUnit='@ViewBag.MultiUnit';
+
+                  
+            fn_SaleIndex_loadSale(this, fn_SaleIndex_loadSaleAddForm);
+        }
+        //$('#jq-sidemenu').click(function () {
+
+        //});
+        var saltableOptions = {
+            dropdown: {
+                buttons: [
+
+                    { displayName: "View", action: fn_SalesIndex_UpdateForm },
+
+                   { type: "divider" },
+
+
+                    ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "SalBillNo", "SalBillDate", "CustomeName", "SalNetAmount","MobileNo"],
+            hideColumn: [],
+
+            rowClickAction: fn_SalesIndex_UpdateForm,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL No", "SalBillNo": "Bill No", "SalBillDate": "Date", "CustomeName": "Customer", "SalNetAmount": "Amount1R", "MobileNo":"Mobile No" },
+            isDateType: ["SalBillDate"],
+
+        };
+        var holdtableOptions = {
+            dropdown: {
+                buttons: [
+
+                    { displayName: "View", action: fn_SalesIndex_UpdateForm }
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "SalBillNo", "SalBillDate", "CustomeName", "SalNetAmount", "MobileNo"],
+            hideColumn: [],
+
+            rowClickAction: fn_SalesIndex_UpdateForm,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL No", "SalBillNo": "Hold No", "SalBillDate": "Date", "CustomeName": "Customer", "SalNetAmount": "Amount1R", "MobileNo": "Mobile No" },
+            isDateType: ["SalBillDate"],
+
+    };
+
+
+
+
+        function fn_SaleIndex_loadSale(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+           // let SearchName = $thisForm.find('input').val();
+            let SearchName= $("#serchname").val();
+
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            let Sales = "";
+            let checked = "";
+            let AllSale = 0;
+            let tableOptions = "";
+            if ($("#customSwitch12").is(':checked')) {
+                AllSale = 1;
+                checked = "checked";
+                Sales = "Sales";
+                tableOptions = saltableOptions;
+            }
+            else {
+                AllSale = 0;
+                checked = "";
+                Sales = "Hold";
+                tableOptions = holdtableOptions
+            }
+            $sideMenuOptions.title.find('h4').text('Sales List');
+            let pageUrl = "@Url.Action("GetSalesList", "Sales")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, AllSales: AllSale, TransModes: SalesTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              console.log('Sales List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"> <div class="custom-control custom-switch toggle-switch text-right mr-5 mb-2"> <input type="checkbox" class="custom-control-input" id="customSwitch12" onclick="fn_SaleIndex_loadSale(this)"'+checked+'> <label class="custom-control-label" for="customSwitch12">'+Sales+'</label> </div></div></div></div></div>')
+
+                              $sidemenu.append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control "id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_SaleIndex_loadSale(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, AllSales: AllSale, TransModes: SalesTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"> <div class="custom-control custom-switch toggle-switch text-right mr-5 mb-2"> <input type="checkbox" class="custom-control-input" id="customSwitch12" onclick="fn_SaleIndex_loadSale(this)"' + checked + '> <label class="custom-control-label" for="customSwitch12">' + Sales +'</label> </div></div></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_SaleIndex_loadSale(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, AllSales: AllSale, TransModes: SalesTransMode}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page, AllSales: ajaxInfo.AllSales, TransModes: ajaxInfo.TransModes};
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+
+        var validationMessage = {
+
+
+            'MobileNo': {
+                'required': 'Please Enter Mobile No',
+                'anyphonenumber': 'Invalid Mobile No',
+                'minlength': jQuery.validator.format('Mobile No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('Mobile No Should be Less than {0} Characters')
+            },
+
+            'DrvPhoneno': {
+                'anyphonenumber': 'Invalid Phone No',
+                'minlength': jQuery.validator.format('WhatsApp No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('WhatsApp No Should be Less than {0} Characters')
+
+            },
+            'ShpMobile': {
+                'anyphonenumber': 'Invalid Phone No',
+                'minlength': jQuery.validator.format('WhatsApp No Should be More than {0} Characters'),
+                'maxlength': jQuery.validator.format('WhatsApp No Should be Less than {0} Characters')
+
+            },
+
+            'CustomeName': {
+                'required': 'Please Enter Customer Name',
+                'stringonly': 'Special Characters are not Allowed in  Customer Name'
+
+            },
+            'BillType': {
+                'required': 'Please Select Bill Type',
+                'stringonly': 'Special Characters are not Allowed in  Bill Type'
+
+            },
+            'SalEnterDate': {
+                'required': 'Please Select Entered Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'SalBillDate': {
+                'required': 'Please Select Bill Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+
+        };
+
+
+        // Fucntion to load Customer ADD form
+        function fn_SaleIndex_loadSaleAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormSales", "Sales")?mtd=@ViewBag.mtd'+ '&TransMode=@ViewBag.TransMode', function () {
+                localStorage.removeItem("WarProductImage");
+                warrantydetails = [];
+                WarProductImagelst = [];
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="SalBillDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="SalEnterDate"]').val(moment().format('YYYY-MM-DD'));
+                //$thisForm.find('[name="FK_Department"]').val(@ViewBag.FK_Department).selectpicker('refresh');
+                $("#BillType").prop("selectedIndex", 1);
+
+                $thisForm.validate({  messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_SaleIndex_initialLoad');
+                $('.Advamt').hide();
+                $('.DivDownPayment').hide();
+                $('.DivAdditionalAmount').hide();
+                $('#formGroupModalewaybillno').modal('hide');
+                initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_Sales = result;
+                });
+                document.getElementById('Einvoice').style.display = "none";
+            });
+
+        };
+
+
+
+
+    var saleid = 0;
+    var Transmd = "";
+    var Saleid = 0;
+    var SaleEdit = 0;
+   
+    function fn_SalesIndex_UpdateForm() {
+        debugger
+            saleid = 0;
+
+            let ChekStandBy = '@ViewBag.ChekStandBy';
+            console.log('ChekStandBy>>>>>>>>', ChekStandBy);
+             let $thisRow = $(this).closest('tr');
+             let saveddata = $thisRow.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $formContainer.load('@Url.Action("LoadFormSales", "Sales")?mtd=@ViewBag.mtd', function ()
+            {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                 //Department Commented for indora client //$thisForm.find('[name="FK_Department"]').val(@ViewBag.FK_Department).selectpicker('refresh');
+            $thisForm.validate({ messages: validationMessage });
+            initFunctions($thisForm);
+                console.log('saveddata', saveddata);
+                if (saveddata.SalesFrom == 5) {
+                    $thisForm.find('[name="FK_Customer"]').val(0); $("#customerbalancebtn").hide();
+                }
+                else {
+                    $thisForm.find('[name="FK_Customer"]').val(saveddata.FK_Customer); $("#customerbalancebtn").show();
+                    $thisForm.find('[name="ID_Customer"]').val(saveddata.FK_Customer);
+            }
+                $("#hdnChangeImport").val(0);
+            $thisForm.find('[name="SalesID"]').val(saveddata.SalesID);
+            $thisForm.find('[name="ID_Hold"]').val(saveddata.ID_Hold);
+            $thisForm.find('[name="TransMode"]').val(saveddata.TransMode);
+                $thisForm.find('[name="BillType"]').val(saveddata.BillType).selectpicker('refresh');
+
+            $thisForm.find('[name="SalBillNo"]').val(saveddata.SalBillNo);
+                $thisForm.find('[name="SalBillDate"]').val(moment(saveddata.SalBillDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="SalEnterDate"]').val(moment(saveddata.SalEnterDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="EWaybillNo"]').val(saveddata.EWaybillNo);
+                $thisForm.find('[name="ID_Branch"]').val(saveddata.ID_Branch);
+
+             $thisForm.find('[name="Supplier"]').val(saveddata.SalesFrom).selectpicker('refresh');
+           $thisForm.find('[name="FK_FinancePlanType"]').val(saveddata.FK_FinancePlanType).selectpicker('refresh');
+               if (($thisForm.find('[name="Supplier"]').val() == 2)) {
+                    $('.Advamt').show();
+                    $('.DivDownPayment').show();
+                    $('.DivAdditionalAmount').show();
+                }
+                else {
+                    $('.Advamt').hide();
+                    $('.DivDownPayment').hide();
+                   $('.DivAdditionalAmount').hide();
+
+                }
+                $thisForm.find('[name="FK_Salesorder"]').val(saveddata.FK_SalesOrder);
+            $thisForm.find('[name="CustomeName"]').val(saveddata.CustomeName);
+            $thisForm.find('[name="MobileNo"]').val(saveddata.MobileNo);
+                $thisForm.find('[name="State"]').val(saveddata.State);
+            $thisForm.find('[name="CustomeName"]').attr("readonly", true);
+            $thisForm.find('[name="MobileNo"]').attr("readonly", true);
+            $thisForm.find('[name="Supplier"]').attr("disabled", "disabled");
+                $thisForm.find('[name="BillType"]').attr("disabled", "disabled");
+                $thisForm.find('[name="SalBillTotal"]').val(Number(saveddata.SalBillTotal).toFixed(2));
+                $thisForm.find('[name="SalDiscount"]').val(Number(saveddata.SalDiscount).toFixed(2));
+                $thisForm.find('[name="OtherCharge"]').val(Number(saveddata.OtherCharge).toFixed(2));
+                $thisForm.find('[name="SalRoundoff"]').val(Number(saveddata.SalRoundoff).toFixed(2));
+                $thisForm.find('[name="SoAddnAmount"]').val(Number(saveddata.SalAddnAmount).toFixed(2));
+                $thisForm.find('[name="SoDownPayment"]').val(saveddata.SalDownPayment);
+                $thisForm.find('[name="Salesman"]').val(saveddata.Salesman);
+                $thisForm.find('[name="FK_Salesman"]').val(saveddata.FK_Salesman);
+
+                //$thisForm.find('[name="FK_FinancePlanType"]').val(saveddata.FK_FinancePlanType);
+
+                $thisForm.find('[name="SoStartDate"]').val(moment(saveddata.SalStartDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="SalNetAmount"]').val(Number(saveddata.SalNetAmount).toFixed(2));
+
+            $thisForm.find('[name=CustomeName]').removeClass("perfectValidate_string")
+            let netatb = 0;
+                Transmd = saveddata.TransMode;
+
+                if (saveddata.SalesID == 0) {
+                    Saleid = saveddata.ID_Hold;//for slno
+
+                    id = saveddata.ID_Hold;
+                    netatb = $thisForm.find('[name="SalNetAmount"]').val();
+                }
+                else {
+                    id = saveddata.SalesID;
+                    Saleid = saveddata.SalesID;//for sl no
+                }
+                $thisForm.find('[name=BalAmt]').text(parseFloat(netatb).toFixed(2));
+                $thisForm.find('[name="AdvAmount"]').val(saveddata.AdvAmount);
+                $thisForm.find('[name="BankID"]').val(saveddata.BankID).selectpicker('refresh');
+
+                $thisForm.find('[name="Checkboxsame"]').prop("checked", saveddata.DelSameASCusAddress);
+                $("#divCheckboxsame").hide();
+
+
+               
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                SalesID: id,
+                TransMode: saveddata.TransMode,
+                FK_Customer: saveddata.FK_Customer,
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetSalesInfo", "Sales")",
+                type: "POST",
+
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    console.log('sss', ajaxOutput)
+                    console.log('BtoB', ajaxOutput.Btob);
+                    if (ajaxOutput.Btob) {
+                        $thisForm.find('button[name=Einvoice]').removeClass('d-none');
+                    }
+                    else {
+                        $thisForm.find('button[name=Einvoice]').addClass('d-none');
+                    }
+
+
+                    if (ChekStandBy == "True") {
+                        document.getElementById('stockZero').style.display = "block";
+                        document.getElementById('stockZero1').style.display = "block";
+
+                    }
+                    else {
+                        document.getElementById('stockZero').style.display = "none";
+                        document.getElementById('stockZero1').style.display = "none";
+                    }
+
+
+                    if (ajaxOutput.SaleDetails.Process.IsProcess) {
+
+                         $thisForm.data({ pDataProduct: ajaxOutput.SaleDetails.Data });
+                        $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+
+                        $thisForm.data({ pEDataProduct: ajaxOutput.SaleDetails.Data });
+                        $thisForm.data({ pEOthrChgData: ajaxOutput.OtherCharge.Data });
+                        $thisForm.data({ pbuyback: ajaxOutput.buybackdetail.Data });
+
+                        //let pbuyback = $thisForm.data('pbuyback');
+                        //console.log(pbuyback, "pbuybackkkkkkkkkkkkkkkkkkkkfrm");
+                        //if ($thisForm.find('[name="Supplier"]').val() == "4") {
+                        //    $("#buybacksection").show();
+
+                        //} else {
+                        //    $("#buybacksection").hide();
+                        //}
+                        if (ajaxOutput.buybackdetail.Data && ajaxOutput.buybackdetail.Data.length > 0) {
+
+                            fillTableSales($thisForm, 'buyback', ajaxOutput.buybackdetail.Data, restableOptionsTempOut);
+
+                        } else {
+                        }
+                        displayBuyBack();
+                        calculateAndDisplaySum($("#btnresetPdct"));
+                        let imagesel = [];
+                        imagesel = ajaxOutput.warrantyselect.Data;
+                        if (imagesel != null) {
+                            for (var i = 0; i < imagesel.length; i++) {
+
+                                imagesel[i].Serwardt = moment(imagesel[i].Serwardt).format('YYYY-MM-DD');
+
+                                imagesel[i].Replcwardt = moment(imagesel[i].Replcwardt).format('YYYY-MM-DD');
+                            }
+                        }
+                        warrantydetails = ajaxOutput.warrantyselect.Data;
+
+                        $thisForm.data({ pwarranty: imagesel });
+                        $thisForm.data({ pImageselect: ajaxOutput.Imageselect.Data });
+                        $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+                        //$thisForm.data({ pEPayment: ajaxOutput.buyback.Data });
+                        $thisForm.data({ addpImageselect: ajaxOutput.Imageselect.Data });
+
+                        $thisForm.data({ pEwarranty: imagesel });
+                        $thisForm.data({ pEImageselect: ajaxOutput.Imageselect.Data });
+                        $thisForm.data({ pEPayment: ajaxOutput.paymentdetail.Data });
+
+                        $thisForm.data({ EaddpImageselect: ajaxOutput.Imageselect.Data });
+
+                        $thisForm.data({ AMCImageselect: ajaxOutput.Imageselect.Data });
+
+
+
+                        fillTableSales($thisForm, 'Purchase', ajaxOutput.SaleDetails.Data, saltableOptionsTempOut)
+                        if (saveddata.SalesID != 0) {
+                            fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                        }
+                        var PopUpPaymentMode = [];
+                        var paymentdetaildata = [];
+                        paymentdetaildata = ajaxOutput.paymentdetail.Data;
+                        PopUpPaymentMode = paymentdetaildata.filter(obj => obj.PMMode === 8);
+                        if (PopUpPaymentMode.length > 0) {
+                            $thisForm.find('[name="SettelementPending"]').val(true);
+                            $thisForm.find('[perfect-tempTable="Payment"]').html('');
+                        }
+
+                        if ($thisForm.find('[name="Supplier"]').val() == 2) {
+                            SalesTransModes = 'INSO';
+                        }
+                        else if ($thisForm.find('[name="Supplier"]').val() == 6) {
+                            SalesTransModes = 'INQU';
+                        }
+                        else {
+
+                            SalesTransModes = SalesTransMode;
+                        }
+                        if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                            let othechg = ajaxOutput.OtherCharge.Data;
+                            console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                            othrchargelst = [];
+                            othrchargelst = othrchargelst.concat(othechg);
+                            console.log('OTH INFOT>', othrchargelst);
+                            $thisForm.data({ pOthrChgData: othrchargelst });
+                        }
+                        SalesDocumentUpload = [];
+                        if (ajaxOutput.Imageselect.Process.IsProcess) {
+                            SalesDocumentUpload = ajaxOutput.Imageselect.Data;
+                        }
+
+                        let EnterDate = $thisForm.find('[name="SalEnterDate"]').val();
+                        EnterDate = new Date(EnterDate);
+                        EnterDate.setHours(0, 0, 0, 0);
+                        let today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (EnterDate.getTime() == today.getTime() && '@ViewBag.MOPSales' == 'True' && '@ViewBag.PagedAccessRights.UserEditSalprice' == 'True' && PopUpPaymentMode.length > 0 && saveddata.SalesID > 0) {
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            $thisForm.find('[name="SalEnterDate"]').attr("readonly", true);
+                            $thisForm.find('[name="SalBillDate"]').attr("readonly", true);
+                            SaleEdit = 1;
+                            $("#importbtn").attr("disabled", "disabled");
+                            $("#customerbtn").attr("disabled", "disabled");
+                            $("#btnbranchSearch").attr("disabled", "disabled");
+                            $("#btnQuotationSearch").attr("disabled", "disabled");
+                        }
+                        else {
+                            $thisForm.find('button[name=update]').addClass('d-none');
+                            $thisForm.find('[name="SalEnterDate"]').attr("readonly", false);
+                            $thisForm.find('[name="SalBillDate"]').attr("readonly", false);
+                            SaleEdit = 0;
+                            $("#importbtn").attr("disabled", false);
+                            $("#customerbtn").attr("disabled", false);
+                            $("#btnbranchSearch").attr("disabled", false);
+                            $("#btnQuotationSearch").attr("disabled", false);
+                        }
+                    }
+
+                    $thisForm.data({ pData: saveddata });
+                    $thisForm.data({ Gridatas: saveddata });
+
+                    if (ajaxOutput.SubProductInfo.Process.IsProcess) {
+                        if (ajaxOutput.SubProductInfo.Data != null) {
+                            SubproductDetailsSave = ajaxOutput.SubProductInfo.Data;
+                        }
+                    }
+                    if (ajaxOutput.SerialNumberInfo.Process.IsProcess) {
+                        if (ajaxOutput.SerialNumberInfo.Data != null) {
+                            productSerialNum = ajaxOutput.SerialNumberInfo.Data;
+                        }
+                    }
+                    saleid = 1;
+
+                    
+                    if (saveddata.TransMode == 'INSL') {
+
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=onhold]').addClass('d-none');
+                       // $thisForm.find('button[name=reset]').addClass('d-none');
+                        $thisForm.find('button[name=viewinv]').removeClass('d-none');
+                        $thisForm.find('button[name=viewewaybill]').removeClass('d-none');
+                        $thisForm.find('button[name=Print]').removeClass('d-none');
+                    }
+                    else {
+
+                        $thisForm.find('button[name=delete]').removeClass('d-none');
+
+                    }
+                    $thisForm.attr('perfect-onFormSuccess', 'fn_SaleIndex_initialLoad');
+                    }
+                 });
+                $sideMenuOptions.close();
+            });
+        }
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+}

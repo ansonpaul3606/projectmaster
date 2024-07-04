@@ -1,0 +1,392 @@
+﻿@model PerfectWebERP.Models.PriorityConversionModel.PriorityConversionModelView
+
+<div class="card">
+
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+
+        
+    </div>
+
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+
+            <div class="">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+
+
+                    <div class="col-sm-4">
+
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> As on Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datencheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                &nbsp;&nbsp;&nbsp;
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_numeric" name="FK_Branch" id="FK_Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    <option value="0">All Branch</option>
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchListto in Model.BranchList)
+                                        {
+                                            <option value="@branchListto.FK_Branch">@branchListto.Branch</option>
+                                        }
+
+                                    }
+
+                                </select>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+
+
+                    <div class="col-sm-4">
+
+                        <button class="btn btn-primary1" type="button" data-toggle="tooltip" data-placement="top" data-html="true" title="Priority Conversion List" onclick="GetPriorityConversionListDetails(this)">Show</button>
+
+                    </div>
+
+
+
+
+
+                </div>
+
+            </div>
+            <hr />
+            <div class="form-row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-body" style="padding-top:0 !important">
+                            <div class="table-responsive-lg tableFixHead">
+                                <table class="table table-hover table-responsive-lg table-striped  text-black" id="PriorityDetails">
+                                    <thead class="bg-primary text-white " style="position:sticky; top:0px">
+                                        <tr>
+
+
+                                            <th></th>
+                                            <th style="display:none">LeadID</th>
+                                            <th style="display:none"></th>
+                                            <th>Lead No</th>
+                                            <th>Customer Name</th>
+                                            <th>Category</th>
+                                            <th>Product</th>
+                                            <th>Assign To</th>
+                                            <th>Target Date</th>
+                                            <th>Current Priority</th>
+                                            <th>Next Priority</th>
+                                            <th style="display:none">FK_PriorityOld</th>
+                                            <th></th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody id="PriorityDetailsTbody">
+                                        <tr id="0">
+                                           
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+
+              
+                @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                {
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_PriorityConversionList(this,'new')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                }
+                    <button type="button" id="" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+       
+    });
+  
+  //  var leadprioritydetls;
+    function ResetButton(ele) {
+
+        PriorityConversionInitialLoad();
+    }
+
+
+        function GetPriorityConversionListDetails(ele) {
+
+           
+          
+        var $thisForm = $(ele).closest('[perfect-class="form"]');
+        var InputData = {
+            'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+            'AsonDate': $thisForm.find('[name="AsonDate"]').val()
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetLeadPriorityDetails", "PriorityConversion")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                console.log('ajaxOutput', ajaxOutput);
+                $ProductHtml = '';
+                if (ajaxOutput != null) {
+                    let checked = "";
+
+                    checked = "checked";
+                    if (ajaxOutput.Lits.Data != null) {
+
+                        $("#PriorityDetails").show();
+                        $('#PriorityDetailsTbody').empty();
+                        if (ajaxOutput.Lits.Data.length > 0) {
+                            $.each(ajaxOutput.Lits.Data, function (i, value) {
+
+                                let options = ''
+
+                                $.each(ajaxOutput.PriorityLists.Data, function (i, valuea) {
+
+
+                                    options = ''
+                                    $.each(ajaxOutput.PriorityLists.Data, function (i, valuea) {
+
+                                        options += '<option value=' + valuea.ID_Mode + '>' + valuea.ModeName + '</option>'
+                                    });
+
+                                });
+                                    let $dropdown = '<select class="form-control">' + options + '</select>';
+                                    let rowCount = (i + 1);
+                                    let row = $(ele).closest("tr");
+
+
+                                    $ProductHtml += "<tr id=" + rowCount + ">";
+                                    $ProductHtml += "<td class='jq_PriorityStatus_td' ><input type='checkbox'  value='" + value.Status + "'" + checked + "/></td>";
+                                    $ProductHtml += "<td class='jq_PriorityLead_ID_' Style='Display:none'>" + value.LeadID + "</td>";
+                                    $ProductHtml += "<td>" + value.LeadNo + "</td>";
+                                    $ProductHtml += "<td>" + value.CustomerName + "</td>";
+                                    $ProductHtml += "<td>" + value.Category + "</td>";
+                                    $ProductHtml += "<td>" + value.Product + "</td>";
+                                    $ProductHtml += "<td>" + value.AssignTo + "</td>";
+                                    $ProductHtml += "<td>" + value.TargetDate + "</td>";
+                                    $ProductHtml += "<td>" + value.CurrentPriority + "</td>";
+
+
+                                    $ProductHtml += "<td class='jq_jq_PrioritylistMode_td_td'>" + $dropdown + "</td>";
+
+                                   $ProductHtml += "<td class='jq_FK_PriorityOld' Style='Display:none'>" + value.FK_PriorityOld + "</td>";
+
+                                    $ProductHtml += "</tr>";
+                            
+
+
+                            });
+
+                        }
+                        else {
+                            $ProductHtml += "<tr id='0'><td colspan='8' class='norecord' style'text-align:center'>No Records........</td></tr>";
+
+                        }
+                        $('#PriorityDetailsTbody').append($ProductHtml);
+
+
+                    }
+
+
+                }
+
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+     
+           
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+            });
+
+        }
+    
+
+    function fn_PriorityConversionList(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        var tabledetailsrws = $("#PriorityDetailsTbody tr");
+
+        let PriorityConversionDetails = [];
+
+        if (tabledetailsrws.length > 0) {
+
+
+            $('#PriorityDetailsTbody tr').each(function (index, ele) {
+                debugger;
+
+                if ($(this).find('.jq_PriorityStatus_td').find('[type="checkbox"]').is(':checked') == true) {
+
+                    let Priorityinfo = {};
+
+
+                    Priorityinfo['FK_Lead'] = $(this).find('.jq_PriorityLead_ID_').text();
+                    Priorityinfo['FK_PriorityNew'] = $(this).find('.jq_jq_PrioritylistMode_td_td').find('select').val();
+                    Priorityinfo['FK_PriorityOld'] = $(this).find('.jq_FK_PriorityOld').text();
+                    PriorityConversionDetails.push(Priorityinfo);
+
+                }
+                
+            });
+        }
+        console.log('PrioritConversionDetails:', PriorityConversionDetails);
+        console.log('PriorityConversionDetails.length:', PriorityConversionDetails.length);
+        
+        $(ele).prop('disabled', true);
+        if (datencheck(ele)) {
+            if ($thisForm.valid()) {
+                if (PriorityConversionDetails.length != 0) {
+
+
+                    let inputData = {
+
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                        'FK_Branch': $thisForm.find('[name="FK_Branch"]').val(),
+                        'AsonDate': $thisForm.find('[name="AsonDate"]').val(),
+                        'PriorityConversionDetails': PriorityConversionDetails
+
+
+                    };
+                    console.log('save56', inputData)
+                    $.ajax({
+                        url: "@Url.Action("AddPriorityConversion", "PriorityConversion")",
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+
+
+                                });
+
+                                $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                $thisForm.find('[perfect-ctype="input"]').val('');
+                                $thisForm.find('[perfect-ctype="date"]').val('');
+                                $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                $thisForm.find('[perfect-ctype="input"]').val('');
+                                $thisForm.find('[perfect-ctype="date"]').val('');
+
+
+
+
+                                // Get the value set in form's perfect-onFormSuccess attribute
+                                let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                if (onSuccess) {
+                                    window[onSuccess]();
+                                }
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $(ele).prop('disabled', false);
+                        }
+
+                    });
+
+
+                }
+                else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Mark Atleast One' });
+                    $(ele).prop('disabled', false);
+                }
+            }
+            else {
+                $(ele).prop('disabled', false);
+            }
+        }
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'As on date should be less than or equal to Todays date' });
+            $(ele).prop('disabled', false);
+        }
+    }
+    function datencheck(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let RegDate = $thisForm.find('[name="AsonDate"]').val();
+      
+        //SalEnterDate = new Date(SalEnterDate);
+
+        //var today = new Date();
+        RegDate = new Date(RegDate);
+        RegDate.setHours(0, 0, 0, 0)
+
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+
+        if (RegDate > today) {
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('As on date should be less than or equal to Todays date')
+            return false;
+
+        }
+        else {
+
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+</script>
+

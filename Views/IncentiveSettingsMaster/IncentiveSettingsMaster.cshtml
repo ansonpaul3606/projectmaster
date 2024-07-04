@@ -1,0 +1,471 @@
+﻿
+@{
+    ViewBag.Title = "IncentiveSettingsMaster";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group row" perfect-class="formGroup">
+                <div class="col-xl-4"> </div>
+
+                <div class="col-xl-4"> </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="jq_IncentiveSttingsMasterIndex_formContainer">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_IncentiveSttingsMasterIndex_formContainer');
+    var IncentiveStngsMasterTransMode = '';
+    $(document).ready(function () {
+        fn_IncentiveStngsMasterIndex_initialLoad()
+
+    });
+
+    function fn_IncentiveStngsMasterIndex_initialLoad() {
+        IncentiveStngsMasterTransMode = '@ViewBag.TransMode';
+        fn_loadIncentiveStngsMasterAddForm();
+        loadIncentivesettingsList(this);
+    }
+    function fn_loadIncentiveStngsMasterAddForm() {
+
+        $formContainer.load('@Url.Action("LoadFormIncentiveSettingsMaster", "IncentiveSettingsMaster")?mtd=@ViewBag.mtd', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="INSEffectDate"]').val(moment().format('YYYY-MM-DD'));
+            // ... Custom validation message
+            $thisForm.validate({ messages: validationMessage });
+            // ... Custom validation message
+
+            $thisForm.attr('perfect-onFormSuccess', 'fn_IncentiveStngsMasterIndex_initialLoad');
+        });
+
+    }
+
+    var validationMessage = {
+        'FK_IncentiveType': {
+            'required': 'Please Select Incentive Type',
+        },
+
+        'INSEffectDate': {
+            'required': 'Please Select Effect Date',
+        },
+        'INSCalcType': {
+            'required': 'Please Select Incentive Calculation Type',
+        },
+        'INSPeriod': {
+            'required': 'Please Enter Incentive Period',
+            'min':'Enter Minimum Incentive Period as 1'
+        },
+        'INSActivity': {
+            'required': 'Please Select Incentive Activity',
+        },
+
+    }
+
+    function loadIncentivesettingsList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+ "List");
+        let pageUrl = '@Url.Action("GetIncentiveSettingsList", "IncentiveSettingsMaster")';
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 10, pageIndex: 0, Name: SearchName },
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $sidemenu.find('.jq_sidemenu_title').text('@ViewBag.PageTitle' + "List");
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentivesettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": ajaxOutput.totalrecord,
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                        "pageLength": ajaxOutput.pageSize,
+                        "recordsFiltered": ajaxOutput.pageSize,
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                    });
+                }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text('@ViewBag.PageTitle' + "List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentivesettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_EditIncentiveSettings },</text>
+                }
+
+                { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                {
+                 <text> { displayName: "Delete", action: deleteIncentiveSettings },</text>
+                }
+            ],
+            class: "btn btn-success light sharp"
+        },
+        hideColumn: ["FK_IncentiveSettings", "FK_IncentiveType", "TransMode", "INSCalcBasedon", "INSCalcType", "INSActivity", "TotalCount","Dependency"],
+        rowClickAction: fn_EditIncentiveSettings,
+        renameHeader: { "SlNo": "SL No", "INSTypeName": "Type Name", "INSEffectDate": "EffectDate", "INSCalcBasedon": "Calculation Based on1R", "CalcType": "Incentive Calculation Type", "INSActive": "Active", "INSPeriod": "Period", "ActivityName": "Incentive Activity", "INSTypeName":"Incentive Type" },
+        isDateType: ["INSEffectDate"],
+        isCheckType: ["INSActive"],
+    };
+
+    function fn_EditIncentiveSettings() {
+
+
+        let $thisUser = $(this).closest('tr');
+        let savedData = $thisUser.data('pData');
+        debugger
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData = {
+            ID_IncentiveSettings: savedData.FK_IncentiveSettings,
+        };
+
+
+        $.ajax({
+            url: '@Url.Action("GetIncentivesettingsListbyId", "IncentiveSettingsMaster")',
+            type: "POST",
+            data: JSON.stringify(inputData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                console.log('ajaxOutput', ajaxOutput);
+                debugger
+
+                if (ajaxOutput.IncentiveInfo.Process.IsProcess) {
+                    $formContainer.load('@Url.Action("LoadFormIncentiveSettingsMaster", "IncentiveSettingsMaster")?mtd=@ViewBag.mtd', function () {
+                        debugger;
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        var dependency = ajaxOutput.IncentiveInfo.Data[0].Dependency;
+                        $thisForm.validate({ messages: validationMessage });
+                        
+                        $thisForm.data({ 'pData': ajaxOutput.IncentiveInfo.Data[0] });
+                        $thisForm.find('[name=Dependency]').val(ajaxOutput.IncentiveInfo.Data[0].Dependency);
+                        $thisForm.find('[name=FK_IncentiveSettings]').val(ajaxOutput.IncentiveInfo.Data[0].FK_IncentiveSettings);
+                        $thisForm.find('[name=INSEffectDate]').val(moment(ajaxOutput.IncentiveInfo.Data[0].INSEffectDate).format('YYYY-MM-DD'));
+                        $thisForm.find('[name=FK_IncentiveType]').val(ajaxOutput.IncentiveInfo.Data[0].FK_IncentiveType).selectpicker('refresh');
+                        $thisForm.find('[name="FK_IncentiveType"]').trigger('change');
+                        $thisForm.find('[name=INSCalcType]').val(ajaxOutput.IncentiveInfo.Data[0].INSCalcType).selectpicker('refresh');
+                        $thisForm.find('[name=INSPeriod]').val(ajaxOutput.IncentiveInfo.Data[0].INSPeriod);
+                        
+                        if (ajaxOutput.IncentiveInfo.Data[0].INSActivity != 0) {
+                            $thisForm.find('[name=Activity]').val(ajaxOutput.IncentiveInfo.Data[0].INSActivity);
+                            $thisForm.find('[name="INSActivity"]').val(ajaxOutput.IncentiveInfo.Data[0].INSActivity).selectpicker('refresh');
+                            $thisForm.find('[name="INSActivity"]').attr('perfect-onloadSelect', ajaxOutput.IncentiveInfo.Data[0].INSActivity);
+                        }
+
+                        $thisForm.find('[name=INSActive]').prop('checked', ajaxOutput.IncentiveInfo.Data[0].INSActive);                        
+                 
+                        $thisForm.find('[name="INSCalcBasedon"]').val(ajaxOutput.IncentiveInfo.Data[0].INSCalcBasedon).selectpicker('refresh');
+                        if (ajaxOutput.IncentiveDetailsInfo.Process.IsProcess) {
+                            fillTable($thisForm, 'IncSettings', ajaxOutput.IncentiveDetailsInfo.Data, inctableOptionsTempOut);
+                        }
+
+                        if (ajaxOutput.IncentiveInfo.Data[0].Dependency == 1) {
+                            $('#FK_IncentiveType').prop('disabled', true);
+                            $('#INSEffectDate').prop('disabled', true);
+                            $('#INSCalcType').prop('disabled', true);
+                            $('#INSPeriod').prop('disabled', true);
+                            $('#INSActivity').prop('disabled', true);
+                            $('#INSCalcBasedon').prop('disabled', true);
+                            $('#AddSettings').prop('disabled', true);
+                        }
+                        else {
+                            $('#FK_IncentiveType').prop('disabled', false);
+                            $('#INSEffectDate').prop('disabled', false);
+                            $('#INSCalcType').prop('disabled', false);
+                            $('#INSPeriod').prop('disabled', false);
+                            $('#INSActivity').prop('disabled', false);
+                            $('#INSCalcBasedon').prop('disabled', false);
+                            $('#AddSettings').prop('disabled', false);
+                        }
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_IncentiveStngsMasterIndex_initialLoad');
+                        $sideMenuOptions.close();
+                    });
+                }
+                else {
+
+                    $.each(ajaxOutput.IncentiveInfo.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+
+        });
+
+    }
+
+    function deleteIncentiveSettings() {
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        $.ajax({
+            url: "@Url.Action("GetIncentiveSettingsReasonList", "IncentiveSettingsMaster")",
+            type: "GET",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                    var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                    confirmBoxObj.then(function (selectedOption) {
+                        if (selectedOption) {
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                ID_IncentiveSettings: Saveddata.FK_IncentiveSettings,
+                                FK_Reason: selectedOption
+                            };
+                            $.ajax({
+                                url: "@Url.Action("DeleteIncentiveSettings", "IncentiveSettingsMaster")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    if (ajaxOutput.Process.IsProcess) {
+                                        let table = $row.closest('table').DataTable()
+                                        table.row($row).remove().draw();
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                        });
+                                        $sideMenuOptions.close();
+                                        loadProductNumberingList(this);
+                                        ProductNumberingInitialLoad();
+                                        $('.dataTable tr').removeClass("SelectForDelete");
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+
+
+                }
+                else {
+
+
+                }
+            }
+        });
+    }
+
+
+    function fillTable(ele, tkey, data, tableOptionsTempOut) {     
+       
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                debugger;
+                console.log('name56', valOne[nameAttr])
+                if (typeof valOne[nameAttr] !== undefined) {
+                   
+                    if ($this.is('select')) {
+                        switch (headerName) {
+                            case "Category":
+                                headerName = "Category";
+                                break;
+                            case "FK_Category_d":
+                                headerName = "Category";
+                                break;    
+                            default:
+                                headerName = headerName;
+                                break;
+                        }
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+                            
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+
+                        console.log('select123', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+                        console.log('select124', $this.find('[value="' + valOne[nameAttr] + '"]').text());
+                    }
+                    else if ($this.is('input')) {
+
+                        pData[nameAttr] = valOne[nameAttr];
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        console.log('inputType>>>>>>', inputType)
+                        if (inputType == 'checkbox') {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+
+                            console.log('checkbox', nameAttr)
+
+
+                        }
+                        else if (inputType == 'hidden') {
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if (inputType == 'date') {
+
+                            if (valOne[nameAttr] == null) {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                            }
+
+
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                }
+
+
+
+            });
+
+            insertData.push(pData);
+
+
+            //----
+
+        });
+        $tblcontainer.empty();
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        // $tblcontainer.find('table').dataTable({ paging: true });
+
+    }
+
+</script>
+}

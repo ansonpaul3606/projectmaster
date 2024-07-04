@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="genSettings-form">
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <script type="text/javascript"> 
+
+        const $formContainer = $('#genSettings-form');
+
+        var ProGenModSetTransMode = '';
+        const LastIDSessionKey = 'GenModSetLastID';
+        var LastID_GenModSet;
+        $(document).ready(function () {
+
+            GenModSet_initLoad();
+        });
+
+        function GenModSet_initLoad() {
+            ProGenModSetTransMode = '@ViewBag.TransMode';
+            LoadAddGenModSet();
+        }
+
+        function LoadAddGenModSet() {
+
+             $formContainer.load('@Url.Action("LoadGeneralModuleSettings", "GeneralModuleSettings")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="ProdRecoveryDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.attr('perfect-onFormSuccess', 'GenModSet_initLoad');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_GenModSet = result;
+                 });
+
+
+
+
+            });
+        }
+
+        var validationMessage = {
+
+        }
+
+
+    </script>
+}

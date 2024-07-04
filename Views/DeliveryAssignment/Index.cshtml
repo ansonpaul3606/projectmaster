@@ -1,0 +1,419 @@
+﻿@{
+    ViewBag.Title = "DeliveryAssignment";
+
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="DeliveryAssignment-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+<script>
+    const $formContainer = $('#DeliveryAssignment-form');
+    var DeliveryAssignmentTransMode = "";
+        $(document).ready(function () {
+            deliveryAssignmentInitialLoad();
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                <text> loadDeliveryAssignmentList(this); </text>
+              }
+        });
+
+        var validationMessage = {
+
+            'ddlImportsList': {
+                'required': 'Please Select Import From',
+            },
+            'DACustomer': {
+                'required': 'Please Enter Customer Details',
+            },
+            'VehicleName': {
+                'required': 'Please Select Vehicle'
+            },
+            'EmployeeID': {
+                'required': 'Please Select Employee'
+            },
+            'AreaID': {
+                'required': 'Please Select Area',
+                'min':'Please Select Area',
+            },
+            'ShpMobile': {
+                'required': 'Please Enter a Valid Phone Number'
+            },
+            'DeliveryDate': {
+                'required': 'Please Select Delivery Date',
+                'min': jQuery.validator.format(`Delivery Date Should be greater than or equal to Today's Date`)
+            },
+            'DistrictID': {
+                'required': 'Please Select District',
+                'min': 'Please Select District',
+
+            },
+            'StatesID': {
+                'required': 'Please Select State',
+                'min': 'Please Select State',
+            },
+            'CountryID': {
+                'required': 'Please Select Country',
+                'min': 'Please Select Country',
+            },
+        };
+
+        function deliveryAssignmentInitialLoad() {
+            loadDeliveryAssignmentAddForm();
+        }
+
+    function loadDeliveryAssignmentAddForm() {
+        
+        DeliveryAssignmentTransMode = '@ViewBag.TransMode';
+
+        $formContainer.load('@Url.Action("LoadDeliveryAssignment", "DeliveryAssignment")?mtd=@ViewBag.mtd', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="DeliveryDate"]').val(moment().format('YYYY-MM-DD'));
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementsByName("DeliveryDate")[0].setAttribute('min', today);
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'deliveryAssignmentInitialLoad');
+        });
+    }
+
+
+
+    function loadDeliveryAssignmentList(ele){
+
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        $sideMenuOptions.title.find('h4').text('Delivery Assign List');
+        let pageUrl = '@Url.Action("GetDeliveryAssignList", "DeliveryAssignment")';
+
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransMode: DeliveryAssignmentTransMode },
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $sidemenu.find('.jq_sidemenu_title').text("Delivery Assign List");
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadDeliveryAssignmentList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": ajaxOutput.totalrecord,
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                        "pageLength": ajaxOutput.pageSize,
+                        "recordsFiltered": ajaxOutput.pageSize,
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: DeliveryAssignmentTransMode }, tableOptions, $table)
+                    });
+                }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Delivery Assign List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadDeliveryAssignmentList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransMode: DeliveryAssignmentTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: DeliveryAssignmentTransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+               {
+                <text>  { displayName: "View", action: editDeliveryAssignment },</text>
+                }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                {
+                 <text> { displayName: "Delete", action: deleteDeliveryAssignment },</text>
+                }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "DAReferenceNo", "Customer","MobileNo","DeliveryDate"],
+        hideColumn: [],
+        rowClickAction: editDeliveryAssignment,
+        renameHeader: { "SlNo": "SL NO", "DeliveryDate": "Delivery Date", "MobileNo":"Mobile","DAReferenceNo":"ReferenceNo" },
+        isDateType: ["DeliveryDate"],
+
+        };
+
+        function editDeliveryAssignment()
+        {
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = { ID_DeliveryAssignment: savedData.ID_ProductDelivery, TransMode: DeliveryAssignmentTransMode};
+
+                $.ajax({
+                 url: '@Url.Action("GetDeliveryAssignByID", "DeliveryAssignment")',
+                type: "POST",
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput.DeliveryInfo.Process.IsProcess) {
+                            $sideMenuOptions.close();
+                            $formContainer.load("@Url.Action("GetDeliveryAssignList", "DeliveryAssignment")", function () {
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');                              
+                                $("#ddlImportsList").attr("disabled", "disabled");
+                                $("#btnShowList").attr("disabled", "disabled");
+                                if (ajaxOutput.DeliveryInfo.Data[0].ImportID == 1) {
+                                    $thisForm.find('[name=ID_Sales]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Master);
+                                }
+                                else if (ajaxOutput.DeliveryInfo.Data[0].ImportID == 2) {
+                                    $thisForm.find('[name=ID_SalesOrder]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Master);
+                                }
+                                $thisForm.find('[name="ID_DeliveryAssignment"]').val(savedData.ID_ProductDelivery);
+                                $thisForm.find('[name="ddlImportsList"]').val(ajaxOutput.DeliveryInfo.Data[0].ImportID).selectpicker('refresh');
+                                $thisForm.find('[name="DAReferenceNo"]').val(ajaxOutput.DeliveryInfo.Data[0].ReferenceNo);
+                                $thisForm.find('[name="DADate"]').val(moment(ajaxOutput.DeliveryInfo.Data[0].BillDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="VehicleName"]').val(ajaxOutput.DeliveryInfo.Data[0].DelVehicleNo);
+                                $thisForm.find('[name="VehicleID"]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Vehicle);
+                                $thisForm.find('[name="BranchID"]').val('@ViewBag.BranchID');
+                                $thisForm.find('[name="Employee"]').val(ajaxOutput.DeliveryInfo.Data[0].Employee);
+                                $thisForm.find('[name="EmployeeID"]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Employee);
+                                $thisForm.find('[name="DeliveryDate"]').val(moment(ajaxOutput.DeliveryInfo.Data[0].PdAssignedDate).format('YYYY-MM-DD'));
+                                if (ajaxOutput.DeliveryInfo.Data[0].PdAssignedTime != '00:00:00') {
+                                    $thisForm.find('[name="DeliveryTime"]').val(ajaxOutput.DeliveryInfo.Data[0].PdAssignedTime);
+                                }
+                                $thisForm.find('[name=Checkboxsame]').prop('checked', ajaxOutput.DeliveryInfo.Data[0].AddressCheck);
+                                $thisForm.find('[name=ShpContactName]').val(ajaxOutput.DeliveryInfo.Data[0].DelName);
+                                $thisForm.find('[name=Address1]').val(ajaxOutput.DeliveryInfo.Data[0].DelAddress1);
+                                $thisForm.find('[name=Address2]').val(ajaxOutput.DeliveryInfo.Data[0].DelAddress2);
+                                $thisForm.find('[name=PinCode]').val(ajaxOutput.DeliveryInfo.Data[0].PinCode);
+                                $thisForm.find('[name=Country]').val(ajaxOutput.DeliveryInfo.Data[0].Country);
+                                $thisForm.find('[name=CountryID]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Country);
+                                $thisForm.find('[name=States]').val(ajaxOutput.DeliveryInfo.Data[0].State);
+                                $thisForm.find('[name=StatesID]').val(ajaxOutput.DeliveryInfo.Data[0].FK_State);
+                                $thisForm.find('[name=District]').val(ajaxOutput.DeliveryInfo.Data[0].District);
+                                $thisForm.find('[name=DistrictID]').val(ajaxOutput.DeliveryInfo.Data[0].FK_District);
+                                $thisForm.find('[name=Area]').val(ajaxOutput.DeliveryInfo.Data[0].Area);
+                                $thisForm.find('[name=AreaID]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Area);
+                                $thisForm.find('[name=Post]').val(ajaxOutput.DeliveryInfo.Data[0].Post);
+                                $thisForm.find('[name=PostID]').val(ajaxOutput.DeliveryInfo.Data[0].FK_Post);
+                                $thisForm.find('[name=ShpMobile]').val(ajaxOutput.DeliveryInfo.Data[0].DelMobileNo);
+                                $thisForm.find('[name=DrvName]').val(ajaxOutput.DeliveryInfo.Data[0].DelDriverName);
+                                $thisForm.find('[name=DrvPhoneno]').val(ajaxOutput.DeliveryInfo.Data[0].DelDriverMobileNo);
+                                $thisForm.find('[name=TransportType]').val(ajaxOutput.DeliveryInfo.Data[0].DelTransportType).selectpicker('refresh');
+                                $thisForm.find('[name=EwayBillNo]').val(ajaxOutput.DeliveryInfo.Data[0].PdEWayBillNo);
+
+                                if (ajaxOutput.DeliveryInfo.Data[0].FK_Vehicle > 0 || ajaxOutput.DeliveryInfo.Data[0].FK_Vehicle != "") {
+                                    $thisForm.find('[name="VehicleName"]').attr("readonly", true);
+                                }
+                                else {
+                                    $thisForm.find('[name="VehicleName"]').attr("readonly", false);
+                                }
+
+                                $sideMenuOptions.close();
+                            });
+                            //******Fill sales oreder/sales Customer Name, Mobile , Adderss
+                            FillCustomerDetails(this, ajaxOutput.DeliveryInfo.Data[0].ImportID, ajaxOutput.DeliveryInfo.Data[0].FK_Master)
+                            ///Fill sales oreder/sales Customer Name, Mobile , Adderss***************
+                            if (ajaxOutput.DeliveryProduct.Data != null) {
+                                if (ajaxOutput.DeliveryProduct.Data.length > 0) {
+                                    $('#tbodyDeliveryAssignment').empty();
+                                    $.each(ajaxOutput.DeliveryProduct.Data, function (i, key) {
+                                        var $ProductHtml = '';
+                                        $ProductHtml = `<tr class="ProductClass">
+                                                        <td class="jq_checkmark"><input class="ProductChecked" type="checkbox"  id="checkmark"  name="Markproduct" onchange="fn_Quantitychecking(this,${i})" value="" checked="checked"></td>
+                                                        <td class="jq_productid" style="display:none"><input type="text" id="ProductID"  value="${key.FK_Product}"/></td>
+                                                        <td class="jq_productName">${key.Product}</td>
+                                                        <td class="jq_quantityHidden" style="display:none"><input type="hidden" id="Quantity${i}" value="${key.SalesQuantity}"/></td>
+                                                        <td class="jq_enteredquantity"><input type="text" class="form-control" id="EnteredQuantity${i}" name="EnterQuantity" maxlength="13" oninput="decimalpnt(this,'EnteredQuantity${i}',4)"  onchange="fn_Quantitychecking(this,${i})" value="${key.Quantity}"></td>`;
+                                        $('#tbodyDeliveryAssignment').append($ProductHtml);
+                                    });
+                                }
+                            }
+                        }
+                        else {
+                            $.each(ajaxOutput.DeliveryInfo.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                              $('.dataTable tr').removeClass("SelectForDelete");
+                            });
+                        }
+                    },
+               });
+
+        }
+    function FillCustomerDetails(ele,ImportId,FK_Master) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var Id = "";
+
+        if (ImportId == 1) {
+            Id = FK_Master;
+        }
+        else if (ImportId == 2) {
+            Id = FK_Master;
+        }
+        var InputData =
+        {
+            FK_Master: Id,
+            ImportId: ImportId
+        }
+        if (Id != 0 || Id != "") {
+
+            $.ajax({
+                url: "@Url.Action("GetCustomerdetails", "Sales")",
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        $('[name="DACustomer"]').val(ajaxOutput.Data[0].CusName);
+                        $('[name="Mobile"]').val(ajaxOutput.Data[0].Mobile);
+                        var data = ajaxOutput.Data[0];
+                        var fullAddress = [data.Address, data.Post, data.Area, data.District].filter(Boolean).join(", ");
+                        $('[name="Address"]').val(fullAddress);
+                        
+                    }
+                },
+
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+            });
+        }
+    }
+
+
+
+        function deleteDeliveryAssignment() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetDeliveryyDeleteReasonList", "DeliveryAssignment")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.DAReferenceNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_DeliveryAssignment: Saveddata.ID_ProductDelivery,
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteDeliveryAssignment", "DeliveryAssignment")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                menuGroupInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+
+
+
+                        }
+                   }
+               });
+        }
+</script>
+}

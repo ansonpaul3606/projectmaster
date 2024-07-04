@@ -1,0 +1,848 @@
+﻿@{
+    ViewBag.Title = "SiteInspectionAssign";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="SiteInspectionAssign-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+        var SiteInspectionAssignTransMode = "";
+        const LastIDSessionKey = 'SiteInspectionAssignLastID';
+        var LastID_SiteInspectionAssign;
+        const $formContainer = $('#SiteInspectionAssign-form');
+
+    $(document).ready(function () {
+        SiteInspectionAssignInitialLoad();
+
+    });
+
+
+
+        function SiteInspectionAssignInitialLoad() {
+       SiteInspectionAssignTransMode = '@ViewBag.TransMode';
+      
+            loadSiteInspectionAssignList(this, loadSiteInspectionAssignAddForm);
+    }
+
+        var SiteInspectionAssignid = 0;
+    // Function to load SiteVisit ADD form
+        function loadSiteInspectionAssignAddForm() {
+        debugger;
+        $formContainer.load('@Url.Action("LoadSiteInspectionAssignForm", "SiteInspectionAssign")?mtd=@ViewBag.mtd', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            let d = new Date;
+            console.log("Date", Date);
+            let Hours = d.getHours();
+            console.log("Hours", Hours);
+            let Minutes = d.getMinutes();
+            console.log("Minutes", Minutes);
+            let Time = Hours + ":" + Minutes;
+            console.log("Time", Time);
+
+
+            // $thisForm.find('[name="VisitTime"]').val(new Date().getHours() + ":" + new Date().getMinutes()),
+            $thisForm.find('[name="VisitTime"]').val(Time);
+            $thisForm.find('[name="VisitDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+            // ... Custom validation message
+            $thisForm.validate({ messages: validationMessage });
+            // ... Custom validation message
+            $thisForm.attr('perfect-onFormSuccess', 'SiteInspectionAssignInitialLoad');
+
+            getSessionValue(LastIDSessionKey, function (result) {
+                LastID_SiteInspectionAssign = result;
+            });
+            // initFunctions($thisForm);
+
+        });
+
+    };
+
+
+    var tableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                        console.log('Editclick', savedData);
+                        //filling data in available inputs
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                            }
+                            else if ($thisNode.is('input')) {
+                                let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else if (inputType == 'date') {
+                                    console.log('datess', savedData)
+                                    console.log('datess', savedData[pf_name])
+                                    // $thisNode.val(moment(savedData[pf_name]).format('YYYY-DD-MM'));
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                               
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+
+
+
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            //$thistbl.dataTable({ paging: true, searchbtn: false });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+
+                    }
+                },
+            ]
+        },
+
+
+
+        onlyShowColumn: ["DepartmentID_d", "Employee", "EmployeeTypeID_d", "FK_NetAction_d", "FK_ActionType_d", "NextActionDate", "LgpPQuantity", "MeasurementTypeID_d", "MeasurementUnitID_d", "MDRemarks", "MeasurementValue"],
+        hideColumn: ["EmployeeTypeID", "MeasurementTypeID", "MeasurementUnitID"],
+        serialNo: true,
+        renameHeader: {
+            "FK_NetAction": "Action", "FK_ActionType": "Action Type", "DepartmentID_d": "Department", "MeasurementTypeID_d": "Measurment Type", "MeasurementUnitID_d": "Unit", "MDRemarks": "Remarks", "MeasurementValue": "Value", "NextActionDate": "Follow up Dt", "FK_Category": "Category", "FK_Priority": "Priority", "EmployeeTypeName": "Employeee Type"
+        },
+
+        rowAttribute: [],
+        isCheckType: [],
+        isDateType: ["NextActionDate"],
+    };
+
+        function loadSiteInspectionAssignList(ele,callback) {
+
+        let $sidemenu = $sideMenuOptions.body;
+
+        // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH", SearchName)
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+         $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+
+
+
+
+        let pageUrl = '@Url.Action("GetSiteInspectionAssignList", "SiteInspectionAssign")';
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: SiteInspectionAssignTransMode },
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                if (ajaxOutput.Process.IsProcess) {
+                    console.log('Site Inspection Assign List', ajaxOutput);
+                    $sidemenu.find('.jq_sidemenu_title').text("Site Inspection Assign List");
+                    setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                    //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadSiteInspectionAssignList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+
+                        "serverSide": true,//no change
+                        "processing": true,//-- process text when clicked
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                        "searching": false,//--no change
+                        "ordering": false,//--sorting
+                        "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                        "pageLength": ajaxOutput.pageSize,//<----page size
+                        "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: SiteInspectionAssignTransMode }, tableOptions, $table)
+                    });
+
+                }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        setSessionValue(LastIDSessionKey, 0);
+                        $sidemenu.find('.jq_sidemenu_title').text("Site Inspection Assign List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadSiteInspectionAssignList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            // "lengthChange": false,
+                            "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: SiteInspectionAssignTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+
+            }
+        });
+    };
+
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editSiteInspectionAssign },</text>
+    }
+
+    { type: "divider" },
+    @if (ViewBag.PagedAccessRights.UsrrlMsDel) {
+        <text> { displayName: "Delete", action: deleteSiteInspectionAssign },</text>
+
+    }
+
+
+                ],
+    class: "btn btn-success light sharp"
+            },
+    onlyShowColumn: ["SlNo", "SVSiteVisitDate", 'LeadNo','Customer','MobileNo'],
+        hideColumn: [],
+        rowClickAction: editSiteInspectionAssign,
+                serialNo: false,
+        renameHeader: { "SlNo": "Sl No.", "SVSiteVisitDate": "Assigned Date", "LeadNo": "Lead No." },
+        isDateType: ["SVSiteVisitDate"],
+        };
+
+    var validationMessage = {
+        'Lead': {
+            'required': 'Please Select Lead Number ',
+
+        },
+        'FK_Lead': {
+            'required': 'Please Select Lead Number',
+
+        },
+        'Note1': {
+            'required': 'Please Enter Inspection Note1 ',
+
+        },
+
+
+        'VisitDate': {
+            'required': 'Please Enter Effect Date'
+        },
+        'Employee': {
+            'required': 'Please Enter  Employee Details',
+
+        },
+        'InspectionType': {
+            'required': 'Please Select Inspection Type',
+
+        }
+
+    };
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+        var InspectionType = 0;
+        function editSiteInspectionAssign() {
+        let row = $(this).closest('tr');
+
+        let Saveddata = row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+            sitevisitid = Saveddata.ID_SiteVisitAssignment;
+        console.log("Saved data", Saveddata);
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ID_SiteVisitAssignment: Saveddata.ID_SiteVisitAssignment,
+            TransMode: SiteInspectionAssignTransMode
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetSiteInspectionAssignInfoByID", "SiteInspectionAssign")',
+            type: "POST",
+
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                debugger;
+
+                console.log("Return", ajaxOutput.SiteVisitDetails.Data[0]);
+                if (ajaxOutput.SiteVisitDetails.Process.IsProcess) {
+
+                    console.log('>_ Inside GetSiteVisitInfo', ajaxOutput)
+
+
+                    $formContainer.load("@Url.Action("LoadSiteInspectionAssignForm", "SiteInspectionAssign")?mtd=@ViewBag.mtd", function () {
+
+                        $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.SiteVisitDetails.Data[0].LeadGenerationID)
+                        console.log('Inside load');
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        $thisForm.find('[name=Lead]').val(ajaxOutput.SiteVisitDetails.Data[0].LeadNo);
+
+                        $thisForm.validate({ messages: validationMessage });
+
+                        $thisForm.data({ pData: ajaxOutput.SiteVisitDetails.Data[0] });
+                      
+
+
+                        $thisForm.find('[name="LeadNo"]').val(ajaxOutput.SiteVisitDetails.Data[0].LeadNo),
+                        $thisForm.find('[name="FK_Lead"]').val(ajaxOutput.SiteVisitDetails.Data[0].LeadGenerationID),
+                        $thisForm.find('[name="VisitTime"]').val(ajaxOutput.SiteVisitDetails.Data[0].VisitTime),
+                        $thisForm.find('[name="VisitDate"]').val(moment(ajaxOutput.SiteVisitDetails.Data[0].SVSiteVisitDate).format('YYYY-MM-DD'));
+                        $thisForm.find('[name="LeadDates"]').val(moment(ajaxOutput.SiteVisitDetails.Data[0].LeadDates).format('YYYY-MM-DD'));
+                        $thisForm.find('[name="Note1"]').val(ajaxOutput.SiteVisitDetails.Data[0].Note1);
+                        $thisForm.find('[name="Note2"]').val(ajaxOutput.SiteVisitDetails.Data[0].Note2);
+                       
+                        $thisForm.find('[name="SVExpenseAmount"]').val(ajaxOutput.SiteVisitDetails.Data[0].SVExpenseAmount);
+                        InspectionType = ajaxOutput.SiteVisitDetails.Data[0].SVAInspectionType;
+                        $thisForm.find('[name="InspectionType"]').val(ajaxOutput.SiteVisitDetails.Data[0].SVAInspectionType == 0 ? "" : ajaxOutput.SiteVisitDetails.Data[0].SVAInspectionType).selectpicker('refresh');
+                        $thisForm.find('[name="InspectionType"]').trigger('change');        
+                        $thisForm.find('#Importbutton').prop("disabled", "disabled");
+                        $thisForm.find('[name="ID_Import"]').prop("disabled", "disabled");
+                        $thisForm.find('[name="ID_Import"]').val(1).selectpicker('refresh');
+                       
+                        $sideMenuOptions.close();
+                        fillTable($thisForm, 'EmployeeDetailsTable', ajaxOutput.EmployeeDetails.Data, tableOptionsTempOut);
+                       
+                        if (ajaxOutput.CheckList.Process.IsProcess) {
+
+                            $thisForm.data({ CheckListdata: ajaxOutput.CheckList });
+                        }
+                     
+                       // GetCheckList(ajaxOutput.CheckList);
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+                        $thisForm.find('button[name=viewprint]').removeClass('d-none');
+                        $thisForm.attr('perfect-onFormSuccess', 'SiteVisitInitialLoad');
+
+                    });
+                }
+                else {
+                    console.log('>_ Inside GetSiteVisitInfo :false')
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+                //  loadSiteVisitList()
+            },
+
+        });
+
+    }
+
+
+    function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+                //console.log('name', valOne[nameAttr])
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                      
+
+                            switch (headerName) {
+                                case "EmployeeType":
+                                    headerName = "Employee Type";
+                                    break;
+
+                                default:
+                                    headerName = headerName;
+                                    break;
+                            }
+
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        //displat text of select
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                        console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                    }
+                    else if ($this.is('input')) {
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+                        console.log(inputType)
+                        if (inputType == 'checkbox') {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+
+                            console.log('checkbox', nameAttr)
+
+
+                        }
+                        else if (inputType == 'hidden') {
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if (inputType == 'date') {
+
+                            if (valOne[nameAttr] == null) {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                            }
+
+
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                }
+
+
+
+            });
+
+            insertData.push(pData);
+
+
+            //----
+
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        // $tblcontainer.find('table').dataTable({ paging: true });
+
+    }
+
+    function fn_LoadSubcategory(CategoryId, htmlEl, subCatId) {
+
+        let $thisForm = htmlEl;
+        debugger;
+        let $placeDropdown = $thisForm.find('[name=SubCategotyID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+        let CategoryID = CategoryId;
+
+
+        // let ModeDropdown = $thisForm.find('[name=Mode]')
+        //if ($thisForm.find('[name=Mode]').val() == "") {
+        //    $thisForm.find('[name=Mode]').val(0);
+        //}
+        //alert($thisForm.find('[name=Mode]').val())
+        $.ajax({
+            url: "@Url.Action("GetSubcategory", "SiteInspectionAssign")",
+            type: "POST",
+
+            data: JSON.stringify({ CategoryID: CategoryID }),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+
+
+
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        $placeDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                    });
+
+                    $placeDropdown.val(subCatId).selectpicker('refresh')
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        //toastr.warning(value, "Error");
+                        //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                    });
+                }
+            }
+
+        });
+
+
+    }
+    // Function to delete SiteVisit
+
+
+    //---
+    // Function to delete customer
+        function deleteSiteInspectionAssign() {
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        console.log('Delete function', Saveddata)
+
+        //get reason list-
+
+        $.ajax({
+            url: "@Url.Action("GetSiteInspectionAssignDeleteReasonList", "SiteInspectionAssign")",
+            type: "GET",
+            // data: inputReason,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+
+                    console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove Site Visit Data with Lead No  :  " + Saveddata.LeadNo + " " + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                    var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                    confirmBoxObj.then(function (selectedOption) {
+                        if (selectedOption) {
+                            console.log('customerIndex> delete function:', selectedOption)
+
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                SiteInspectionAssignID: Saveddata['ID_SiteVisitAssignment'],
+                                TransMode: SiteInspectionAssignTransMode,
+                                ReasonID: selectedOption
+                            };
+
+
+                            console.log(inputData);
+                            $.ajax({
+                                url: "@Url.Action("DeleteSiteInspectionAssignInfo", "SiteInspectionAssign")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        let table = $row.closest('table').DataTable()
+                                        table.row($row).remove().draw();
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                        });
+
+                                        $formContainer.load("@Url.Action("LoadSiteInspectionAssignForm", "SiteInspectionAssign")?mtd=@ViewBag.mtd", function () {
+
+                                            let $thisForm = $(this).find('[perfect-class="form"]')
+                                            $thisForm.find('[name="VisitTime"]').val(new Date().getHours() + ":" + new Date().getMinutes()),
+                                            $thisForm.find('[name="VisitDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                        });
+                                        //removing a data
+
+
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+                                        SiteInspectionAssignInitialLoad();
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+
+
+                }
+                else {
+
+
+
+                }
+            }
+
+        });
+
+
+
+
+    };
+
+
+    function ShowOtherCharges(ele, mode) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if ($thisForm.data('pOthrChgData')) {
+
+            if ($thisForm.data('pOthrChgData').length > 0) {
+
+                othrchargelst = $thisForm.data('pOthrChgData');
+            }
+
+        }
+
+        BindChargeDetails(ele, mode)
+
+
+    }
+
+      var othrchargelst = [];
+       function BindChargeDetails(ele, mode) {
+
+        var InputData =
+        {
+            TransMode: SiteInspectionAssignTransMode,
+        }
+
+
+        $.ajax({
+            url: "@Url.Action("GetOtherCharges", "SiteInspectionAssign")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.OtherCharges.Process.IsProcess) {
+                         var CheckListHTML = '';
+
+                         if (ajaxOutput.OtherCharges.Data.length > 0) {
+
+                             $.each(ajaxOutput.OtherCharges.Data, function (i, value) {
+
+                                 let options = ''
+                                     if (othrchargelst != '') {
+
+                                         $.each(othrchargelst, function (key, value1) {
+
+                                             if (value1.ID_OtherChargeType == value.ID_OtherChargeType) {
+
+                                                 value.OctyAmount = value1.OctyAmount;
+                                                 $.each(ajaxOutput.Transtypelist.Data, function (i, valuea) {
+                                                     if (valuea.TransTypeID.toString() == value1.OctyTransType) {
+
+                                                         options += '<option value=' + valuea.TransTypeID + ' selected="selected">' + valuea.TransType + '</option>'
+                                                     }
+                                                     else {
+                                                         options += '<option value=' + valuea.TransTypeID + '>' + valuea.TransType + '</option>'
+                                                     }
+                                                 });
+                                             }
+
+
+                                         });
+
+                                     }
+                                     else
+                                     {
+
+                                         $.each(ajaxOutput.Transtypelist.Data, function (i, valuea) {
+                                             options += '<option value=' + valuea.TransTypeID + '>' + valuea.TransType + '</option>'
+                                         });
+                                         //---
+
+                                     }
+                                 console.log('optionsl', options)
+                                 let $dropdown = '<select class="form-control"name="selector" id="selector" >' + options + '</select>';
+                                 CheckListHTML += "<tr>";
+                                 CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                 CheckListHTML += "<td Class='jq_ID_OtherChargeType_td' Style='Display:none'>" + value.ID_OtherChargeType + "</td>";
+                                 CheckListHTML += "<td Class='jq_Type_td' style='width:150px;'>" + value.OctyName + "</td>";
+                                 CheckListHTML += "<td class='jq_TransType_td' style='width:150px;'>" + $dropdown + "</td>";
+                                 CheckListHTML += "<td class='jq_OtherChagAmnt_td' style='width:150px;'><input min='0'  class='form-control text-right' type='number' onkeypress='return isNumberKey(event)'  value='" + value.OctyAmount + "' ' /></td> /></td>";
+
+                                 CheckListHTML += "</tr>";
+                             })
+                         }
+                         else {
+                             CheckListHTML += "<div class='form-group col-md-6'>";
+                             CheckListHTML += "<div class='form-check mb-2'>";
+                             CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                             CheckListHTML += "</div></div>"
+                         }
+
+
+                    $("#formGroupModalOtherChargebody").html(CheckListHTML)
+
+                    if (mode == 0) {
+                        $('#formGroupModalOtherCharge').modal({ backdrop: 'static', keyboard: false })
+                     $('#formGroupModalOtherCharge').modal('show');
+                    }
+                    else {
+
+                       $('#formGroupModalOtherCharge').modal('hide');
+                    }
+
+
+                     }
+                else {
+
+                    $.each(ajaxOutput.OtherCharges.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                  //  $('select').selectpicker('refresh');
+                }
+            });
+            }
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

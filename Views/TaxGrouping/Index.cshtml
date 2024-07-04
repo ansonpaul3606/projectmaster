@@ -1,0 +1,498 @@
+﻿
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_TaxGroupingIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+
+
+<script type="text/javascript">
+        const $formContainer = $('#jq_TaxGroupingIndex_formContainer');
+        $(document).ready(function () {
+            fn_TaxGroupingIndex_initialLoad();
+
+        });
+
+        function fn_TaxGroupingIndex_initialLoad() {
+
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                    {
+                        <text> fn_TaxGroupingIndexlist(this); </text>
+                    }
+
+                    fn_TaxGroupingAddForm();
+
+                }
+
+        function fn_TaxGroupingAddForm() {
+
+            $formContainer.load('@Url.Action("LoadTaxGroupingForm", "TaxGrouping")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="Percentage"]').prop('checked', true);
+                
+                $thisForm.attr('perfect-onFormSuccess', 'fn_TaxGroupingIndex_initialLoad');
+                initFunctions($thisForm);
+            });
+
+        };
+
+        var validationMessage = {
+            'Name': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+
+        };
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+             @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editTaxGroup },</text>
+    }
+
+                { type: "divider" },
+              
+                      @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                      {
+                        <text> { displayName: "Delete", action: deleteTaxGroup },</text>
+                                                                                        }
+                   
+                    
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Name", "ShortName"],
+        hideColumn: [""],
+            //  isDateType: [],
+        rowClickAction: editTaxGroup,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL No", "Name": "Name", "ShortName": "ShortName" }
+        };
+
+
+        function fn_TaxGroupingIndexlist(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+        $sideMenuOptions.title.find('h4').text('Tax Group List');
+          let pageUrl = '@Url.Action("GetTaxgroupListView", "TaxGrouping")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('TaxGroup', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("TaxGroup");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_TaxGroupingIndexlist(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_TaxGroupingIndexlist(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+     function deleteTaxGroup() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetTaxGroupReasonList", "TaxGrouping")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        TaxGroupID: Saveddata['TaxGroupID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteTaxGroupInfo", "TaxGrouping")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                fn_TaxGroupingAddForm();
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+    // var InspectionType = 0;
+
+   
+    function editTaxGroup()
+        {
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+         let inputData = {
+             __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+             TaxGroupID: savedData.TaxGroupID,
+
+         };
+
+
+                $.ajax({
+                 url: '@Url.Action("GetTaxGroupInfoByID", "TaxGrouping")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput) {
+                            $formContainer.load("@Url.Action("LoadTaxGroupingForm", "TaxGrouping")", function () {
+
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.find('[name="Name"]').val(ajaxOutput.taxdata.Data[0].Name);
+                                $thisForm.find('[name="ShortName"]').val(ajaxOutput.taxdata.Data[0].ShortName);
+                                $thisForm.find('[name="SortOrder"]').val(ajaxOutput.taxdata.Data[0].SortOrder);
+
+
+                                $sideMenuOptions.close();
+                              //  fillTable($thisForm, 'taxType', ajaxOutput.taxsubdata.Data, tableOptionsTempOut);
+                                ComDetailsTable_Fill($thisForm, 'taxType', ajaxOutput.taxsubdata.Data, tableOptionsTempOutTG)
+
+                                $('#idaddbutton').addClass('d-none');
+                                $('#reset').addClass('d-none');
+                                
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                
+                                $thisForm.attr('perfect-onFormSuccess', 'fn_TaxGroupingIndex_initialLoad');
+
+                                $thisForm.attr('perfect-onFormSuccess', 'TaxGroupSettingsLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                            });
+                        }
+                    
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+    };
+    function ComDetailsTable_Fill(ele, tkey, data, tableOptionsTempOutTG) {
+        debugger
+        let $thisForm = $(ele)
+
+        let tableOptionsTemp = tableOptionsTempOutTG;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+            //---
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+
+                if (typeof valOne[nameAttr] !== undefined) {
+
+                    if ($this.is('select')) {
+                        switch (headerName) {
+                            case "StockMode":
+                                headerName = "Stock Mode";
+                                break;
+                            default:
+                                break;
+                        }
+                        tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                        tableOptionsTemp.hideColumn.push(nameAttr);
+                        pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                        pData[nameAttr] = valOne[nameAttr];
+                    }
+                    else if ($this.is('input')) {
+
+                        let inputType = $this.attr('type').toLocaleLowerCase();
+
+                        if (inputType == 'checkbox') {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            tableOptionsTemp.isCheckType.push(nameAttr);
+
+                            console.log('checkbox', nameAttr)
+
+
+                        }
+                        else if (inputType == 'hidden') {
+
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if (inputType == 'date') {
+
+
+                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+
+
+                        }
+                        else {
+
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+                    else {
+                        pData[nameAttr] = valOne[nameAttr];
+
+
+                    }
+                }
+
+
+
+            });
+
+            insertData.push(pData);
+            console.log('insertdata', insertData)
+
+            //----
+
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+    }
+   
+    var tableOptionsTempOutTG = {
+       
+        onlyShowColumn: [],
+        hideColumn: ['ID_TaxType', 'Percentage'],
+        serialNo: true,
+        renameHeader: {
+            "TaxtyName": "Tax Type"
+        },
+
+        rowAttribute: [],
+        isCheckType: [],
+       
+    };
+
+</script>
+    }
+

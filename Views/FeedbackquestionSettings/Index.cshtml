@@ -1,0 +1,407 @@
+﻿
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="FeedbackquestionSettings-form">
+
+        </div>
+    </div>
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+    const $formContainer = $('#FeedbackquestionSettings-form');
+       
+       
+     
+          $(document).ready(function () {
+
+            fn_FeedbackquestionSettings_initialLoad(this);
+
+        });
+
+        function fn_FeedbackquestionSettings_initialLoad() {
+            FeedBackQuestionsettingsTransMode = "";
+            FeedBackQuestionsettingsTransMode='@ViewBag.TransMode';
+       
+            loadFeedBackQuestionSettingList(this, LoadFeedbackquestionSettings);
+        }
+
+    function LoadFeedbackquestionSettings() {
+            $formContainer.load('@Url.Action("LoadFeedbackquestionSettings", "FeedbackquestionSettings")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+              
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                $('#Questiontable').hide();
+
+            });
+    }
+        var validationMessage = {
+
+            'FromDate': {
+                'required': 'Please Enter  From Date'
+        
+            },
+            'ToDate': {
+                'required': 'Please Enter  To Date'
+
+
+            },
+            'Page': {
+                'required': 'Please Select Page',
+                'digits': 'Invalid  Page selected'
+            },
+            'Module': {
+                'required': 'Please Select Module',
+                'digits': 'Invalid Module selected'
+            }
+
+        };
+
+
+
+        var tableOptions = {
+        dropdown: {
+            buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editFeedBackQuestionSetting },</text>
+    }
+
+    { type: "divider" },
+    @if (ViewBag.PagedAccessRights.UsrrlMsDel) {
+        <text> { displayName: "Delete", action: DeleteFeedBackQuestionSetting },</text>
+
+    }
+
+         ],
+         class: "btn btn-success light sharp"
+     },
+     onlyShowColumn: ["SlNo", "EffectFrom","EffectTo"],
+   
+            rowClickAction: editFeedBackQuestionSetting,
+     serialNo: false,
+    renameHeader: {
+        "SlNo": "SlNo"},
+            isDateType: ["EffectFrom","EffectTo"],
+        };
+
+
+        function loadFeedBackQuestionSettingList(ele,callback)
+        {
+            debugger
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+     
+           
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+ 'List');
+
+            let pageUrl = "@Url.Action("GetFeedbackquestionSettingsList", "FeedbackquestionSettings")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log(ajaxOutput, 'ajaxOutput>>>>2');
+                    console.log("tableoption123", tableOptions)
+                    if (ajaxOutput.Process.IsProcess) {
+                       
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFeedBackQuestionSettingList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Language");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFeedBackQuestionSettingList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) { NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value }); });
+                        }
+                    }
+                },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }}
+            })
+            
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+        function editFeedBackQuestionSetting() {
+             let row = $(this).closest('tr');
+
+        let Saveddata = row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+            let $thisForm = $(this).find('[perfect-class="form"]');
+        console.log("Saved data", Saveddata);
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FK_FeedbackQuestionSettings: Saveddata.GroupID,
+            TransMode: FeedBackQuestionsettingsTransMode
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetFeedBackupQuestionSettingInfoByID", "FeedbackquestionSettings")',
+            type: "POST",
+
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                debugger;
+
+               
+                if (ajaxOutput.Process.IsProcess) {
+
+                    console.log('>_ Inside GetfeedBackupSettingInfo', ajaxOutput)
+                  
+
+                    $formContainer.load("@Url.Action("LoadFeedbackquestionSettings", "FeedbackquestionSettings")?mtd=@ViewBag.mtd", function () {
+
+                        $(this).find('[perfect-class=formTitle]').text('update : ')
+                        console.log('Inside load');
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        $thisForm.validate({ messages: validationMessage });
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=add]').hide();
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                        $thisForm.find('[name="ID_FeedbackQuestionSettings"]').val(Saveddata.GroupID),
+                         $thisForm.find('[name="GroupID"]').val(Saveddata.GroupID),
+                            $thisForm.find('[name="FromDate"]').val(moment(Saveddata.EffectFrom).format('YYYY-MM-DD')).attr("disabled", "disabled");
+                        $thisForm.find('[name="ToDate"]').val(moment(Saveddata.EffectTo).format('YYYY-MM-DD')).attr("disabled", "disabled");
+                        $thisForm.find('[name="Module"]').val(Saveddata.Module).selectpicker('refresh').attr("disabled", "disabled");
+                        $thisForm.find('[name="Module"]').trigger('change');
+
+                        $thisForm.find('[name="Page"]').attr('perfect-onloadSelect', Saveddata.Page).attr("disabled", "disabled");
+                        $thisForm.find('[name="Active"]').prop('checked', Saveddata.Active);
+                       
+                        $ProductHtml1 = '';
+                        let rowCountQuestionDetails = ajaxOutput.Data.length;
+                        $('#QuestionTbody').empty();
+
+
+
+                        if (ajaxOutput.Data.length > 0) {
+                            $.each(ajaxOutput.Data, function (i, value) {
+
+
+                                let rowCount = (i + 1)
+
+
+                                $ProductHtml1 += "<tr id=" + rowCount + ">";
+
+
+                                $ProductHtml1 += "<td class='jq_IDQuestion_ID_Question' Style='Display:none'>" + value.FK_FeedBack + "</td>";
+                                $ProductHtml1 += "<td class='jq_QuestionDet_td'Style='Display:none'>" + + "</td>";
+                                $ProductHtml1 += "<td class='jq_Questionslno_td'>" + rowCount+ "</td>";
+                                $ProductHtml1 += "<td  class='jq_QuestionQuestion_td' type='text'>" + value.Question +"?"+ "</td>";
+                                $ProductHtml1 += "<td  class='jq_QuestionMode_td' type='text'>" + value.QuestionMode + "</td>";
+                                $ProductHtml1 += "<td  class='jq_QuestionShowin_td' type='text'>" + value.Mode + "</td>";
+                                $ProductHtml1 += "<td  class='jq_Questionfedddback_td' type='text'>" + value.FeedbackType + "</td>";
+                                $ProductHtml1 += "<td  class='jq_Questiondeletebutton_td' style='text-align:center;'><div class='d-flex'><a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1'onclick='RemoveQuestionsdetails(this)' title='Delete'><i class='fa fa-trash btnPerfectGridDelete'></i></a>";
+                                $ProductHtml1 += "</tr>";
+                            });
+
+                            $('#QuestionTbody').append($ProductHtml1);
+                        }
+
+                        
+
+                    });
+                   
+                    }
+                       
+                else {
+                    console.log('>_ Inside fn_FeedbackquestionSettings_initialLoad :false')
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+             
+             
+                $thisForm.attr('perfect-onFormSuccess', 'fn_FeedbackquestionSettings_initialLoad');
+                $sideMenuOptions.close();
+            },
+
+            });
+          
+
+        }
+
+        function DeleteFeedBackQuestionSetting() {
+            debugger
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+               console.log("Saved data", Saveddata);
+               $('.dataTable tr').removeClass("SelectForDelete");
+               $(this).closest('tr').addClass('SelectForDelete');
+                $.ajax({
+                    url: "@Url.Action("GetFeedBackupQuestionSettingsReasonList", "FeedbackquestionSettings")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  " + '' + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_FeedBack: Saveddata.GroupID,
+                                        ReasonID: ret
+                                    };
+                                    console.log(inputData);
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteFeedBackupQuestionSettings", "FeedbackquestionSettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+
+                                        }
+                                         
+                                       
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+                            $sideMenuOptions.close();
+
+                        }
+                    }
+                    });
+
+        };
+    </script>
+    }

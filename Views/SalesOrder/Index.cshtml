@@ -1,0 +1,871 @@
+﻿@{
+    ViewBag.Title = "SalesOrder";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_SaleOrderIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        var validationMessage = {
+            'SalesOrderDate': {
+                'required': 'Please Select Sales Order date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'CustomeName': {
+                'required': 'Please Enter Customer Name'
+            },
+            'ddlImportsList': {
+                'required': 'Please select any one from the list'
+            },
+            'MobileNo': {
+                'required': 'Please Enter Mobile Number',
+                'minlength': jQuery.validator.format('Mobile Should be More than 9 Characters'),
+                'maxlength': jQuery.validator.format('Mobile Should be Less than {0} Characters')
+            },
+            'SalBillTotal': {
+                'required': 'Please Fill Sub Total'
+            },
+            'SalNetAmount': {
+                'required': 'Please Fill Net Amount'
+            },
+            'BillType': {
+                'required': 'Please Select Bill Type',
+                'stringonly': 'Special Characters are not Allowed in  Bill Type'
+            },
+            'SoDeliveryDate': {
+                'min': jQuery.validator.format('Back date not Allowed')
+            },
+        }; 
+    const LastIDSessionKey = 'SalesOrderLastID';
+    var SalesorderTransMode = '';
+    var LastID_SalesOrder;
+    var Transmode;
+    var LastId;
+        const $formContainer = $('#jq_SaleOrderIndex_formContainer');
+        // Initial load functions
+        $(document).ready(function () {
+            fn_SaleOrderIndex_InitialLoad();
+
+        });
+        function fn_SaleOrderIndex_InitialLoad() {
+
+            SalesorderTransMode = "";
+           
+            SalesorderTransMode = "";
+             SalesorderTransMode ='@ViewBag.TransMode';
+              
+
+            fn_loadSaleOrderList(this, fn_loadSaleOrderForm);
+            
+
+
+
+
+
+        }
+
+        // Fucntion to load Sales order add form
+        function fn_loadSaleOrderForm() {
+            $formContainer.load('@Url.Action("LoadFormSalesOrder", "SalesOrder")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="SalesOrderDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.data({ pOthrChgData: [] })
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_loadSaleOrderList');
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("SoDeliveryDate")[0].setAttribute('min', today);
+                SalesOrderid = 0;
+                initFunctions($thisForm);
+                //getNumberGeneration(SalesorderTransMode, 0, $thisForm, 'SalesOrderNo')
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_SalesOrder = result;
+                });
+                getSessionValue("FRM_TRANSMODE", function (result) {
+                    Session = result;
+                });
+                $('.AssignedToID').hide();
+                if ('@ViewBag.MasterID' != "") {
+                    let inputData =
+                    {
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                        ID_SalesOrder: '@ViewBag.MasterID'
+                    };
+                    fn_fillSalesOrderDetails(inputData, []);
+                }
+            });
+
+        };
+
+        function fn_loadSaleOrderList(ele,callback)
+        {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Sales Order List');
+             let pageUrl = '@Url.Action("GetSalesOrderList", "SalesOrder")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransModes: SalesorderTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                              $sidemenu.find('.jq_sidemenu_title').text("Sales Order List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadSaleOrderList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SalesorderTransMode }, tableOptions, $table)
+                              });
+                          }
+                          else
+                    {
+                        setSessionValue(LastIDSessionKey, 0);
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Sales Order List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadSaleOrderList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SalesorderTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editSalesOrder },</text>
+                }
+                { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteSalesOrder },</text>
+                  }
+                { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "Export", action: fn_exportSalesOrder },</text>
+                }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "SoNo", "SoDate", "Contact_Name", "Contact_No", "SoAdvcAmount","SoNetAmount"],
+        hideColumn: ["ID_SalesOrder"],
+        rowClickAction: fn_editSalesOrder,
+        renameHeader: { "SlNo": "SL NO", "SoNo": "Sales Order No", "SoDate": "Date", "Contact_Name": "Customer Name", "Contact_No": "Mobile No","SoAdvcAmount":"Advance Amount", "SoNetAmount": "Net Amount" },
+        isDateType: ["SoDate"]
+    };
+
+
+    function fn_exportSalesOrder() {
+        let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ID_SalesOrder: Saveddata.ID_SalesOrder
+        };
+         $.ajax({
+                url: '@Url.Action("ExportSalesOrder", "SalesOrder")',
+                        type: "POST",
+                        data: inputData,
+                         xhrFields: {
+                             responseType: 'blob'
+                         },
+
+                        success: function (data)
+                        {
+                            var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = 'SalesOrder.xlsx';
+                            link.click();
+
+                         },
+                         error: function (xhr, status, error) {
+                             console.log(xhr);
+                             console.log(status);
+                             console.log(error);
+                         },
+
+                        complete: function () {
+                            //
+                           // console.log("-----compleate----")
+                        }
+            });
+    }
+    function fn_editSalesOrder()
+    {
+            let row = $(this).closest('tr');
+        let Saveddata = row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    ID_SalesOrder: Saveddata.ID_SalesOrder
+            };
+            fn_fillSalesOrderDetails(inputData, Saveddata);
+        }
+
+        var SalesOrderid = 0;
+    function fn_fillSalesOrderDetails(inputData, listSelectedData) {
+
+         $.ajax({
+                url: '@Url.Action("GetSalesOrderInfo", "SalesOrder")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            debugger
+                            if (ajaxOutput.soInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFormSalesOrder", "SalesOrder")?mtd=@ViewBag.mtd" + '&TransMode=@ViewBag.TransMode', function () {
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.soInfo.Data[0]['SoNo']);
+                                    $thisForm.find('[name="ID_SalesOrder"]').val(ajaxOutput.soInfo.Data[0]['ID_SalesOrder']);
+                                    debugger
+                                    console.log('salesorderid:', ajaxOutput.soInfo.Data[0]['ID_SalesOrder']);
+                                    $thisForm.data({ pDataTax: ajaxOutput.PTaxDetails });
+                                    $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge });
+
+                                    SalesOrderid = ajaxOutput.soInfo.Data[0]['ID_SalesOrder'];
+
+                                    $thisForm.find('[name="SalesOrderNo"]').val(ajaxOutput.soInfo.Data[0]['SoNo']);
+                                    $thisForm.find('[name="SalesOrderDate"]').val(moment(ajaxOutput.soInfo.Data[0]['SoDate']).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="SoQuotation"]').prop("checked", ajaxOutput.soInfo.Data[0]['SoQuotation']);
+                                    $thisForm.find('[name="ID_Customer"]').val(ajaxOutput.soInfo.Data[0]['FK_Customer']);
+                                    $thisForm.find('[name="FK_Lead"]').val(ajaxOutput.soInfo.Data[0]['FK_LeadGenerate']);
+                                    $thisForm.find('[name="ID_Quotation"]').val(ajaxOutput.soInfo.Data[0]['FK_Quotation']);
+                                    if ((ajaxOutput.soInfo.Data[0]['FK_Quotation']) != 0) {
+                                        $thisForm.find('[name="ddlImportsList"]').val(3)
+                                    }
+                                    if ((ajaxOutput.soInfo.Data[0]['FK_Customer']) != 0 && (ajaxOutput.soInfo.Data[0]['FK_Quotation']) != 0) {
+                                        $thisForm.find('[name="ddlImportsList"]').val(3)
+                                    }
+                                    if ((ajaxOutput.soInfo.Data[0]['FK_LeadGenerate']) != 0) {
+                                        $thisForm.find('[name="ddlImportsList"]').val(2)
+                                    }
+                                    if ((ajaxOutput.soInfo.Data[0]['FK_Customer']) != 0 && (ajaxOutput.soInfo.Data[0]['FK_Quotation']) == 0) {
+                                        $thisForm.find('[name="ddlImportsList"]').val(1)
+                                    }
+                                    //$thisForm.find('[name="ddlImportsList"]').val(parseInt(ajaxOutput.soInfo.Data[0]['FK_Customer']) > 1 ? "1" : (parseInt(ajaxOutput.soInfo.Data[0]['FK_LeadGenerate']) > 1 ? "2" : (parseInt(ajaxOutput.soInfo.Data[0]['FK_Quotation']) > 1 ? "3" : "")));
+                                    $thisForm.find('[name="CustomeName"]').val(ajaxOutput.soInfo.Data[0]['Customer']);
+                                    $thisForm.find('[name="MobileNo"]').val(ajaxOutput.soInfo.Data[0]['Mobile']);
+                                    $thisForm.find('[name="SalesOrdExpDate"]').val(moment(ajaxOutput.soInfo.Data[0]['SoDeliverydate']).format('YYYY-MM-DD'));
+
+                                    $thisForm.find('[name="SalBillTotal"]').val(ajaxOutput.soInfo.Data[0]['SoBillTotal']);
+                                    $thisForm.find('[name="OtherCharge"]').val((ajaxOutput.soInfo.Data[0]['SoOthercharges']).toFixed(2));
+                                    $thisForm.find('[name="SalOrderDiscount"]').val(ajaxOutput.soInfo.Data[0]['SoDiscount']);
+                                    $thisForm.find('[name="SalOrderRoundoff"]').val(ajaxOutput.soInfo.Data[0]['SoRoundoff']);
+                                    $thisForm.find('[name="SalNetAmount"]').val(ajaxOutput.soInfo.Data[0]['SoNetAmount']);
+                                    $thisForm.find('[name="SoAdvcAmount"]').val(ajaxOutput.soInfo.Data[0]['SoAdvcAmount']);
+
+                                    $thisForm.find('[name="SODescription"]').val(ajaxOutput.soInfo.Data[0]['SODescription']);
+
+                                    $thisForm.find('[name="DownPayment"]').val(Number(ajaxOutput.soInfo.Data[0]['SoDownPayment']).toFixed(2));
+                                    $thisForm.find('[name="AdditionalAmount"]').val(Number(ajaxOutput.soInfo.Data[0]['SoAddnAmount']).toFixed(2));
+                                    $thisForm.find('[name="AssignedToID"]').val(ajaxOutput.soInfo.Data[0]['FK_AssignedTo']);
+                                    $thisForm.find('[name="AssignedTo"]').val(ajaxOutput.soInfo.Data[0]['AssignedEmployee']);
+
+                                    $thisForm.find('[name="SoDeliveryDate"]').val(moment(ajaxOutput.soInfo.Data[0]['SoDeliverydate']).format('YYYY-MM-DD'));
+
+                                    $thisForm.find('[name="BillType"]').val(ajaxOutput.soInfo.Data[0]['FK_BillType']).selectpicker('refresh');
+                                    let billtype = $thisForm.find('[name="BillType"]').val(ajaxOutput.soInfo.Data[0]['FK_BillType']).selectpicker('refresh');
+                                    console.log('billtype', billtype)
+                                    if (billtype != 0 && billtype != "" && billtype != 'undefined') {
+                                        $('.DivSalesorderno').show();
+                                    }
+                                    else {
+                                        $('.DivSalesorderno').hide();
+                                    }
+                                    $thisForm.find('[name="Costcenter"]').val(ajaxOutput.soInfo.Data[0]['FK_CostCenterDetails']).selectpicker('refresh');
+                                    $thisForm.find('[name="ddlImportsList"]').attr("disabled", "disabled");
+                                    $thisForm.find('[id="importbutton"]').attr("disabled", true);
+                                    $thisForm.find('[name="BillType"]').attr("disabled", "disabled");
+                                    $thisForm.find('[name="FK_Employee"]').val(ajaxOutput.soInfo.Data[0]['FK_Employee']).selectpicker('refresh');
+                                    $thisForm.find('[name="Employee"]').val(ajaxOutput.soInfo.Data[0]['Employee']);
+
+
+                                    if (ajaxOutput.soItem.Process.IsProcess) {
+                                        $thisForm.data({ pData: ajaxOutput.soItem.Data });
+                                        fn_fillSalesOrderItem($thisForm, 'SalesOrder', ajaxOutput.soItem.Data, tableOptionsSalesOrderItem)
+                                        $thisForm.find('[perfect-tempTable="SalesOrder"]').find('table').dataTable({ searching: false, paging: false, ordering: false, info: false });
+
+                                    }
+                                    //if (ajaxOutput.OtherCharge.Process.IsProcess) {
+                                    //    $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data })
+                                    //}
+
+                                    if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                        let othechg = ajaxOutput.OtherCharge.Data;
+                                        console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                        othrchargelst = [];
+                                        othrchargelst = othrchargelst.concat(othechg);
+                                        console.log('OTH INFOT>', othrchargelst);
+                                        $thisForm.data({ prtothchgData: othrchargelst });
+                                    }
+
+                                    if (ajaxOutput.EmiItems.Process.IsProcess) {
+                                        console.log('SELECT EMIprDATA>', ajaxOutput.EmiItems.Data)
+                                        $thisForm.data({ pEMIProdData: ajaxOutput.EmiItems.Data })
+                                    }
+                                    if (ajaxOutput.EmiData.Process.IsProcess) {
+                                        console.log('SELECT EMIinDATA>', ajaxOutput.EmiData.Data)
+
+                                        let emiinfos = ajaxOutput.EmiData.Data;
+                                        console.log('AJAX TAX OUTTPUT>', ajaxOutput.EmiData.Data)
+                                        EMIPlandata = EMIPlandata.concat(emiinfos);
+                                        console.log('EMIPlandata_INFOT>>>>>>>>>>>>>>>>>>>>', EMIPlandata)
+                                        //edit = 1;
+                                        $thisForm.data({ pEmiData: EMIPlandata })
+
+
+                                    }
+
+
+
+                                    let adamt = 0;
+                                    $thisForm.find('[name=BalAmt]').text(parseFloat(adamt).toFixed(2));
+                                    if (ajaxOutput.paymentdetail.Process.IsProcess) {
+                                        $thisForm.data({ pEPayment: ajaxOutput.paymentdetail.Data });
+                                        $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+                                        fn_fillSalesOrderItem($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                                    }
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'fn_loadSaleOrderList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                    $thisForm.find('button[name=idcomprint]').removeClass('d-none');
+
+                                    let AssignedData = $thisForm.data('pData');
+                                    let fk_plantype;
+                                    if (AssignedData != '') {
+                                        $.each(AssignedData, function (key, value1) {
+                                            fk_plantype = value1.FK_FinancePlan;
+                                            if (fk_plantype > 0) {
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                    if (fk_plantype > 0) {
+                                        $('.AssignedToID').show();
+                                    }
+                                    else {
+                                        $('.AssignedToID').hide();
+                                    }
+
+                                });
+                               
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+                },
+
+            });
+    }
+        function fn_deleteSalesOrder()
+        {
+
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetSalesOrderReasonList", "SalesOrder")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove "+ Saveddata.SoNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        SalesOrderID: Saveddata['ID_SalesOrder'],
+                                        ReasonID: selectedOption,
+                                        TransMode:SalesorderTransMode
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteSalesOrder", "SalesOrder")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_SaleOrderIndex_InitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+
+        var tableOptionsSalesOrderItem = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            let indexname = tableKey + 'index';
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            $thisForm.find('[name=prdbtn]').attr("disabled", "disabled")
+
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+                                    console.log("Floor Field Select value>>>>>>>>>>>>", savedData[pf_name]);
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+                                    let inputEleType = $thisNode.attr('type').toLocaleLowerCase();
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else if (inputEleType=='date') {
+                                        bindemidate(this, savedData[pf_name]);
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                    else {
+
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                                var plandata = [];
+                                console.log('savedData.FK_FinancePlan',savedData.FK_FinancePlan);
+                                let emidt = {
+                                    FK_FinancePlan: savedData.FK_FinancePlan,
+                                    EMIDate: savedData.Emidate,
+                                    AdditionalAmount: savedData.AdditionalPay,
+                                    Downpayment: savedData.Downpay,
+                                    Installment: savedData.InstallmentAmount,
+                                }
+                                plandata.push(emidt);
+                                console.log('plandata', plandata);
+
+                                $thisForm.data({ Emiplandata: plandata });
+
+                                ShowEMI(this);
+
+
+                                //if (savedData.FK_FinancePlan != 0) {
+                                //    $('#EMIid').show();
+                                //}
+                                //else {
+                                //    $('#EMIid').hide();
+                                //}
+                            });
+                            //if ($thisForm.data('Emiplandata') !== null) {
+                            //    FindEmiPlans(this, 1);
+                            //}
+                            if ((savedData.FK_FinancePlan) !=0) {
+                                FindEmiPlans(this, 1);
+                            }
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let savedData = $(this).closest('tr').data('pData');
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let table = $thistbl.DataTable();
+
+                                table.destroy();
+                                if ($(this).closest('tbody').find('tr').length > 1) {
+                                    $(this).closest('tr').remove();
+                                    pft_table_slreset($thistbl);
+                                    $thistbl.dataTable({ paging: true });
+                                }
+                                else {
+                                    $thistbl.remove();
+                            }
+                            let $thisItem = $('[perfect-class="TempTableProduct"]');
+                            $thisItem.find('[perfect-ctype="input"]').val('');
+                            $thisItem.find('[perfect-ctype="hidden"]').val('');
+                            $thisItem.find('[perfect-ctype="select"]').val('0').selectpicker('refresh');
+                            let $thisForm = $('[perfect-class="form"]');
+                            $thisForm.find('[name=prdbtn]').removeAttr("disabled", "disabled");
+
+                            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tkey + '"]');
+                            $tblcontainer.attr('perfect-tempTable-action', 0);
+                            RemoveEMIArray(this, savedData.FK_Product)
+                            fn_roundoff($tablecontainer);
+                            //AssignToShow(this);
+
+                            
+                        }
+                    },
+
+                ]
+            },
+            onlyShowColumn: [],
+            serialNo: true,
+            ordering: false,
+            renameHeader: { "ProdName": "Product", "SodSalQuantity": "Qty", "SodMRP": "MRP", "SodSalPrice": "Sale Price", "SodSalDiscount": "Discount", "SodSalTaxAmount": "Tax", "SodSalTotalAmount": "Total" },
+            hideColumn: ['FK_Product', 'SodSalDiscountPercent', 'SodRemarks', 'Sprice', 'InstallmentAmount', 'Downpay', 'AdditionalPay', 'Emidate', 'FK_FinancePlan','EMIProduct'],
+            rowAttribute: ["InstallmentAmount", "Downpay", "AdditionalPay", "Emidate", "FK_FinancePlan", "EMIProduct"],
+            isCheckType: []
+
+
+    };
+
+    function bindemidate(ele, value) {
+        let $thisForm = $('[perfect-class="form"]');
+        let _EMIData = $thisForm.data('Emiplandata');
+        var Emidate = value;
+
+        if (_EMIData != '') {
+            $.each(_EMIData, function (key, value1) {
+                Emidate = value1.EMIDate;
+            });
+        }
+        if (value == '') {
+            if (!moment.isDate(Emidate)) {
+                const parts = Emidate.split("-");
+                if (parts.length > 0) {
+                    switch (parts[2].length) {
+                        case 4:
+                            Emidate = new Date(parts[2], parts[1] - 1, parts[0]);
+                            break;
+                        case 2:
+                            Emidate = new Date(parts[0], parts[1] - 1, parts[2]);
+                            break;
+                    }
+                }
+            }
+        }
+        $thisForm.find('[perfect-tempTable-SalesOrder="Emidate"]').val(moment(Emidate).format('YYYY-MM-DD'));
+        //$thisForm.find('[name="Emidate"]').val(moment(Emidate).format('DD-MM-YYYY'));
+        $thisForm.find('[name="Emidate"]').val(moment(Emidate).format('YYYY-MM-DD'))
+    }
+    function fn_fillSalesOrderItem(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+        
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+                
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            switch (headerName) {
+                                case "ProductLocation":
+                                    headerName = "Floor";
+                                    break;
+                                default:
+                                    break
+                            }
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                            if ($this.find('[value="' + valOne[nameAttr] + '"]').text() == "Please select") {
+                                pData[nameAttr + '_d'] = "";
+                            }
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                //tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                switch (nameAttr) {
+                                    case "Sprice":
+                                    case "SodSalTotalAmount":
+                                        break;
+                                    default:
+                                        tableOptionsTemp.hideColumn.push(nameAttr);
+                                        break;
+                                }
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+        fn_roundoff(ele);
+    }
+    var tableOptionsLeadItem = {
+        iconButton: {
+            buttons: [
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        let indexname = tableKey + 'index';
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+
+                        $thisForm.find('[name=prdbtn]').attr("disabled", "disabled")
+
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+                        });
+
+                        let sel = $thisForm.find('[name=FK_Category] option:selected').text();
+                        let name = $thisForm.find('[name="FK_Category"]').children(":selected").attr('Project')
+                        $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                        if (name == 'False' && sel != 'Please select') {
+                            $thisForm.find('[name="ProdBtn"]').show();
+                            $thisForm.find('[name="ProdName"]').attr('readonly', true);
+                        }
+                        else {
+                            $thisForm.find('[name="ProdBtn"]').hide();
+                            $thisForm.find('[name="ProdName"]').attr('readonly', false);
+                        }
+                        if (name == 'False' && sel != 'Please select') {
+                            $thisForm.find('[name="lblProName"]').text('Product');
+                            $thisForm.find('[name="lblMRP"]').text('MRP');
+                            $thisForm.find('[name="QpdMRP"]').attr('readonly', true);
+                        }
+                        else {
+                            $thisForm.find('[name="lblProName"]').text('Model');
+                            $thisForm.find('[name="lblMRP"]').text('Cost');
+                            $thisForm.find('[name="QpdMRP"]').attr('readonly', false);
+                        }
+                        fn_showTaxWindow(this, 0)
+                    }
+                },
+                {
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let savedData = $(this).closest('tr').data('pData');
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let table = $thistbl.DataTable();
+
+
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                $thistbl.dataTable({ paging: true });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        fn_roundoff($tablecontainer);
+                        AssignToShow(this);
+                    }
+                }
+            ]
+        },
+        onlyShowColumn: ["ProdName", "SodMRP", "SodSalQuantity", "Sprice", "SodSalDiscount", "SodSalTotalAmount", "FK_ProductLocation_d","SodSalTaxAmount"],
+        serialNo: true,
+        renameHeader: { "ProdName": "Product", "SodSalQuantity": "Qty", "Sprice": "Sale Price", "SodSalPrice": "Sale Price", "SodMRP": "MRP", "SodSalDiscount": "Discount", "SodSalTotalAmount": "Total", "FK_ProductLocation_d": "Floor", "ProductLocation": "Floor", "SodSalTaxAmount": "Tax"},
+        hideColumn: ['FK_Product', 'SodSalDiscountPercent', 'SodRemarks', 'SodSalPrice', 'InstallmentAmount', 'Downpay', 'AdditionalPay', 'Emidate', 'FK_FinancePlan','FK_ProductLocation'],
+        rowAttribute: ["ProdName", "SodSalPrice", "SodMRP", "SodSalQuantity", "Sprice", "SodSalDiscount", "SodSalTaxAmount", "SodSalTotalAmount", "InstallmentAmount", "Downpay", "AdditionalPay", "Emidate", "FK_FinancePlan"],
+        isCheckType: []
+    };
+    </script>
+
+
+}

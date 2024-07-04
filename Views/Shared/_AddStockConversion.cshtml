@@ -1,0 +1,998 @@
+﻿@model PerfectWebERP.Models.StockConversionModel.StockConversionView
+<style>
+</style>
+<style> 
+    /*.FromQuantity {
+        text-align: right !important;
+    }
+    .ToQuantity {
+        text-align: right !important;
+    }
+    .Amount {
+        text-align: right !important;
+    }
+    #DataTables_Table_1 thead tr th:nth-of-type(5) {
+        text-align: right !important;
+    }
+    #DataTables_Table_1 thead tr th:nth-of-type(6) {
+        text-align: right !important;
+    }
+    #DataTables_Table_1 thead tr th:nth-of-type(7) {
+        text-align: right !important;
+    }*/
+</style>
+<div class="card ">
+
+    <div class="card-header">
+        <h4 class="card-title col-12">Stock Conversion</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-lg-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Trans Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-lg-8">
+                                <input type="date" class="form-control perfectValidate_date" id="TransDate" name="TransDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-lg-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-lg-8">
+                                <select class="form-control perfectValidate_string"   name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="employeepopupclearfrom(this);" data-live-search="true">
+
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                        }
+
+                                    }
+
+                                </select> <div class="text-danger temptableError branchiderror"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-lg-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-lg-8">
+                                <select class="form-control perfectValidate_string"  name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="employeepopupclearfrom(this);" data-live-search="true">
+
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var branchList in Model.DepartmentList)
+                                        {
+                                            <option value="@branchList.DepartmentID">@branchList.DepartmentName</option>
+                                        }
+
+                                    }
+
+                                </select> <div class="text-danger temptableError departmentiderror"></div>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-lg-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Department</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-lg-8">
+                                    <select class="form-control perfectValidate_string" name="DepartmentID" id="departmentid" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="employeepopupclearfrom(this);">
+
+                                        <option value="">Please Select </option>
+
+                                        @if (!(Model.DepartmentList is null))
+                                        {
+                                            foreach (var departmentList in Model.DepartmentList)
+                                            {
+                                                <option value="@departmentList.DepartmentID">@departmentList.DepartmentName</option>
+                                            }
+
+                                        }
+
+                                    </select> <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>*@
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-lg-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Employee</span>
+
+                            </label>
+                            <div class="col-lg-8">
+                                <div class="input-group" id="divemployeefrom">
+                                    <input type="text" class="form-control " name="EmployeeName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_Employee" id="FK_Employee" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        @*<button id="employeefromid" name="btnemployeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this, 37, 'Employee List', ['', ''], StockConvTransMode)" Criterea1="DepartmentID" Criterea2="BranchID" BindName="EmployeeName" BindVal="FK_Employee"></button>*@
+                                        <button id="employeefromid" name="btnemployeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this, 69, 'Employee Details', [], ['Branchs', 'BranchTypeID', 'FK_Departement', 'Department', 'BranchType', 'SLNo','FK_Branch']);" Criterea1="DepartmentID" Criterea2="BranchID" BindName="EmployeeName" BindVal="FK_Employee"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="daccordion__header">
+                            <span class="accordion__header--text">CONVERSION DETAILS</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 " perfect-class="TempTableStockConversion">
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Stock Mode</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <select class="form-control" name="StockMode" id="stockmode" perfect-class="formGroupControl" perfect-ctype="select" perfect-tempTable-StockConversion="StockMode" perfect-css="select" data-live-search="true" onchange="ChangeProdDetails(this);">
+
+                                                    <option value="">Please select</option>
+                                                    @if (!(Model.StockModeList is null))
+                                                    {
+                                                        foreach (var StockMode in Model.StockModeList)
+                                                        {
+                                                            <option value="@StockMode.ID_Mode">@StockMode.ModeName</option>
+                                                        }
+                                                    }
+
+
+                                                </select>
+                                                <div class="text-danger temptableError stockmodeerror"></div>
+                                                <input type="hidden" name="LastID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="@Model.LastID" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Product</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+
+                                            <div class="col-sm-7 PerError">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="Product" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-StockConversion="Product" disabled />
+                                                    <input type="hidden" name="ID_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-StockConversion="ID_Product" />
+                                                    <input type="hidden" name="ID_Stock" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" perfect-tempTable-StockConversion="ID_Stock" />
+
+                                                    <div class="input-group-append">
+                                                        @{
+                                                            <button id="prdbtn" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick=" checkValidStockMode(this); " Criterea1="BranchID" Criterea2="DepartmentID" Criterea3="FK_Employee" Criterea4="StockMode" BindName="Product" BindVal="ID_Product" Function="2"></button>
+                                                        }
+                                                    </div>
+
+                                                </div>
+
+                                                <span class="invalid-feedback animated fadeInUp d-block temptableError"></span>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Component</label>
+                                            <div class="col-sm-7">
+
+                                                <div class="input-group">
+
+                                                    <input type="text" class="form-control" perfect-tempTable-StockConversion="Component" name="Component" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                                    <input type="hidden" perfect-tempTable-StockConversion="SubProductStockID" name="SubProductStockID" readonly perfect-ctype="hidden" />
+                                                    @*<input type="hidden" perfect-tempTable-StockConversion="prodtid" name="prodtid" readonly perfect-ctype="hidden" />*@
+
+                                                    <input type="hidden" name="SubProductID" perfect-tempTable-StockConversion="SubProductID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <div class="input-group-append">
+                                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="checkValidProduct(this);" BindName="Component" BindVal="SubProductID" Criterea1="ID_Product"></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">From Quantity</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control text-right" placeholder="" name="FromQuantity" id="FromQuantity" oninput="decimalpnt(this,'FromQuantity',4)" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-StockConversion="FromQuantity" min="0" maxlength="12" />
+
+                                                    <span class="invalid-feedback animated fadeInUp d-block" style="display:none"></span>
+                                                    <div class="text-danger temptableError"></div>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">To Quantity</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <div class="input-group">
+
+                                                    <input type="text" class="form-control text-right" placeholder="" id="ToQuantity" name="ToQuantity" oninput="decimalpnt(this,'ToQuantity',4)" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-StockConversion="ToQuantity" min="0" maxlength="12" />
+                                                    <div class="text-danger temptableError"></div>
+                                                    <span class="invalid-feedback animated fadeInUp d-block" style="display:none"></span>
+                                                </div>
+
+                                            </div>
+
+
+
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel"> Amount</span>
+
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control text-right" placeholder="" id="Amount" name="Amount" oninput="decimalpnt(this,'Amount',3)" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" perfect-tempTable-StockConversion="Amount" min="0" maxlength="12" />
+
+
+                                                <span class="invalid-feedback animated fadeInUp d-block" style="display:none"></span>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <button type="button" id="purtupsave" class="btn btn-primary1" onclick="AddStockConversionDetails(this, 'StockConversion', ['ID_Stock'])" data-placement="top" data-html="true" title="Add Product Details"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                                                <button type="button" id="reset" class="btn btn-light1" perfect-css="button" onclick="productclear(this,'StockConversion')" name="reset" title="Reset"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                                <div class="card-footer text-right" perfect-class="formFooter">
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12" style="padding-right:25px;padding-left:25px;">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <div class="table-responsive" perfect-tempTable="StockConversion" id="StockConversionItemHead" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <input type="hidden" name="StockConversionID" perfect-ctype="hidden" />
+
+
+                <div class="card-footer text-right" perfect-class="formFooter">
+
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_StockConversionForm_add(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+
+    //on load functions
+    $(document).ready(function () {
+        initFunctions('form');
+    });
+    function ResetButton(ele) {
+        StockConversionLoad();
+        fn_resetStockConversion(ele);
+    }
+    function fn_resetStockConversion(ele) {
+       
+        let $container = $(ele).closest('[perfect-class="form"]');
+        $container.find('[name=BranchID]').val('').selectpicker('refresh');
+        $container.find('[name=DepartmentID]').val('').selectpicker('refresh');;
+        $container.find('[name=StockMode]').val('').selectpicker('refresh');;
+        $container.find('[name="EmployeeName"]').val('')
+        $container.find('[name="FK_Employee"]').val('')
+        $container.find('[name="Product"]').val('')
+        $container.find('[name="ID_Product"]').val('')
+        $container.find('[name="ID_Stock"]').val('')
+        $container.find('[name="subProName"]').val('')
+        $container.find('[name="subProductStockID"]').val('')
+        $container.find('[name="prodtid"]').val('')
+        $container.find('[name="subProductID"]').val('')
+        $container.find('[name="FromQuantity"]').val('')
+        $container.find('[name="ToQuantity"]').val('')
+        $container.find('[name="Amount"]').val('');
+        $container.validate().resetForm();
+    }
+    // Function to Add StockConversion
+    function fn_StockConversionForm_add(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $(".temptableError").text("");
+        if ($thisForm.valid()) {
+
+            let prevData = [];
+            $thisForm.find('[perfect-tempTable="StockConversion"]').find('table>tbody').find('tr').each(function () {
+
+                prevData.push($(this).data('pData'));
+
+            })
+            if (prevData.length != 0) {
+
+                var inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    TransDate: $thisForm.find('[name=TransDate]').val(),
+                    FK_Branch: $thisForm.find('[name=BranchID]').val().trim() == "" ? "0" : $('[name="BranchID"]').val().trim(),
+                    FK_Department: $thisForm.find('[name=DepartmentID]').val().trim() == "" ? "0" : $('[name="DepartmentID"]').val().trim(),
+                    FK_Employee: $thisForm.find('[name=FK_Employee]').val().trim() == "" ? "0" : $('[name="FK_Employee"]').val().trim(),
+                    TransMode: StockConvTransMode,
+                    LastID: $thisForm.find('[name=LastID]').val(),//LastID_StockConversion,
+                    StockConversionDetails: prevData
+
+
+                }
+                //clearSessionValue(LastIDSessionKeySTKCONV);
+                $.ajax({
+                          url: "@Url.Action("AddNewStockConversion", "StockConversion")",
+                                    type: "POST",
+                                    data: inputData,
+                                    dataType: "json",
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                             if (ajaxOutput.Process.IsProcess) {
+                                                 $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                     NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                     $(ele).prop('disabled', false);
+                                                     StockConversionInitialLoad();
+                                                 });
+                                             }
+                                             else {
+                                                 $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                     NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                     $(ele).prop('disabled', false);
+                                                     StockConversionInitialLoad();
+                                                 });
+                                             }
+
+                                             $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                                             $thisForm.find('[perfect-ctype="input"]').val('');
+                                             $thisForm.find('[perfect-ctype="date"]').val('');
+                                             let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+                                             if (onSuccess) {
+                                                 window[onSuccess]();
+
+                                             }
+                                         },
+                                    complete: function () {
+                                        $(ele).prop('disabled', false);
+                                    }
+
+                                });
+
+            } else {
+
+                $(ele).prop('disabled', false);
+                NotificationMessage({ 'type': 'error', 'heading': 'info', 'message': 'Please Enter At least One Stock Conversion Details!!!' });
+            }
+        }
+    }
+
+
+
+    function employeepopupclearfrom(ele) {
+        let $container = $(ele).closest('[perfect-class="form"]');
+        $container.find('[name=FK_Employee]').val("0");
+        $container.find('[name=EmployeeName]').val("");
+        $container.find('[name=ID_Product]').val("0");
+        $container.find('[name=Product]').val("");
+        $container.find('[name=ID_Stock]').val("0");
+        var id = $(ele).attr("name");
+        
+        if (id == "BranchID") {
+            
+            if ($(ele).val() != "") {
+               
+             
+                $container.find('.branchiderror').text("");
+                $container.find('#BranchID-error').prop("style", "display:none");
+            }
+            $container.find('[name=DepartmentID]').val('');
+
+            $container.find('[name=DepartmentID]').val('').selectpicker('refresh');
+        } else {
+            if ($(ele).val() != "") {
+
+                $container.find('.departmentiderror').text("");
+                $container.find('#DepartmentID-error').prop("style", "display:none");
+            }
+        }
+
+
+
+
+    }
+    function decimalpnt(ele, name, range) {
+
+        let input = $('#' + name);
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+        input.on('keydown', function () {
+            if (ele.value.includes('.')) {
+
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.length == 6) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+    function fn_productpopupcondition(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        GetCmnPopUpSearchValAssign(ele, 38, 'Product List', [], ['Slno', 'ID_Stock', 'Stock', 'StandbyQuantity'], StockConvTransMode)
+
+    }
+    var tableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+                {
+                    icon: "fa fa-pencil btnPerfectGridEdit",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+                        getfunctionAssign(this);
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        let indexname = tableKey + 'index';
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+
+                        $('#stockavailable').show();
+                        $('#stockstandby').show();
+
+                        Stock = $thisForm.find('[name="FromQuantity"]').val();
+                        ToQuantity = $thisForm.find('[name="ToQuantity"]').val();
+                    }
+                },
+
+                {
+
+                    icon: "fa fa-trash btnPerfectGridDelete",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                             
+                        }
+                        else {
+                            $('#employeefromid').attr("disabled", false);
+                            $thistbl.remove();
+                        }
+                        $("#reset").click();
+
+                    }
+                },
+            ]
+        },
+        onlyShowColumn: [],
+        hideColumn: ['Stock',   'ID_Product', 'ID_Stock'],
+        serialNo: true,
+        renameHeader: { "ToQuantity": "To Quantity", "FromQuantity": "From Quantity"},
+        rowAttribute: [],
+        isCheckType: []
+    };
+    
+    function AddStockConversionDetails(ele, tkey, uniq) {
+
+        let isValid = true;
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableKey = tkey; let errorClass = '.temptableError';
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Stock Mode');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="StockMode"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="FromQuantity"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="FromQuantity"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="FromQuantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter a quantity greater than 0.');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="FromQuantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+        if ($thisForm.find('[perfect-tempTable-' + tableKey + '="ToQuantity"]').val() == 0 || $thisForm.find('[perfect-tempTable-' + tableKey + '="ToQuantity"]').val() == "") {
+            isValid = false;
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="ToQuantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter a quantity greater than 0');
+        }
+        else {
+            $thisForm.find('[perfect-tempTable-' + tableKey + '="ToQuantity"]').closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        let insertData = {};
+        let tableOptionsTemp = tableOptionsTempOut;
+
+        let unique = (uniq) ? uniq : [];
+
+
+        let ValueExist = false;
+
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+        let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+        let updateCond = '';
+        let isNew = true;
+        if (thisactionIndex > 0) {
+            //means update
+            insertData[indexname] = thisactionIndex;
+            updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+            isNew = false;
+        }
+        else {
+            //insert
+            insertData[indexname] = lastIndex + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+            isNew = true;
+        }
+
+        if ($thisForm.find("[name='FromQuantity']").val() > 0 || $thisForm.find("[name='ToQuantity']").val() > 0) {
+            ValueExist = true;
+        }
+
+        if ($thisForm.find("[name='ID_Product']").val() > 0) {
+
+
+
+        }
+        else if ($thisForm.find("[name='ID_Product']").val() == "" || $thisForm.find("[name='ID_Product']").val() <= 0 || $thisForm.find("[name='ID_Product']").val() == undefined) {
+            isValid = false;
+            $thisForm.find("[name='ID_Product']").closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Product');
+        }
+
+
+
+        if (isValid) {
+            if (unique.length > 0) {
+                //getting previous data
+                let prevData = [];
+                $tblcontainer.find('table > tbody').find('tr').each(function () {
+                    if (isNew) {
+                        prevData.push($(this).data('pData'));
+                    }
+                    else {
+                        if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                            prevData.push($(this).data('pData'));
+                        }
+
+                    }
+
+                })
+
+
+
+                unique.forEach(function (key, i) {
+                    let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                    let headerEleName = $thisEle.attr('perfect-tempTable-' + tableKey);
+                    let atname = $thisEle.attr('name');
+                    let cvalue;
+
+                    if ($thisEle.length != 0) {
+                        let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                        let errmessage = "Product Already exits"
+
+                        //getting current value in cval
+                        if ($thisEle.is('select')) {
+                            cvalue = $thisEle.val();
+                        }
+                        else if ($thisEle.is('input')) {
+
+                            let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+
+                            if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                            else if (inputEleType == 'hidden') { cvalue = $thisEle.val(); }
+                            else {
+                              
+                                cvalue = $thisEle.val();
+                            }
+                        }
+                        else { cvalue = $thisEle.val(); }
+
+                        if (prevData.find(a => a[atname] == cvalue)) {
+
+                            $errorElement.text(errmessage);
+                            isValid = false;
+                        }
+                    }
+                });
+
+            }
+
+
+        }
+        if (isValid == true && ValueExist == true) {
+
+            $thisForm.find("[name='ID_Product']").closest('[perfect-class="formGroup"]').find(errorClass).text('');
+            $('#stockavailable').hide();
+            $('#stockstandby').hide();
+
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+                if ($this.is('select')) {
+                    if (nameAttr == "StockMode") {
+                        headerName = "Stock Mode";
+                    }
+                    tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                    tableOptionsTemp.hideColumn.push(nameAttr)
+
+                    if ($this.val() != null) {
+                        let selectText = ($this.val().length == 0) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+                    else {
+                        let selectText = ($this.val() == null) ? '' : $this.children(":selected").text();
+                        insertData[nameAttr + '_d'] = selectText;
+                    }
+
+                    insertData[nameAttr] = $this.val();
+
+
+
+                    $this.val('').selectpicker('refresh');
+                }
+                else if ($this.is('input')) {
+
+                    let inputType = $this.attr('type').toLocaleLowerCase();
+
+                    if (inputType == 'checkbox') {
+
+                        insertData[nameAttr] = $this.is(':checked');
+
+                        tableOptionsTemp.isCheckType.push(nameAttr)
+
+                        $this.prop('checked', false);
+
+                    }
+                    else if (inputType == 'hidden') {
+
+                        tableOptionsTemp.hideColumn.push(nameAttr)
+                        insertData[nameAttr] = $this.val();
+
+
+                        $this.val('');
+                    }
+                    else if (inputType == 'date') {
+
+
+                        insertData[nameAttr] = $this.val();
+
+
+                        $this.val('');
+                    }
+                    else {
+                        var val = $this.val();
+                        if (nameAttr == "subProName") {
+                            headerName = "Component";
+                        }else if (nameAttr == "ToQuantity") {
+                            headerName = "To Quantity";
+                        }
+                      else if (nameAttr == "FromQuantity") {
+                            headerName = "From Quantity";
+                        }
+                        else if (nameAttr == 'Amount');
+                        {
+                            if (val.trim() == "") {
+                                val = "0";
+                            }
+                        }
+                        tableOptionsTemp.renameHeader[nameAttr] = headerName;
+                        insertData[nameAttr] = val;
+
+
+                        $this.val('');
+                    }
+                }
+                else {
+
+                    insertData[nameAttr] = $this.val();
+
+
+                    $this.val('');
+
+                }
+
+
+
+
+            });
+
+            if (isNew) {
+
+                if ($tblcontainer.find('table').length == 0) {
+
+                    $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+
+                }
+                else {
+
+                    let table = $tblcontainer.find('table').DataTable()
+                    table.destroy()
+                    pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+
+
+                }
+
+
+
+                //if (insertData[indexname] > 0) {
+
+                //    $thisForm.find('[name="BranchID"]').attr("disabled", "disabled");
+                //    $thisForm.find('[name="DepartmentID"]').attr("disabled", "disabled");
+                //    $thisForm.find('[name="btnemployeefromid"]').attr("disabled", "disabled");
+
+
+
+
+                //}
+                //else {
+
+                //}
+
+
+
+            }
+            else {
+
+                let table = $tblcontainer.find('table').DataTable()
+                table.destroy()
+
+                pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+
+
+
+            }
+
+            $thisForm.find('[name="BranchID"]').attr("disabled", "disabled"); $thisForm.find('[name="BranchID"]').selectpicker('refresh');
+
+            $thisForm.find('[name="DepartmentID"]').attr("disabled", "disabled"); $thisForm.find('[name="DepartmentID"]').selectpicker('refresh');
+            $thisForm.find('[name="btnemployeefromid"]').attr("disabled", "disabled");
+            $tblcontainer.attr('perfect-tempTable-action', 0);
+        }
+
+
+    }
+
+    function productclear(ele, tablekey) {
+       
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+
+        $thisform.data({ quantitydata: '' });
+        $thisform.data({ pdiscdata: '' });
+        $thisform.data({ saldisdata: '' });
+
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="select"]').val('').selectpicker('refresh');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="input"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="date"]').val('');
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-ctype="hidden"]').val('');
+        //$thisform.find('[name="StockMode"]')
+        $thisform.find('[perfect-temptable-' + tablekey + ']').closest('[perfect-class="formGroup"]').find('.temptableError').text("");
+        $('input[type=checkbox]').prop('checked', false);
+
+        $thisform.find('[name=PpdpurDis]').val('');
+        $thisform.find('[name=PpdpurDiscper]').val('');
+        $thisform.find('[name="PpdShortage"]').val('');
+        $thisform.find('[name="PpdFreeQuantity"]').val('');
+        $thisform.find('[name="Ppdless"]').val('');
+
+        let $tblcontainer = $thisform.find('[perfect-tempTable="' + tablekey + '"]');
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+
+        $tblcontainer.attr('perfect-tempTable-action', 0);
+
+
+
+        if (tablekey = "Purchase") {
+            $thisform.find('[name=prdbtn]').removeAttr("disabled", "disabled")
+
+        }
+        else if (tablekey = "Warranty") {
+
+        }
+        else if (tablekey = "Payment") {
+
+        }
+    }
+    function ChangeProdDetails(ele) {
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        $thisform.find('[name=Product]').val('');
+        $thisform.find('[name=ID_Product]').val('');
+        $thisform.find('[name="ID_Stock"]').val('');
+        $thisform.find('[name="Component"]').val('');
+        $thisform.find('[name="SubProductID"]').val('');
+        var id = $(ele).attr("id");
+        console.log(id);
+        console.log($(ele).val());
+
+        if ($(ele).val() != "") {
+            $thisform.find('.' + id + 'error').text("");
+
+        }
+
+    } function ChangeComponent(ele) {
+
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+          $thisform.find('[name="Component"]').val('');
+        $thisform.find('[name="SubProductID"]').val('');
+        $thisform.find('[name="SubProductStockID"]').val('');
+
+    }
+    function checkValidStockMode(ele) {
+        ChangeComponent(ele);
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        var stkmode = $thisform.find('[name="StockMode"]').val();
+        var branch = $thisform.find('[name="BranchID"]').val();
+
+        var dept = $thisform.find('[name="DepartmentID"]').val(); var valid = true;
+        if (stkmode == null) {
+            $thisform.find('[name="StockMode"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Stock Mode"); valid = false;
+
+        } else if (stkmode == "" || stkmode == "0") {
+            $thisform.find('[name="StockMode"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Stock Mode"); valid = false;
+
+        } else {
+            $thisform.find('[name="StockMode"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("");
+
+        }
+        if (branch == null) {
+            $thisform.find('[name="BranchID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Branch");
+            $thisform.find('[name="BranchID"]').closest('[perfect-class="formGroup"]').find('#BranchID-error').attr("style", "display:none"); valid = false;
+        } else if (branch == "" || branch == "0") {
+            $thisform.find('[name="BranchID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Branch");
+            valid = false; $thisform.find('[name="BranchID"]').closest('[perfect-class="formGroup"]').find('#BranchID-error').attr("style", "display:none");
+        } else {
+            $thisform.find('[name="BranchID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("");
+
+        }
+
+        if (dept == null) {
+            $thisform.find('[name="DepartmentID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Department");
+
+
+            valid = false; $thisform.find('[name="DepartmentID"]').closest('[perfect-class="formGroup"]').find('#DepartmentID-error').attr("style", "display:none");
+        } else if (dept == "" || dept == "0") {
+
+            $thisform.find('[name="DepartmentID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Department");
+            valid = false; $thisform.find('[name="DepartmentID"]').closest('[perfect-class="formGroup"]').find('#DepartmentID-error').attr("style", "display:none");
+        } else {
+            $thisform.find('[name="DepartmentID"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("");
+
+        }
+        if (valid) {
+            GetCmnPopUpSearchValAssign(ele, 92, 'Product List', [], ['Slno', 'ID_Stock', 'Stock', 'StandbyQuantity'], StockConvTransMode);
+        }
+
+    }
+    function checkValidProduct(ele) {
+
+        let $thisform = $(ele).closest('[perfect-class="form"]');
+        var ID_Product = $thisform.find('[name="ID_Product"]').val();
+        var valid = true;
+        if (ID_Product == null) {
+            $thisform.find('[name="ID_Product"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Product");
+
+
+            valid = false;
+        } else if (ID_Product == "" || ID_Product == "0") {
+            $thisform.find('[name="ID_Product"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("Please Select Product"); valid = false;
+        } else {
+            $thisform.find('[name="ID_Product"]').closest('[perfect-class="formGroup"]').find('.temptableError').text("");
+
+        }
+        if (valid) {
+            GetCmnPopUpSearchVal(ele, 91, 'Sub Product Details', [], StockConvTransMode)
+        }
+
+    }
+
+
+
+
+    function getfunctionAssign(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        if ($thisForm.find('[name=ID_Product]').val() != null) {
+
+            $('#stockavailable').show();
+
+        }
+        if ($thisForm.find('[name=ID_Product]').val() != null) {
+
+            $('#stockstandby').show();
+
+        }
+
+    }
+
+
+</script>

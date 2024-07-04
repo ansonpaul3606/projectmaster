@@ -1,0 +1,396 @@
+﻿
+
+@{
+    ViewBag.Title = "Designation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_Designation_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts{
+
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#jq_Designation_formContainer');
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                         
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: fn_Designation_loadDesignationUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: fn_Designation_deleteDesignation },</text>
+
+              }
+
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","Designation", "ShortName"],
+            hideColumn: [],
+            //  isDateType: [],
+            rowClickAction: fn_Designation_loadDesignationUpdateForm,
+            //serialNo: true
+            renameHeader: { "SlNo": "SL NO", "Designation": "Name", "ShortName": "ShortName" }
+        };
+
+
+        // Initial load functions
+        $(document).ready(function () {
+
+            fn_Designation_initialload();
+        });
+
+        var validationMessage = {
+            'Designation': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            'EmployeeLevelID': {
+                'required': 'Please Select a Employee Level',
+                'digits': 'Invalid Employee Level selected'
+            },
+        };
+
+        function fn_Designation_initialload() {
+            
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>  fn_Designation_loadDesignation(this); </text>
+              }
+            
+            fn_Designation_loadDesignationAddForm();
+        }
+
+
+      
+
+        function fn_Designation_loadDesignation(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Designation List');
+          let pageUrl = '@Url.Action("GetDesignationList", "Designation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Designation', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Designation");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Designation_loadDesignation(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Designation");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Designation_loadDesignation(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+        function fn_Designation_loadDesignationAddForm() {
+
+
+            $formContainer.load('@Url.Action("LoadDesignationForm", "Designation")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'fn_Designation_initialload');
+
+                initFunctions($thisForm);
+            });
+
+        }
+
+        function fn_Designation_loadDesignationUpdateForm() {
+
+    let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+    console.log('View click', saveddata)
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+
+        DesignationID: saveddata.DesignationID
+    };
+
+    $.ajax({
+      url: "@Url.Action("GetDesignationInfo", "Designation")",
+      type: "POST",
+        // headers: { "token_key": "1234" },
+        data: inputData,
+      // dataType: "json",
+        contentType: "application/x-www-form-urlencoded; charset=utf-8",  //antiforgery token
+      success: function(ajaxOutput) {
+
+        if (ajaxOutput.Process.IsProcess) {
+          //process is success
+            $formContainer.load('@Url.Action("LoadDesignationForm", "Designation")', function () {
+                $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Designation)
+              console.log('Inside load');
+
+              let $thisForm = $(this).find('[perfect-class="form"]');
+              $thisForm.validate({ messages: validationMessage });
+            initFunctions($thisForm);
+            // console.log('sss', $thisForm)
+            console.log('sss', ajaxOutput)
+            $thisForm.data({
+              pData: ajaxOutput.Data[0]
+            });
+
+            // Fill fields 
+            $thisForm.find('[name="Designation"]').val(ajaxOutput.Data[0]['Designation']);
+            $thisForm.find('[name="EmployeeLevelID"]').val(ajaxOutput.Data[0]['EmployeeLevelID']).selectpicker('refresh');
+            $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0]['ShortName']);
+            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0]['SortOrder']);
+
+
+            // stuff to do after filling data
+            $sideMenuOptions.close(); //<---  Close side menu
+            $thisForm.find('button[name=add]').addClass('d-none'); //<--- hide add cunsomer button
+            $thisForm.find('button[name=update]').removeClass('d-none'); //<--- show update cunsomer button
+
+            $thisForm.attr('perfect-onFormSuccess', 'fn_Designation_initialload');
+
+          });
+        } else {
+          //Error occured
+          $.each(ajaxOutput.Process.Message, function(key, value) {
+            NotificationMessage({
+              'type': 'error',
+              'heading': 'Error',
+              'message': value
+              });
+
+              $('.dataTable tr').removeClass("SelectForDelete");
+              $(this).closest('tr').addClass('SelectForDelete');
+          });
+        }
+      }
+    });
+  }
+
+
+
+
+        function fn_Designation_deleteDesignation() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            //console.log("DeleteFunctiondata", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetDesignationDeleteReasonList", "Designation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                          //old delete section
+
+
+                           //let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Place + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           // let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Designation + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           //var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        DesignationID : Saveddata.DesignationID,
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteDesignation", "Designation")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",//antiforgery token changed json->x-www-form-urlencode...
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    //toastr.success(value, "Success");
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    // toastr.warning(value, "Error");
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                            //row.remove();
+                                            //$(row).closest('table').reload()
+                                            
+                           
+                                        }
+                                    });
+                                }
+                                else {
+                                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                           //old delete section
+
+                    }
+                }
+
+            });
+
+
+
+
+        };
+
+
+    </script>
+
+
+}

@@ -1,0 +1,407 @@
+﻿
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="EmployeeRelieving-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        const $formContainer = $('#EmployeeRelieving-form');
+        var EmployeeRelievedTransMode = "";
+
+    $(document).ready(function () {
+
+        fn_EmployeeRelieving_initialLoad();
+
+
+    });
+        function fn_EmployeeRelieving_initialLoad() {
+            EmployeeRelievedTransMode = '@ViewBag.TransMode';
+
+              @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+            <text>    loadEmployeeRelievingList(this); </text>
+        }
+            LoadEmployeeRelieving();
+
+    }
+
+        function LoadEmployeeRelieving() {
+
+            $formContainer.load('@Url.Action("LoadEmployeeRelievingForm", "EmployeeRelieving")?mtd=@ViewBag.mtd' , function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.find('[name="ERDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_EmployeeRelieving_initialLoad');
+
+            });
+    }
+        var validationMessage = {
+          
+            'ERReason': {
+                'required': 'Please Select Reason',
+
+            },
+           
+           'ERDate': {
+               'required': 'Please Enter Effect Date',
+                'max': jQuery.validator.format('Future Date Not Allowed')
+            },
+            'EmployeeID': {
+                'required': 'Please Select  Employee',
+
+            }
+
+        };
+
+
+        function loadEmployeeRelievingList(ele) {
+
+        let $sidemenu = $sideMenuOptions.body;
+
+       
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH", SearchName)
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+         $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+
+
+
+
+        let pageUrl = '@Url.Action("GetEmployeeRelievingDataList", "EmployeeRelieving")';
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: EmployeeRelievedTransMode},
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                if (ajaxOutput.Process.IsProcess) {
+                  
+                  //  $sidemenu.find('.jq_sidemenu_title').text("Site Inspection Assign List");
+                    //setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                    //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadEmployeeRelievingList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+
+                        "serverSide": true,//no change
+                        "processing": true,//-- process text when clicked
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                        "searching": false,//--no change
+                        "ordering": false,//--sorting
+                        "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                        "pageLength": ajaxOutput.pageSize,//<----page size
+                        "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: EmployeeRelievedTransMode }, tableOptions, $table)
+                    });
+
+                }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                       // setSessionValue(LastIDSessionKey, 0);
+                        $sidemenu.find('.jq_sidemenu_title').text("Site Inspection Assign List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadSiteInspectionAssignList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            // "lengthChange": false,
+                            "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: EmployeeRelievedTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+
+
+            }
+        });
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+ var tableOptions = {
+        dropdown: {
+            buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editEmployeeRelieving },</text>
+    }
+
+    { type: "divider" },
+    @if (ViewBag.PagedAccessRights.UsrrlMsDel) {
+        <text> { displayName: "Delete", action: deleteEmployeeRelieving },</text>
+
+    }
+
+         ],
+         class: "btn btn-success light sharp"
+     },
+     onlyShowColumn: ["SlNo", "ERDate", 'Employee', 'ERMode'],
+     hideColumn: [],
+     rowClickAction: editEmployeeRelieving,
+     serialNo: false,
+     renameHeader: { "SlNo": "Sl No.", "ERDate": "Date", "ERMode": "Employee" },
+     isDateType: ["ERDate"],
+        };
+
+
+        function editEmployeeRelieving() {
+             let row = $(this).closest('tr');
+
+        let Saveddata = row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+           
+        console.log("Saved data", Saveddata);
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            EmployeeRelievingID: Saveddata.EmployeeRelievingID,
+            TransMode: EmployeeRelievedTransMode
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetEmployeeRelievedInfoByID", "EmployeeRelieving")',
+            type: "POST",
+
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+                debugger;
+
+                console.log("Return", ajaxOutput.EmployeerelievedDetails.Data[0]);
+                if (ajaxOutput) {
+
+                    console.log('>_ Inside GetSiteVisitInfo', ajaxOutput)
+
+
+                    $formContainer.load("@Url.Action("LoadEmployeeRelievingForm", "EmployeeRelieving")?mtd=@ViewBag.mtd", function () {
+
+                        $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.EmployeerelievedDetails.Data[0].EmployeeRelievingID)
+                        console.log('Inside load');
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                       
+
+                        $thisForm.validate({ messages: validationMessage });
+
+                        $thisForm.data({ pData: ajaxOutput.EmployeerelievedDetails.Data[0] });
+                      
+
+
+                        $thisForm.find('[name="EmployeeRelievingID"]').val(ajaxOutput.EmployeerelievedDetails.Data[0].EmployeeRelievingID),
+                            $thisForm.find('[name="EmployeeID"]').val(ajaxOutput.EmployeerelievedDetails.Data[0].EmployeeID),
+                        $thisForm.find('[name="Employee"]').val(ajaxOutput.EmployeerelievedDetails.Data[0].Employee),
+                            $('#addemployee-jq-searchButton3').attr("disabled", true);
+                            $thisForm.find('[name="ERDate"]').val(moment(ajaxOutput.EmployeerelievedDetails.Data[0].ERDate).format('YYYY-MM-DD'));
+                      
+                       
+                      
+                        $thisForm.find('[name="ERReason"]').val(ajaxOutput.EmployeerelievedDetails.Data[0].ERReason);
+                        $thisForm.find('[name="ERRemarks"]').val(ajaxOutput.EmployeerelievedDetails.Data[0].ERRemarks);
+                       
+                        $sideMenuOptions.close();
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+                        $thisForm.find('button[name=viewprint]').removeClass('d-none');
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_EmployeeRelieving_initialLoad');
+
+                    });
+                }
+                else {
+                    console.log('>_ Inside GetSiteVisitInfo :false')
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+                //  loadSiteVisitList()
+            },
+
+        });
+
+        }
+
+
+
+        function deleteEmployeeRelieving() {
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        console.log('Delete function', Saveddata)
+
+        //get reason list-
+
+        $.ajax({
+            url: "@Url.Action("GetEmployeeRelievingDeleteReasonList", "EmployeeRelieving")",
+            type: "GET",
+            // data: inputReason,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+
+                    console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove from Relieving List :  " + Saveddata.Employee + " " + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                    var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                    confirmBoxObj.then(function (selectedOption) {
+                        if (selectedOption) {
+                            console.log('customerIndex> delete function:', selectedOption)
+
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                EmployeeRelievingID: Saveddata['EmployeeRelievingID'],
+                                TransMode: EmployeeRelievedTransMode,
+                                ReasonID: selectedOption
+                            };
+
+
+                            console.log(inputData);
+                            $.ajax({
+                                url: "@Url.Action("DeleteEmployeeRelievingInfo", "EmployeeRelieving")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        let table = $row.closest('table').DataTable()
+                                        table.row($row).remove().draw();
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                        });
+
+                                        $formContainer.load("@Url.Action("LoadEmployeeRelievingForm", "EmployeeRelieving")?mtd=@ViewBag.mtd", function () {
+
+                                            let $thisForm = $(this).find('[perfect-class="form"]')
+                                          
+                                            $thisForm.find('[name="ERDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                        });
+                                        //removing a data
+
+
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+                                        fn_EmployeeRelieving_initialLoad();
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+
+
+                }
+                else {
+
+
+
+                }
+            }
+
+        });
+
+
+
+
+    };
+    </script>
+}
+
+
+

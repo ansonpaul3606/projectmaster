@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewBag.Title = "ServiceReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="serviceseport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        const $formContainer = $('#serviceseport-form');
+         RPTusername = '@ViewBag.Username';
+
+        $(document).ready(function () {
+            servicereportInitialLoad();
+            //GetLeadFromdefault();
+            $('#jq-sidemenu').hide();
+        });
+
+        function servicereportInitialLoad() {
+
+            $formContainer.load('@Url.Action("LoadServiceReportForm", "ServiceReport")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                //Custom Validation messages.
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'servicereportInitialLoad');
+            });
+
+        };
+
+        var validationMessage = {
+            'ID_Report': {
+                'required': 'Please Select Report Name',
+                'digits': 'Invalid Report selected'
+            },
+            'FK_LgCollectedBy': {
+                'required': 'Please Select a Employee',
+            },
+            'FromDate': {
+                'required': 'Please Select From Date',
+                'date': 'Invalid Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'ToDate': {
+                'required': 'Please Select To Date',
+                'dateValidationGtr': '#ToDate',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            'AsonDate': {
+                'required': 'Please Select As On Date',
+                'date': 'Invalid Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'Rptype': {
+                'required': 'Please Select Report type',
+
+            },
+            'Status': {
+                'required': 'Please Select Status',
+
+            },
+            'RpFieldptype': {
+                'required': 'Please Select Report Fields',
+
+            },
+            'BranchID': {
+                'required': 'Please Select Branch',
+
+            },
+            'ID_Product': {
+                'required': 'Please Select Product',
+
+            },
+
+            'FK_NetAction': {
+                'required': 'Please Select Report Follow up action',
+
+            },
+            'FK_ActionType': {
+                'required': 'Please Select Follow up type',
+
+            },
+            'LeadNo': {
+                'required': 'Please Enter Lead No',
+
+            },
+            'TicketNo': {
+                'required': 'Please Enter Ticket No',
+
+            },
+            'ID_Ticket': {
+                'required': 'Please Enter Ticket No',
+            },
+
+        };
+
+        function GetLeadFromdefault() {
+         let $thisForm = $('[perfect-class="form"]');
+                $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "LeadGeneration")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                     $.each(ajaxOutput.Data, function (key, value) {
+
+                         console.log('>_ Search button > list click', value);
+                         $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+
+             },
+
+
+         });
+
+
+        }
+
+    function Getdepartmentdefault() {
+         let $thisForm = $('[perfect-class="form"]');
+         $.ajax({
+             url: '@Url.Action("GetEmployeeLeadDefault", "LeadGeneration")',
+             type: "Get",
+             dataType: "json",
+             contentType: "application/json",
+             success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                     $.each(ajaxOutput.Data, function (key, value) {
+
+                         console.log('>_ Search button > list click', value);
+                         $thisForm.find('[name=BranchID]').val(value.ID_Branch);
+                         //$thisForm.find('[name=DepartmentName]').val(value.DeptName);
+
+
+                     });
+                     
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+             },             
+         });
+    }
+    </script>
+}
+
+

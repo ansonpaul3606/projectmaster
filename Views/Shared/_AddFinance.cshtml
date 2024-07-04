@@ -1,0 +1,903 @@
+﻿@model PerfectWebERP.Models.FinanceModel.FinancePlanList
+<style>
+    form .error {
+        color: #ff0000;
+    }
+</style>
+ 
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">Finance Plan </h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div>
+        @*<button type="button" class="btn btn-info mr-3 float-md-right" onclick="location.href='@Url.Action("Dashboard","Home")'"> Home</button>*@
+        @*<button type="button" class="btn btn-info mr-3 float-md-right" a href="##" onClick="history.go(-1); return false;">BACK</button>*@
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Effect Date</span>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="date" id="EffectDate" class="form-control perfectValidate_date" name="EffectDate" perfect-class="formGroupControl" perfect-ctype="date" max="2050-01-01" onchange="datecheck(this)" perfect-css="date" style="width:315px;" />
+                                    <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="profile-personal-info">
+                            <h4 class="text-primary" id="divCaption" style="display:none;">Plan Details</h4>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row">
+
+                            <div class="col-sm-6">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-5 col-form-label">
+                                        <span perfect-class="formGroupLabel">Name</span>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="col-sm-6">
+                                        <select class="form-control perfectValidate_string" name="FinancePlanName" id="FinancePlanName" onchange="GetFinanceDetails(this);">
+                                            <option value="">Please Select</option>
+                                            @if (!(Model.FinanceNameList is null))
+                                            {
+                                                foreach (var Finance in Model.FinanceNameList)
+                                                {
+                                                    <option value="@Finance.FinancePlanTypeID">@Finance.FinanceName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <table>
+                                            <tr>
+                                                <td id="DivPeriodType" style="display:none;min-width:100px;"><b>Period Type :  </b></</td>
+                                                <td> <span id="txtPeriodType" name="FinancePeriodType"></span></td>
+                                                <td width="50px"></td>
+                                                <td id="divDuration" style="display:none;min-width:100px;"><b>Duration :  </b></</td>
+                                                <td> <span id="txtDuration" name="FinanceDuration"></span></td>
+                                                <td width="50px"></td>
+                                                <td id="DivInstallment" style="display:none;min-width:150px;"><b>Installment Period :  </b></</td>
+                                                <td> <span id="txtInstallmentPeriod" name="FinanceInstallmentPeriod"></span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Mode</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_numeric" name="Mode" onchange="ShowcategoryProduct(this)">
+                                        <option value="">Please Select</option>
+                                        <option value="1">Project</option>
+                                        <option value="2">Product</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6" id="divProduct">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Product</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="ProductID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,18,'Product List',[])" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="ProductID"></button>
+
+                                    </div>
+
+                                </div>
+                                <span id="producterrormsg" class="error"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6" id="divCategory">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Category</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-6">
+                                <select class="form-control" name="CategoryID" id="Categoryid" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.CategoryList is null))
+                                    {
+                                        foreach (var categorylist in Model.CategoryList)
+                                        {
+                                            <option value="@categorylist.CategoryID">@categorylist.CategoryName</option>
+                                        }
+
+                                    }
+
+                                </select> <span id="categoryerrormsg" class="error"></span>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Account Head</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="AccountHeadName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+
+                                    <input type="hidden" name="FK_AccountHead" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <div class="input-group-append">
+
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,16,'Account Head List',['','','FK_AccountHeadSub','AccountSubHeadName'])" Criterea1="0" Criterea2="0" BindName="AccountHeadName" BindVal="FK_AccountHead"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Account Head Add Amount</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="AccountHeadAddAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_AccountHeadAddAmount" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <div class="input-group-append">
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,16,'Account Head List',[])" Criterea1="0" Criterea2="0" BindName="AccountHeadAddAmount" BindVal="FK_AccountHeadAddAmount"></button>
+                                        @*<button id="addaccountsubhead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,17,'Account Sub Head List',['FK_AccountHead','AccountHeadName'])" Criterea1="FK_AccountHead" Criterea2="0" BindName="AccountSubHeadName" BindVal="FK_AccountHeadSub"></button>*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Fine Account Head</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="FK_FineAccountHead" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+
+                                    <input type="hidden" name="FK_AccountHeadFine" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <div class="input-group-append">
+
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,16,'Account Head List',['','','FK_AccountHeadSub','AccountSubHeadName'])" Criterea1="0" Criterea2="0" BindName="FK_FineAccountHead" BindVal="FK_AccountHeadFine"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Additional Cost Method</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control" name="FinanceAddCostMethod" id="FinanceAddCostMethod" onchange="EnableTextbox(this);">
+                                        <option value="0">Please Select </option>
+                                        <option id="Additionalcostfixed" value="1">Fixed Amount</option>
+                                        <option id="Additionalcostpercentage" value="2">Percentage</option>
+                                    </select>
+                                    <input type="number" class="form-control text-right" perfect-class="formGroupControl" id="FinanceAddCostValue" min="0" name="FinanceAddCostValue" readonly onkeypress="return isNumberKey(event, this);" oninput="fn_validation(this);" />
+                                    <div class="text-danger temptableError" style="text-align:center"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Down Payment Method</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control" id="FinanceDownPayMethod" name="FinanceDownPayMethod" onchange="EnableTextbox(this);">
+                                        <option value="0">Please Select </option>
+                                        <option id="DownPaymntfixed" value="1">Fixed Amount</option>
+                                        <option id="DownPaymntpercentage" value="2">Percentage</option>
+                                    </select>
+                                    <input type="number" class="form-control text-right" perfect-class="formGroupControl" id="FinanceDownPayValue" min="0" name="FinanceDownPayValue" readonly onkeypress="return isNumberKey(event,this)" oninput="fn_validation(this);" />
+                                
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Fine Grace Period</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control" id="FinanceFineGracePeriod" name="FinanceFineGracePeriod" onchange="EnableTextbox(this);">
+                                        <option value="0">Please Select </option>
+                                        <option id="FinanceFineGraceDaywise" value="1">Day</option>
+                                        <option id="FinanceFineGraceMonthwise" value="2">Month</option>
+                                    </select>
+                                    <input type="number" class="form-control text-right" perfect-class="formGroupControl" id="FinanceFineGracePeriodValue" min="0" name="FinanceFineGracePeriodValue" readonly onkeypress="return isNumberKey(event,this)" oninput="fn_validation(this);" />
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Fine Method</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control" name="FinanceFineMethod" id="FinanceFineMethod" onchange="EnableTextbox(this);">
+                                        <option value="0">Please Select </option>
+                                        <option id="Finefixed" value="1">Fixed Amount</option>
+                                        <option id="Finepercentage" value="2">Percentage</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Fine Calculation Method</span>
+
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <select class="form-control" id="FinanceFineCalcMethod" name="FinanceFineCalcMethod" onchange="EnableTextbox(this);">
+                                        <option value="0">Please Select </option>
+                                        <option id="Finecalcfixed" value="1">Fixed Amount</option>
+                                        <option id="Finecalcpercentage" value="2">Day wise</option>
+                                    </select>
+                                    <input type="number" class="form-control text-right" perfect-class="formGroupControl" id="FinanceFineCalcValue" min="0" name="FinanceFineCalcValue" readonly onkeypress="return isNumberKey(event,this)" oninput="fn_validation(this);" />
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                @if (ViewBag.PagedAccessRights.UsrrlMsEdt)
+                {
+                    <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="updateFinancePlan(this)">Update</button>
+                }
+                @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                {
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="SaveFinancePlan(this,2)">Save</button>
+                }
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    var FinanceFineMethod = "";
+    function fn_validation(ele) {
+        debugger;
+        let errorClass = '.temptableError';
+        let $thisForm = $(ele).closest('[perfect-class="formGroup"]');
+        let FinanceAddCostMethod = $thisForm.find('[name="FinanceAddCostMethod"]').val();
+        let FinanceDownPayMethod = $thisForm.find('[name="FinanceDownPayMethod"]').val();
+        FinanceFineMethod = FinanceFineMethod;
+        let FinanceFineCalcMethod = $thisForm.find('[name="FinanceFineCalcMethod"]').val();
+        let FinanceAddCostValue = $thisForm.find('[name="FinanceAddCostValue"]').val();
+        let FinanceDownPayValue = $thisForm.find('[name="FinanceDownPayValue"]').val();
+        let FinanceFineGracePeriodValue = $thisForm.find('[name="FinanceFineGracePeriodValue"]').val();
+        let FinanceFineCalcValue = $thisForm.find('[name="FinanceFineCalcValue"]').val();
+
+        if (FinanceAddCostMethod == 2 && FinanceAddCostValue > 100) {
+            $thisForm.find('[name="FinanceAddCostValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceAddCostValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 100%');
+        }
+
+        if (FinanceAddCostValue !=undefined && FinanceAddCostValue.length > 14) {
+            $thisForm.find('[name="FinanceAddCostValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceAddCostValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 14 digits');
+        }
+
+        if (FinanceDownPayMethod == 2 && FinanceDownPayValue > 100) {
+      
+            $thisForm.find('[name="FinanceDownPayValue"]').val(100);
+
+            
+            //$thisForm.find('[name="FinanceDownPayValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            //$thisForm.find('[name="FinanceDownPayValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Value set to 100% automatically');
+        }
+       
+        if (FinanceDownPayValue != undefined && FinanceDownPayValue.length > 14) {
+            $thisForm.find('[name="FinanceDownPayValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceDownPayValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 14 digits');
+        }
+
+        if (FinanceDownPayValue!= undefined && FinanceFineGracePeriodValue.length > 14) {
+            $thisForm.find('[name="FinanceFineGracePeriodValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceFineGracePeriodValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 14 digits');
+        }
+
+        console.log("FinanceFineMethod", FinanceFineMethod);
+        console.log("FinanceFineCalcValue", FinanceFineCalcValue);
+
+        if (FinanceFineCalcValue != undefined && FinanceFineCalcValue.length > 14) {
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 14 digits');
+        }
+        if (FinanceFineMethod == 2 && FinanceFineCalcMethod == 0) {
+
+            $thisForm.find('[name="FinanceFineCalcMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceFineCalcMethod"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please select Method');
+        }
+        if (FinanceFineMethod == 2 && FinanceFineCalcMethod == 1 && FinanceFineCalcValue > 100) {
+
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 100%');
+        }
+         if (FinanceFineMethod == 2 && FinanceFineCalcMethod == 2 && FinanceFineCalcValue > 100) {
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).attr("style", "display:block");
+            $thisForm.find('[name="FinanceFineCalcValue"]').closest('[perfect-class="formGroup"]').find(errorClass).text('Please enter upto 100%');
+        }
+
+    }
+
+    function isNumberKey(evt, element) {
+
+
+            var charCode = (evt.which) ? evt.which : event.keyCode
+            if (charCode > 31 && (charCode < 48 || charCode > 57) && !(charCode == 46 || charCode == 8))
+                return false;
+            else {
+                var len = $(element).val().length;
+                var index = $(element).val().indexOf('.');
+                if (index > 0 && charCode == 46) {
+                    return false;
+                }
+                if (index > 0) {
+                    var CharAfterdot = (len + 1) - index;
+                    if (CharAfterdot > 3) {
+                        return false;
+                    }
+                }
+
+            }
+            return true;
+        }
+
+    function datecheck(ele) {
+        //debugger
+        let $thisForm = $(ele).closest('[perfect-class="formGroup"]');
+        let Visitdate = $thisForm.find('[name="EffectDate"]').val();
+        var enqDate = new Date(Visitdate);
+        enqDate.setHours(0, 0, 0, 0)
+        var today = new Date();
+        today.setHours(0, 0, 0, 0)
+        let errorClass4 = '.temptableErrors';
+        if (enqDate < today) {
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find(errorClass4).attr("style", "display:block");
+            $thisForm.find('[name="EffectDate"]').closest('[perfect-class="formGroup"]').find(errorClass4).text('Future Date Not Allowed');
+        }
+
+    }
+
+    $(document).ready(function () {
+        initFunctions('form');
+      //  debugger
+        //$('.DivAddCostMethod').hide();
+        //$('.DivDownPayMethod').hide();
+        //$('.DivFineMethod').hide();
+        //$('.DivFineCalcMethod').hide();
+        //$('.DivFineGracePeriod').hide();
+        //$('.FinanaceDetails').hide();
+        //$('.divCaption').hide();
+        //$('.DivPeriodType').hide();
+        //$('.DivDuration').hide();
+        //$('.DivInstallment').hide();
+
+    });
+
+    function EnableTextbox(ele) {
+      debugger;
+    let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let FinanceAddCostMethod = $thisForm.find('[name=FinanceAddCostMethod]').val() == "" ? "0" : $thisForm.find('[name=FinanceAddCostMethod]').val();
+        let FinanceDownPayMethod = $thisForm.find('[name=FinanceDownPayMethod]').val() == "" ? "0" : $thisForm.find('[name=FinanceDownPayMethod]').val();
+         FinanceFineMethod = $thisForm.find('[name=FinanceFineMethod]').val() == "" ? "0" : $thisForm.find('[name=FinanceFineMethod]').val();
+        let FinanceFineCalcMethod = $thisForm.find('[name=FinanceFineCalcMethod]').val() == "" ? "0" : $thisForm.find('[name=FinanceFineCalcMethod]').val();
+        let FinanceFineGracePeriod = $thisForm.find('[name=FinanceFineGracePeriod]').val() == "" ? "0" : $thisForm.find('[name=FinanceFineGracePeriod]').val();
+
+
+        if (FinanceAddCostMethod == 1 || FinanceAddCostMethod == 2) {
+            $('#FinanceAddCostValue').attr('readonly', false);
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+          //  $thisForm.find('[name=FinanceAddCostValue]').val('');
+        }
+
+    else {
+            $("#FinanceAddCostValue").prop('readonly', true);
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $thisForm.find('[name=FinanceAddCostValue]').val('');
+        }
+
+        if (FinanceDownPayMethod == 1 || FinanceDownPayMethod == 2)
+        {
+            $('#FinanceDownPayValue').prop('readonly', false);
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            //$thisForm.find('[name=FinanceDownPayValue]').val('');
+        }
+        else {
+            $('#FinanceDownPayValue').prop('readonly', true);
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $thisForm.find('[name=FinanceDownPayValue]').val('');
+        }
+
+
+        if (FinanceFineMethod == 1)
+        {
+            $("#FinanceFineCalcMethod").val('1')
+            FinanceFineCalcMethod = 1;
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceFineCalcValue').attr('readonly', false);
+            $('#FinanceDownPayValue').css('display', 'block');
+           // $thisForm.find('[name=FinanceFineCalcValue]').val('');
+
+        }
+        else if (FinanceFineMethod == 2)
+        {
+            $("#FinanceFineCalcMethod").val('0');
+            ////FinanceFineCalcMethod = 2;
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $('#FinanceFineCalcValue').attr('readonly', false);
+            //$('#FinanceFineCalcValue').css('display', 'block');
+           // $thisForm.find('[name=FinanceFineCalcValue]').val('');
+        }
+    else {
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $('#FinanceFineCalcValue').attr('readonly', true);
+            $thisForm.find('[name=FinanceFineCalcValue]').val('');
+
+    }
+
+        if (FinanceFineCalcMethod == 1)
+        {
+
+            $("#FinanceFineCalcMethod").val('1');
+            FinanceFineCalcMethod = 1;
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $('#FinanceFineCalcValue').attr('readonly', false);
+            //$thisForm.find('[name=FinanceFineCalcValue]').val('');
+    }
+        else if (FinanceFineCalcMethod == 2)
+        {
+            $("#FinanceFineCalcMethod").val('2');
+            FinanceFineCalcMethod = 2;
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').css('display', 'block');
+            $('#FinanceFineCalcValue').attr('readonly', false);
+           // $thisForm.find('[name=FinanceFineCalcValue]').val('');
+        }
+
+        if (FinanceFineGracePeriod == 1 || FinanceFineGracePeriod == 2)
+        {
+
+            $('#FinanceFineGracePeriodValue').attr('readonly', false);
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            //$thisForm.find('[name=FinanceFineGracePeriodValue]').val('');
+        }
+        else {
+            $('#FinanceAddCostValue').css('display', 'block');
+            $('#FinanceDownPayValue').css('display', 'block');
+            $('#FinanceFineCalcValue').css('display', 'block');
+            $('#FinanceFineGracePeriodValue').attr('readonly', true);
+           $thisForm.find('[name=FinanceFineGracePeriodValue]').val('');
+        }
+
+    }
+
+
+    function GetFinanceDetails(ele)
+    {
+      //  debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $("#divCaption").css('display', 'block');
+        $("#DivInstallment").css('display', 'block');
+        $("#DivPeriodType").css('display', 'block');
+        $("#divDuration").css('display', 'block');
+        $("#txtInstallmentPeriod").css('display', 'block');
+        $("#txtDuration").css('display', 'block');
+        $("#txtPeriodType").css('display', 'block');
+        $('#FinanceAddCostValue').css('display', 'block');
+        $('#FinanceDownPayValue').css('display', 'block');
+        $('#FinanceFineGracePeriodValue').css('display', 'block');
+        $('#FinanceFineCalcValue').css('display', 'block');
+
+        let FinancePlanName = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            FinancePlanName: $thisForm.find('[name=FinancePlanName] option:selected').text()
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetPlanDetails", "Finance")',
+            type: "POST",
+            data: FinancePlanName,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                console.log(ajaxOutput);
+                if (ajaxOutput.Data != null) {
+                    if (ajaxOutput.Data.length > 1) {
+                        console.log('len', ajaxOutput.Data.length);
+                        var stateModel = createSelectList({
+                            data: ajaxOutput.Data,
+                            renameHeader: { "FinancePlanName": "Name"},
+                            hideColumn: ['FinancePlanTypeID', 'EffectDate'], headingText: 'Finance Plan Details'
+                        });
+                        stateModel.then(function (ret) {
+                            if (ret) {
+                                console.log('>_ Search button > list click', ret);
+                                $thisForm.find('[name=FinanceInstallmentPeriod]').text(ret.FinanceInstallmentPeriod);
+                                $thisForm.find('[name=FinanceDuration]').text(ret.FinanceDuration);
+                                $thisForm.find('[name=FinancePeriodType]').text(ret.FinancePeriodType);
+
+                            }
+                            else {
+                                console.log(ret);
+                            }
+                        });
+                    }
+                    else {
+                        $thisForm.find('[name=FinanceInstallmentPeriod]').text(ajaxOutput.Data[0].FinanceInstallmentPeriod);
+                        $thisForm.find('[name=FinanceDuration]').text(ajaxOutput.Data[0].FinanceDuration);
+                        $thisForm.find('[name=FinancePeriodType]').text(ajaxOutput.Data[0].FinancePeriodType);
+                    }
+                }
+            }
+        });
+
+
+    }
+
+
+    function ResetButton(ele) {
+        LoadFinancePlan();
+    }
+
+    function SaveFinancePlan(ele) {
+        debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let isValid = true;
+        FinanceAddCostMethod = $thisForm.find('[name="FinanceAddCostMethod"]').val().trim();
+        FinanceDownPayMethod = $thisForm.find('[name="FinanceDownPayMethod"]').val().trim();
+        FinanceFineCalcMethod = $thisForm.find('[name="FinanceFineCalcMethod"]').val().trim();
+        FinanceFineGracePeriod = $thisForm.find('[name="FinanceFineGracePeriod"]').val().trim();
+        FinanceFineMethod = $thisForm.find('[name="FinanceFineMethod"]').val().trim();
+
+
+
+        if (FinanceAddCostMethod == "") {
+            FinanceAddCostMethod = "0";}
+        if (FinanceDownPayMethod == "") {
+            FinanceDownPayMethod = "0";}
+        if (FinanceFineMethod == "") {
+            FinanceFineMethod = "0";}
+        if (FinanceFineCalcMethod == "") {
+            FinanceFineCalcMethod = "0";}
+        if (FinanceFineGracePeriod == "") {
+            FinanceFineGracePeriod = "0";
+         }
+
+
+
+
+
+        if (FinanceAddCostValue.value == "" || FinanceAddCostValue.value == "undefined") {
+            FinanceAddCostValue.value = "0.0";
+        }
+        if (FinanceDownPayValue.value == "" || FinanceDownPayValue.value == "undefined") {
+            FinanceDownPayValue.value = "0.0";
+        }
+
+        if (FinanceFineCalcValue.value == "" || FinanceFineCalcValue.value == "undefined") {
+            FinanceFineCalcValue.value = "0.0";
+        }
+        if (FinanceFineGracePeriodValue.value == "" || FinanceFineGracePeriodValue.value == "undefined") {
+            FinanceFineGracePeriodValue.value = "0.0";
+        }
+
+        //if (FinanceAddCostValue.value >= "0" && FinanceDownPayValue.value >= "0" && FinanceFineValue.value >= "0" && FinanceFineCalcValue.value >= "0" && FinanceFineGracePeriodValue.value >= "0") {
+        console.log('> Add Finance Plan form IS valid', $thisForm.valid())
+        let SelMode = $thisForm.find('[name="Mode"]').val().trim();
+        let SelCategory = $thisForm.find('[name="CategoryID"]').val().trim();
+        let SelProduct = $thisForm.find('[name="ProductID"]').val().trim();
+        if (SelMode == 1 && (SelCategory == 0 || SelCategory=='')) {
+            document.getElementById("categoryerrormsg").style.display = "block";
+            document.getElementById('categoryerrormsg').innerHTML = "Please select Category";
+
+            setTimeout(() => {
+                document.getElementById('categoryerrormsg').style.display = 'none'
+
+            }, 4000);
+            isValid = false;
+        }
+        else if (SelMode == 2 && (SelProduct == 0 || SelProduct == '')){
+            document.getElementById("producterrormsg").style.display = "block";
+            document.getElementById('producterrormsg').innerHTML = "Please select Product";
+
+            setTimeout(() => {
+                document.getElementById('producterrormsg').style.display = 'none'
+
+            }, 4000);
+        isValid = false;
+        }
+        else {
+
+            isValid = true;
+
+        }
+        if ($thisForm.valid() && isValid ) {
+                $(ele).prop('disabled', true);
+                var inputData = {
+                    ID_FinancePlanTypeSettings: 0,
+                    EffectDate: $thisForm.find('[name="EffectDate"]').val(),
+                    FK_FinancePlanType: $thisForm.find('[name="FinancePlanName"]').val().trim(),
+                    FpstAddlCostMethod: FinanceAddCostMethod,
+                    FpstAddlCostValue: FinanceAddCostValue.value,
+                    FpstDownPayMethod: FinanceDownPayMethod,
+                    FpstDownPayValue: FinanceDownPayValue.value,
+                    FpstFineMethod: FinanceFineMethod,
+                    FpstFinevalue: 0,
+                    FpstFineCalcMethod: FinanceFineCalcMethod,
+                    FpstFineCalcvalue: FinanceFineCalcValue.value,
+                    FpstFineGracePrd: FinanceFineGracePeriod,
+                    FpstFineGracePrdvalue: FinanceFineGracePeriodValue.value,
+                    FK_AccountHead: $thisForm.find('[name="FK_AccountHead"]').val().trim(),
+                    FK_AccountHeadAddAmount: $thisForm.find('[name="FK_AccountHeadAddAmount"]').val().trim(),
+                    TransMode: FinanceTransMode,
+                    FK_Product: $thisForm.find('[name="ProductID"]').val().trim(),
+                    FK_Category: $thisForm.find('[name="CategoryID"]').val().trim(),
+                    FK_AccountHeadFine: $thisForm.find('[name="FK_AccountHeadFine"]').val()
+                };
+
+
+                console.log('> Add Finance Plan ajax input', inputData);
+                $.ajax({
+                    url: '@Url.Action("SaveFinancePlan", "Finance")',
+                    type: "POST",
+                    data: JSON.stringify(inputData),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        if (data.Process.IsProcess) {
+                            $.each(data.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                            });
+                        }
+                        else {
+                            $.each(data.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                        $thisForm.find('[perfect-ctype="input"]').val('');
+                        $thisForm.find('[perfect-ctype="digit"]').val('');
+
+                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                        if (onSuccess) {
+                            window[onSuccess]();
+                        }
+                        console.log('> Add new Finance Plan success data', data);
+                    },
+                    complete: function () {
+                        $(ele).prop('disabled', false);
+                    }
+                });
+            }
+        //}
+    }
+
+     function updateFinancePlan(ele) {
+       // debugger;
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let FinanceAddCostMethod = $thisForm.find('[id=FinanceAddCostMethod]').val();
+         let FinanceDownPayMethod = $thisForm.find('[id=FinanceDownPayMethod]').val();
+         FinanceFineMethod = $thisForm.find('[id=FinanceFineMethod]').val();
+         let FinanceFineCalcMethod = $thisForm.find('[id=FinanceFineCalcMethod]').val();
+         let FinanceFineGracePeriod = $thisForm.find('[id=FinanceFineGracePeriod]').val();
+         let FinanceAddCostValue = $thisForm.find('[id=FinanceAddCostValue]').val();
+         let FinanceDownPayValue = $thisForm.find('[id=FinanceDownPayValue]').val();
+         let FinanceFineValue = $thisForm.find('[id=FinanceFineValue]').val();
+         let FinanceFineCalcValue = $thisForm.find('[id=FinanceFineCalcValue]').val();
+         let FinanceFineGracePrdValue = $thisForm.find('[id=FinanceFineGracePeriodValue]').val();
+         let FinancePlanType = $thisForm.find('[name="FinancePlanName"]').val();
+         let FK_AccountHead = $thisForm.find('[name="FK_AccountHead"]').val();
+         let FK_AccountHeadAddAmount = $thisForm.find('[name="FK_AccountHeadAddAmount"]').val();
+         let FK_Product = $thisForm.find('[name="ProductID"]').val().trim();
+        // console.log("FinancePlanType", FinancePlanType);
+                $(ele).prop('disabled', true);
+                let pdata = $thisForm.data('pData');
+                console.log('> Update Finance Plan form data saved',pdata);
+         var inputData = {
+             FK_FinancePlanTypeSettings: pdata.FK_FinancePlanTypeSettings,
+             EffectDate: $thisForm.find('[name="EffectDate"]').val(),
+             FinancePlanType: FinancePlanType,
+             FinanceAddCostMethod: FinanceAddCostMethod,
+             FinanceAddCostValue: FinanceAddCostValue,
+             FinanceDownPayMethod: FinanceDownPayMethod,
+             FinanceDownPayValue: FinanceDownPayValue,
+             FinanceFineMethod: FinanceFineMethod,
+             FinanceFineValue: FinanceFineValue,
+             FinanceFineCalcMethod: FinanceFineCalcMethod,
+             FinanceFineCalcValue: FinanceFineCalcValue,
+             FinanceFineGracePeriod: FinanceFineGracePeriod,
+             FinanceFineGracePrdValue: FinanceFineGracePrdValue,
+             FK_AccountHead:FK_AccountHead,
+             FK_AccountHeadAddAmount: FK_AccountHeadAddAmount,
+             TransMode: FinanceTransMode,
+             FK_Product: FK_Product,
+             FK_Category: $thisForm.find('[name="CategoryID"]').val().trim(),
+             FK_AccountHeadFine: $thisForm.find('[name="FK_AccountHeadFine"]').val()
+         };
+
+            console.log('> Update Finance ajax input', inputData);
+
+                $.ajax({
+                    url: "@Url.Action("UpdateFinancePlanDetails", "Finance")",
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                            });
+
+                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                            if (onSuccess) {
+                                window[onSuccess]();
+                            }
+                            console.log('> update new Finance Plan success data', ajaxOutput);
+                        }
+
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+                    },
+                    complete: function () {
+                        $(ele).prop('disabled', false);
+                    }
+
+                });
+
+           // }
+
+       // }
+    }
+
+    function ShowcategoryProduct(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let checkmode = $thisForm.find('[name="Mode"]').val();
+        $thisForm.find('[name="ProductID"]').val('');
+        $thisForm.find('[name="ProductName"]').val('');
+        $thisForm.find('[name="CategoryID"]').val('').selectpicker('refresh');
+        $thisForm.find('[name="CategoryName"]').val('');
+        if (checkmode == 1) {
+            $("#divCategory").show();
+            $("#divProduct").hide();
+
+        }
+        else if (checkmode == 2) {
+            $("#divCategory").hide();
+            $("#divProduct").show();
+        }
+        else {
+            $("#divCategory").hide();
+            $("#divProduct").hide();
+        }
+    }
+</script>

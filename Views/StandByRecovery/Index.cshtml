@@ -1,0 +1,501 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="StandbyRecovery-form">
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+
+    <script type="text/javascript">
+        const $formContainer = $('#StandbyRecovery-form');
+
+        var StndbyTransMode = '';
+        const LastIDSessionKey = 'StandByRecoveryLastID';
+        var LastID_StandByRecovery;
+        $(document).ready(function () {
+
+            StandByRecovery_initLoad();
+        });
+
+        function StandByRecovery_initLoad() {
+            StndbyTransMode = '@ViewBag.TransMode';
+            LoadAddStandByRecovery();
+            LoadStandbyRecoveryList(this);
+        }
+        function LoadAddStandByRecovery() {
+
+             $formContainer.load('@Url.Action("LoadStandbyRecovery", "StandByRecovery")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                 $thisForm.find('[name="StbyRecoveryDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.attr('perfect-onFormSuccess', 'StandByRecovery_initLoad');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_StandByRecovery = result;
+                });
+            });
+        }
+
+        var validationMessage = {
+            'StbyRecoveryDate': {
+                'required':'Please select Stand By Date.'
+            },
+            'CustomeName':{
+                'required':'Plaese select Customer'
+            },
+            'Employee': {
+                'required': 'Please Select Employee'
+            },
+            'DeliveryDate': {
+                'required': 'Please select Delivery Date'
+            },
+            'DeliveryTime': {
+                'required': 'Please select Delivery Time'
+            }
+        }
+
+        function LoadStandbyRecoveryList(ele) {
+            
+           let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            
+        if (SearchName == undefined) {
+            SearchName = '';
+        }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+            let pageUrl = "@Url.Action("GetStandbyRecoveryList", "StandByRecovery")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: StndbyTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                   
+                    if (ajaxOutput.Process.IsProcess) {
+                       // debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadStandbyRecoveryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                   
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: StndbyTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey,0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadStandbyRecoveryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: StndbyTransMode}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+
+    }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+             
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+        
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                        {
+
+                                <text>   { displayName: "View", action: fn_StandbyRecovery_UpdateForm }, </text>
+                        }
+
+                      { type: "divider" }
+
+                       @*@if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                        {
+                               <text> { displayName: "Delete", action: fn_delete_StandbyRecovery},</text>
+                        }*@
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+                },
+
+            onlyShowColumn: ["ID", "StbyRecoveryDate", "CusName"],
+            hideColumn: [],
+            rowClickAction: fn_StandbyRecovery_UpdateForm,
+            renameHeader: { "ID": "SL No", "StbyRecoveryDate": "Standby Recovery Date", "CusName": "Customer Name"},
+            isDateType: ['StbyRecoveryDate'],
+
+        };
+
+
+        function fn_StandbyRecovery_UpdateForm() {
+
+          let $thisUser = $(this).closest('tr');
+         let savedData = $thisUser.data('pData');
+            console.log('savedData', savedData);
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+         $formContainer.load('@Url.Action("LoadStandbyRecovery", "StandByRecovery")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.validate({ messages: validationMessage });
+
+             $thisForm.find('[name="FK_Customer"]').val(savedData.FK_Customer).selectpicker('refresh');
+             $thisForm.find('[name="CustomeName"]').val(savedData.CusName);
+
+
+    
+             $thisForm.find('[name="StbyRecoveryDate"]').val(moment(savedData.StbyRecoveryDate).format('YYYY-MM-DD'));
+    
+
+
+
+           let inputData = {
+               GroupID: savedData.GroupID,
+               TransMode: StndbyTransMode
+             };
+             //console.log('GroupID', GroupID);
+         
+               $.ajax({
+                 url: '@Url.Action("GetStandbyRecoveryInfoByID", "StandByRecovery")',
+                 type: "POST",
+                 data: inputData,
+                 dataType: "json",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxOutput) {
+                       if (ajaxOutput != null) {
+                           debugger
+                           if (ajaxOutput.datares.Process.IsProcess) {
+                               debugger
+
+                               $thisForm.find('[name="DeliveryTime"]').val(ajaxOutput.datares.Data[0].PdAssignedTime);
+                               $thisForm.find('[name="VehicleDet"]').val(ajaxOutput.datares.Data[0].PdVehicleDetails);
+
+                               $thisForm.find('[name="DeliveryDate"]').val(moment(ajaxOutput.datares.Data[0].PdAssignedDate).format('YYYY-MM-DD'));
+                               $thisForm.find('[name="FK_Employee"]').val(ajaxOutput.datares.Data[0].FK_Employee);
+                               $thisForm.find('[name="Employee"]').val(ajaxOutput.datares.Data[0].EmpName);
+                               $thisForm.find('[name="ProdRecNarration"]').val(ajaxOutput.datares.Data[0].StandbyRecRemark);
+
+                               fn_fill_StandbyGrid($thisForm, ajaxOutput.datares.Data, savedData);
+                               fn_fill_ReplaceGrid($thisForm, ajaxOutput.datares.Data, savedData);
+                           }
+                         
+                           $thisForm.find('button[name=add]').addClass('d-none');
+                          // $thisForm.find('button[name=update]').removeClass('d-none');
+                           $thisForm.attr('perfect-onFormSuccess', 'StandByRecovery_initLoad');
+                           //}
+
+                       }
+                       else {
+                           $.each(ajaxOutput.lgdata.Process.Message, function (key, value) {
+                               NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                           });
+                       }
+                 },
+
+               }); $sideMenuOptions.close();
+         });
+        }
+
+
+
+        function fn_delete_StandbyRecovery() {
+             let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+    
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetStandbyRecoReasonList", "StandByRecovery")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                      
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    ProdGroupID: Saveddata.ProdGroupID,
+                                    ReasonID: ret,
+                                    TransMode: ProRecoTransMode
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteStandbyData", "StandByRecovery")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+                                                $sideMenuOptions.close();
+                                                LoadAddStandByRecovery();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+        }
+
+        function fn_fill_StandbyGrid(ele, data, savedData) {
+            let $thisForm = $('[perfect-class="form"]');
+            debugger
+            if (data) {
+
+                let $tbody = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+                debugger
+                let uniqueRowId = 1;
+                var UID = '';
+                $.each(data, function (i, values) {
+                    debugger
+                    //if (values.FK_Product != 0) {
+                        let rowCount = (i + 1);
+                        let $row = $('<tr/>', { id: rowCount, class: "trvalue  stby_rw_" + rowCount, "data-row-id": uniqueRowId });
+                        uniqueRowId++;
+
+                        $row.append($('<td>', { class: "ChkProd", style: 'display:none' }).html(
+                            $('<label>').append(
+                                $('<input />', {
+                                    type: 'checkbox',
+                                    name: 'ItemCheckPro',
+                                    'perfect-class': 'formCheckInput',
+                                    'perfect-ctype': "checkbox",
+                                })
+                            ).append('') // Replace '' with your desired label text
+                                .on('change', function () {
+                                   
+                                })
+                        ))
+                            .append($('<td>', { class: "ActualProductID ", style: 'display:none' }).text(values.ActualProductID))
+                            .append($('<td>', { class: "FK_Product", style: 'display:none' }).text(values.FK_StandByProduct))
+                            .append($('<td>', { class: "ProdName" }).text(values.StandByProduct))
+                            .append($('<td>', { class: "ActualProduct " }).text(values.ReplaceProduct ))
+                            .append($('<td>', { class: "CWPDSalesDate" }).text(values.SalBillDate))
+                            .append($('<td>', { class: "SalBillNo" }).text((values.SalBillNo)))
+                            .append($('<td>', { class: "CWPDSalQuantity text-right" }).html(
+                                $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '13', max: '100', name: 'CWPDSalQuantity', id: 'insP', readonly: 'readonly' })
+                                    .val((values.StandbyQuantity).toFixed(3))
+                            ))
+                            .append($('<td>', { class: "CWPDSalActualQuantity text-right" }).text((values.SpdSalActualQuantity).toFixed(3)))
+                            .append($('<td>', { class: "FK_Sales", style: 'display:none' }).text(values.FK_Sales))
+                            .append($('<td>', { class: "Remark" }).html(
+                                $('<input/>', {
+                                    type: 'text',
+                                    class: 'form-control text-left',
+                                    maxlength: '500',
+                                    name: "Remark",
+                                    id: "Rmrkid",
+                                   
+                                }).val(values.StandbyRemark),
+
+                            ))
+                            .append($('<td>', { class: "Action_id" }).html(
+                                $('<button/>', {
+                                    type: 'button',
+                                    class: 'fa fa-retweet btn border-none btn text-primary border-none',
+                                    text: '',
+                                    'data-toggle': 'tooltip',
+                                    'data-placement': 'top',
+                                    'title': 'Replace',
+
+                                })
+                                    .on('click', function () {
+                                        
+                                       
+                                    })
+                             
+
+                            ))
+                            .append($('<td>', { class: "UID", style: 'display:none' }).text(uniqueRowId))
+
+                        $tbody.append($row);
+                    //}
+                    //else {
+                    //    $("#stReCTbody tr").remove();
+                    //    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Not Found' })
+                    //}
+
+                });
+
+
+            }
+            else {
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                StandByRecovery_initLoad();
+
+            }
+
+        }
+
+
+        function fn_fill_ReplaceGrid(ele, data, savedDatas) {
+            let $thisForm = $('[perfect-class="form"]');
+          
+            if (data) {
+
+                $.each(data, function (i, values) {
+
+                    var newRow = $('<tr>', { class: "trvalue1" });
+                    newRow.append($('<td>', { style: 'display:none' }).text(''));
+                    newRow.append($('<td>', { class: "ActproName" }).text(values.ReplaceProduct));
+                    newRow.append($('<td>', { class: "ActFk_productID", style: 'display:none' }).text(values.FK_Product));
+                    newRow.append($('<td>', { class: "stproName" }).text(values.StandByProduct));
+                    newRow.append($('<td>', { class: "productID", style: 'display:none' }).text(values.FK_StandByProduct));
+                    newRow.append($('<td>', { class: "standByQuantity text-right" }).text(parseFloat(values.ReplaceQuantity).toFixed(3)));
+                    newRow.append($('<td>', { class: "uid1", style: 'display:none' }).text(values.GroupID));
+                    newRow.append($('<td>', { class: "stockid", style: 'display:none' }).text(values.stockid));
+                    newRow.append($('<td>', { class: "DeleteRow" }).html(
+                        $('<button/>', {
+                            type: 'button',
+                            class: 'fa fa-trash btnPerfectDelete',
+                            text: ''
+                        }).on('click', function () {
+                            $(this).closest('tr').remove();
+
+                            $('#stReCTbody').find(sb_class).find('.Action_id').find('button').prop('disabled', false);
+                            
+
+                        }).prop('disabled', true)
+                    ));
+
+
+                    $('#st1ReCTbody').append(newRow);
+                    $('#myModal').modal('hide');
+
+
+                });
+                clearvalues();
+            }
+        }
+
+    </script>
+}
+

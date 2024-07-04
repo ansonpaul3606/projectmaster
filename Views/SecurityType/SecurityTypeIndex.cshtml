@@ -1,0 +1,297 @@
+﻿
+
+@{
+    ViewBag.Title = "Security Type";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="SecurityType-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        //--- Form
+        const $formContainer = $('#SecurityType-form');
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlTyView) {
+        <text> { displayName: "View", action: fn_securityTypeIndex_loadSecurityTypeUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+             {
+                 <text> { displayName: "Delete", action: fn_securityTypeIndex_deleteSecurityType },</text>
+
+              }
+                   
+                 
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","SecurityTypeName",'SecurityTypeShortName'],
+          
+            rowClickAction: fn_securityTypeIndex_loadSecurityTypeUpdateForm,
+           // serialNo: true,
+            renameHeader: { "SlNo":"SL NO","SecurityTypeName": "Name", "SecurityTypeShortName": "ShortName" }
+        };
+
+
+        $(document).ready(function () {
+            fn_securityTypeIndex_initialLoad();
+
+        });
+
+        var validationMessage = {
+            'SecurityTypeName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'SecurityTypeShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+
+        };
+
+        function fn_securityTypeIndex_initialLoad() {
+            fn_securityTypeIndex_loadSecurityTypeAddForm();
+             @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text>   fn_securityTypeIndex_loadSecurityType(this); </text>
+              }
+         
+
+        }
+
+    // Fucntion to load DepartmentList
+        function fn_securityTypeIndex_loadSecurityType() {
+
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Security Type List');
+
+            $.ajax({
+               url: "@Url.Action("GetSecurityTypeList", "SecurityType")",
+
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+ 
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('SecurityType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Security Type");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                              $sidemenu.find('table').dataTable({ paging: true });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+
+
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+
+       
+// Fucntion to load Department ADD form
+        function fn_securityTypeIndex_loadSecurityTypeAddForm() {
+
+            $formContainer.load('@Url.Action("LoadSecurityTypeForm", "SecurityType")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'fn_securityTypeIndex_initialLoad');
+
+                //initFunctions($thisForm);
+            });
+
+    };
+
+
+  // Function to load Department Update from
+        function fn_securityTypeIndex_loadSecurityTypeUpdateForm() {
+
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                SecurityTypeID: saveddata.SecurityTypeID
+        };
+        console.log('view clicked',saveddata)
+
+            $.ajax({
+                url: "@Url.Action("GetSecurityTypeInfo", "SecurityType")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        //process is success
+                        $formContainer.load('@Url.Action("LoadSecurityTypeForm", "SecurityType")', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                          
+                            //console.log('sss', $thisForm)
+                            //console.log('sss', ajaxOutput)
+                            $thisForm.validate({ messages: validationMessage });
+                            initFunctions($thisForm);
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                            // Fill fields
+
+                            $thisForm.find('[name="SecurityTypeName"]').val(ajaxOutput.Data[0]['SecurityTypeName']);
+                            $thisForm.find('[name="SecurityTypeShortName"]').val(ajaxOutput.Data[0]['SecurityTypeShortName']);
+                            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0]['SortOrder']);
+
+
+                            // stuff to do after filling data
+                            $sideMenuOptions.close();//<---  Close side menu
+                            $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add Department button
+                            $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update Department button
+
+                            $thisForm.attr('perfect-onFormSuccess', 'fn_securityTypeIndex_initialLoad');
+
+                        });
+                    }
+                    else {
+                        //Error occured
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            });
+    };
+
+
+
+        function fn_securityTypeIndex_deleteSecurityType() {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                $.ajax({
+                    url: "@Url.Action("GetSecurityTypeReasonList", "SecurityType")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.SecurityTypeName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        SecurityTypeID: Saveddata['SecurityTypeID'],
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                         url: "@Url.Action("DeleteSecurityType", "SecurityType")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        };
+
+    </script>
+
+}
+
+

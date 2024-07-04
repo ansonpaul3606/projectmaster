@@ -1,0 +1,944 @@
+﻿<style>
+    .Custominvalid {
+        display: none;
+        width: 50%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .tableFixHead {
+        overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+        height: 350px; /* gives an initial height of 200px to the table */
+    }
+
+  
+    .custom-label-class {
+        color: red;
+        font: 300;
+        background-color: antiquewhite;
+    }
+
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+  
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+   
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+    #Suppliertopdetails {
+        background-color: #CFD8DC;
+    }
+    #Suppliertopdetails > thead {
+        position: sticky;
+        top: 0;
+    }
+    .tb1 {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+        /*.tb1 tbody tr td {
+            border-color: white;
+        }
+    .jq_supplier_td, .jq_address_td, .jq_gstin_td, .jq_opening_td, .jq_openingdate_td {
+        font-weight: bold;
+    }*/
+    .table1 {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .tb1 tbody tr td {
+        border: 1px solid white;
+        padding: 8px;
+        text-align: left;
+        background-color: #CFD8DC; /* Set background color of cells to white */
+    }
+
+  
+
+   
+</style>
+<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle </h4>
+
+        </div>
+        <div class="col-xl-4 text-right">
+           
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card-body Supplierreport">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="supplierreportsearch-body" id="filterid">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+
+
+
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <div class="input-group">
+                                    <select class="form-control" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true"onchange="clearsupplier(this);">
+                                        @if (ViewBag.UsrrlAdmin)
+                                        {
+                                            <option value="0">All</option>
+                                        }
+
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branchList in Model.BranchList)
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>
+                                            }
+
+                                        }
+
+
+                                    </select>
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Supplier</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+
+                                    <input type="text" class="form-control" name="SuppName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden"class="form-control perfectValidate_numeric" name="SuppID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                    <div class="input-group-append">
+
+                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,176,'Supplier List',[],['SupplierID','SupplierName'])" BindName="SuppName" BindVal="SuppID" Criterea1="BranchID" Criterea2=""></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+                <div class="col-sm-12 card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getaccountdetails(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton();" name="reset">Clear</button>
+
+                </div>
+            </div>
+
+
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+
+
+            <div class="tb1">
+                <table class="table table-responsive-lg" id="Supplierdetailsids">
+                    <thead class="thead btn-primary" id="ReturnHead">
+                        <tr>
+                            <th scope="col" style="text-align:left" colspan="2">Supplier Details</th>
+                            <th scope="col" style="text-align:left" colspan="2"></th>
+                            
+                        </tr>
+                    <tbody id="Suppliertopdetails">
+                        <tr id="0">
+
+                            <td style="text-align:center;" colspan="9">No Records..</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+
+
+            <div class="tableFixHead igf" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridtransactionDetails" id="Gridtransactiontableid">
+
+
+
+                    <table class="table table-responsive-lg" id="Gridtransactiondetailsid">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Transaction Type</th>
+                                <th scope="col" style="text-align:left">Transaction No</th>
+                                <th scope="col" style="text-align:center">Remark</th>
+                                <th scope="col" style="text-align:left">Payment Method</th>
+                                <th scope="col" style="text-align:right">Credit</th>
+                                <th scope="col" style="text-align:right">Paid</th>
+
+
+
+                                <th scope="col" style="text-align:right">Balance</th>
+                                <th scope="col" style="text-align:left"></th>
+
+                                <th class="th" scope="col" style="text-align:left"></th>
+
+                            </tr>
+
+
+
+                        <tbody id="Gridtransactiondetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+
+
+    (function () {
+
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+    function ResetButton() {
+        SupplierledgerreportInitialLoad();
+
+    }
+    function clearsupplier() {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name=SuppID]').val('');
+        $thisForm.find('[name=SuppName]').val('');
+        $('#Suppliertopdetails').hide();
+        $('#Gridtransactiontableid').hide();
+        document.querySelector('.tb1').style.display = 'none';
+
+
+    }
+      function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+
+                        if (parseFloat(Mode) == 1) {
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+
+
+
+   
+   
+    var GetAccountdetaildata;
+
+    var reportdetaildata;
+    function getaccountdetails(ele) {
+    let $thisForm = $(ele).closest('[perfect-class="form"]');
+    let table = $('#LocationTable').DataTable();
+    table.destroy();
+
+    if ($thisForm.valid()) {
+        var obj = {
+            SuppID: $thisForm.find('[name=SuppID]').val(),
+            BranchID: $thisForm.find('[name=BranchID]').val(),
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetSupplierledgerreportdetailtopsection", "SupplierReport")",
+            type: "GET",
+            data: obj,
+            dataType: "json",
+            contentType: "application/json",
+            success: function(ajaxOutput) {
+                console.log('out123:', ajaxOutput)
+                if (ajaxOutput.Process.IsProcess) {
+                    reportdetaildata = ajaxOutput.Data;
+                    var CheckListHTML1 = '';
+
+                    if (ajaxOutput.Data.length > 0) {
+                        $('#Suppliertopdetails').show();
+                        $.each(ajaxOutput.Data, function (i, value) {
+
+                            CheckListHTML1 += "<tr>";
+
+                            CheckListHTML1 += "<td Class='Supplier-column' style='text-align:left;padding-right:20px'>" + "Supplier" + "</td>";
+                            CheckListHTML1 += "<td Class='jq_supplier_td' style='text-align:left;font-weight:bold'>" + value.Supplier + "</td>";
+                            CheckListHTML1 += "<td Class='address-column' style='text-align:left;padding-right:20px' rowspan='2'>" + "Address" + "</td>";
+                            CheckListHTML1 += "<td rowspan='2' Class='jq_address_td' style='text-align:left;font-weight:bold'>" + value.Address + "</td>";
+                            CheckListHTML1 += "</tr>";
+
+                            CheckListHTML1 += "<tr>";
+                            CheckListHTML1 += "<td style='text-align:left;'>GSTNo</td>";
+                            CheckListHTML1 += "<td Class='jq_gstin_td' style='text-align:left;font-weight:bold'>" + value.GSTNo + "</td>";
+                          
+                          
+                            CheckListHTML1 += "</tr>";
+                           
+                            CheckListHTML1 += "<tr>";
+                            CheckListHTML1 += "<td style='text-align:left;'>Opening</td>";
+                            CheckListHTML1 += "<td Class='jq_opening_td' style='text-align:left;font-weight:bold'>" + value.Opening + "" + value.TransType + "</td>";
+                            CheckListHTML1 += "<td style='text-align:left;'>Opening Date</td>";
+                            CheckListHTML1 += "<td Class='jq_openingdate_td' style='text-align:left;font-weight:bold'>" + value.OpeningDate + "</td>";
+
+
+                            CheckListHTML1 += "</tr>";
+
+                           
+
+
+                           
+                        });
+
+                        $("#Suppliertopdetails").html(CheckListHTML1);
+                        getgridtransactionout(ele);
+                    }
+
+
+                    else {
+                        $.each(ajaxOutput.Process.Message, function(key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                        });
+                    }
+                   
+                }
+
+                else {
+                    $.each(ajaxOutput.Process.Message, function(key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                    });
+                }
+            },
+        });
+    } else {
+        // Form validation failed
+        }
+      
+}
+  
+    
+      function getgridtransactionout(ele)
+     {
+          let $thisForm = $(ele).closest('[perfect-class="form"]');
+          debugger
+
+              var obj = {
+                 
+                  SuppID: $thisForm.find('[name=SuppID]').val(),
+                  BranchID: $thisForm.find('[name=BranchID]').val(),
+              }
+
+
+
+
+                $.ajax({
+                    url: "@Url.Action("GetSupplierledgerreportdetail","SupplierReport")",
+                    type: "GET",
+                    data: obj,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (ajaxOutput) {
+                        console.log('out1:', ajaxOutput)
+
+
+
+                        if (ajaxOutput.Process.IsProcess) {
+                          document.querySelector('#exppdf').style.display = 'block';
+                            debugger
+                        
+                            document.querySelector('.igf').style.display = "block";
+                            document.querySelector('.tb1').style.display = 'block';
+
+                            var CheckListHTML = '';
+                            console.log('length:', ajaxOutput.Data.length);
+                            $("#Gridtransactiondetailsbody").empty();
+
+                            if (ajaxOutput.Data.length > 0) {
+                                $('#Gridtransactiontableid').show();
+                              
+
+                                Data = ajaxOutput.Data;
+
+                                $.each(ajaxOutput.Data, function (i, value) {
+                                    let rowCount = (i + 1);
+
+
+
+
+                                    CheckListHTML += "<tr>";
+                                    if (rowCount != ajaxOutput.Data.length) {
+
+
+
+
+
+
+
+                                        CheckListHTML += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML += "<td Class='jq_date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+                                        CheckListHTML += "<td  Class='jq_transactiontype_td' style='text-align:center width:20px'>" + value.TransactionType + "</td>";
+
+
+                                        CheckListHTML += "<td class='jq_transactionno_td' style='text-align:center width:20px'>" + value.TransactionNo + "</td>";
+                                        CheckListHTML += "<td class='jq_remarks_td' style='text-align:right;'>" + value.Remark + "</td>";
+                                        CheckListHTML += "<td class='jq_payment_td' style='text-align:center width:20px'>" + value.PaymentMode + "</td>";
+
+                                        CheckListHTML += "<td class='jq_credit_td' style='text-align:right;'>" + value.Credit + "</td>";
+
+                                        CheckListHTML += "<td class='jq_paid_td' style='text-align:right;'>" + value.Paid + "</td>";
+
+
+
+                                        CheckListHTML += "<td class='jq_balance_td' style='text-align:right;'>" + value.Balance + "</td>";
+
+                                        CheckListHTML += "<td class='jq_balancetranstype_td' style='text-align:right;'>" + value.TransType + "</td>";
+
+
+                                        CheckListHTML += "</tr>";
+
+                                    }
+                                    else {
+                                        CheckListHTML += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML += "<td Class='jq_date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+                                        CheckListHTML += "<td  Class='jq_transactiontype_td' style='text-align:center width:20px'>" + value.TransactionType + "</td>";
+
+
+                                        CheckListHTML += "<td class='jq_transactionno_td' style='text-align:center width:20px'>" + value.TransactionNo + "</td>";
+                                        CheckListHTML += "<td class='jq_remarks_td' style='text-align:right;font-weight:bold'>" + value.Remark + "</td>";
+                                        CheckListHTML += "<td class='jq_payment_td' style='text-align:center width:20px'>" + value.PaymentMode + "</td>";
+
+                                        CheckListHTML += "<td class='jq_credit_td' style='text-align:right;font-weight:bold'>" + value.Credit + "</td>";
+
+                                        CheckListHTML += "<td class='jq_paid_td' style='text-align:right;font-weight:bold'>" + value.Paid + "</td>";
+
+
+
+                                        CheckListHTML += "<td class='jq_balance_td' style='text-align:right;font-weight:bold'>" + value.Balance + "</td>";
+
+                                        CheckListHTML += "<td class='jq_balancetranstype_td' style='text-align:right;font-weight:bold'>" + value.TransType + "</td>";
+
+
+                                        CheckListHTML += "</tr>";
+
+                                    }
+
+
+
+                                });
+
+
+
+
+                            }
+                            else {
+                               $('#Gridtransactiontableid').show();
+                                $("#Gridtransactiondetailsbody").empty();
+                                $('#Gridtransactiontableid').hide();
+                                CheckListHTML += "<div class='form-group col-md-6'>";
+                                CheckListHTML += "<div class='form-check mb-2'>";
+                                CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                                CheckListHTML += "</div></div>"
+                            }
+                          
+
+
+                        }
+
+
+                        else {
+                            document.querySelector('#exppdf').style.display = "none";
+                          
+                            document.querySelector('.igf').style.display = "block";
+                            document.querySelector('.tb1').style.display = 'block';
+                            $('#Gridtransactiontableid').hide();
+                          
+                            CheckListHTML += "<div class='form-group col-md-6'>";
+                            CheckListHTML += "<div class='form-check mb-2'>";
+                            CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                            CheckListHTML += "</div></div>"
+                          
+                        }
+                       $("#Gridtransactiondetailsbody").html(CheckListHTML);
+                  }
+
+              });
+
+
+
+
+         
+
+
+
+    }
+
+  
+    function generatePdf(ele) {
+
+        var cdata;
+
+        var _ReportName = "Supplier Ledger";
+        let $container = $(ele).closest('[perfect-class="form"]');
+        const obj = {
+
+            Branch: $('select[name="BranchID"] option:selected').text(),
+
+            "Supplier Name": $('input[name="SuppName"]').val()
+        };
+        const obj2 = {
+
+
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        //var str2 = "";
+        var str2 = `Report : ${_ReportName} Report`;
+        var num = 0;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                if (num === 0) {
+                    str = "Filter By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+
+
+        if (obj2['From'] && obj2['To']) {
+            //debugger
+            str2 = str2 + ` ,For the Period  ${changeDateFormat(obj2['From'])} - ${changeDateFormat(obj2['To'])}`;
+        }
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+                    str2 +
+                    '\n' + str
+                ],
+            ],
+
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black',
+                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+            }
+
+
+
+        };
+
+        ///Test
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+
+                //LeadType = 'My Leads';
+                var head = [];
+                var ptableData = {};
+
+
+                head = ["Sl.No", "Date", "TransactionType", "TransactionNo", "Remarks","Payment Method", "Credit", "Paid", "Balance", "TransType"];
+
+                ptableData = {
+                    columns: [
+
+                        { title: "Date", dataKey: "Date" },
+                        { title: "Transaction Type", dataKey: "TransactionType" },
+                        { title: "Transaction No", dataKey: "TransactionNo" },
+                        { title: "Remarks", dataKey: "Remark" },
+                        { title: "PaymentMethod", dataKey: "PaymentMode" },
+                        { title: "Credit", dataKey: "Credit" },
+                        { title: "Paid", dataKey: "Paid" },
+                        { title: "Balance", dataKey: "Balance" },
+                        { title: "Trans Type", dataKey: "TransType" },
+
+
+                    ],
+                    rows: Data
+
+                };
+                console.log(Data, 'Data>>??//1')
+
+
+                // exportPdf("ACCOUNTS REPORT", [head], cdata, upperhead, "", ptableData, "", "Lead Type", "a4", '', '', 'l');
+
+                debugger
+                const obj = {
+
+                    startY: 5,
+                    head: [['Supplier Details', '', '', '']],
+                    body: [
+                        ['Supplier', reportdetaildata[0].Supplier, 'Address', reportdetaildata[0].Address],
+                        ['GSTNO', reportdetaildata[0].GSTNo],
+                        ['Opening', reportdetaildata[0].Opening + reportdetaildata[0].TransType],
+                        ['Opening Date', reportdetaildata[0].OpeningDate]
+
+                    ],
+                    theme: 'striped',
+                    styles: {
+                        //lineWidth: 0.2,
+                        //lineColor: 0,
+                        fontSize: 8
+                    },
+                    headerStyles: {
+                        fillColor: '#2aa2ad', // Set the fill color of the header
+                        textColor: '#FFFFFF' // Set the text color of the header
+                    },
+                    showHead: 'everyPage',
+                    rowPageBreak: 'avoid',
+                    pageBreak: 'auto',
+                    margin: { top: 30, bottom: 40 }
+                }
+
+                const inputdata = {
+                    ptitle: "Supplier Ledger Report",
+                    phead: [head],
+                    cdata,
+                    upperhead,
+                    ptableData,
+                    filename: _ReportName,
+                    pageSize: "a4",
+                    PageOrientation: "l",
+                    uppertable: obj
+
+                }
+                exportPdf2(inputdata);
+
+
+
+            }
+
+
+
+        });
+    }
+
+     function onExell() {
+
+
+
+        var cdata;
+
+
+
+        console.log(Data,'Data>>--///')
+
+       
+        let ReportName;
+
+        const obj = {
+            Branch: $('select[name="BranchID"] option:selected').text(),
+
+            "Supplier Name": $('input[name="SuppName"]').val()
+        };
+         const obj2 = {
+
+         }
+
+        var _ReportName = "Supplier Ledger";
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        //var str2 = "";
+        var str2 = `${_ReportName} Report`;
+        var num = 0;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                if (num === 0) {
+                    str = "Filter By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+       
+       
+
+
+
+        //Data.unshift(str);
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 console.log(cdata, "---cdata----");
+
+
+
+                 let LeadType = "";
+                 var head = [];
+                 var ptableData = {};
+                 debugger;
+              
+                 head = ["Sl.No", "Date", "TransactionType", "TransactionNo", "Remarks","Payment Method" ,"Credit", "Paid", "Balance", "TransType"];
+                    
+                     ptableData = {
+                         columns: [
+
+                             { title: "Date", dataKey: "Date" },
+                             { title: "TransactionType", dataKey: "TransactionType" },
+                             { title: "TransactionNo", dataKey: "TransactionNo" }, 
+                             { title: "Remarks", dataKey: "Remark" },
+                             { title: "PaymentMethod", dataKey: "PaymentMode" },
+                             { title: "Credit", dataKey: "Credit" },
+                             { title: "Paid", dataKey: "Paid" },
+                             { title: "Balance", dataKey: "Balance" },
+                             { title: "", dataKey: "TransType" },
+
+
+                         ],
+                         rows: Data
+
+                     };
+                
+
+
+               
+
+
+
+
+                 ReportName = `${cdata.Company} \n${cdata.Branch}\n  ${str2} \n ${str} `;
+                 //generateExell(ReportName, head, ptableData, mergeRanges, "AccountGroup", `${LeadType} Report`);
+
+
+               
+
+                    // generateExell(ReportName, [head], ptableData, "", "", `${_ReportName}`);
+                     const inputobj = {
+                         ptitle: ReportName,
+                         phead: [head],
+                         ptableData,
+                         filename: `${_ReportName}`,
+                         headertable: {
+                             bhead: [['', '', '', '', '', '', '', '', ''],['Supplier Details ', '', '', '', '','','','','']],
+                             bbody: [
+                                 ['Supplier', ':', reportdetaildata[0].Supplier, '', 'Address ', ':', reportdetaildata[0].Address,''],
+                                 ['GST No', ':', reportdetaildata[0].GSTNo],
+                                 ['Opening ', ':', reportdetaildata[0].Opening + reportdetaildata[0].TransType, '', '', '', '', '', ''],
+                                 ['Opening Date ', ':', reportdetaildata[0].OpeningDate],
+                               
+                             ]
+
+                         },
+                      
+                     }
+                     generateExell2(inputobj);
+
+
+                    // ptitle, phead, ptableData, mergeRangesdata, grpvariable, filename
+                 }
+
+
+           
+         });
+
+    }
+</script>
+
+

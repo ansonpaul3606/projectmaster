@@ -1,0 +1,356 @@
+﻿
+@{
+    ViewBag.Title = "Product Location";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="ProductLocation-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+<script type="text/javascript">
+    var AMCTypeTransMode = "";
+        var validationMessage = {
+            'LocationName': {
+                'required': 'Please Enter Name',
+                'stringonly': 'Invalid  Name Entered'
+            },
+            'LocationShortName': {
+                'required': 'Please Enter Short Name',
+                'stringonly': 'Invalid Short Name Entered'
+            },
+            'BranchID': {
+                'required': 'Please select a Branch',
+                'stringonly': 'Invalid Branch selected',
+
+            },
+    }
+
+
+    const $formContainer = $('#ProductLocation-form');
+        $(document).ready(function () {
+            InitailProductLocationLoad();
+        });
+
+    function InitailProductLocationLoad() {
+       
+         @if (ViewBag.PagedAccessRights.UsrrlMsView)
+            {
+               <text>  loadProductLocationList(this);</text>
+            }
+            loadProductLocationForm();
+        }
+
+
+    function loadProductLocationForm() {
+           $formContainer.load('@Url.Action("loadProductLocationForm", "ProductLocation")?mtd=@ViewBag.mtd', function () {           
+                let $thisForm = $(this).find('[perfect-class="form"]');
+               $thisForm.validate({ messages: validationMessage });
+               $thisForm.find('[name=BranchID]').val('@ViewBag.BranchID').selectpicker('refresh');
+                $thisForm.attr('perfect-onFormSuccess', 'InitailProductLocationLoad');
+            });
+        };
+
+                     
+    function loadProductLocationList(ele) {         
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();          
+            $sideMenuOptions.title.find('h4').text('Location List');
+            let pageUrl = '@Url.Action("GetProductLocationList", "ProductLocation")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {                   
+                    if (ajaxOutput.Process.IsProcess) {                      
+                        $sidemenu.find('.jq_sidemenu_title').text("Location List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadProductLocationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Location List");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadProductLocationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            return {
+                url: ajaxInfo.apiurl,
+                type: "POST",
+                data: function () {
+                    var info = tableid.DataTable().page.info();                  
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                 @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                 {
+                    <text> { displayName: "View", action: editProductLocation },
+                    </text>
+                  }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                  {
+                    <text> { displayName: "Delete", action: deleteProductLocation },</text>
+                  }
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "LocationName", "LocationShortName"],
+            hideColumn: [ 'SortOrder'],
+            rowClickAction: editProductLocation,
+            renameHeader: { "SlNo": "Sl No", "LocationName": "Name", "LocationShortName": "Short Name" },
+            serialNo: true,
+        };
+
+
+    function editProductLocation() {
+
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+         let savedData = $thisUser.data('pData');
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData = { FK_ProductLocation: savedData.ProductLocationID};
+            //dbcall
+        $('#loadProductLocation').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetProductLocationInfo", "ProductLocation")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            //console.log('>_ Inside GetCountryInfo', ajaxOutput)
+
+                            $sideMenuOptions.close();
+
+                        $formContainer.load("@Url.Action("loadProductLocationForm", "ProductLocation")?mtd=@ViewBag.mtd", function () {
+
+
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].LocationName)
+                            console.log('Inside load');
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+                            console.log('pData', ajaxOutput.Data[0]);
+                            $thisForm.attr('perfect-onFormSuccess', 'InitailProductLocationLoad');
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            
+                            $thisForm.find('[name=ID_ProductLocation]').val(ajaxOutput.Data[0].ProductLocationID),
+
+                                $thisForm.find('[name=LocationName]').val(ajaxOutput.Data[0].LocationName),
+                                $thisForm.find('[name=LocationShortName]').val(ajaxOutput.Data[0].LocationShortName),
+                                $thisForm.find('[name=SortOrder]').val(ajaxOutput.Data[0].SortOrder),
+                                $thisForm.find('[name=BranchID]').val(ajaxOutput.Data[0].BranchID).selectpicker('refresh'),  
+
+
+
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                     //console.log('>_ Inside GetCountryInfo :false')
+
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+         });
+
+        }
+    function deleteProductLocation() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+     
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetProductionLocationReasonList", "ProductLocation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                          // let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.LocationName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_ProductLocation: Saveddata['ProductLocationID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteProductionLocationInfo", "ProductLocation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+   
+   
+</script>
+}

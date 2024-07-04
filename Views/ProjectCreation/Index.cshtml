@@ -1,0 +1,622 @@
+﻿
+@{
+    ViewBag.Title = "Project Creation";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="projectcreation-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#projectcreation-form');
+        var ProjectCreationTransMode = "";
+        const LastIDSessionKey = 'ProjectCreationLastID';
+        var LastID_ProjectCreation;
+
+
+        $(document).ready(function () {
+            debugger
+        projectcreationInitialLoad();
+            
+        });
+
+
+
+        function projectcreationInitialLoad() {
+
+            ProjectCreationTransMode = '@ViewBag.TransMode';
+           
+
+            loadprojectcreationList(this, loadprojectcreationAddForm);
+        }
+
+
+           // Function to load projectcreation ADD form
+        function loadprojectcreationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadprojectcreationForm", "projectcreation")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+                $thisForm.find('[name="CreateDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="StartDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="EndDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'projectcreationInitialLoad');
+               // initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_ProjectCreation = result;
+                });
+
+
+            });
+
+        };
+
+
+
+
+        function loadprojectcreationList(ele,callback) {
+            let $sidemenu = $sideMenuOptions.body;
+
+            // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Project List');
+
+
+
+
+                let pageUrl = '@Url.Action("GetProjectCreationList", "ProjectCreation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ProjectCreationTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Project Creation List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Project Creation List");
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadprojectcreationList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                              });
+
+                          }
+                             else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey, 0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Project Creation List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadprojectcreationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                             "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+                complete: function () {
+
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        };
+
+
+        debugger
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editprojectcreation },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteprojectcreation },</text>
+
+              }
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "CusNumber", "Name", 'ShortName', 'LeadNo'],
+            hideColumn: [],
+            rowClickAction: editprojectcreation,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "CusNumber":"Customer No.", "Name": "Name", "LeadNo": "Lead No." }
+        };
+
+        var validationMessage = {
+            'LeadNo': {
+                'required': 'Please Select Lead',
+
+            },
+            'Name': {
+                'required': 'Please Enter  Name',
+               
+            },
+
+            'ShortName': {
+                //'required': 'Please Enter  Short Name',
+                'stringonly': 'Invalid  Short Name',
+                'alphanumeric': 'Invalid Short Name',
+            },
+            'FinalAmount': {
+                'required': 'Please Enter  Finalization Amount',
+
+
+            },
+            'Proamount': {
+                'required':'Please Enter  Project Amount'
+            },
+           
+            'Duration': {
+                'required': 'Please Enter Duration ',
+            },
+            'DurationType': {
+                'required': 'Please Select Duration Type ',
+            },
+            'CategoryID': {
+                'required': 'Please Select Category ',
+            },
+            'CreateDate': {
+                'required': 'Please select Create date',
+                'min': jQuery.validator.format('Created Date Should be greater than or equal to Lead Date')
+            },
+            'StartDate': {
+                'required': 'Please select Start date',
+                'min': jQuery.validator.format('Start Date Should be greater than or equal to Create Date')
+            },         
+            'BranchID': {
+                'required': 'Please Select Branch',
+            },
+
+
+        };
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+        function fillTableBuyBack(ele, tkey, data, tableOptionsTempOut) {
+            debugger
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTempfill = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+            let indexname = tkey + 'index';
+            tableOptionsTempfill.rowAttribute.push(indexname);
+            tableOptionsTempfill.hideColumn.push(indexname);
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+                            tableOptionsTempfill.hideColumn.push(nameAttr);
+
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+
+                            if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+            });
+            $tblcontainer.empty();
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+
+        }
+        function editprojectcreation() {
+            debugger
+            let row = $(this).closest('tr');
+            
+            let Saveddata = row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ProjectID: Saveddata.ProjectID,
+                TransMode: ProjectCreationTransMode
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetprojectcreationInfoByID", "projectcreation")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+							
+
+                        console.log("Return", ajaxOutput);
+                            if (ajaxOutput.projectInfo.Process.IsProcess)
+                            {
+
+                                //console.log('>_ Inside GetprojectcreationInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadprojectcreationForm", "projectcreation")?mtd=@ViewBag.mtd", function () {
+                                 
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.projectInfo.Data[0].Name)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');                                    
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+								
+                                    $thisForm.data({ pData: ajaxOutput.projectInfo.Data[0] }); //setting the pdata value in form for update -id is taking
+                                    fn_LoadSubcategory(ajaxOutput.projectInfo.Data[0].Category, $thisForm, ajaxOutput.projectInfo.Data[0].SubCategory);
+                                    $thisForm.find('[name=Lead]').val(ajaxOutput.projectInfo.Data[0].LeadNo);
+                                    $thisForm.find('[name="FK_Lead"]').val(ajaxOutput.projectInfo.Data[0].LeadGenerationID);
+                                    $thisForm.find('[name="LeadNo"]').val(ajaxOutput.projectInfo.Data[0].LeadGenerationID);
+                                    $thisForm.find('[name="Name"]').val(ajaxOutput.projectInfo.Data[0].Name);
+                                    $thisForm.find('[name="ShortName"]').val(ajaxOutput.projectInfo.Data[0].ShortName);
+                                    $thisForm.find('[name="CategoryID"]').val(ajaxOutput.projectInfo.Data[0].Category).selectpicker('refresh');
+                                    $thisForm.find('[name="SubCategotyID"]').val(ajaxOutput.projectInfo.Data[0].SubCategory).selectpicker('refresh');
+                                    $thisForm.find('[name="FinalAmount"]').val(ajaxOutput.projectInfo.Data[0].FinalAmount);
+                                    $thisForm.find('[name="StartDate"]').val(moment(ajaxOutput.projectInfo.Data[0].StartDate).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="Proamount"]').val(ajaxOutput.projectInfo.Data[0].ProjectAmount);
+                                    $thisForm.find('[name="DisAmount"]').val(ajaxOutput.projectInfo.Data[0].DiscountAmount);
+                                    $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.projectInfo.Data[0].FK_Customer);
+                                    $thisForm.data({ pbuyback: ajaxOutput.buybackdetail.Data }); 
+                                    //$thisForm.find('[name="StartDate"]').trigger('change');
+                                    if (ajaxOutput.projectInfo.Data[0].Passed == 1 ) {
+                                         $thisForm.find('[name="FinalAmount"]').prop("disabled", true);
+                                    }
+                                    else {
+                                        $thisForm.find('[name="FinalAmount"]').prop("disabled", false);
+                                    }
+                                    if (ajaxOutput.buybackdetail.Data && ajaxOutput.buybackdetail.Data.length > 0) {
+
+                                        fillTableBuyBack($thisForm, 'buyback', ajaxOutput.buybackdetail.Data, restableOptionsTempOut);
+
+                                    } else {
+                                    }
+                                    $thisForm.find('[name="EndDate"]').val(moment(ajaxOutput.projectInfo.Data[0].EndDate).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="buybacksumamt"]').val(ajaxOutput.projectInfo.Data[0].BuyBackAmount);
+                                    $thisForm.find('[name="CreateDate"]').val(moment(ajaxOutput.projectInfo.Data[0].CreateDate).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="LeadDates"]').val(moment(ajaxOutput.projectInfo.Data[0].LeadDates).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="Duration"]').val(ajaxOutput.projectInfo.Data[0].Duration);
+                                    $thisForm.find('[name="DurationType"]').val(ajaxOutput.projectInfo.Data[0].DurationType);
+                                    $thisForm.find('[name="FK_TaxGroup"]').val(ajaxOutput.projectInfo.Data[0].FK_TaxGroup).selectpicker('refresh');
+                                    $thisForm.find('[name="BranchID"]').val(ajaxOutput.projectInfo.Data[0].BranchID).selectpicker('refresh');
+                                    $thisForm.find('[name="ProjIncludeTax"]').prop('checked', ajaxOutput.projectInfo.Data[0].ProjIncludeTax);
+                                    CalEndDate($thisForm.find('[name="StartDate"]'));
+                                    $thisForm.find('[name="EndDate"]').val(moment(ajaxOutput.projectInfo.Data[0].EndDate).format('YYYY-MM-DD'));
+                                    $thisForm.data({ pImage: ajaxOutput.Imageselect.Data });
+                                    PssfupDocsList = ajaxOutput.Imageselect.Data;
+                                   
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'projectcreationInitialLoad');
+
+                                });
+                               
+                            }
+                            else {
+                                console.log('>_ Inside GetprojectcreationInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                           // loadprojectcreationList()
+                            
+                       
+                },
+
+            });
+          
+           
+        }
+
+
+        function fn_LoadSubcategory(CategoryId, htmlEl, subCatId) {
+
+            let $thisForm = htmlEl;
+            ;
+        let $placeDropdown = $thisForm.find('[name=SubCategotyID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '0' }).text('Please select')).selectpicker('refresh');
+
+            let CategoryID = CategoryId;
+
+
+        // let ModeDropdown = $thisForm.find('[name=Mode]')
+         //if ($thisForm.find('[name=Mode]').val() == "") {
+         //    $thisForm.find('[name=Mode]').val(0);
+         //}
+       
+         $.ajax({
+                 url: "@Url.Action("GetSubcategory", "projectcreation")",
+                type: "POST",
+
+             data: JSON.stringify({ CategoryID: CategoryID}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                             $.each(ajaxOutput.Data, function (key, value) {
+                                 $placeDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                                 });
+
+                     $placeDropdown.val(subCatId).selectpicker('refresh')
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+           // Function to delete projectcreation
+
+
+          //---
+         // Function to delete customer
+        function deleteprojectcreation() {
+            debugger
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetprojectcreationDeleteReasonList", "projectcreation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?",body: "Do you want to remove  " + Saveddata.Name + "  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ProjectID: Saveddata['ProjectID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    console.log(inputData);
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteprojectcreationInfo", "projectcreation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                $formContainer.load("@Url.Action("LoadProjectCreationForm", "projectcreation")", function () {
+                                                    let $thisForm = $(this).find('[perfect-class="form"]')
+                                                    $thisForm.find('[name="CreateDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                    $thisForm.find('[name="StartDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                    $thisForm.find('[name="EndDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

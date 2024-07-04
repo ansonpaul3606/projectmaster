@@ -1,0 +1,419 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Index";
+
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-lg-12" id="finance-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{  
+
+    <script>
+        var FinanceTransMode = "";
+        var validationMessage = {
+            'EffectDate': {
+                'required': 'Please Select Effect Date',
+                'date': 'Invalid Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            'FinancePlanName': {
+                'required': 'Please Select Finance Plan',
+                'stringonly': 'Invalid Plan is Selected'
+            },
+           
+            'FinanceAddCostMethod': {
+                'required': 'Select Addtional Cost Method',
+                'stringonly': 'Invalid Additional Cost Method selected'
+            },
+            'FinanceDownPayMethod': {
+                'required': 'Select Down Payment Method',
+                'stringonly': 'Invalid Down Payment Method selected'
+            },
+            'FinanceFineMethod': {
+                'required': 'Please select Fine Method',
+                'stringonly': 'Invalid Fine Method selected'
+            },
+            'FinanceFineCalcMethod': {
+                'required': 'Select Fine Calculation Method',
+                'stringonly': 'Invalid Down Fine Calculation selected'
+            },
+            'FinanceFineGracePeriod': {
+                'required': 'Please select Fine Grace Period',
+                'stringonly': 'Invalid Fine Grace Period selected'
+            },            
+            'Mode': {
+                'required': 'Please select Mode',
+                'stringonly': 'Invalid Mode selected'
+            },
+        }
+
+        const $formContainer = $('#finance-form');
+         $(document).ready(function () {
+             LoadFinancePlan();
+           
+        });
+
+        function LoadFinancePlan() {            
+            getSessionValue("hKdm2CxfYKNBNr1trQYu3Q==", function (result) {
+                FinanceTransMode = result;
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadFinancePlanList(this); </text>
+              }
+            });
+            LoadFinancePlanform();
+        }
+
+         function LoadFinancePlanform() {
+            $formContainer.load('@Url.Action("LoadFinancePlan", "Finance")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                $("#divCategory").hide();
+                $("#divProduct").hide();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'LoadFinancePlan');
+             });
+        };
+
+
+        
+        function loadFinancePlanList(ele) {
+          //  debugger;
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Finance Plan List');
+          let pageUrl = '@Url.Action("GetFinancePlanList", "Finance")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: FinanceTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {if (ajaxOutput.Process.IsProcess) {
+                              console.log('FinancePlan', ajaxOutput);
+                    $sidemenu.find('.jq_sidemenu_title').text("Finance");
+                             $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFinancePlanList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: FinanceTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                        $sidemenu.find('.jq_sidemenu_title').text("Finance");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFinancePlanList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+             },
+            complete: function () {
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+            },
+        }
+    }
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+                @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+                <text> { displayName: "View", action: editFinancePlan },</text>    }
+
+             { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteFinancePlan },</text>
+              }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo","EffectDate", "FinancePlanName", "ProductName","CategoryName"],
+        hideColumn: [],
+        rowClickAction: editFinancePlan,
+        //serialNo: true,       
+        renameHeader: { "SlNo": "SL NO", "EffectDate": "Date", "FinancePlanName": "Name", "ProductName": "Product", "CategoryName":"Category" },
+        isDateType: ["EffectDate"],
+    };
+
+        function editFinancePlan() {
+            //debugger;
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');  
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_FinancePlanTypeSettings: Saveddata.FK_FinancePlanTypeSettings
+            };
+            $.ajax({
+                url: '@Url.Action("GetFinancePlanInfo", "Finance")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    $formContainer.load('@Url.Action("LoadFinancePlan", "Finance")', function () {
+                    let $thisForm = $(this).find('[perfect-class="form"]');
+                        if (ajaxOutput.financeInfo.Process.IsProcess) {  
+                            $sideMenuOptions.close();
+                            $thisForm.data({ pData: ajaxOutput.financeInfo.Data[0] });
+
+                            $(this).find('[perfect-class=formTitle]').text('update ');
+
+                            $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.financeInfo.Data[0]['EffectDate']).format('YYYY-MM-DD'));
+                            console.clear();                           
+                           
+                            $thisForm.find('[name="FinancePlanName"]').val(ajaxOutput.financeInfo.Data[0].FinancePlanType);
+                            if (ajaxOutput.financeInfo.Data[0].ProductID != 0) {
+                                $("#divCategory").hide();
+                                $("#divProduct").show();
+                                $thisForm.find('[name="Mode"]').val(2);   
+                                $thisForm.find('[name="ProductID"]').val(ajaxOutput.financeInfo.Data[0].ProductID);   
+                                $thisForm.find('[name="ProductName"]').val(ajaxOutput.financeInfo.Data[0].ProductName);   
+                              
+                            }
+                            if (ajaxOutput.financeInfo.Data[0].CategoryID != 0) {
+                                $("#divCategory").show();
+                                $("#divProduct").hide();
+                                $thisForm.find('[name="Mode"]').val(1);
+                                $thisForm.find('[name="CategoryID"]').val(ajaxOutput.financeInfo.Data[0].CategoryID);
+                                $thisForm.find('[name="CategoryName"]').val(ajaxOutput.financeInfo.Data[0].CategoryName);   
+                            }
+                            
+
+                            $thisForm.find('[name="AccountHeadName"]').val(ajaxOutput.financeInfo.Data[0].AccountHeadName); 
+                            $thisForm.find('[name="FK_AccountHeadAddAmount"]').val(ajaxOutput.financeInfo.Data[0].FK_AccountHeadAddAmount);   
+                            $thisForm.find('[name="AccountHeadAddAmount"]').val(ajaxOutput.financeInfo.Data[0].AccountHeadAddAmountName);   
+
+                            $thisForm.find('[name="FinanceAddCostMethod"]').val(ajaxOutput.financeInfo.Data[0].FinanceAddCostMethod);
+
+                            $thisForm.find('[name="FinanceDownPayMethod"]').val(ajaxOutput.financeInfo.Data[0].FinanceDownPayMethod);
+
+                            $thisForm.find('[name="FinanceFineMethod"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineMethod);
+
+                            $thisForm.find('[name="FinanceFineCalcMethod"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineCalcMethod);
+
+                            $thisForm.find('[name="FinanceFineGracePeriod"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineGracePeriod);                            
+                            $thisForm.find('[name="FK_AccountHeadFine"]').val(ajaxOutput.financeInfo.Data[0].FK_AccountHeadFine);
+                            $thisForm.find('[name="FK_FineAccountHead"]').val(ajaxOutput.financeInfo.Data[0].FineAccountHeadName);
+
+                            if (ajaxOutput.financeInfo.Data[0].FinanceAddCostMethod == 1 || ajaxOutput.financeInfo.Data[0].FinanceAddCostMethod == 2) {
+                                $("#FinanceAddCostValue").css('display', 'block');
+                                $("#FinanceAddCostValue").attr("readonly", true)
+                                $thisForm.find('[name="FinanceAddCostValue"]').val(ajaxOutput.financeInfo.Data[0].FinanceAddCostValue);
+                            }
+                                if (ajaxOutput.financeInfo.Data[0].FinanceDownPayMethod == 1 || ajaxOutput.financeInfo.Data[0].FinanceDownPayMethod == 2) {
+                                    $("#FinanceDownPayValue").css('display', 'block');
+                                    $("#FinanceDownPayValue").attr("readonly", true)
+                                    $thisForm.find('[name="FinanceDownPayValue"]').val(ajaxOutput.financeInfo.Data[0].FinanceDownPayValue);
+                                }
+
+                                if (ajaxOutput.financeInfo.Data[0].FinanceFineMethod == 1 || ajaxOutput.financeInfo.Data[0].FinanceFineMethod == 2) {
+                                    $("#FinanceFineValue").css('display', 'block');
+                                    $("#FinanceFineValue").attr("readonly", true)
+                                    $thisForm.find('[name="FinanceFineValue"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineValue);
+                                }
+
+                                if (ajaxOutput.financeInfo.Data[0].FinanceFineCalcMethod == 1 || ajaxOutput.financeInfo.Data[0].FinanceFineCalcMethod == 2) {
+                                    $("#FinanceFineCalcValue").css('display', 'block');
+                                    $("#FinanceFineCalcValue").attr("readonly", true)
+                                    $thisForm.find('[name="FinanceFineCalcValue"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineCalcValue);
+                                }
+
+
+                                if (ajaxOutput.financeInfo.Data[0].FinanceFineGracePeriod == 1 || ajaxOutput.financeInfo.Data[0].FinanceFineGracePeriod == 2) {
+                                    $("#FinanceFineGracePeriodValue").css('display', 'block');
+                                    $("#FinanceFineGracePeriodValue").attr("readonly", true)
+                                    $thisForm.find('[name="FinanceFineGracePeriodValue"]').val(ajaxOutput.financeInfo.Data[0].FinanceFineGracePeriodValue);
+                                }
+
+                            $thisForm.find('[name="FinanceInstallmentPeriod"]').text(ajaxOutput.financeInfo.Data[0].FinanceInstallmentPeriod);
+                            $("#txtInstallmentPeriod").css('display', 'block');                            
+
+                            $thisForm.find('[name="FinanceDuration"]').text(ajaxOutput.financeInfo.Data[0].FinanceDuration);
+                            $("#txtDuration").css('display', 'block');
+
+                        
+                            
+                            $thisForm.find('[name="FinancePeriodType"]').text(ajaxOutput.financeInfo.Data[0].FinancePeriodType);
+                            $("#txtPeriodType").css('display', 'block');
+                            $("#divCaption").css('display', 'block');
+                            $("#DivInstallment").css('display', 'block');
+                            $("#DivPeriodType").css('display', 'block');
+                            $("#divDuration").css('display', 'block');
+
+                         
+                            $thisForm.attr('perfect-onFormSuccess', 'loadFinancePlanList');
+
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').addClass('d-none');
+                        
+                            
+                            }
+                            else {
+                                console.log('>_ Inside GetFinancePlanInfo :false')
+                                console.log(ajaxOutput.Data[0]['EffectDate'])
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                        }
+
+                    });
+
+                }
+           });
+
+        }
+
+          function deleteFinancePlan() {
+            //debugger;
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+              $('.dataTable tr').removeClass("SelectForDelete");
+              $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+               $.ajax({
+                   url: "@Url.Action("GetFinancePlanReasonList", "Finance")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log('Saveddata.ID_FinancePlanTypeSettings', Saveddata.ID_FinancePlanTypeSettings)
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.FinancePlanName + " ? (" + moment(Saveddata.EffectDate).format('DD/MM/YYYY') + ")" ,cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_FinancePlanTypeSettings: Saveddata.FK_FinancePlanTypeSettings,
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteFinancePlanInfo", "Finance")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                LoadFinancePlan();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                      
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+       
+     
+    </script>
+
+   
+    }

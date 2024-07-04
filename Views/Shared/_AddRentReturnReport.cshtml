@@ -1,0 +1,496 @@
+﻿
+@model PerfectWebERP.Models.RentandReturnModel.RentReturnView
+
+
+<style>
+
+    .tableFixHead {
+        overflow: auto;
+        height: 550px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_rentRtnRepo_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body " style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Rent Type</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="ModeID" name="ModeID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" >
+
+                                    <option value="">Please Select</option>
+                                    <option value="1">Rent</option>
+                                    <option value="2">Return</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Rental From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Rental To Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" style="display:none;" >
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label" id="Products">
+                                @ViewBag.lblpro
+                               
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="ID_Name" name="ID_Name" perfect-class="formGroupControl" perfect-ctype="input" maxlength="25" perfect-css="input" readonly />
+                                    <input type="hidden" id="ID_Field" name="ID_Field" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append" id="btnVehPopup">
+                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="fn_showpopuplist(this)" perfect-css="button"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                </div>
+            </div>
+
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+
+
+            <div class="table-responsive tableFixHead">
+                <table id="rentrtnList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Status</th>
+                            <th>@ViewBag.lblpro</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Rental Date</th>
+                            <th>Security Amount</th>
+                            <th>Rent Amount</th>
+                            <th>Tax Amount</th>
+                            <th>Payable Amount</th>
+                            <th>Receivable Amount</th>
+                            <th>Return Date</th>
+                           
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+    });
+
+    function datenchecklogdate(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            //console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Rental To Date should be greater than Rental From Date');
+            return false;
+        }
+        else {
+
+            //console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+    }
+
+    function fn_showpopuplist(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (RentrtnTransMode == 'VLRPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 103, 'Vehicle List', [], ['ID_FIELD', 'ToolNo', 'EquReturndays', 'ID_Name', 'ID_Field', 'ID_EquipmentRentalDetails', 'Amount', 'EquRentalDate', 'EquEquipmentDistance', 'EquOperatorMobile', 'EquOperator', 'EquOperatorNo', 'EquOperatorExpDate', 'FK_MasterID'], RentrtnTransMode)
+
+        }
+        else if (RentrtnTransMode == 'TORPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 103, 'Tool List', [], ['ID_FIELD', 'VehicleNo', 'ID_Name', 'HSNCode', 'ID_Field', 'EquReturndays', 'ID_EquipmentRentalDetails', 'Amount', 'EquRentalDate', 'FK_MasterID', 'EquOperatorMobile', 'EquOperator', 'EquOperatorNo', 'EquOperatorExpDate'], RentrtnTransMode)
+        }
+        else {
+
+            NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'Trans mode miss match!!' });
+        }
+
+    }
+
+    function ResetButton(ele) {
+        fn_rentRtnRepo_initialLoad();
+    }
+
+
+      function geteqReport(ele) {
+
+
+
+        let $tbody;
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+      //  $("#EqSerList tr").remove();
+
+
+
+        if ($thisForm.valid()) {
+
+            var table = $('#rentrtnList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+            table.clear().draw();
+
+            if (datenchecklogdate(ele)) {
+
+                var obj = {
+                    TransMode: RentrtnTransMode,
+                    FromDate: $thisForm.find('[name="FromDate"]').val(),
+                    ToDate: $thisForm.find('[name="ToDate"]').val(),
+                    FK_Mode: $thisForm.find('[name="ModeID"]').val(),
+                    ID_FIELD: $thisForm.find('[name="ID_Field"]').val(),
+
+
+
+                }
+                console.log('obj', obj);
+
+                $.ajax({
+                    url: "@Url.Action("GetRentandReturnList", "RentandReturnReport")",
+                    type: "POST",
+                    data: JSON.stringify(obj),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (dataOut) {
+
+                        debugger
+                        console.log('dtot',dataOut);
+                        itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                        if (itemdata == null || itemdata == "") {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "none";
+
+                            } else {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                            }
+
+                        if (dataOut.datares.Process.IsProcess) {
+                            if (itemdata != null) {
+                                tableData = $('#rentrtnList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: dataOut.datares.Data,
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+                                        { "data": null },
+                                        { "data": "EquRentType" },
+                                        { "data": "EquEquipmentNo" },
+                                        { "data": "EquOperator" },
+                                        { "data": "EquOperatorMobile" },
+                                        { "data": "EquRentalDate"},
+                                        { "data": "EquSecurityAmount", className: "text-right"},
+                                        { "data": "EquRentAmount", className: "text-right"},
+                                        { "data": "EquTaxAmount", className: "text-right" },
+                                        { "data": "EquPayable", className: "text-right" },
+                                        { "data": "EquReceivable", className: "text-right"},
+                                        { "data": "ReturnDate"},
+
+                                    ],
+                                      //scrollY: 550,
+                                      //scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        //footer: true
+                                    },
+                                    //"order": [[7, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8,9,10,11] }
+
+                                        //{ "visible": false, "targets": 0 }
+                                    ],
+
+                                    "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                        $("td:first", nRow).html(iDisplayIndex + 1);
+                                        return nRow;
+                                    },
+                                });
+                            }
+                            else {
+                                //$('#EqSerList').dataTable({ searching: false, paging: false, ordering: false, info: false });
+                            }
+
+                        }
+                        else {
+
+                        }
+                    },
+                    complete: function () {
+                    }
+                });
+                fn_showFilter();
+            } else {
+                $(ele).prop('disabled', false);
+                NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'Rental To Date should be greater than Rental From Date '})
+            }
+        }
+    }
+
+
+
+
+ function generatePdf(ele) {
+
+        var cdata;
+        var head;
+        var body;
+        var collen;
+        var vfromdate;
+        var vtodate;
+
+        //test start
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+                
+                     body = [];
+                     collen=":"
+                     vfromdate;
+                     vtodate;
+                     vfromdate = $thisForm.find('[name="FromDate"]').val();
+                    const dateObject = new Date(vfromdate);
+
+                    // Extract the month, day, and year from the date object
+                    const month = dateObject.getMonth() + 1;
+                    const day = dateObject.getDate();
+                    const year = dateObject.getFullYear();
+                    // Create a new date string with the 'MM-DD-YYYY' format
+                    vfromdate = `${day}/${month}/${year}`;
+                    // Use the newDateString variable to display the date in the desired format
+                    // Extract the month, day, and year from the date object
+
+                    vtodate = $thisForm.find('[name=ToDate]').val();
+
+                    const dateObjects = new Date(vtodate);
+                    const months = dateObjects.getMonth() + 1;
+                    const days = dateObjects.getDate();
+                    const years = dateObjects.getFullYear();
+
+                    vtodate = `${days}/${months}/${years}`;
+
+                    var upperhead = {
+
+                        columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //margin: { top: 10, bottom:0 },
+
+                        body: [
+                            [
+                                "From Date  :   " + vfromdate + "           To Date :   " + vtodate ]
+
+
+
+                        ],
+
+                    };
+
+
+                // var aralenth = itemdata.length;
+                 //var c = itemdata.slice(0, (aralenth - 1));
+                 var bod = itemdata;
+
+                 var ptableData = {
+                     columns: [
+                         { title: "Status", dataKey: "EquRentType" },
+                         { title: "Vehicle", dataKey: "EquEquipmentNo" },
+                         { title: "Name", dataKey: "EquOperator" },
+                         { title: "Phone No", dataKey: "EquOperatorMobile" },
+                         { title: "Rental Date", dataKey: "EquRentalDate" },
+                         { title: "Security Amount", dataKey: "EquSecurityAmount", className: "text-right" },
+                         { title: "Rent Amount", dataKey: "EquRentAmount", className: "text-right" },
+                         { title: "Tax Amount", dataKey: "EquTaxAmount", className: "text-right" },
+                         { title: "Payable", dataKey: "EquPayable", className: "text-right" },
+                         { title: "Receivable ", dataKey: "EquReceivable", className: "text-right" },
+                         { title: "Return Date", dataKey: "ReturnDate" },
+
+                     ],
+                     rows: bod
+
+                 };
+                 let Rptname;
+                 //let Rptvalue = $thisForm.find('[name="FK_Mode"]').val();
+
+                 if (RentrtnTransMode == 'VLRPT') {
+                     Rptname = 'Vehicle Rent and Return'
+                     head = [['Sl No', 'Status', 'Vehicle', 'Name', 'Phone No', 'Rental Date','Security Amount','Rent Amount','Tax Amount', 'Payable', 'Receivable','Return Date']];
+                 }
+                 else if (RentrtnTransMode == 'TORPT') {
+                     Rptname = 'Tool Rent and Return'
+                     head = [['Sl No', 'Type', 'Tool', 'Name', 'Phone No.', 'Rental Date','Security Amount','Rent Amount','Tax Amount', 'Payable', 'Receivable','Return Date']];
+                 }
+                 else {
+                     Rptname = ''
+                 }
+
+
+                 var columnStyles = {
+                     0: { cellWidth: 20 },
+                     1: { cellWidth: 40 },
+                     2: { cellWidth: 50 },
+                     3: { cellWidth: 50 },
+                     4: { cellWidth: 50 },
+                     5: { cellWidth: 50},
+                     6: { cellWidth: 50 },
+                     7: { cellWidth: 40 },
+                     8: { cellWidth: 40 },
+                     9: { cellWidth: 40 },
+                     10: { cellWidth: 40 },
+                     11: { cellWidth: 50 },
+
+
+                 };
+
+                 exportPdf(Rptname, head, cdata, upperhead, '', ptableData, '', 'Report', 'a4', '', columnStyles);
+
+
+
+                }
+         });
+
+    }
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+
+
+</script>

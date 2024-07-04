@@ -1,0 +1,267 @@
+﻿
+@{
+    ViewBag.Title = "Lead Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group row" perfect-class="formGroup">
+                <div class="col-xl-4"> </div>
+              
+                <div class="col-xl-4"> </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12" id="jq_LeadManagementIndex_formContainer">
+
+        </div>
+        
+      
+    </div>
+
+
+</div>
+
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_LeadManagementIndex_formContainer');
+    var LeadMgtTransMode = '';
+    var EntryBy;
+    $(document).ready(function () {
+        fn_LeadManagementIndex_initialLoad()
+
+        $('#jq-sidemenu').hide();
+
+    });
+    function fn_showFilter() {
+        $formContainer.find('.jq_leadgeneration_body').toggleClass('.d-none');
+    }
+    function fn_LeadManagementIndex_initialLoad() {      
+        LeadMgtTransMode = '@ViewBag.TransMode';
+        EntryBy = '@ViewBag.EntrBy';
+            fn_LeadMgtIndex_loadLeadMgtAddForm();     
+    }
+    var tableOptions = {
+       
+        textButton: {
+            buttons: [
+                { text: "", class: "tp-btn-light btn-info", action: fn_LeadManagementFollowup_loadLeadMgtFollowupForm }
+            ]
+        },
+        onlyShowColumn: ['NextActionDate', 'LgLeadDate', 'ProdName', 'LgpDescription', 'LgCusName', 'LgCusMobile', 'FK_Employee'],
+        hideColumn: ["LeadGenerateID", "ID_LeadGenerateProduct", "FK_Product"],
+        rowClickAction: fn_LeadManagementFollowup_loadLeadMgtFollowupForm,
+        serialNo: true,
+        renameHeader: { "NextActionDate": "Action Date", "LgLeadDate": "Collected Date", "FK_Product": "Product/Project", "LgpDescription": "Details", "LgCusName": "Customer Name ", "LgCusMobile": "Customer Mobile", "FK_Employee": "Employee" },
+        isDateType: ["LeadDate"],
+        isDateType: ['NextActionDate', 'LgLeadDate'],
+        //  rowClickAction: () => { alert("clicked row") }
+    };
+    function fn_LeadManagementFollowup_loadLeadMgtFollowupForm() {
+     
+       // let $thisForm = $(this).closest('[perfect-class="form"]');
+        let $formFolowDivContainer = $(this).closest('[perfect-class="form"]').closest('.jq_leadgeneration_body').find('.jq_leadgeneration_followup_status');
+        let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_LeadGenerateAction: saveddata.ID_LeadGenerateProduct
+        };
+      
+         $.ajax({
+                url: "@Url.Action("GetLeadActionInfo", "LeadManagement")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    console.log('sss', ajaxOutput)
+                    $formFolowDivContainer.load('@Url.Action("LoadLeadGenerateAction", "LeadManagement")', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                       
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_LeadManagementActionFormClear');
+                        
+                    if (ajaxOutput.prInfo.Process.IsProcess) {
+                        //process is success
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                     
+                        $thisForm.data({ pData: ajaxOutput.prInfo.Data[0] });           //FK_Product0                 
+                            // Fill fields
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                        if (ajaxOutput.prInfo.Data[0]['FK_Product'] == 0) {
+                            $thisForm.find('[name="lblProd"]').text("Project");
+
+                            $thisForm.find('[name="lblProductName"]').text(ajaxOutput.prInfo.Data[0]['ProjectName']);
+                        }
+                        else {
+                            $thisForm.find('[name="lblProd"]').text('Product');
+                            $thisForm.find('[name="lblProductName"]').text(ajaxOutput.prInfo.Data[0]['ProdName']);
+
+                        }
+                        $thisForm.find('[name="FK_LeadGenerate"]').val(ajaxOutput.prInfo.Data[0]['FK_LeadGenerate']);
+                       
+                        $thisForm.find('[name="lblActionDate"]').text(moment(ajaxOutput.prInfo.Data[0]['lblActionDate']).format('DD-MM-YYYY'));
+                       
+                        
+                        $thisForm.find('[name="lblAction"]').text(ajaxOutput.prInfo.Data[0]['NxtActnName']);
+
+                    
+                       
+                      
+                        }
+
+                        if (ajaxOutput.FoUpDetails.Process.IsProcess) {
+                            //process is success
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+
+                            $thisForm.data({ pData: ajaxOutput.FoUpDetails.Data[0] });           //FK_Product0                 
+                            // Fill fields
+                            let strHtml = "";
+                            strHtml += "<div class='col-sm-12 subTabHead bg-primary py-2'><center><h5 class='text-white mb-0'> DETAILS</h5></center> </div>";
+                            strHtml += "<div class='table-responsive  table-responsive-data2'><table class='table table-data2 table-striped'> <tbody>";
+                            strHtml += "<tr class='tr-shadow'><td style='text-align: left;'> Lead By</td> ";
+                            strHtml += "<td style='text-align: left;'>" + ajaxOutput.FoUpDetails.Data[0]['AssignedTo'] +"</td></tr>";
+                            strHtml += "<tr class='tr-shadow'><td style='text-align: left;'>Lead Action On </td>";
+                            strHtml += "<td style ='text-align: left;'>" + (moment(ajaxOutput.prInfo.Data[0]['NextActionDate']).format('YYYY-MM-DD')) + " </td></tr>";
+                            strHtml += "<tr class='tr-shadow'><td style='text-align: left;'> Client Name </td>";
+                            strHtml += "<td style='text-align: left;'>" + ajaxOutput.FoUpDetails.Data[0]['LgCusName']+ "</td></tr>";
+                            strHtml += " <tr class='tr-shadow'> <td style='text - align: left;'>  Address </td>";
+                            strHtml += " <td style='text-align: left;'> " + ajaxOutput.FoUpDetails.Data[0]['LgCusAddress'] + " </td> </tr>";    
+                            strHtml += "<tr class='tr-shadow'><td style='text-align: left;'> Mobile Number </td>";
+                            strHtml += "<td style='text-align: left;'>" + ajaxOutput.FoUpDetails.Data[0]['LgCusMobile'] + "</td></tr>";
+                            strHtml += "<tr class='tr-shadow'><td style='text-align: left;'> Email </td>";
+                            strHtml += "<td style='text-align: left;'>" + ajaxOutput.FoUpDetails.Data[0]['LgCusEmail'] + "</td></tr>";
+
+                            strHtml += " </tbody></table></div>";     
+                           
+                           
+                            //$thisForm.find('[name=divDetails]').focus().html(strHtml);
+
+                        }
+
+                    });
+             }
+         });
+
+    }
+     function fn_LeadMgtIndex_loadLeadMgtAddForm() {
+
+         $formContainer.load('@Url.Action("LoadFormLeadManagement", "LeadManagement")?mtd=@ViewBag.mtd', function () {
+             let $thisForm = $(this).find('[perfect-class="form"]');
+            // $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+             //$thisForm.find('[name="Statuson"]').val(new Date().toISOString().slice(0, 10));
+            // $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+          
+             $thisForm.attr('perfect-onFormSuccess', 'fn_LeadManagementIndex_initialLoad');
+             // fn_LeadManagement_search($thisForm);
+             // $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').text('ss');
+             //initFunctions($thisForm);
+
+
+             $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').addClass('d-none');
+             let inputData = {            //
+                 
+                 today: moment(moment().format('YYYY-MM-DD') + ' 00:00:00').utc().format('YYYY-MM-DD hh:mm:ss A'),
+             __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+         };
+      //  console.log(inputData);
+          $.ajax({
+                url: "@Url.Action("GetLeadGenListOnLoad", "LeadManagement")",
+              type: "POST",
+              data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+              success: function (ajaxOutput) {
+                  console.log("Masterid>",)
+                  if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid<=0) {
+                       // $sideMenuOptions.title.find('h4').text("Lead List");
+                       // $formDivContainer.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                       // $formDivContainer.find('table').dataTable({ paging: true });
+
+                        $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        //$thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').find('table').dataTable({ paging: true });
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                  }
+                  else if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid > 0)
+                  {
+                      var sample = [];
+                      const array = [
+                          {
+                              ID_LeadGenerateProduct: "",
+                              NextActionDate: null,
+                              DueDays: "",
+                              FK_Product: "",
+                              ProdName: "",
+                              LgpDescription: "",
+                              LgCusName: "",
+                              LgCusMobile: "",
+                              LgLeadDate: null,
+                              FK_Employee: "",
+                              Field: "",
+                              Value: "",
+                              Masterid:""
+                           
+                          }
+                      ];
+
+                      $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                      $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                      $('#tasksbadge').html("" + ajaxOutput.Data[2].Value + "");
+                      $('#myleadsbadge').html("" + ajaxOutput.Data[3].Value + "");
+                      $('#leadRequestbadge').html("" + ajaxOutput.Data[4].Value + "");
+                     // $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(pft_table_createtable(array, tableOptions))
+
+                      //let Filter = '';
+                      //Filter += "<ul class='nav nav-pills justify-content-end mb-4 pull-left'>";
+                      //Filter += "<li class='nav-item'><a href='' class='nav-link active'  onclick='fn_LeadManagement_search(this,1)' data-toggle='tab' aria-expanded='false'>" + ajaxOutput.Data[0].Field+"" + " -" + ajaxOutput.Data[0].Value+"</a></li>";
+                      //Filter += "<li class='nav-item'><a href='' class='nav-link' onclick='fn_LeadManagement_search(this,2)' data-toggle='tab' aria-expanded='false'>" + ajaxOutput.Data[1].Field  + " -" + ajaxOutput.Data[1].Value +"</a></li>";
+                      //Filter += "<li class='nav-item'><a href='' class='nav-link' onclick='fn_LeadManagement_search(this,3)' data-toggle='tab' aria-expanded='false'>" + ajaxOutput.Data[2].Field + " -" + ajaxOutput.Data[2].Value +"</a></li>";
+                      //Filter += "</ul>";
+                      //$thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(Filter);
+                  }
+                    else {
+                        if (ajaxOutput.Process.Status == "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                    
+
+                },
+                complete: function () {
+
+                }
+            });
+            });
+
+    };
+
+   
+
+    
+    function fn_showFilter() {
+       // $('#jq_LeadManagementIndex_formContainer').show();
+      // fn_LeadMgtIndex_loadLeadMgtAddForm();
+
+
+        $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+        @*load('@Url.Action("LoadFormLeadManagement", "LeadManagement")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                //$thisForm.find('[name="Statuson"]').val(new Date().toISOString().slice(0, 10));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'fn_LeadManagementIndex_initialLoad');*@
+
+    }
+     // Fucntion to load LeadGen ADD form
+   
+</script>
+    }

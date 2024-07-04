@@ -1,0 +1,328 @@
+﻿
+@{
+    ViewBag.Title = "Measurement Unit";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="measurementunit-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#measurementunit-form');
+
+        $(document).ready(function () {
+            measurementunitInitialLoad();
+
+        });
+
+
+
+        function measurementunitInitialLoad() {
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>    loadMeasurementUnitList(this); </text>
+              }
+           
+             loadMeasurementUnitAddForm();
+        }
+
+
+           // Function to load MeasurementUnit ADD form
+        function loadMeasurementUnitAddForm() {
+
+            $formContainer.load('@Url.Action("LoadMeasurementUnitForm", "MeasurementUnit")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'measurementunitInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+
+
+        function loadMeasurementUnitList() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Measurement Unit List');
+
+            $.ajax({
+                url: "@Url.Action("GetMeasurementUnitList", "MeasurementUnit")",
+                type: "Get",
+                headers: { "token_key": "1234" },
+                //data: { branchID: id },
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                       // $sidemenu.find('.jq_sidemenu_title').text("Measurement Type list");
+                        //$sideMenuOptions.title.text("MeasurementUnit List");
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                        console.log('Load MeasurementUnit List', ajaxOutput);
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                        });
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status == 'NoData') { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                //toastr.warning(value, "Error");
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                    console.log('MeasurementUnit Load', ajaxOutput);
+                },
+                complete: function () {
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editMeasurementUnit },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteMeasurementUnit },</text>
+
+              }
+                   
+                    
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "MeasurementUnit", 'ShortName'],
+            hideColumn: [],
+            rowClickAction: editMeasurementUnit,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "MeasurementUnit": "Name" }
+        };
+
+        var validationMessage = {
+            'MeasurementUnit': {
+                'required': 'Please Enter  Name',
+                'stringonly': 'Invalid Name'
+            },
+
+            'ShortName': {
+                //'required': 'Please Enter  Short Name',
+                'stringonly': 'Invalid  Short Name',
+                'alphanumeric': 'Invalid Short Name',
+            },
+            'Description': {
+                'required': 'Please Enter  Description',
+
+            }
+
+        };
+
+        function editMeasurementUnit() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                MeasurementUnitID: Saveddata.MeasurementUnitID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetMeasurementUnitInfoByID", "MeasurementUnit")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetMeasurementUnitInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadMeasurementUnitForm", "MeasurementUnit")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].MeasurementUnit)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                    $thisForm.find('[name="MeasurementUnit"]').val(ajaxOutput.Data[0].MeasurementUnit),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                        $thisForm.find('[name="Description"]').val(ajaxOutput.Data[0].Description),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder),
+
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'measurementunitInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetMeasurementUnitInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            loadMeasurementUnitList()
+                },
+
+            });
+
+        }
+
+           // Function to delete MeasurementUnit
+
+
+          //---
+         // Function to delete customer
+        function deleteMeasurementUnit() {
+          //  debugger;
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetMeasurementUnitDeleteReasonList", "MeasurementUnit")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { body: "Do you want to remove " + Saveddata.MeasurementUnit + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        MeasurementUnitID: Saveddata['MeasurementUnitID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteMeasurementUnitInfo", "MeasurementUnit")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

@@ -1,0 +1,752 @@
+﻿
+@{
+    ViewBag.Title = "Cost Preparation";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="CostPreparation-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+        var LeadDates = "";
+        var CostPreperationTransMode = "";
+        const LastIDSessionKey = 'CostPreperationLastID';
+        var LastID_CostPreperation;
+        const $formContainer = $('#CostPreparation-form');
+
+        $(document).ready(function () {
+            CostPreparationInitialLoad();
+
+        });
+
+
+
+        function CostPreparationInitialLoad() {
+            CostPreperationTransMode = '@ViewBag.TransMode';
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadCostPreparationList(this, loadCostPreparationAddForm);</text>
+              }
+
+             loadCostPreparationAddForm();
+        }
+
+
+           // Function to load CostPreparation ADD form
+        function loadCostPreparationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadCostPreparationForm", "CostPreparation")?mtd=@ViewBag.mtd', function () {
+            
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="VisitTime"]').val(new Date().getHours() + ":" + new Date().getMinutes()),
+                        $thisForm.find('[name="PrepareDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'CostPreparationInitialLoad');
+               // initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_CostPreperation = result;
+                });
+
+            });
+
+        };
+
+
+        var tableOptionsTempOut = {
+            iconButton: {
+                buttons: [
+                   
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                                }
+                                else if ($thisNode.is('input')) {
+                                    let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else if (inputType == 'date') {
+                                        console.log('datess', savedData)
+                                        console.log('datess', savedData[pf_name])
+                                        // $thisNode.val(moment(savedData[pf_name]).format('YYYY-DD-MM'));
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                    else {
+
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                         icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                //$thistbl.dataTable({ paging: true, searchbtn: false });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+                            BindTotalAmount(this);
+                        }
+                    },
+                ]
+            },
+
+
+
+            onlyShowColumn: ["Department_d", "Employee", "EmployeeTypeID_d", "FK_NetAction_d", "FK_ActionType_d", "NextActionDate", "LgpPQuantity", "MeasurementTypeID_d", "MeasurementUnitID_d", "MDRemarks", "MeasurementValue","ProductID_d"],
+            hideColumn: ["EmployeeTypeID", "MeasurementTypeID", "MeasurementUnitID"],
+            serialNo: true,
+            renameHeader: {
+                "FK_NetAction": "Action", "FK_ActionType": "Action Type", "Department_d": "Department", "MeasurementTypeID_d": "Measurment Type", "MeasurementUnitID_d": "Unit", "MDRemarks": "Remarks", "MeasurementValue": "Value", "NextActionDate": "Follow up Dt", "FK_Category": "Category", "FK_Priority": "Priority", "EmployeeTypeName": "Employeee Type"
+            },
+
+            rowAttribute: [],
+            isCheckType: [],
+            isDateType: ["NextActionDate"],
+        };
+
+        function loadCostPreparationList(ele,callback) {
+             let $sidemenu = $sideMenuOptions.body;
+
+            // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Cost Preparation List');
+
+
+
+
+                let pageUrl = '@Url.Action("GetCostPreparationList", "CostPreparation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: CostPreperationTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Cost Preparation List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Cost Preparation List");
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCostPreparationList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: CostPreperationTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                             else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey,0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Cost Preparation List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCostPreparationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                             "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: CostPreperationTransMode}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editCostPreparation },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteCostPreparation },</text>
+
+              }
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "VisitDate", 'LeadNo'],
+            hideColumn: [],
+            rowClickAction: editCostPreparation,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "VisitDate": "Prepare On","LeadNo": "Lead No." },
+            isDateType: ["VisitDate"],
+        };
+
+        var validationMessage = {
+            'LeadNo': {
+                'required': 'Please Select Lead Number ',
+                
+            },
+            'FK_Lead': {
+                'required': 'Please Select Lead Number ',
+
+            },
+            'TotAmount': {
+                'required': 'Please Provide value in Total Amount ',
+
+            },
+
+            'VisitDate': {
+                'required': 'Please Enter Effect Date'
+            },
+            'Employee': {
+                'required': 'Please Enter  Employee Details',
+
+            }
+
+        };
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function editCostPreparation() {
+       
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                CostPreparationID: Saveddata.CostPreparationID,
+                 TransMode: CostPreperationTransMode
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetCostPreparationInfoByID", "CostPreparation")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                         
+                            
+                            console.log("Return", ajaxOutput.CostPreparationDetails);
+                            if (ajaxOutput.CostPreparationDetails.Process.IsProcess)
+                            {
+                                debugger;
+                                console.log('>_ Inside GetCostPreparationInfo', ajaxOutput)
+
+                              $sideMenuOptions.close();
+
+                                $formContainer.load("@Url.Action("LoadCostPreparationForm", "CostPreparation")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.CostPreparationDetails.Data[0].LeadGenerationID)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $thisForm.find('[name=Lead]').val(ajaxOutput.CostPreparationDetails.Data[0].LeadNo);
+                                    $thisForm.find('[name=ImportFrom]').val(ajaxOutput.CostPreparationDetails.Data[0].ImportFrom).selectpicker('refresh');
+                                    $("#ImportFrom").attr("disabled", true);
+                                    $("#addcountry-jq-searchButton3").attr("disabled", true);
+                                    
+                                   
+                                    $thisForm.find('[name=FK_Lead]').val(ajaxOutput.CostPreparationDetails.Data[0].LeadGenerationID);
+                                    $thisForm.find('[name=CategoryID]').val(ajaxOutput.CostPreparationDetails.Data[0].FK_Category);
+                                    $thisForm.find('[name=CategoryID]').trigger('change');
+                                    
+                                   //GetBomList(this, ajaxOutput.CostPreparationDetails.Data[0].FK_Category, ajaxOutput.CostPreparationDetails.Data[0].FK_BOMProject);
+                                    $thisForm.find('[name="ID_BOMProject"]').val(ajaxOutput.CostPreparationDetails.Data[0].FK_BOMProject).selectpicker('refresh');
+                                    $thisForm.find('[name="ID_BOMProject"]').attr('perfect-onloadSelect', ajaxOutput.CostPreparationDetails.Data[0].FK_BOMProject);
+                                    $("#LeadBtID").attr("disabled", true);
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.CostPreparationDetails.Data[0] }); //setting the pdata value in form for update -id is taking
+                                    //fn_LoadSubcategory(ajaxOutput.Data[0].Category, $thisForm, ajaxOutput.Data[0].SubCategory);
+
+                                    $thisForm.find('[name="LeadNo"]').val(ajaxOutput.CostPreparationDetails.Data[0].LeadNo),
+                                        
+                                        $thisForm.find('[name="PrepareDate"]').val(moment(ajaxOutput.CostPreparationDetails.Data[0].VisitDate).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="AddAmount"]').val(ajaxOutput.CostPreparationDetails.Data[0].AdditionalCost),
+                                        $thisForm.find('[name="TotAmount"]').val(ajaxOutput.CostPreparationDetails.Data[0].TotalAmount),
+
+                                        $thisForm.find('[name="OtherCharge"]').val(ajaxOutput.CostPreparationDetails.Data[0].OtherCharges),
+                                        $thisForm.find('[name="CPRemarks"]').val(ajaxOutput.CostPreparationDetails.Data[0].Remarks),
+                                        LeadDates = moment(ajaxOutput.CostPreparationDetails.Data[0].LeadDates).format('YYYY-MM-DD');
+                                    $thisForm.find('[name="LeadDates"]').val(LeadDates);
+                                    console.log("LeadDates", LeadDates);
+                                    //    othrchargelst = [];
+                                    //$.each(ajaxOutput.OtherChargeDetails.Data, function (key, value) {
+                                    //    let othrcharge = {
+                                    //        idotherchg: value.ID_OtherChargeType,
+                                    //        amtothr: parseFloat(value.OctyAmount)
+                                    //    };
+                                    //    othrchargelst.push(othrcharge);
+                                    //});
+                                    console.log('outothercharge:', ajaxOutput.OtherChargeDetails.Data);
+                                  
+
+                                    if (ajaxOutput.OtherChargeDetails.Process.IsProcess) {
+
+                                        let othechg = ajaxOutput.OtherChargeDetails.Data;
+                                        console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherChargeDetails.Data);
+                                        othrchargelst = [];
+                                        othrchargelst = othrchargelst.concat(othechg);
+                                        console.log('OTH INFOT>', othrchargelst);
+                                        $thisForm.data({ pOthrChgData: othrchargelst });
+                                    }
+
+                                   
+                                   $sideMenuOptions.close();
+                                    if (ajaxOutput.EmployeeDetails.Process.IsProcess) {
+                                        fillTable($thisForm, 'EmployeeDetailsTable', ajaxOutput.EmployeeDetails.Data, tableOptionsTempOut);
+                                    }
+                                    if (ajaxOutput.MaterialDetails.Process.IsProcess) {
+                                        fillTable($thisForm, 'MaterialDetailsTable', ajaxOutput.MaterialDetails.Data, tableOptionsTempOut);
+                                    }
+                                    if (ajaxOutput.WorkDetails.Process.IsProcess) {
+                                        fillTable($thisForm, 'WorkDetailsTable', ajaxOutput.WorkDetails.Data, tableOptionsTempOut);
+                                    }
+                                  
+                                    if (ajaxOutput.subimg.Process.IsProcess) {
+
+
+                                        Getsubimg(ajaxOutput.subimg.Data);
+                                    }
+                           
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'CostPreparationInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetCostPreparationInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                           // loadCostPreparationList()
+                },
+
+            });
+
+        }
+        function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+               
+                   console.log('name', valOne[nameAttr])
+                    if (typeof valOne[nameAttr] !== undefined) {
+					if (headerName.trim() == "EmployeeType") {
+                            headerName = "Employee Type";
+                        }
+						if (headerName.trim() == "WorkType") {
+							headerName = "Work Type";
+						}
+						if (headerName.trim() == "DurationType") {
+							headerName = "Duration Type";
+						}
+						
+                        if ($this.is('select')) {
+
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log(inputType)
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+
+                                console.log('checkbox', nameAttr)
+
+
+                            }
+                            else if (inputType == 'hidden') {
+
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                            else if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+
+
+                //----
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+            BindTotalAmount();
+        }
+
+        function fn_LoadSubcategory(CategoryId, htmlEl, subCatId) {
+
+            let $thisForm = htmlEl;
+       
+        let $placeDropdown = $thisForm.find('[name=SubCategotyID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+            let CategoryID = CategoryId;
+
+
+        // let ModeDropdown = $thisForm.find('[name=Mode]')
+         //if ($thisForm.find('[name=Mode]').val() == "") {
+         //    $thisForm.find('[name=Mode]').val(0);
+         //}
+         //alert($thisForm.find('[name=Mode]').val())
+         $.ajax({
+                 url: "@Url.Action("GetSubcategory", "CostPreparation")",
+                type: "POST",
+
+             data: JSON.stringify({ CategoryID: CategoryID}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                             $.each(ajaxOutput.Data, function (key, value) {
+                                 $placeDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                                 });
+
+                     $placeDropdown.val(subCatId).selectpicker('refresh')
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+           // Function to delete CostPreparation
+
+
+          //---
+         // Function to delete customer
+        function deleteCostPreparation() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetCostPreparationDeleteReasonList", "CostPreparation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove Cost Preparation Data ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        CostPreparationID: Saveddata['CostPreparationID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    console.log(inputData);
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCostPreparationInfo", "CostPreparation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                $formContainer.load("@Url.Action("LoadCostPreparationForm", "CostPreparation")?mtd=@ViewBag.mtd", function () {
+                                                    let $thisForm = $(this).find('[perfect-class="form"]')
+                                                    $thisForm.find('[name="VisitTime"]').val(new Date().getHours() + ":" + new Date().getMinutes()),
+                                                        $thisForm.find('[name="PrepareDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

@@ -1,0 +1,678 @@
+﻿<style>
+    .thumbnail:hover {
+        height: 100%;
+    }
+
+    .thumbnail {
+        height: 60px;
+        border-radius: 10px 10px 10px 10px;
+    }
+
+    input[type=file]::file-selector-button {
+        border: 2px solid #e94560;
+        padding: .2em .4em;
+        border-radius: .2em;
+        color: white;
+        background-color: #e94560;
+        transition: 1s;
+    }
+</style>
+
+@model PerfectWebERP.Models.CommonSearchPopupModel.Imagelist
+<div class="row" id="imagediv">
+    <div class="col-sm-6">
+
+        <div class="form-group row" perfect-class="formGroup">
+            <label class="col-sm-4 col-form-label">
+                <span perfect-class="formGroupLabel">Image Mode</span>
+
+            </label>
+
+            <div class="col-sm-8">
+
+                <select class="form-control" name="ID_ImgMode" perfect-tempTable-ProductType="ImgMode" id="ID_ImgMode" onchange="Getimgcntrl1(this,'','','',0,'')" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                    <option value="">Please select</option>
+                    @if (!(Model.ImgModeList is null))
+                    {
+                        foreach (var img in Model.ImgModeList)
+                        {
+                            <option value="@img.ID_Mode" Modeval="@img.ModeVal">@img.ModeName</option>
+                        }
+                    }
+
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 Employee">
+
+
+        <div class="form-group row" perfect-class="formGroup">
+            <label class="col-sm-4 col-form-label">
+                <span perfect-class="formGroupLabel">KYC</span>
+
+            </label>
+            <div class="col-sm-8">
+
+                <select class="form-control" name="ModeVal" perfect-tempTable-ProductType="ImgMode" id="ID_ImgMode" onchange="Getmodecntrl(this,'','','',0,'')" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                    <option value="">Please select</option>
+                    @if (!(Model.IdentityProofs is null))
+                    {
+                        foreach (var idp in Model.IdentityProofs)
+                        {
+                            <option value="@idp.ID_IdentityProof">@idp.IdName</option>
+                        }
+                    }
+
+                </select>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    var casevl="";
+    function getcase(caseval)
+    {
+        casevl = caseval;
+    }
+
+    $(document).ready(function () {
+
+
+        $('.Employee').hide();
+    });
+
+    function Getimgcntrl1(ele, val, data, mod, modval,imgname)
+    {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+    
+        if (casevl == "Company")
+        {
+            let sel ="";
+            let selval = "";
+            if (data == "") {
+                 sel = $thisForm.find('[name=ID_ImgMode] option:selected').text();
+                selval = $thisForm.find('[name=ID_ImgMode] option:selected').val();
+
+            }
+            else
+            {
+                sel = mod;
+                selval = modval;
+            }
+
+            if (document.getElementById('img'+selval) == null) {
+
+                    var div = document.createElement("div");
+                    div.className = "col-sm-12 imagedivd";
+                    div.id = "div" + selval;
+
+                    var div1 = document.createElement("div");
+                    div1.className = "form-group row"
+                    var label = document.createElement("Label");
+                    label.className = "col-sm-2 col-form-label";
+                    var text = document.createTextNode(sel);
+                    label.appendChild(text);
+                    div1.appendChild(label);
+
+                    var div2 = document.createElement("div");
+                    div2.className = "col-sm-2";
+                 var input = document.createElement('input');
+               
+                    input.type = "file";
+                    input.id = "fileup" + selval;
+                    input.accept = "image/*";
+                    input.className = "form-control";
+                    div2.appendChild(input);
+
+                    var div3 = document.createElement("div");
+                    div3.className = "col-sm-10";
+                    var img = document.createElement('img');
+                    img.id = "img" + selval;
+                    img.className = "thumbnail";
+                    if (data != "")
+                    {
+                        img.src = val;
+                        img.name = imgname;
+                    }
+                var divcls = document.createElement("div");
+                divcls.className = "col-sm-2";
+                var imgcls = document.createElement('button');
+                imgcls.type = "button";
+                imgcls.name = selval;
+                imgcls.className = "DelBtn btn btn-primary";
+                imgcls.click = "CloseImge";
+                imgcls.innerText = "Remove Image";
+
+                if (data != "") {
+                    imgcls.hidden = false;
+                }
+                else {
+                    imgcls.hidden = true;
+                }
+                imgcls.id = "btn" + selval;
+                divcls.appendChild(imgcls);
+
+                    div3.appendChild(img);
+                div1.appendChild(div2);
+                div1.appendChild(divcls);
+                div1.appendChild(div3);
+
+                div.appendChild(div1);
+
+                    document.getElementById('imagediv').appendChild(div);
+                    if (document.getElementById('img' + selval) != null) {
+                        document.getElementById('img' + selval).onload = function () {
+                            Imagechng('img' + selval, selval);
+                        };
+                    }
+                $(document).on("change", "#fileup" + selval, function () {
+
+                        imgupld('fileup' + selval, 'img' + selval,sel)
+                    });
+
+                }
+
+
+        }
+        else if (casevl == "Employee")
+        {
+            Getemployeeimg(ele, '', '', '', 0,'')
+        }
+
+
+    }
+
+    function getModeVal()
+    {
+
+        $('.Employee').show();
+    }
+
+    function Getemployeeimg(ele, val, data, mod, modval,imgname) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let modeval = $thisForm.find('[name="ID_ImgMode"]').children(":selected").attr('Modeval');
+        console.log("modeval", modeval)
+        if (modeval == 0 || modeval == undefined) {
+            let empsel ="";
+            let empselval = "";
+            if (data == "")
+            {
+                empsel = $thisForm.find('[name=ID_ImgMode] option:selected').text();
+                empselval = $thisForm.find('[name=ID_ImgMode] option:selected').val();
+            }
+            else
+            {
+                empsel = mod;
+                empselval = modval;
+            }
+            if (document.getElementById('img' + empselval) == null) {
+                    var div = document.createElement("div");
+                div.className = "col-sm-12 imagedivd";
+
+                    var div1 = document.createElement("div");
+                    div1.className = "form-group row"
+
+                    var label = document.createElement("Label");
+                    label.className = "col-sm-2 col-form-label";
+                    var text = document.createTextNode(empsel);
+                    label.appendChild(text);
+                    div1.appendChild(label);
+
+                    var div2 = document.createElement("div");
+                    div2.className = "col-sm-2";
+                    var input = document.createElement('input');
+                    input.type = "file";
+                    input.id = "fileup" + empselval;
+                   input.accept = "image/*";
+                    input.className = "form-control";
+                    div2.appendChild(input);
+                    var div3 = document.createElement("div");
+                    div3.className = "col-sm-12";
+                    var img = document.createElement('img');
+                    img.id = "img" + empselval;
+                    img.className = "thumbnail";
+
+                    if (data != "") {
+                        img.src = val;
+                        img.name = imgname;
+                    }
+                    div3.appendChild(img);
+                    div1.appendChild(div2);
+                    div1.appendChild(div3);
+                    div.appendChild(div1);
+                    document.getElementById('imagediv').appendChild(div);
+                    if (document.getElementById('img' + empselval) != null) {
+                        document.getElementById('img' + empselval).onload = function () {
+                            EmpImagechng('img' + empselval, empselval, 0);
+                        };
+                    }
+                $(document).on("change", "#fileup" + empselval, function () {
+                    imgupld('fileup' + empselval, 'img' + empselval, empsel)
+                    });
+                }
+        }
+        else {
+            getModeVal();
+        }
+    }
+
+
+    function Getmodecntrl(ele, val, data, emodname, eimgmod, ecode,imagname) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let modname = "";
+        let code = "";
+        let imgmod = "";
+        if (data == "") {
+
+            modname = $thisForm.find('[name=ModeVal] option:selected').text();
+            code = $thisForm.find('[name=ModeVal] option:selected').val();
+            imgmod = $thisForm.find('[name=ID_ImgMode] option:selected').val();
+        }
+        else {
+
+            modname = emodname;
+            code = ecode;
+            imgmod = eimgmod;
+            console.log(modname)
+
+        }
+
+        if (document.getElementById('img' + imgmod + code) == null)
+        {
+
+            var div = document.createElement("div");
+            div.className = "col-sm-12 imagedivd";
+            var div1 = document.createElement("div");
+            div1.className = "form-group row"
+            var label = document.createElement("Label");
+            label.className = "col-sm-2 col-form-label";
+            var text = document.createTextNode(modname);
+            label.appendChild(text);
+            div1.appendChild(label);
+            var div2 = document.createElement("div");
+            div2.className = "col-sm-2";
+            var input = document.createElement('input');
+            input.type = "file";
+            input.id = "fileup" + imgmod + code;
+            //input.accept = "image/*";
+            input.className = "form-control";
+            input.multiple = true;
+            div2.appendChild(input);
+
+            var div3 = document.createElement("div");
+            div3.className = "col-sm-12";
+            var img = document.createElement('img');
+            img.id = "img" + imgmod + code;
+            img.className = "thumbnail";
+            if (data != "")
+            {
+                img.src = val;
+                img.name = imagname;
+            }
+            div3.appendChild(img);
+            div1.appendChild(div2);
+            div1.appendChild(div3);
+            div.appendChild(div1);
+            document.getElementById('imagediv').appendChild(div);
+            if (document.getElementById('img' + imgmod + code) != null) {
+
+                document.getElementById('img' + imgmod + code).onload = function () {
+
+                    EmpImagechng('img' + imgmod + code, imgmod, code);
+                };
+            }
+            $(document).on("change", "#fileup" + imgmod + code, function () {
+                imgupld('fileup' + imgmod + code, 'img' + imgmod + code, modname)
+            });
+        }
+    }
+
+
+
+
+
+    var CompanyImage = [];
+    function Imagechng(img, val)
+    {
+
+
+        let imgbyte = null;
+        let imgname;
+        imgbyte = $("#" + img).attr('src');
+        imgname = $("#" + img).attr('name');
+        console.log('imgname', imgname)
+
+        if (imgbyte != null) {
+            var btnid = "btn" + img.split("img")[1];
+            $("#" + btnid).show(); $("#"+btnid).attr('hidden', false)
+            if (CompanyImage.some(code => code.ComImgMode == val)) {
+
+                CompanyImage.find(v => v.ComImgMode == val).ComImgValue = imgbyte;
+                CompanyImage.find(v => v.ComImgMode == val).ComImgName = imgname;
+            }
+            else {
+                CompanyImage.push({ ID_CompanyImage: 0, FK_Company: 0, ComImgMode: val, ComImgValue: imgbyte, ComImgName: imgname});
+            }
+            var inputData = { 'CompanyImage': CompanyImage };
+
+            console.log('CompanyImage', CompanyImage)
+            $.ajax({
+                type: "POST",
+                url:  "@Url.Action("Imagesession", "CommonPopupSearch")",
+                data: inputData,
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                dataType: "json",
+                success: function (response) {
+
+                },
+                error: function (response) {  }
+            });
+        }
+    }
+
+    var EmployeeImage = [];
+    function EmpImagechng(img, val, valcode)
+    {
+
+        let emgbyte = null;
+        let empimgname ;
+
+        emgbyte = $("#"+img).attr('src');
+        empimgname = $("#" + img).attr('name');
+
+        if (emgbyte != null) {
+            if (valcode == 0)
+            {
+                if (EmployeeImage.some(code => code.EmpImgmode == val)) {
+
+                    EmployeeImage.find(v => v.EmpImgmode == val).EmpImgValue = emgbyte;
+                    EmployeeImage.find(v => v.EmpImgmode == val).EmpImgName = empimgname;
+                }
+                else {
+                    EmployeeImage.push({ ID_EmployeeImage: 0, FK_Employee: 0, EmpImgmode: val, FK_AccountCode: 0, EmpImgValue: emgbyte, EmpImgName: empimgname});
+                }
+            }
+            else
+            {
+                if (EmployeeImage.some(code => code.FK_AccountCode == valcode))
+                {
+
+                    EmployeeImage.find(v => v.FK_AccountCode == valcode).EmpImgValue = emgbyte;
+                }
+                else
+                {
+                    EmployeeImage.push({ ID_EmployeeImage: 0, FK_Employee: 0, EmpImgmode: val, FK_AccountCode: valcode, EmpImgValue: emgbyte });
+                }
+            }
+
+            var inputData = { 'EmployeeImage': EmployeeImage };
+            console.log('EmployeeImage', EmployeeImage)
+            $.ajax({
+                type: "POST",
+                url:  "@Url.Action("Imagesession", "CommonPopupSearch")",
+                data: inputData,
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                dataType: "json",
+                success: function (response) {
+
+                },
+                error: function (response) {  }
+            });
+        }
+    }
+
+
+
+
+
+ ///image upload
+    @*function imgupld(id, imgid,nameimg)
+    {
+        console.log('id', id)
+        debugger
+        let attachment_typ = null;
+        let attachment_ext = null;
+        let $input_element = document.getElementById(id);
+        console.log('input_element12', $input_element )
+        let attachfile = $input_element.files[0];
+        let reader = new FileReader();
+        let name = attachfile.name;
+        attachment_typ = attachfile.type;
+        console.log('attachment_typ', attachment_typ)
+        attachment_ext = name.split('.').pop().toLowerCase();
+        console.log('attachment_typ', attachment_ext)
+        reader.readAsDataURL(attachfile);
+        reader.onload = function () {
+            var byteData = reader.result;
+            byteData = byteData.split(';')[1].replace("base64,", "");
+
+
+            var base64String = reader.result.split(',')[1];
+            var binaryData = atob(base64String);
+
+            // Check the size of the binary data
+            var fileSizeInBytes = byteData.length;
+            var fileSizeInKB = fileSizeInBytes / 2048;
+
+            // Example: Display the size
+            console.log("File Size: " + fileSizeInKB.toFixed(2) + " KB");
+
+            // Example: Check if the size is within a limit (e.g., 2MB)
+
+            var maxSizeInKB = 2048; // 2MB
+            if (fileSizeInKB < maxSizeInKB) {
+               
+                // You may want to clear the input or take other actions
+                $("#img6").val("");
+              //  $("#fileup6").val("");
+                
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("GetImage", "CommonPopupSearch")",
+                    data: '{byteData: "' + byteData + '" }',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        $("#" + imgid).attr("src", "data:image/;base64," + response);
+                        $("#" + imgid).attr("name", nameimg + "." + attachment_ext);
+
+                        // download(name,"data:image/;base64," + response)
+                    },
+                    error: function (response) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Image Upload Failed' });
+                    }
+                });
+            }
+            else {
+              
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'File size exceeds the limit. Please select a smaller file.' });
+            }
+           
+        }
+    };*@
+    
+    function imgupld(id, imgid, nameimg) {
+    let $input_element = document.getElementById(id);
+    let attachfile = $input_element.files[0];
+    let reader = new FileReader();
+
+    reader.onload = function () {
+        var byteData = reader.result.split(';base64,')[1];
+        var fileSizeInKB = byteData.length / 1024;
+
+        // Check if file size is within limit
+        var maxSizeInKB = 2048; // 2MB
+        if (fileSizeInKB < maxSizeInKB) {
+            // Determine if it's an image or a document
+            var isImage = /^image/.test(attachfile.type);
+
+            // Send the data to the server
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("GetImage", "CommonPopupSearch")",
+                data: JSON.stringify({ byteData: byteData, isImage: isImage }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    if (isImage) {
+                        $("#" + imgid).attr("src", "data:image/;base64," + response);
+                    } else {
+                        // Handle document download
+                        var blob = b64toBlob(response);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = nameimg;
+                        link.click();
+                    }
+                },
+                error: function (response) {
+                    console.error("Upload failed:", response);
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'File Format not supported' });
+                }
+            });
+        } else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'File size exceeds the limit. Please select a smaller file.' });
+        }
+    };
+
+    // Read the file as data URL
+    if (attachfile) {
+        reader.readAsDataURL(attachfile);
+    } else {
+        // If no file is chosen, display an error message or take appropriate action
+        console.error("No file chosen");
+        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please select a file.' });
+    }
+}
+
+// Function to convert base64 string to Blob
+function b64toBlob(b64Data) {
+    var byteCharacters = atob(b64Data);
+    var byteNumbers = new Array(byteCharacters.length);
+    for (var i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: 'application/octet-stream' });
+}
+
+    @* imhjl = "data:image/;base64," + response;
+
+
+    CompanyImage.push({ ID_CompanyImage: 0, FK_Company: 0, ComImgMode: 1, ComImgValue: imhjl, ComImgName: "test.png" });
+
+    var inputData = { 'CompanyImage': CompanyImage };
+
+    console.log('CompanyImage', CompanyImage)
+    $.ajax({
+        type: "POST",
+        url: "@Url.Action("Imagesession", "CommonPopupSearch")",
+        data: inputData,
+        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+        dataType: "json",
+        success: function (response) {
+
+        },
+        error: function (response) { }
+    });*@
+    //function download(name, textInput) {
+    //    var a = document.createElement("a"); //Create <a>
+    //    a.href = textInput; //Image Base64 Goes here
+    //    a.download = name; //File name Here
+    //    a.click();
+
+
+    //}
+
+
+
+
+    var Images = [];
+    function SiteImagechng(img, val)
+    {
+
+        let emgbyte = null;
+        let empimgname ;
+
+        emgbyte = $("#"+img).attr('src');
+        empimgname = $("#" + img).attr('name');
+
+        if (img != null) {
+
+                if (Images.some(code => code.SVImgMode == val)) {
+
+                    Images.find(v => v.SVImgMode == val).SVImgValue = emgbyte;
+                    //EmployeeImage.find(v => v.SVImgMode == val).EmpImgName = empimgname;
+                }
+                else {
+                    var mode = { SVImgMode: val, SVImgValue: img };
+                    Images.push(mode);
+                }
+
+
+            var inputData = { 'EmployeeImage': Images };
+            console.log('EmployeeImage', EmployeeImage)
+            $.ajax({
+                type: "POST",
+                url:  "@Url.Action("Imagesession", "CommonPopupSearch")",
+                data: inputData,
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                dataType: "json",
+                success: function (response) {
+
+                },
+                error: function (response) {  }
+            });
+        }
+    }
+    $(document).on('click', '.DelBtn', function () {
+        console.log(this);
+        
+       var indx = CompanyImage.indexOf(CompanyImage.find(code => code.ComImgMode == this.name));
+        if (indx > -1) {
+            CompanyImage.splice(indx, 1);
+        }
+        $("#img" + this.name).attr('src', '');
+        $("#" + this.id).hide();
+        var inputData = { 'CompanyImage': CompanyImage };
+        console.log('CompanyImage', EmployeeImage)
+
+        if (CompanyImage.length == 0) {
+               $.ajax({
+                type: "POST",
+                url:  "@Url.Action("ImageClear", "CommonPopupSearch")",
+
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                dataType: "json",
+                success: function (response) {
+                    CompanyImage = [];
+                },
+                error: function (response) {  }
+            });
+
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Imagesession", "CommonPopupSearch")",
+                data: inputData,
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                dataType: "json",
+                success: function (response) {
+
+                },
+                error: function (response) { }
+            });
+        }
+    });
+
+</script>

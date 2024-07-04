@@ -1,0 +1,262 @@
+﻿
+@{
+    ViewBag.Title = "";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="occupation-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+
+<script type="text/javascript">
+
+    const $formContainer = $('#occupation-form');
+
+        $(document).ready(function () {
+           occupationInitialLoad();
+
+    });
+
+    function occupationInitialLoad() {
+          @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadOccupationList(); </text>
+              }
+
+      
+        loadOccupationAddForm();
+    }
+
+    function loadOccupationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormOccupation", "Occupation")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.attr('perfect-onFormSuccess', 'occupationInitialLoad');
+            });
+
+    };
+
+
+    
+    function loadOccupationList(ele) {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Occupation');
+
+
+            $.ajax({
+                url: "@Url.Action("GetOccupationList", "Occupation")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+ 
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Occupation', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Occupation");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                              $sidemenu.find('table').dataTable({ paging: true });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+
+
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                        {
+                           <text> { displayName: "View", action: editOccupation },</text>
+                        }
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                        {
+                            <text>{ displayName: "Delete", action: deleteOccupation}</text>
+                        }
+               
+            ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo","Name", "ShortName"],
+        hideColumn: [],
+        rowClickAction: editOccupation,
+        //serialNo: true,
+        renameHeader: { "SlNo":"SL NO","OccpName": "Name", "OccpShortName": "ShortName" }
+    };
+
+     //update occupation function
+
+    function editOccupation() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+        console.log("Saved data", Saveddata);
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID: Saveddata.ID
+
+            };
+
+            $.ajax({
+                url: '@Url.Action("GetOccupationInfoByID", "Occupation")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetOccupationInfo', ajaxOutput)
+
+                                $sideMenuOptions.close();
+
+                                $formContainer.load("@Url.Action("LoadFormOccupation", "Occupation")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Name)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'occupationInitialLoad');
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.find('[name="Name"]').val(ajaxOutput.Data[0].Name),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetOccupationInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+
+    }
+
+
+    function deleteOccupation() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetOccupationReasonList", "Occupation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_Occupation: Saveddata['ID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteOccupation", "Occupation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+    </script>
+    }
+

@@ -1,0 +1,564 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="RepairIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script type="text/javascript">
+
+        function changeFormView(mode, callback) {
+
+        
+            //----Make change in the fomr
+            if (mode==1) {
+                $("#btnVehPopup").hide();
+                $("#ID_Name").removeAttr('readOnly');
+                document.getElementById("rent").style.display = 'none';
+                document.getElementById("rent1").style.display = 'none';
+            }
+            else {
+                $("#btnVehPopup").show();
+                $("#ID_Name").attr('readOnly', true);
+                document.getElementById("rent").style.display = 'block';
+                document.getElementById("rent1").style.display = 'block';
+                
+            }
+
+
+            //--------
+            callback();
+        }
+
+
+        var rentdate='' ;
+    var RepairTransMode = '';
+        const LastIDSessionKeyER = 'EquipmentRepairLastID';
+        var LastID_EquipmentRepair;
+
+      var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                   @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+                       <text> { displayName: "View", action: editRent },</text>
+                    }
+                   { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlMsDel){
+                        <text> { displayName: "Delete", action: DeleteRent },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+          onlyShowColumn: ["SlNo", "RentType", "EquEquipmentNo","EquRentalDate"],
+            hideColumn: [],
+          rowClickAction: editRent,
+          isDateType: ['EquRentalDate'],
+            serialNo: false,
+          renameHeader: { "SlNo": "Sl No.", "RentType": "Rent Type", "EquEquipmentNo":"@ViewBag.headlog", "EquRentalDate":"Date"},
+        };
+
+        var validationMessage = {
+            'ID_Name': {
+                'required': function () {
+                    
+                    if (RepairTransMode == 'TORN') {
+                        let mod = $('#ModeID').val();
+                        if (mod == 1) {
+                            return 'Please Enter Tool'
+                        }
+                        else {
+                            return 'Please select Tool'
+                        }
+                    }
+                    else if (RepairTransMode == 'VLRN') {
+                    //let pop= $('#Vehitext').attr('id')
+                        let mod = $('#ModeID').val();
+                        if (mod == 1 ) {
+                            return 'Please Enter Vehicle';    
+                        }
+                        else {
+                            
+                            return 'Please select Vehicle';
+                        }
+                       
+
+                    }
+                }
+            },
+            //'totalKm': {
+            //    'required': function () {
+            //        if (RepairTransMode == 'VLRN') {
+            //            return 'Please Enter Kilometer '
+
+            //        }
+            //        else {
+
+            //        }
+            //    },
+            'totalKm': {
+                'required': 'Please Enter Kilometer'
+            },
+            'Distance': {
+                'required': 'Please Enter Kilometer'
+            },
+
+            
+            'EquRentalDate': {
+                'required': 'Please Select Valid Date',
+                'min': jQuery.validator.format('Return date must be greater than or equal to Rental date {0}'),
+                
+            },
+           
+            'EquOperatorMobile': {
+                'minlength': jQuery.validator.format('Employee mobile should be more than {9} characters'),
+                'maxlength': jQuery.validator.format('Employee mobile should be less than {9} characters')
+            },
+            
+            'BillTypeID': {
+                'required': 'Please Select Bill Type'
+            },
+            'EquReturndays': {
+                'required': 'Please Enter Returndays greater than 0.'
+            },
+            
+            
+        }
+
+    const $formContainer = $('#RepairIndex_formContainer');
+    $(document).ready(function () {
+        fn_RepairIndex_initialLoad();
+    });
+
+    function fn_RepairIndex_initialLoad() {
+
+        RepairTransMode = '@ViewBag.TransMode';
+        loadAddRepairForm()
+         HeadName = '@ViewBag.headlog';
+            console.log('HeadName', HeadName);
+            console.log('HeadName1', '@ViewBag.headlog');
+         @if (ViewBag.PagedAccessRights.UsrrlMsView){
+
+                 <text>loadRentList(this, loadAddRepairForm); </text>
+          }
+
+    }
+
+
+    function loadAddRepairForm() {
+
+
+            $formContainer.load('@Url.Action("EquipmentRepairView", "EquipmentRepair")?TransMode=' + '@ViewBag.TransMode', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_RepairIndex_initialLoad');
+                getSessionValue(LastIDSessionKeyER, function (result) {
+                    LastID_EquipmentRepair = result;
+                });
+            });
+
+    }
+
+
+
+        function loadRentList(ele,callback) {
+            debugger
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Rent And Return List');
+          let pageUrl = '@Url.Action("GetRentList", "EquipmentRepair")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: '@ViewBag.TransMode'},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('District', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Rent");
+                              setSessionValue(LastIDSessionKeyER, ajaxOutput.Data[0]["LastID"]);
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadRentList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName,TransMode:'@ViewBag.TransMode' }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Rent");
+                        setSessionValue(LastIDSessionKeyER, 0);
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadRentList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName ,TransMode: '@ViewBag.TransMode'}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+            },
+        }
+    }
+
+    function editRent() {
+
+             let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+
+            console.log('savedData', savedData);
+             debugger
+
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_EquipmentRentalDetails: savedData.ID_EquipmentRentalDetails,
+                  TransModes: '@ViewBag.TransMode'
+             };
+
+
+             $.ajax({
+                 url: '@Url.Action("GetRepairInfo", "EquipmentRepair")',
+                 type: "POST",
+                 data: JSON.stringify(inputData),
+                 dataType: "json",
+                 contentType: "application/json",
+                 success: function (ajaxOutput) {
+                     console.log('ajaxOutput', ajaxOutput);
+
+
+                     if (ajaxOutput) {
+                         debugger;
+                         var _TransMode='@ViewBag.TransMode';
+                         $formContainer.load("@Url.Action("EquipmentRepairView", "EquipmentRepair")?TransMode=" + _TransMode, function () {
+
+
+                             let $thisForm = $(this).find('[perfect-class="form"]');
+
+                             $thisForm.validate({ messages: validationMessage });
+
+                             changeFormView(ajaxOutput.modelInfo.Data[0]['EquRentType'],function () {
+                                
+                                 $thisForm.data({ 'pData': ajaxOutput.Data });
+                                 $thisForm.find('[name=ModeID]').val(ajaxOutput.modelInfo.Data[0].EquRentType).selectpicker('refresh');
+                                 changevehiclepop($thisForm.find('[name=ModeID]'));
+
+                                 $thisForm.find('[name=ModeID]').prop("disabled", true);
+                                 $thisForm.find('[name=ID_EquipmentRentalDetails]').val(ajaxOutput.modelInfo.Data[0].ID_EquipmentRentalDetails);
+                                 $thisForm.find('[name=ID_Name]').val(ajaxOutput.modelInfo.Data[0].EquEquipmentNo);
+                                 $thisForm.find('[name=FK_MasterID]').val(ajaxOutput.modelInfo.Data[0].FK_MasterID);
+                                 $thisForm.find('[name=Distance]').val(ajaxOutput.modelInfo.Data[0].EquEquipmentStrtDistance);
+                                 $thisForm.find('[name=totalKm]').val(ajaxOutput.modelInfo.Data[0].EquEquipmentDistance);
+                                 $thisForm.find('[name=EquDescription]').val(ajaxOutput.modelInfo.Data[0].EquDescription);
+                                 $thisForm.find('[name=EquRentalDate]').val(moment(ajaxOutput.modelInfo.Data[0].EquRentalDate).format('YYYY-MM-DD'));
+                             
+                                 $thisForm.find('[name="Amount"]').val(Number(ajaxOutput.modelInfo.Data[0].EquSecurityAmount).toFixed(2));
+                                 $thisForm.find('[name="RentAmount"]').val(Number(ajaxOutput.modelInfo.Data[0].EquRentAmount).toFixed(2));
+                                 $thisForm.find('[name="RentNetAmount"]').val(Number(ajaxOutput.modelInfo.Data[0].EquPayAmount).toFixed(2));
+                                 $thisForm.find('[name="TaxAmount"]').val(Number(ajaxOutput.modelInfo.Data[0].EquTaxAmount).toFixed(2));
+                                 $thisForm.find('[name="EquPayAmount"]').val(Number(ajaxOutput.modelInfo.Data[0].EquNetAmount).toFixed(2));
+                                 $thisForm.find('[name="IncludeTax"]').prop('checked', ajaxOutput.modelInfo.Data[0].IncludeTax);
+                                 $thisForm.find('[name="BillTypeID"]').val(ajaxOutput.modelInfo.Data[0]['FK_BillType']).selectpicker('refresh');
+                                 $thisForm.find('[name=EquReturndays]').val(ajaxOutput.modelInfo.Data[0].EquReturndays);
+                                 $thisForm.find('[name=EquOperatorMobile]').val(ajaxOutput.modelInfo.Data[0].EquOperatorMobile);
+                                 $thisForm.find('[name=EquOperator]').val(ajaxOutput.modelInfo.Data[0].EquOperator);
+                                 $thisForm.find('[name=EquOperatorNo]').val(ajaxOutput.modelInfo.Data[0].EquOperatorNo);
+                                 $thisForm.find('[name=EquOperatorExpDate]').val(moment(ajaxOutput.modelInfo.Data[0].EquOperatorExpDate).format('YYYY-MM-DD'));
+                                 $thisForm.find('[name="OtherCharge"]').val(Number(ajaxOutput.modelInfo.Data[0].OtherCharges).toFixed(2));
+                                
+                             });
+                             let mod = $('#ModeID').val();
+                             rentdate = '';
+                             if ($('#ModeID').val() == 2) {
+                                 rentdate = ajaxOutput.modelInfo.Data[0].EquRentalDate;
+                                 $("#EquRentalDate").attr('min', moment(rentdate).format('YYYY-MM-DD'));
+                                 //$('#btnVehPopup').hide();
+
+                                 document.getElementById("Hideother").style.display = 'block';
+                             }
+
+                             $("#btnVehPopup").show();
+                             $("#ID_Name").removeAttr('readOnly');
+                             if ($thisForm.find('[name="ModeID"]').val() == 1) {
+                                 $("#btnVehPopup").hide();
+                                 $("#ID_Name").removeAttr('readOnly');
+
+                                 document.getElementById("rent").style.display = 'none';
+                                 document.getElementById("rent1").style.display = 'none';
+                                 document.getElementById("Hideother").style.display = 'none';
+                                 $('.rent3').hide();
+                                 $('.BalAmt').hide();
+                             }
+                             else {
+                                 $("#btnVehPopup").hide();
+                                 $("#ID_Name").attr('readOnly', true);
+
+                                 document.getElementById("rent").style.display = 'block';
+                                 document.getElementById("rent1").style.display = 'block';
+                                 $('.rent3').show();
+                             }
+                             let BalanceToPay = parseFloat($thisForm.find('[name="EquPayAmount"]').val()) == "" ? 0 : parseFloat($thisForm.find('[name="EquPayAmount"]').val());
+                             let NetAmount = parseFloat($thisForm.find('[name="RentNetAmount"]').val()) == "" ? 0 : parseFloat($thisForm.find('[name="RentNetAmount"]').val());
+
+                             let netamt;
+                             
+                             if ($thisForm.find('[name="ModeID"]').val() == 2 && BalanceToPay > 0 ) {
+                                 $('.rent3').hide();
+                                 $('.BalAmt').show();
+                                 netamt = parseFloat($thisForm.find('[name="EquPayAmount"]').val()) == "" ? 0 : parseFloat($thisForm.find('[name="EquPayAmount"]').val());
+                             }
+                             else if ($thisForm.find('[name="ModeID"]').val() == 2) {
+                                
+                                 $('.rent3').show();
+                                 $('.BalAmt').hide();
+                                 netamt = parseFloat($thisForm.find('[name="RentNetAmount"]').val()) == "" ? 0 : parseFloat($thisForm.find('[name="RentNetAmount"]').val());
+                             }                                                        
+                             
+                             let billamt = 0;
+                             let bilamt = 0;
+                             if ($thisForm.find('[name=BalAmt]').text() == '') {
+                                 bilamt = 0;
+                             }
+                             else {
+                                 bilamt = netamt;
+                             }
+                             $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+
+                                 billamt += parseFloat($(ele).find('.PAmount').text());
+
+                             });
+
+                             bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+                             $thisForm.find('[name=BalAmt]').text((0).toFixed(2));
+                            
+                            
+                             $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+
+
+                             if (ajaxOutput.paymentdetail.Data) {
+
+                                 fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                             }
+
+                            
+                             if (ajaxOutput.Taxselect) {
+                                 debugger
+                                 let taxinfos = ajaxOutput.Taxselect.Data;
+                                 console.log('ajaxOutput.Taxselect.Data', ajaxOutput.Taxselect.Data);
+                                 tax1 = [];
+                                 Taxlist = Taxlist.concat(taxinfos);
+                                 edit = 1;
+                                 //$thisForm.data({ pDataTax: tax1 });
+
+                             }
+
+                             $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+
+                             if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                 let othechg = ajaxOutput.OtherCharge.Data;
+                                 console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                 othrchargelst = [];
+                                 othrchargelst = othrchargelst.concat(othechg);
+                                 console.log('OTH INFOT>', othrchargelst);
+                                 $thisForm.data({ prtothchgData: othrchargelst });
+                             }
+
+                         
+
+
+
+                             $thisForm.data({ pImage: ajaxOutput.Imageselect.Data });
+                             PssfupDocsList = ajaxOutput.Imageselect.Data;
+                               
+                               
+                                  
+
+
+                            
+
+                             $thisForm.find('button[name=add]').addClass('d-none');
+                            // $thisForm.find('button[name=add]').hide();
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+
+                             $thisForm.attr('perfect-onFormSuccess', 'fn_RepairIndex_initialLoad');
+                             $sideMenuOptions.close();
+                         });
+                     }
+                     else {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+            });
+       }
+
+
+
+    function DeleteRent() {
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetRentDeleteReasonList", "EquipmentRepair")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.EquEquipmentNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_EquipmentRentalDetails: Saveddata.ID_EquipmentRentalDetails,
+                                        ReasonID: ret,
+                                        TransModes: '@ViewBag.TransMode'
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteRent", "EquipmentRepair")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully'});
+                                                });
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                       }
+                   }
+               });
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+}
+
+

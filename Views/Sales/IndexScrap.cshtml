@@ -1,0 +1,514 @@
+﻿
+
+
+@{
+    ViewBag.Title = "IndexScrap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_SalescrapIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        const LastIDSessionKey = 'ScrapSalesLastID';
+        var SalescrapTransMode = '';
+       var LastID_ScrapSales;
+        //--- Form
+        const $formContainer = $('#jq_SalescrapIndex_formContainer');
+
+        $(document).ready(function () {
+            fn_SalescrapIndex_initialLoad();
+
+        });
+        function fn_SalescrapIndex_initialLoad() {
+
+            SalescrapTransMode = '@ViewBag.TransMode';
+
+               
+            fn_loadSaleScrapList(this, fn_SaleIndex_loadSalescrapAddForm);
+
+        }
+
+
+        // Fucntion to load Customer ADD form
+        function fn_SaleIndex_loadSalescrapAddForm() {
+
+            $formContainer.load('@Url.Action("LoadSalesScrap", "Sales")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="SalScrapBillDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="SalScrapEnterDate"]').val(moment().format('YYYY-MM-DD'));
+
+                $thisForm.validate({ messages: validationMessage });
+
+                initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_ScrapSales = result;
+                });
+            });
+
+        };
+       
+
+                var validationMessage = {
+
+
+                    'BuyerMobileNo': {
+                        'required': 'Please Enter Mobile No',
+                        'anyphonenumber': 'Invalid Mobile No',
+                        'minlength': jQuery.validator.format('Mobile No Should be More than {0} Characters'),
+                        'maxlength': jQuery.validator.format('Mobile No Should be Less than {0} Characters')
+                    },
+
+
+                    'BuyerName': {
+                        'required': 'Please Enter Buyer Name',
+                        'stringonly': 'Special Characters are not Allowed in  Buyer Name'
+
+                    },
+                    'SalScrapBillNo': {
+                        'required': 'Please Enter Reference No',
+                        'maxlength': jQuery.validator.format('Reference No Should be Less than {0} Characters')
+
+                    },
+                    'DepartmentID': {
+                        'required': 'Please Select Department',
+                        'stringonly': 'Special Characters are not Allowed in  Department'
+
+                    },
+                    'BillType': {
+                        'required': 'Please Select BillType',
+                        'stringonly': 'Special Characters are not Allowed in  BillType'
+
+                    },
+                    'SalScrapEnterDate': {
+                        'required': 'Please Select Entered Date',
+                        'max': jQuery.validator.format('Please Enter a Valid Date')
+
+                    },
+
+
+
+                };
+        var tableOptions = {
+                    dropdown: {
+                        buttons: [
+
+                            { displayName: "View", action: fn_ScrapSalesIndex_UpdateForm},
+
+                            { type: "divider" },
+
+
+                        ],
+
+                        class: "btn btn-success light sharp"
+                    },
+                    onlyShowColumn: ["SlNo", "SalScrapBillDate", "BuyerName", "SalScrapNetAmount", "Mobile"],
+                    hideColumn: [],
+
+                   rowClickAction: fn_ScrapSalesIndex_UpdateForm,
+                    serialNo: false,
+                  renameHeader: { "SlNo": "SL No", "SalScrapBillDate": "Bill Date", "SalScrapNetAmount":"NetAmount" },
+                    isDateType: ["SalScrapBillDate"],
+
+                };
+            
+
+  function fn_loadSaleScrapList(ele,callback)
+        {
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+      $sideMenuOptions.title.find('h4').text('Scrap Sale List');
+             let pageUrl = '@Url.Action("GetSalesScarpList", "Sales")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransModes: SalescrapTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        
+                        $sidemenu.find('.jq_sidemenu_title').text("Sale Scrap List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadSaleScrapList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,                             
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SalescrapTransMode }, tableOptions, $table)
+                              });
+                          }
+                          else
+                    {
+                        setSessionValue(LastIDSessionKey, 0);
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Sales Scrap List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadSaleScrapList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,                                 
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: SalescrapTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+
+      function fn_ScrapSalesIndex_UpdateForm() {
+
+              let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+          debugger
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ScrapSalesID: saveddata.ScrapSalesID,
+                FK_Master: saveddata.ScrapSalesID,
+                TransMode: SalescrapTransMode,
+            };
+           
+            $.ajax({
+                url: "@Url.Action("GetScrapSalesInfo", "Sales")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                   
+
+                    $formContainer.load('@Url.Action("LoadSalesScrap", "Sales")', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        $thisForm.validate({ messages: validationMessage });
+                        initFunctions($thisForm);
+                        console.log('ajaxOutput1', ajaxOutput);
+
+                        $thisForm.find('[name="ScrapSalesID"]').val(ajaxOutput.SaleDetails.Data[0].ScrapSalesID);
+
+                        $thisForm.find('[name="TransMode"]').val(ajaxOutput.SaleDetails.Data[0].TransMode);
+                        $thisForm.find('[name="BillType"]').val(ajaxOutput.SaleDetails.Data[0].BillType).selectpicker('refresh');
+                        $thisForm.find('[name="SalScrapBillNo"]').val(ajaxOutput.SaleDetails.Data[0].SalScrapBillNo);
+                        $thisForm.find('[name="SalScrapBillDate"]').val(moment(ajaxOutput.SaleDetails.Data[0].SalScrapBillDate).format('YYYY-MM-DD'));
+                        $thisForm.find('[name="SalScrapEnterDate"]').val(moment(ajaxOutput.SaleDetails.Data[0].SalScrapEnterDate).format('YYYY-MM-DD'));
+
+
+                        $thisForm.find('[name="FK_Buyer"]').val(ajaxOutput.SaleDetails.Data[0].FK_Buyer);
+                        $thisForm.find('[name="BuyerName"]').val(ajaxOutput.SaleDetails.Data[0].BuyerName);
+                        $thisForm.find('[name="BuyerMobileNo"]').val(ajaxOutput.SaleDetails.Data[0].BuyerMobileNo);
+                        $thisForm.find('[name="DepartmentID"]').val(ajaxOutput.SaleDetails.Data[0].DepartmentID).selectpicker('refresh');
+
+
+                        $thisForm.find('[name="SalScrapBillTotal"]').val(ajaxOutput.SaleDetails.Data[0].SalScrapBillTotal);
+                        $thisForm.find('[name="SalScrapNetAmount"]').val(ajaxOutput.SaleDetails.Data[0].SalScrapNetAmount);
+                        $thisForm.find('[name="OtherCharge"]').val(ajaxOutput.SaleDetails.Data[0].OtherCharge);
+                        $thisForm.find('[name="IncludeTax"]').prop('checked', ajaxOutput.SaleDetails.Data[0].IncludeTax);
+
+                        $thisForm.find('[name="TaxAmount"]').val(ajaxOutput.SaleDetails.Data[0].TaxAmount);
+                        $thisForm.find('[name="AuctionRemarks"]').val(ajaxOutput.SaleDetails.Data[0].AuctionRemarks);
+                        $thisForm.find('[name="Auction"]').prop('checked', ajaxOutput.SaleDetails.Data[0].Auction);
+
+                        ComDetailsTable_Fill($thisForm, 'Purchase', ajaxOutput.productDetails.Data,tableOptionsTempOut);
+
+
+                       
+
+                        if (ajaxOutput.Taxselect) {
+                            debugger
+                            let taxinfos = ajaxOutput.Taxselect.Data;
+                            console.log('ajaxOutput.Taxselect.Data',ajaxOutput.Taxselect.Data);
+                            tax1 = [];
+                            Taxlist = Taxlist.concat(taxinfos);
+                            edit = 1;
+                            //$thisForm.data({ pDataTax: tax1 });
+
+                        }
+
+                        ShowOtherCharges(this, 1)
+                        if (ajaxOutput.OtherCharge) {
+                            debugger
+                            let othechg = ajaxOutput.OtherCharge.Data;
+                            console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                            othrchargelst = [];
+                            othrchargelst = othrchargelst.concat(othechg);
+                            console.log('OTH INFOT>', othrchargelst);
+                            $thisForm.data({ prtothchgData: othrchargelst });
+                        }
+
+
+                        if (ajaxOutput.paymentdetail) {
+                            fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                        }
+
+                    $sideMenuOptions.close();//<---  Close side menu
+                    $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                    $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+                    $thisForm.find('button[name=delete]').removeClass('d-none');
+
+                    $thisForm.attr('perfect-onFormSuccess', 'fn_ProductIndex_initialLoad');
+                    });
+
+                }
+            });
+        };
+           
+        function fillTableSales(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTempfill = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+            let indexname = tkey + 'index';
+            tableOptionsTempfill.rowAttribute.push(indexname);
+            tableOptionsTempfill.hideColumn.push(indexname);
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+                            tableOptionsTempfill.hideColumn.push(nameAttr);
+
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+
+                            if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+
+                insertData.push(pData);
+
+            });
+            $tblcontainer.empty();
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+            Binddatadetails(ele);
+            CalculateTotal(ele);
+        }
+        function ComDetailsTable_Fill(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele)
+
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $thisForm.find('[perfect-tempTable="' + tableKey + '"]').empty();
+
+
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    console.log('name', valOne[nameAttr])
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+
+                            let selectText = ($this.val().length == 1) ? '' : $this.find('[value="' + valOne[nameAttr] + '"]').text();
+
+                            pData[nameAttr + '_d'] = selectText;
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+                            console.log('selectText', $this.find('[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log('inputType', inputType)
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+
+                                console.log('checkbox', nameAttr)
+
+
+                            }
+                            else if (inputType == 'hidden') {
+
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+
+                            else if (inputType == 'date') {
+
+
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+                console.log('insertdata', insertData)
+
+                //----
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+    </script>
+
+}
+
+

@@ -1,0 +1,765 @@
+﻿@model PerfectWebERP.Models.ItemConversionModel.ItemConversionView
+<style>
+    .btnPerfectDelete {
+        color: red;
+        border: none
+    }
+
+    .DeleteRow2 {
+    }
+
+    .tableFixHead {
+        overflow: auto;
+        height: 500px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+</style>
+
+
+
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Conversion Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ICDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <input type="hidden" name="LastID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Conversion Mode</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="ICModeName" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control perfectValidate_string" name="ICMode" id="icmod" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="modulechange(this,value)">
+                                    @if (!(Model.ConversionMode is null))
+                                    {
+                                        foreach (var ModeList in Model.ConversionMode)
+                                        {
+                                            <option value="@ModeList.ID_Mode">@ModeList.ModeName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control perfectValidate_string" name="DepartmentID" id="iddept" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="0">All</option>
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var DepartmentModule in Model.DepartmentList)
+                                        {
+                                            <option value="@DepartmentModule.DepartmentID">@DepartmentModule.DepartmentName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Product</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,40,'Product Details',[],'')" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="FK_Product" Function="1"></button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group row">
+                            <div class="col-sm-4">
+                                <button type="button" class="btn btn-primary btn-block" id="id_item_show" onclick="fn_get_Product(this)">Show</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row" style="display:none" id="id_conv_Pro">
+                    <div class="col-sm-12">
+                        <div class="profile-personal-info" style="margin-bottom:-14px;">
+                            <h4 class='text-primary'>Convert From</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <br />
+                                <div class="row">
+
+                                    <div class="col-sm-4">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Conversion Product&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="ProName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                                    <input type="hidden" name="ProductID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="0" />
+                                                    <input type="hidden" name="StockId" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <input type="hidden" name="CurrentStock1R" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <input type="hidden" name="Department" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <div class="input-group-append">
+                                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 124, 'Product Details', [], ['StockId','CurrentStock1R','Department','MRPs','SalePrice'],ConvTransMode)" Function="2" BindName="ProName" BindVal="ProductID" Criterea1="FK_Branch" Criterea2="DepartmentID" perfect-css="button"></button>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <br />
+
+                <div class="row">
+                    <div class="col-12" id="itemCid" style="display:none">
+
+                        <div class="card">
+                            <div class="profile-personal-info" style="margin-bottom:-14px;">
+                                @*<h4 class='text-primary'> DETAILS</h4>*@
+                            </div>
+                            <div class="card-body" style="padding:0px">
+                                <div perfect-class="ModuleContainer" id="itemCtable" class="">
+                                    <div class="table-responsive tableFixHead">
+                                        <table class="table table-hover table-striped text-black">
+                                            <thead class="thead-primary">
+                                                <tr>
+                                                    <th></th>
+                                                    <th style="display:none">FK_PRODUCT</th>
+                                                    <th class="text-left">Product</th>
+                                                    <th style="display:none" class="text-right">FK_Stock</th>
+                                                    <th class="text-left">Department</th>
+                                                    <th class="text-right">Actual Stock</th>
+                                                    <th class="text-right">Conversion Stock</th>
+                                                    <th class="text-center">Remark</th>
+                                                    <th class=""></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="itemCTbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ID_ItemConversion" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                </div>
+
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    @if (ViewBag.PagedAccessRights.UsrrlMsEdt)
+                    {
+                        <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="UpdateItemConversion(this,'Update')"><i class="fa fa-refresh fa-spin  loaderClass"></i>Update</button>
+                    }
+                    @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                    {
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="UpdateItemConversion(this,'Add')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    }
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+
+    (function () {
+
+        jQuery("select").selectpicker();
+
+    })();
+
+    $(document).ready(function () {
+        initFunctions('form');
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        var today = new Date();
+        var day = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+        var month = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+        var year = today.getFullYear();
+
+        $thisForm.find('[name="ICDate"]').attr('max', year + "-" + month + "-" + day);
+
+    });
+
+    function fn_get_Product(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var $filldata;
+        if ($thisForm.valid()) {
+            var inputData = {
+                'FK_Product': $thisForm.find('[name="FK_Product"]').val(),
+                'ICDate': $thisForm.find('[name="ICDate"]').val(),
+                'FK_Department': $thisForm.find('[name="DepartmentID"]').val()
+            }
+             $.ajax({
+                    url: "@Url.Action("GetAllConvertedItem", "ItemConversion")",
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                 success: function (data) {
+
+                     if (data.Process.IsProcess) {
+
+                         let ItemData = data.data;
+                         $("#itemCTbody tr").remove();
+                         if (ItemData) {
+                             document.getElementById('itemCid').style.display = 'block';
+                             let $tbody = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+                             $("#icmod").attr("disabled", true);
+                             $("#iddept").attr("disabled", true);
+
+                             $.each(ItemData, function (i, values) {
+                                 if (values.FK_Product != 0) {
+                                     let rowCount = (i + 1);
+                                     let $row = $('<tr/>', { id: rowCount, class: "trvalue" });
+
+                                     $row.append($('<td>', { class: "ChkProd" }).html(
+                                         $('<label>').append(
+                                             $('<input />', {
+                                                 type: 'checkbox',
+                                                 name: 'ItemCheckPro',
+                                                 'perfect-class': 'formCheckInput',
+                                                 'perfect-ctype': "checkbox",
+                                                 checked: 'checked' // Add the checked attribute here
+                                             })
+                                         ).append('') // Replace '' with your desired label text
+                                             .on('change', function () {
+
+                                                 var $actstock = $(this).closest('tr').find('.ActStock input[type="text"]').val();
+                                                 var constock = $(this).closest('tr').find('.ConStock input[type="text"]');
+
+                                                 if (!$(this).is(':checked') && constock.val() == 0) {
+
+                                                     constock.val($actstock)
+                                                 }
+                                                 else if (!$(this).is(':checked') && constock.val() != 0) {
+                                                     constock.val(0)
+                                                 }
+                                                 else if ($(this).is(':checked') && constock.val() != 0) {
+                                                     constock.val(0)
+                                                 }
+                                                 else {
+                                                     constock.val(0)
+                                                 }
+                                             })
+                                     ))
+
+                                         .append($('<td>', { class: "FK_prod", style: "display:none" }).text(values.FK_Product))
+                                         .append($('<td>', { class: "Prod", style: "max-width:200px;" }).text(values.Product))
+                                         .append($('<td>', { class: "fk_stk", style: "display:none" }).text(values.FK_Stock))
+                                         .append($('<td>', { class: "fk_dept" }).text(values.Department))
+                                         .append($('<td>', { class: "ActStock" }).html(
+                                             $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '6', max: '100', name: 'ICActualStock', id: 'insP', readonly: 'readonly' })
+                                                 .val(values.Stock)
+
+                                         ))
+                                         .append($('<td>', { class: "ConStock" }).html(
+                                             $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '12', name: "ICconvertStock", id: "Iamount" })
+                                                 .val(values.Stock)
+                                                 .keypress(function () { return isNumberKey(event) })
+                                                 .on('change', function () {
+                                                     StockCalc(this);
+                                                 })
+                                                 .on('input', function () {
+                                                     decimalpnt(this, 'Iamount', 3)
+                                                 })
+
+                                         ))
+                                         .append($('<td>', { class: "ItRmrk" }).html(
+                                             $('<input/>', {
+                                                 type: 'text',
+                                                 class: 'form-control text-left',
+                                                 maxlength: '500',
+                                                 name: "ICRemark",
+                                                 id: "Rmrkid",
+                                                 // You can set an initial value for the remark here if needed
+                                                 // value: 'Initial Remark Value'
+                                             })
+                                                 .keypress(function () { return filterSpecialCharacters(event) })
+                                         ))
+                                         .append($('<td>', { class: "DeleteRow" }).html(
+                                             $('<button/>', {
+                                                 type: 'button',
+                                                 class: 'fa fa-trash btnPerfectDelete',
+                                                 text: ''
+                                             })
+                                                 .prop('disabled', true) // Add this line to disable the button
+
+                                         ))
+
+
+                                     $tbody.append($row);
+                                 }
+                                 else {
+                                     $("#itemCTbody tr").remove();
+                                     document.getElementById('itemCid').style.display = 'none';
+                                     ItemConversion_initLoad();
+                                     NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Settings Not Found' })
+                                 }
+
+                             });
+                         }
+                         else {
+                             //$filldata += "<tr id='0'><td class='norecord' colspan='9' style='text-align:center'>No Records..</td></tr>";
+                             ItemConversion_initLoad();
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+
+                         }
+
+                     }
+                     else {
+                         //NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': data.Process.Message })
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                         ItemConversion_initLoad();
+                     }
+                 },
+                 error: function (xhr, textStatus, errorThrown) {
+                     var errorResponse = JSON.parse(xhr.responseText);
+                     var errorMessage = errorResponse.Process.Message;
+                     NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': errorMessage });
+                 }
+
+             });
+
+        }
+
+    }
+    function UpdateItemConversion(ele, actiontype) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var itemTable = $('#itemCTbody tr.trvalue');
+        var ItemDetails = [];
+        var isValid = true;
+
+        if (itemTable.length > 0) {
+
+            if ($thisForm.find('[name="ICMode"]').val() > 0) {
+
+
+                itemTable.each(function () {
+
+                    if ($(this).find('.ChkProd input[type="checkbox"]').is(":checked")) {
+                        var ArrItem = {
+
+                            ICProduct: $(this).find(".FK_prod").text(),
+                            ICActualStock: $(this).find(".ActStock input").val(),
+                            ICConversionStock: $(this).find(".ConStock input").val(),
+                            FK_StockFrom: $(this).find(".fk_stk").text(),
+                            ICRemark: $(this).find('.ItRmrk input').val()
+                        };
+                        ItemDetails.push(ArrItem);
+
+                    }
+                });
+
+
+            }
+            else {
+                isValid = false;
+            }
+        }
+
+        debugger
+        if (isValid && ItemDetails.length >0) {
+            if (StockCalc(ele)) {
+                if ($thisForm.find('[name="ICDate"]').val() != "" || null || 0) {
+
+                    var InputData = {
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                        TransMode: ConvTransMode,
+                        ICDate: $thisForm.find('[name="ICDate"]').val(),
+                        ICMode: $thisForm.find('[name="ICMode"]').val(),
+                        FK_Department: $thisForm.find('[name="DepartmentID"]').val(),
+                        FK_Product: $thisForm.find('[name="FK_Product"]').val(),
+                        FK_ItemConversion: $thisForm.find('[name="ID_ItemConversion"]').val(),
+                        ItemConversionSubDetails: ItemDetails,
+                        LastID: LastID_ItemConversion
+                    }
+                    clearSessionValue(LastIDSessionKey);
+                    let _ActionUrl = "";
+                    if (actiontype == "Add") { _ActionUrl = "@Url.Action("AddItemConversiondata", "ItemConversion")"; } else { _ActionUrl = "@Url.Action("UpdateItemConversiondata", "ItemConversion")"; }
+
+                    $.ajax({
+                        url: (actiontype == "Add") ? "@Url.Action("AddItemConversiondata", "ItemConversion")" : "@Url.Action("UpdateItemConversiondata", "ItemConversion")",
+                        type: "POST",
+                        data: InputData,
+                        dataType: "json",
+                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                        success: function (ajaxOutput) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                                let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                if (onSuccess) {
+                                    window[onSuccess]();
+                                }
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+
+                            }
+                        },
+                        complete: function () {
+                            $(ele).prop('disabled', false);
+                        }
+
+                    });
+                }
+                else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Select Conversion Date' })
+                }
+
+            }
+
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': ' Conversion Stock should be less than or equal to Actual Stock' })
+        }
+
+        }
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message':'Please Add at least one data.' })
+        }
+
+    }
+    function ResetButton(ele) {
+        ItemConversion_initLoad();
+    }
+    function StockCalc(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Crntrow = $(ele).closest("tr");
+        let amtElems = parseFloat($(ele).val()) || 0; // Parse input value as a float or default to 0
+        let AcStock = parseFloat(Crntrow.find('.ActStock input').val()) || 0; // Parse AcStock as a float or default to 0
+
+        if (amtElems <= 0) {
+            // Handle the case when amtElems is 0 or less
+            var $Checkbox = Crntrow.find('.ChkProd input[type="checkbox"]');
+            $Checkbox.prop('checked', false);
+            return true;
+        } else if (amtElems <= AcStock) {
+            // Handle the case when amtElems is less than or equal to AcStock
+            var $Checkbox1 = Crntrow.find('.ChkProd input[type="checkbox"]');
+            $Checkbox1.prop('checked', true);
+            return true;
+        } else if (amtElems > AcStock) {
+            // Handle the case when amtElems is greater than AcStock
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Conversion Stock should be less than or equal to Actual Stock' });
+            $(ele).val(AcStock);
+            return false;
+        } else {
+            // Handle other conditions here
+            // ...
+        }
+    }
+    function isNumberKey(evt) {
+      
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 46 || charCode > 57))
+            return false;
+
+        return true;
+    }
+    function decimalpnt(ele, id, range) {
+        //console.log(ele, 'ele');
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+    function filterSpecialCharacters(event) {
+        var input = event.target;
+        var keyCode = event.which || event.keyCode;
+        // Check if the pressed key is the pipe symbol (|)
+        if (String.fromCharCode(keyCode) === '|') {
+            // Prevent the default action of inserting the character
+            event.preventDefault();
+            
+        }
+    }
+    function getfunction(ele) {     
+        $("#itemCTbody tr").remove();
+        document.getElementById('itemCid').style.display = 'none';
+        $("#icmod").attr("disabled", false);
+        $("#iddept").attr("disabled", false);
+    }
+    function modulechange(ele, val) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name="FK_Product"]').val('');
+        $thisForm.find('[name="ProductName"]').val('');
+
+        if (val == 2) {
+            $('#id_item_show').hide();
+            document.getElementById('id_conv_Pro').style.display = 'block';
+        }
+        else {
+            document.getElementById('id_conv_Pro').style.display = 'none';
+            $('#id_item_show').show();
+        }
+    }
+    function getfunctionAssign(ele) {
+  
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $("#icmod").attr("disabled", true);
+        $("#iddept").attr("disabled", true);
+
+        let conpro = $thisForm.find('[name="ProductID"]').val();
+        let Actpro = $thisForm.find('[name="FK_Product"]').val();
+        let stkid = $thisForm.find('[name="StockId"]').val();
+        let curitem = $thisForm.find('[name="CurrentStock1R"]').val();
+        let ProductNme = $thisForm.find('[name="ProName"]').val();
+        let Department = $thisForm.find('[name="Department"]').val();
+
+
+        if (Actpro > 0) {
+            if (conpro > 0) {
+                if (Actpro != conpro) {
+
+                    var ProAl;
+                    var isValid = true;
+                    const Arr = [];
+                    $('#itemCTbody tr').each(function () {
+                        ProAl = $(this).find('.FK_prod').text();
+                        Arr.push(ProAl);
+                    });
+
+                    if (Arr.includes(conpro)) {
+                        isValid = false;
+                        $thisForm.find('[name="ProductID"]').val('');
+                        $thisForm.find('[name="ProName"]').val('');
+                    }
+
+                    if (isValid) {
+                        var itdata = {
+                            Proid: conpro,
+                            stockId: stkid,
+                            Stock: curitem,
+                            ProductNme: ProductNme,
+                            Department: Department
+                        }
+                        fillgriditem(itdata)
+
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Already Exist' });
+                    }
+
+                }
+                else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Product and Conversion Product must be different' });
+                    $thisForm.find('[name="ProductID"]').val('');
+                    $thisForm.find('[name="ProName"]').val('');
+                }
+
+            }
+
+        }
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please select Product' });
+            $thisForm.find('[name="ProductID"]').val('');
+            $thisForm.find('[name="ProName"]').val('');
+        }
+    }
+    function fillgriditem(data) {
+
+        let $thisForm = $('[perfect-class="form"]');
+
+        if (data) {
+
+            document.getElementById('itemCid').style.display = 'block';
+            let $tbody1 = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+            $("#icmod").attr("disabled", true);
+            $("#iddept").attr("disabled", true);
+
+             //$.each(data, function (i, value) {
+
+                let rowCount ;   //= (i + 1);
+                let $row = $('<tr/>', { id: rowCount, class: "trvalue" });
+
+                $row.append($('<td>', { class: "ChkProd" }).html(
+                    $('<label>').append(
+                        $('<input />', {
+                            type: 'checkbox',
+                            name: 'ItemCheckPro',
+                            'perfect-class': 'formCheckInput',
+                            'perfect-ctype': "checkbox",
+                            checked: 'checked' // Add the checked attribute here
+                        })
+                    ).append('') // Replace '' with your desired label text
+                        .on('change', function () {
+
+                            var $actstock = $(this).closest('tr').find('.ActStock input[type="text"]').val();
+                            var constock = $(this).closest('tr').find('.ConStock input[type="text"]');
+
+                            if (!$(this).is(':checked') && constock.val() == 0) {
+
+                                constock.val($actstock)
+                            }
+                            else if (!$(this).is(':checked') && constock.val() != 0) {
+                                constock.val(0)
+                            }
+                            else if ($(this).is(':checked') && constock.val() != 0) {
+                                constock.val(0)
+                            }
+                            else {
+                                constock.val(0)
+                            }
+                        })
+                ))
+
+                        .append($('<td>', { class: "FK_prod", style: "display:none" }).text(data.Proid))
+                        .append($('<td>', { class: "Prod", style: "max-width:200px;" }).text(data.ProductNme))
+                        .append($('<td>', { class: "fk_stk", style: "display:none" }).text(data.stockId))
+                        .append($('<td>', { class: "fk_dept" }).text(data.Department))
+                        .append($('<td>', { class: "ActStock" }).html(
+                                $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '6', max: '100', name: 'ICActualStock', id: 'insP', readonly: 'readonly' })
+                                .val(data.Stock)
+                        ))
+                    .append($('<td>', { class: "ConStock" }).html(
+                        $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '12', name: "ICconvertStock", id: "Iamount" })
+                            .val(data.Stock)
+                            .keypress(function () { return isNumberKey(event) })
+                            .on('change', function () {
+                                StockCalc(this);
+                            })
+                            .on('input', function () {
+                                decimalpnt(this, 'Iamount', 3)
+                            })
+
+                    ))
+                    .append($('<td>', { class: "ItRmrk" }).html(
+                        $('<input/>', {
+                            type: 'text',
+                            class: 'form-control text-left',
+                            maxlength: '500',
+                            name: "ICRemark",
+                            id: "Rmrkid",
+                            // You can set an initial value for the remark here if needed
+                            // value: 'Initial Remark Value'
+                        })
+                        .keypress(function () {  filterSpecialCharacters(event) })
+
+                    ))
+
+                    .append($('<td>', { class: "DeleteRow" }).html(
+                        $('<button/>', {
+                            type: 'button',
+                            class: 'fa fa-trash btnPerfectDelete',
+                            text: ''
+                        }).on('click', function () {
+                            $(this).closest('tr').remove();
+                            if ($('#itemCTbody tr').length == 0) {
+                                document.getElementById('itemCid').style.display = 'none';
+                            }
+                        })
+                    ));
+
+
+
+            $tbody1.append($row);
+            $thisForm.find('[name="ProductID"]').val('');
+            $thisForm.find('[name="ProName"]').val('');
+
+            //});
+
+
+
+
+
+        }
+
+    }
+   
+</script>

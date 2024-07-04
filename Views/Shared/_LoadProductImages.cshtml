@@ -1,0 +1,380 @@
+﻿
+
+@model PerfectWebERP.Models.ProductModel.ProductImages
+<style type="text/css">
+    .img-thumb {
+        max-height: 75px;
+        border: 2px solid none;
+        border-radius: 3px;
+        padding: 1px;
+        cursor: pointer;
+    }
+
+    .img-thumb-wrapper {
+        display: inline-block;
+        margin: 10px 10px 0 0;
+    }
+
+    .remove {
+        display: block;       
+        border: 1px solid none;
+        color: white;
+        text-align: center;
+        cursor: pointer;
+    }
+
+        .remove:hover {
+            background: white;
+            color: black;
+        }
+
+        /*new*/
+    .product-card {
+        width: 380px;
+        position: relative;
+        box-shadow: 0 2px 7px #dfdfdf;       
+        background: #fafafa;
+    }
+
+    .badge {
+        position: absolute;
+        left: 0;
+        top: 20px;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-weight: 700;
+        background: red;
+        color: #fff;
+        padding: 3px 10px;
+    }
+
+    .product-tumb {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        /*padding: 50px;*/
+        background: #f0f0f0;
+    }
+
+        .product-tumb img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+    .product-details {
+        padding: 5px;
+    }
+
+    .product-catagory {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #ccc;
+        margin-bottom: 18px;
+    }
+
+    .product-details h4 a {
+        font-weight: 500;
+        display: block;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+        color: #363636;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+        .product-details h4 a:hover {
+            color: #fbb72c;
+        }
+
+    .product-details p {
+        font-size: 15px;
+        line-height: 22px;
+        margin-bottom: 18px;
+        color: #999;
+    }
+
+    .product-bottom-details {
+        overflow: hidden;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+        .product-bottom-details div {
+            float: left;
+            width: 50%;
+        }
+
+    .product-price {
+        font-size: 18px;
+        color: #fbb72c;
+        font-weight: 600;
+    }
+
+        .product-price small {
+            font-size: 80%;
+            font-weight: 400;
+            text-decoration: line-through;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+    .product-links {
+        text-align: right;
+    }
+
+        .product-links a {
+            display: inline-block;
+            margin-left: 5px;
+            color: #e1e1e1;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+            .product-links a:hover {
+                color: #fbb72c;
+            }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title col-12">Product Images</h4>
+    </div>
+    <div class="card-body" style="min-height: 500px;">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="divHeader">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Category</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string" name="FK_Category" id="FK_Category" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearImages(this)">
+                                        <option value="">Please Select </option>
+                                        @if (!(Model.CategoryList is null))
+                                        {
+                                            foreach (var categorylist in Model.CategoryList)
+                                            {
+                                                <option value="@categorylist.FK_Category">@categorylist.Category</option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Product</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="Product" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="FK_Product" class="perfectValidate_string" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,85,'Product List',[],['MinRate','MaxRate'])" Criterea1="FK_Category" Criterea2="0" BindName="Product" BindVal="FK_Product" Function="1"></button>
+                                        </div>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Upload</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="files" name="files[]" multiple class="form-control" accept="image/*" />
+                                    <span style="font-size: x-small;">(Only allow .jpeg , .jpg and .png files)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="divBody">
+                    <div class="row" id="contentPanel" name="contentPanel">
+
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">              
+                @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                {
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_update(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                }
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+      
+    </div>
+</div>
+
+<script>
+  
+    $(document).ready(function () {
+      
+        initFunctions('form');
+       
+        if (window.File && window.FileList && window.FileReader) {
+            $("#files").on("change", function (e) {
+                var files = e.target.files,
+                    filesLength = files.length;
+
+               
+                for (let i = 0; i < filesLength; i++) {
+                    let f = files[i]
+                    let filename = f.name
+                    let extension = filename.substr((filename.lastIndexOf('.') + 1)).trim().toLowerCase();
+                    if (extension == "jpeg" || extension == "jpg" || extension == "png") {
+                        let fileReader = new FileReader();
+                        fileReader.onload = (function (e) {
+                            $("#contentPanel").append(`<div class="product-card">
+		                                            <div class="product-tumb">
+			                                            <img  class="img-thumb" src="${e.target.result}" filename="${filename}" alt="">
+		                                            </div>
+		                                            <div class="product-details">
+                                                            <span><div class="form-check form-check-inline" perfect-class="formCheck">
+                                                    <label class="form-check-label" perfect-class="formCheckLabel">
+                                                        <span perfect-class="formCheckInputText"><i class="fa fa-play" aria-hidden="true"></i></span>
+                                                    </label>&nbsp;&nbsp; <input type="checkbox" id="chkDefault" name="chkDefault" class="form-check-input chkDefault" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_checkOnlyone(this);" title="To set default image">
+                                                </div></span>
+                                                           <span style="float: right;color: red;" class="remove" title="To delete image"><i class="fa fa-trash" aria-hidden="true"></i></span>
+			                                            </div>
+		                                            </div>
+	                                            </div>`);
+                            $(".remove").click(function () {
+                                $(this).closest('.product-details').closest('.product-card').remove();
+                            });
+                        });
+                        fileReader.readAsDataURL(f);
+                    }                    
+                }
+               
+            });
+        } 
+    });
+    function fn_checkOnlyone(ele) {       
+        $('.chkDefault').not(ele).prop('checked', false);  
+    }
+    function fn_update(ele) {    
+        if ($('.chkDefault').filter(':checked').length > 0) {
+            var ImageData = []
+            $('.img-thumb').each(function () {
+                let imageDtls = {};
+                imageDtls['ImageData'] = $(this).attr('src');
+                imageDtls['FileName'] = $(this).attr('filename');
+                imageDtls['DefaultImage'] = $(this).closest('.product-tumb').closest('.product-card').find('[type="checkbox"]').is(':checked') ? 1 : 0;
+                ImageData.push(imageDtls);
+            });
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            if ($thisForm.valid()) {
+                $(ele).prop('disabled', true);
+
+                let inputData =
+                {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    'FK_Product': $thisForm.find('[name=FK_Product]').val(),
+                    'ImageList': ImageData
+                };
+                $.ajax({
+                    url: "@Url.Action("SaveImages", "Product")",
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput.Process.IsProcess) {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': "Saved Successfully" });
+                            });
+                            let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+                            if (onSuccess) {
+                                window[onSuccess]();
+                            }
+                            loadProductImagesForm()
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                $(ele).prop('disabled', false);
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $(ele).prop('disabled', false);
+                    }
+                });
+            }
+        }
+        else {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please select any one to set default image' });
+        }       
+    }
+    function clearImages(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=Product]').val("")
+        $thisForm.find('[name=FK_Product]').val(0)        
+        $("#contentPanel").empty(); 
+    }
+    function getfunction(ele) {      
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $("#contentPanel").empty();          
+          let pageUrl = '@Url.Action("GetProductDataWithImage", "Product")';
+          $.ajax({
+                 url: pageUrl,
+                 type: "POST",
+                 data: {
+                     __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),                     
+                     'FK_Product': $thisForm.find('[name=FK_Product]').val()
+                 },
+                 dataType: "json",
+                 contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                 success: function (ajaxOutput) {
+                   
+                     if (ajaxOutput.Process.IsProcess) {
+                         $.each(ajaxOutput.Data, function (key, value) {                          
+                             let checked = value.DefaultImage ? "checked" : "";                           
+                             $("#contentPanel").append(`<div class="product-card">
+		                                            <div class="product-tumb">
+			                                            <img  class="img-thumb" src="${value.ImageData}" filename="${value.FileName}" alt="">
+		                                            </div>
+		                                            <div class="product-details">
+                                                            <span><div class="form-check form-check-inline" perfect-class="formCheck">
+                                                    <label class="form-check-label" perfect-class="formCheckLabel">
+                                                        <span perfect-class="formCheckInputText"><i class="fa fa-play" aria-hidden="true"></i></span>
+                                                    </label> &nbsp;&nbsp;<input type="checkbox" id="chkDefault" name="chkDefault" class="form-check-input chkDefault" onchange="fn_checkOnlyone(this);" title="To set default image" ${checked}>
+                                                </div></span>
+                                                           <span style="float: right;color: red;" class="remove" title="To delete image"><i class="fa fa-trash" aria-hidden="true"></i></span>
+			                                            </div>
+		                                            </div>
+	                                            </div>`);                           
+                         });
+                         $(".remove").click(function () {
+                             $(this).closest('.product-details').closest('.product-card').remove();
+                         });   
+                     }
+                 },
+                 complete: function () {
+
+                 }
+             });
+    }
+    function ResetButton() {
+        loadProductImagesForm();      
+    }
+    
+</script>
+
+
+

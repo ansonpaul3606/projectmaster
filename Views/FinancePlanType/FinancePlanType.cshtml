@@ -1,0 +1,342 @@
+﻿
+@{
+    ViewBag.Title = "FinancePlanType";
+}
+<div class="container-fluid">
+    <div class="row">
+        @Html.AntiForgeryToken()
+        <div class="col-lg-12" id="financePlanType-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+        var FinanceTypeTransMode = "";
+        var validationMessage = {
+            'FinancePlanName': {
+                'required': 'Please enter Name',
+                'stringonly': 'Invalid Name entered'
+            },
+            'FinancePlanShortName': {
+                'required': 'Please enter Short Name',
+                'stringonly': 'Invalid Short Name'
+            },
+            'FinancePeriodType': {
+                'required': 'Please select a Period Type',
+                'stringonly': 'Invalid Period Type selected'
+            },
+            'FinanceInstallmentPeriod': {
+                'required': 'Please enter Installment Period',
+                'numberonly': 'Invalid Installment Period entered'
+            },
+            'FinanceDuration': {
+                'required': 'Please enter Duration',
+                'digits': 'Invalid Duration entered'
+            },
+           
+        }
+
+        const $formContainer = $('#financePlanType-form');
+
+        $(document).ready(function () {
+           // $('#jq-sidemenu').hide();
+            FinancePlanInitialLoad();
+
+        });
+
+        function FinancePlanInitialLoad() {
+            //debugger;
+            getSessionValue("V0dyMA5V87htwLjeLCCq2a7OsCm3u6wDfoaJJmGMVnc=", function (result) {
+                FinanceTypeTransMode = result;
+
+            @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadFinancePlanList(this); </text>
+              }
+            });
+            LoadFinancePlanform();
+        }
+
+        function LoadFinancePlanform() {
+            $formContainer.load('@Url.Action("LoadFinancePlan", "FinancePlanType")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });                
+                    $thisForm.attr('perfect-onFormSuccess', 'FinancePlanInitialLoad');            
+                });
+        };
+
+
+        function loadFinancePlanList(ele) {
+            debugger;
+        let $sidemenu = $sideMenuOptions.body;
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Finance Plan Type List');
+          let pageUrl = '@Url.Action("GetFinancePlanList", "FinancePlanType")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: FinanceTypeTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {if (ajaxOutput.Process.IsProcess) {
+                              console.log('FinancePlan', ajaxOutput);
+                    $sidemenu.find('.jq_sidemenu_title').text("FinancePlanType");
+                             $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFinancePlanList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: FinanceTypeTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                        $sidemenu.find('.jq_sidemenu_title').text("FinancePlanType");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadFinancePlanList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+             },
+            complete: function () {
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+            },
+        }
+    }
+
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+                @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+                <text> { displayName: "View", action: editFinancePlan },</text>    }
+
+             { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteFinancePlan },</text>
+              }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "FinancePlanName", "FinancePlanShortName",  "FinanceDuration","FinancePeriodType"],
+        hideColumn: [],
+        rowClickAction: editFinancePlan,
+        //serialNo: true,
+        renameHeader: {
+            "SlNo": "SL NO", "FinancePlanName": "Name", "FinancePlanShortName": "Short Name",  "FinanceDuration": "Duration", "FinancePeriodType": "Period Type" }
+
+    };
+
+
+        function editFinancePlan() {
+            debugger;
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+            //console.log("Saved data", Saveddata);
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+                
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_FinancePlanType: Saveddata.FinancePlanID
+                
+            };
+           
+            $.ajax({
+                url: '@Url.Action("GetFinancePlanInfo", "FinancePlanType")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+                                console.log('>_ Inside GetFinancePlanInfo', ajaxOutput)
+
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFinancePlan", "FinancePlanType")", function () {
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].FinancePlanName)
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].FinancePlanShortName)
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].ProductID)
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].FinanceInstallmentPeriod)
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].FinanceDuration)
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].FinancePeriod)
+
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] });
+                               
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'FinancePlanInitialLoad');
+
+                                  
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                    $thisForm.find('[name="FinancePlanID"]').val(ajaxOutput.Data[0].FinancePlanID),
+                                    $thisForm.find('[name="FinancePlanName"]').val(ajaxOutput.Data[0].FinancePlanName),
+                                    $thisForm.find('[name="FinancePlanShortName"]').val(ajaxOutput.Data[0].FinancePlanShortName)
+                                    $thisForm.find('[name="ProductID"]').val(ajaxOutput.Data[0].ProductID)
+                                    $thisForm.find('[name="FinanceInstallmentPeriod"]').val(ajaxOutput.Data[0].FinanceInstallmentPeriod)
+                                    $thisForm.find('[name="FinanceDuration"]').val(ajaxOutput.Data[0].FinanceDuration)
+                                    $thisForm.find('[name="FinancePeriodType"]').val(ajaxOutput.Data[0].FinancePeriod)
+                                    
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetFinancePlanInfo :false')
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+
+        }
+
+
+        function deleteFinancePlan() {
+           // debugger;
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            console.log('Delete function', Saveddata)
+
+               $.ajax({
+                   url: "@Url.Action("GetFinancePlanReasonList", "FinancePlanType")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.FinancePlanName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_FinancePlanType: Saveddata['FinancePlanID'],
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteFinancePlanInfo", "FinancePlanType")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+    </script>
+}
+

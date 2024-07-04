@@ -1,0 +1,481 @@
+﻿
+@model List<PerfectWebERP.Models.CountryModel.CountryView>
+@{
+    ViewBag.Title = "Sample";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string transMode = ViewBag.transMode;
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Sample Report</h4>
+                </div>
+                <div class="card-body">
+                    <div class="basic-form">
+
+                        <div class="col-xl-6">
+                            <!-- State -->
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-lg-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">State</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-lg-8">
+                                    <div class="input-group">
+                                        <select class="form-control " id="countryselect" name="StateID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                            <option value="0">All</option>
+                                            @if (!(Model is null))
+                                            {
+                                                foreach (var country in Model)
+                                                {
+                                                    <option value="@country.CountryID">@country.CountryName</option>
+                                                }
+                                            }
+                                        </select>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="button" onclick="getstatereport()">Button</button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!-- State -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+          
+
+        </div>
+    </div>
+
+
+</div>
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="customer-jq-customerFormContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@*<button class="btn btn-primary" id="testingButton">Test button</button>*@
+
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        function getstatereport(){
+            let country = $('#countryselect').val();
+
+            window.open('@Url.Action("GetSampleReport", "Sample")?countryID=' + country)
+        }
+
+
+        
+        const _transModep = '@ViewBag.transMode';
+       
+
+        $('#testingButton').click(function () {
+           // alert('This alert');
+            //var districtModel = fullSearchOption({ data: "ssss" });
+            //districtModel.then(function (ret) {
+            //    if (ret) {
+            //        console.log(ret);
+            //    }
+            //    else {
+            //        console.log(ret);
+            //    }
+            //});
+            fullSearchOption({ fun:test })
+
+        });
+        function test(callback) {
+
+            let a = { "Name": "its name", "Anotheranme": "its anothername" };
+
+            callback(a)
+
+        }
+
+
+        $('#customer-jq-customerFormContainer').load('@Url.Action("GetCustomerForm", "Home")', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.attr('perfect-onFormSuccess', 'loadCustomerList');
+            initFunctions($thisForm);
+        });
+
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: editCustomer },
+                    { displayName: "Go to", action: "" },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: deleteCustomer
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            hideColumn: ["CustomerID","PlaceID","StateID","DistrictID","CustomerTitleID"],
+            isDateType: ["DateOfBirth","CustomerDate"],
+            rowClickAction: () => { alert("clicked row") }
+        };
+
+        //Load on page ready
+        $(document).ready(function () {
+            loadCustomerList();
+
+
+        });
+
+        function customerInitialLoad() {
+            loadCustomerList();
+            $('#customer-jq-customerFormContainer').load('@Url.Action("GetCustomerForm", "Home")', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.attr('perfect-onFormSuccess', 'customerInitialLoad');
+        });
+        }
+
+
+        function loadCustomerList() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Customer List');
+        //    alert("ss")
+
+            $.ajax({
+                url: "@Url.Action("GetCustomerList", "Home")",
+                type: "Get",
+                headers: { "token_key": "1234" },
+                //data: { branchID: id },
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+
+                    if (data.Process.IsProcess) {
+
+                        $.each(data.Process.Message, function (key, value) {
+                            //toastr.success(value, "Success");
+                            //NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                        });
+                    }
+                    else {
+                        $.each(data.Process.Message, function (key, value) {
+                           // toastr.warning(value, "Error");
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+
+                   // console.log('Employee', data);
+                    $sidemenu.find('.jq_sidemenu_title').text("Employee list");
+
+                    $sidemenu.html(pft_table_createtable(data.Data, tableOptions))
+                    $sidemenu.find('table').dataTable({ paging: true });
+
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+
+
+
+
+        //$('#confpopupbtn').click(function () {
+        //    let confirmationDialogBoxOption = { heading: "This is dialog box main heading(text)", body: "This is dialog box body content(text can change to html if required)", cancel: "Cancel button text", confirm: "Confirm button text" };
+        //    var res = ConfirmDialog(confirmationDialogBoxOption);
+
+        //    res.then(function (ret) {
+        //        if (ret) {
+        //            toastr.success("Clicked yes in the comfirmation box", "Confirmation Box");
+        //        }
+        //        else {
+        //            toastr.warning("Clicked no in comfirmation box", "Confirmation box");
+        //        }
+
+        //    });
+
+        //});
+
+
+
+        function deleteCustomer() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                CustomerID: Saveddata.CustomerID
+            };
+
+            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.CustomerName+" ?", cancel: "No", confirm: "Yes" };
+            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+            //$row.remove();
+            //let $table = $row.closest('table').dataTable()
+            //$table.fnClearTable()
+
+
+
+            res.then(function (ret) {
+                if (ret) {
+                   // toastr.success("Clicked yes in the comfirmation box", "Confirmation Box in table");
+
+                    $.ajax({
+                        url: "@Url.Action("DeleteCustomerInfo", "Home")",
+                        type: "POST",
+                        // headers: { "token_key": "1234" },
+                        data: JSON.stringify(inputData),
+                        // dataType: "json",
+                        contentType: "application/json",
+                        success: function (data) {
+
+                            if (data.Process.IsProcess) {
+
+                                $.each(data.Process.Message, function (key, value) {
+                                    //toastr.success(value, "Success");
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                                $('.dataTable tr').removeClass("SelectForDelete");
+                            }
+                            else {
+                                $.each(data.Process.Message, function (key, value) {
+                                   // toastr.warning(value, "Error");
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+                            //row.remove();
+                            //$(row).closest('table').reload()
+                            loadCustomerList()
+                        }
+                    });
+
+
+                }
+                else {
+                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                    NotificationMessage({ 'message': 'No option selected' });
+                }
+
+            });
+        };
+
+
+
+
+        function editCustomer() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                CustomerID: Saveddata.CustomerID
+            };
+
+
+
+
+            //method 1
+             @*$.ajax({
+                url: "@Url.Action("GetCustomerForm2", "Home")",
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),
+               // dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+                    //  console.log('Employee', data)
+                    $sideMenuOptions.close();
+                    $('#customer-jq-customerFormContainer').html(data);
+                },
+                //complete: function () {
+
+                //}
+
+            });*@
+
+            //method 2
+
+
+                $.ajax({
+                url: "@Url.Action("GetCustomerInfo", "Home")",
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),
+               // dataType: "json",
+                contentType: "application/json",
+                    success: function (data) {
+
+                        console.log('>_ Inside GetCustomerInfo',data)
+
+                        if (data.Process.IsProcess) {
+                            console.log('>_ Inside GetCustomerInfo :true')
+                            //$.each(data.Process.Message, function (key, value) {
+                               // toastr.success(value, "Success");
+                            //NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                            //});
+
+                            $sideMenuOptions.close();
+                            $('#customer-jq-customerFormContainer').load('@Url.Action("GetCustomerForm", "Home")', function () {
+
+                           $(this).find('[perfect-class=formTitle]').text('update : ' + data.Data[0].CustomerName)
+
+                           let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                $thisForm.data({ pData: data.Data[0] });
+
+                           $thisForm.attr('perfect-onFormSuccess', 'customerInitialLoad');
+
+                           $thisForm.find('button[name=add]').addClass('d-none');
+                           $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                //---for temp purpose
+                                data.Data.District = Saveddata.District
+
+                                $.each(data.Data[0], function (oneKey, onevalue) {
+                               // $.each(data, function (oneKey, onevalue) {
+
+
+                               if ($thisForm.find('[name=' + oneKey + ']').attr('perfect-ctype') == 'date') {
+                                   console.log(oneKey + '|' + onevalue + "|" + moment(onevalue).format('YYYY-MM-DD'));
+                                   $thisForm.find('[name=' + oneKey + ']').val(moment(onevalue).format('YYYY-MM-DD'));
+                               }
+                               else if ($thisForm.find('[name=' + oneKey + ']').attr('perfect-ctype') == 'select') {
+                                   $thisForm.find('[name=' + oneKey + ']').val(onevalue).selectpicker('refresh');
+                               }
+                               else {
+                                   console.log(oneKey + '|' + onevalue);
+                                   $thisForm.find('[name=' + oneKey + ']').val(onevalue);
+                               }
+
+
+
+                           });
+
+                        });
+
+                        }
+                        else {
+                            console.log('>_ Inside GetCustomerInfo :false')
+
+                            $.each(data.Process.Message, function (key, value) {
+                               // toastr.warning(value, "Error");
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+
+
+
+                },
+                //complete: function () {
+
+                //}
+
+            });
+
+
+
+
+
+        }
+
+
+
+
+
+        @*function edittablerow(e) {
+            let row = $(this).closest('tr');
+
+            console.log('Edit click', row.data());
+            let newvalue = {};
+            $.each(row.data(), function (keyOne, valOne) {
+
+                if (typeof valOne === 'number') {
+                    console.log(keyOne, valOne)
+                    newvalue[keyOne] = valOne
+                }
+                else {
+                    newvalue[keyOne] = "new-" + valOne
+                }
+
+
+            });
+
+            //var inputData = row.data()
+
+
+            var inputData = {
+                newValue: newvalue,
+                oldValue: row.data()
+            };
+
+            console.log(inputData);
+
+             $.ajax({
+                url: "@Url.Action("InsertSampleData", "Home")",
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+                    console.log('Employee', data);
+
+                    let confirmationDialogBoxOption = { heading: "Add new data?", body: "Do you want to replace with new data", cancel: "No", confirm: "Yes" };
+                    var res = ConfirmDialog(confirmationDialogBoxOption);
+                    res.then(function (ret) {
+                        if (ret) {
+                            // row.replaceWith(, {})
+                            console.log(data.newVale)
+                            let a = pft_table_createRowWithData(data.newVale, tableOptions);
+
+                            row.replaceWith(a)
+                            toastr.success("Clicked yes in the comfirmation box", "Confirmation Box in table");
+                        }
+                        else {
+                            toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                        }
+
+                    });
+
+                },
+                //complete: function () {
+
+                //}
+
+            });
+        };*@
+
+    </script>
+
+
+
+}

@@ -1,0 +1,411 @@
+﻿
+@model PerfectWebERP.Models.ReportSettingModel.ReportSettingList
+<style>
+    .dataTables_wrapper {
+        min-width: 100%;
+        overflow-x: auto;
+    }
+    .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+    .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Report Viewer</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control perfectValidate_date" id="FromDate" name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control perfectValidate_date" id="ToDate" name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label>Dashboard Report</label>
+                            <div class="input-group">
+                                <select class="form-control product" name="Report" id="Report" data-id="Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    @if (!(Model.reportNames is null))
+                                    {
+                                        foreach (var branch in Model.reportNames)
+                                        {
+                                            <option value="@branch.ReptId">@branch.RptName</option>
+                                        }
+                                    }
+                                </select>
+                                <div id="Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Select Dashboard Report</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="col-sm-12"></label>
+
+                        <button style="margin-top:15px;" type="button" class="btn btn-xs btn-primary" onclick="fn_reportviewlist(this)">
+                            Show
+                        </button>
+                        &nbsp;&nbsp;
+                        <button style="margin-top:15px;" type="button" class="btn btn-xs btn-danger">
+                            Clear
+                        </button>
+                    </div>
+
+                </div>
+                <hr>
+
+                <div class="row col-md-12" id="test1"></div>
+
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    //load fn
+    var Data;
+    var $thisForm;
+    $(document).ready(function () {
+        var now = new Date();
+
+        var day = ("0" + now.getDate()).slice(-2);
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+        var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+        $('#FromDate').val(today);
+        $('#ToDate').val(today);
+    });
+    (function () {
+
+
+    })();
+
+     function fn_reportviewlist(ele)
+     {
+
+          $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+         var obj = {
+             FromDate: $thisForm.find('[name=FromDate]').val(),
+             ToDate: $thisForm.find('[name=ToDate]').val(),
+             Report: $thisForm.find('[name=Report]').val()
+         }
+         //alert($thisForm.find('[name=FromDate]').val());
+
+         $.ajax({
+                 url: "@Url.Action("getReportViewList", "ReportSetting")",
+                type: "POST",
+                data: obj ,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+             success: function (ajaxOutput) {
+                 console.log(ajaxOutput)
+                 if (ajaxOutput.Process.IsProcess) {
+
+                     if (ajaxOutput.Data != null) {
+                         document.querySelector('#exppdf').style.display = "block";
+                     } else {
+                         document.querySelector('#exppdf').style.display = "none";
+                     }
+                     let table = JSON.parse(ajaxOutput.Data);
+                     Data = JSON.parse(ajaxOutput.Data);
+                     console.log(Data.dtable,'Data')
+                     ////<tr>
+                     //    $.each(table[0], function (tkey, tval) {
+                     //        //th -->tkey
+
+                     //    });
+                     //    $.each(table, function (key,value) {
+                     //        //tr
+
+                     //        $.each(value, function (tkey,tval) {
+                     //            //td  tval
+
+                     //        });
+
+                     //    });
+                     let Reporttitl = $thisForm.find('[name="Report"] option:selected').text();
+                     $('#test1').html(pft_table_createtable(table.dtable, { serialNo: true }))
+                     $('#test1').find('table').DataTable({
+
+                       //  lengthChange: !1, dom: 'Bfrtip', buttons: ["copy", "excel", "pdf", "copy"]
+                         //lengthChange: !1, dom: 'Bfrtip',
+                         //buttons: [
+
+                         //    {
+                         //        extend: 'copyHtml5',
+                         //        title: Reporttitl,
+                         //        text: '<i class="fa fa-files-o" style="font-size:20px"></i>'
+
+                         //    },
+
+                         //    {
+
+                         //        extend: 'excelHtml5',
+                         //        title: Reporttitl,
+                         //        text: '<i class="fa fa-file-excel-o" style="font-size:20px"></i>'
+                         //    },
+                         //    {
+                         //        extend: 'pdfHtml5',
+                         //        title: Reporttitl,
+                         //        orientation: 'landscape',
+                         //        pageSize: 'LEGAL',
+                         //        text: '<i class="fa fa-file-pdf-o" style="font-size:20px"></i>'
+
+
+                         //    }
+
+
+
+                         //],
+
+                     }).tooltip();
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+
+               }
+
+         });
+    }
+
+    function generatePdf(ele) {
+        var cdata;
+        
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    cdata = ajaxOutput;
+                },
+             complete: function () {
+                 
+                 var head = [];
+                 var ptableData = {};
+                 var columnStyles = {};
+                 let ReportName = "";
+                 debugger;
+
+                 //let $thisForm = $(ele).closest('[perfect-class="form"]');
+                 let ReportValue = $thisForm.find('[name=Report]').val();
+
+                 if (ReportValue == 11) {
+                     head = ["Sl No", "Country"];
+                     columnStyles = {
+                         //0: { cellWidth: 30, cellStyles: { overflow: 'linebreak' } },
+                         //1: { cellWidth: 290, cellStyles: { overflow: 'linebreak' } },
+                      
+                     };
+                     ptableData = {
+                         columns: [
+                             { title: "Country", dataKey: "Country" },
+                         ],
+                         rows: Data.dtable
+
+                     };
+                     ReportName = "Country List";
+                 } else if (ReportValue == 12) {
+                     head = ["Sl No", "Country", "District", "State"];
+                     columnStyles = {
+                         0: { cellWidth: 30, cellStyles: { overflow: 'linebreak' } },
+                         1: { cellWidth: 290, cellStyles: { overflow: 'linebreak' } },
+                         2: { cellWidth: 100, cellStyles: { overflow: 'linebreak' } },
+                         3: { cellWidth: 100, cellStyles: { overflow: 'linebreak' } }
+                     };
+                     ptableData = {
+                         columns: [
+                             { title: "District", dataKey: "District" },
+                             { title: "State", dataKey: "State" },
+                             { title: "Country", dataKey: "Country" }
+                         ],
+                         rows: Data.dtable
+
+                     };
+                     ReportName = "District List";
+                 } else if (ReportValue == 20) {
+                     head = ["Sl No", "State"];
+                     columnStyles = {
+                         //0: { cellWidth: 30, cellStyles: { overflow: 'linebreak' } },
+                         //1: { cellWidth: 290, cellStyles: { overflow: 'linebreak' } },
+                        
+                     };
+                     ptableData = {
+                         columns: [
+                             { title: "State", dataKey: "state" }
+                         ],
+                         rows: Data.dtable
+
+                     };
+                    // ReportName = "Powerpoint";
+                 } else if (ReportValue == 21) {
+                     head = ["Sl No", "State"];
+                     columnStyles = {
+                         //0: { cellWidth: 30, cellStyles: { overflow: 'linebreak' } },
+                         //1: { cellWidth: 290, cellStyles: { overflow: 'linebreak' } },
+                        
+                     };
+                     ptableData = {
+                         columns: [
+                             { title: "State", dataKey: "State" }
+                         ],
+                         rows: Data.dtable
+
+                     };
+                     ReportName = "State List";
+                 }
+
+                 exportPdf(ReportName, [head], cdata, "", "", ptableData, "", ReportName, "a4", "", columnStyles);
+                   
+                   //exportPdf(ptitle, phead, cdata, upperhead, footerdata, ptableData, grpvariable, filename, pageSize, tableOptions, columnStyles)
+
+             }
+         });
+    }
+
+    function onExell() {
+        var ReportName;
+        let ReportValue = $thisForm.find('[name=Report]').val();
+        if (ReportValue == 11) {
+            head = ["Sl No", "Country"];
+           
+            ptableData = {
+                columns: [
+                    { title: "Country", dataKey: "Country" },
+                ],
+                rows: Data.dtable
+
+            };
+            ReportName = "Country List";
+        } else if (ReportValue == 12) {
+            head = ["Sl No", "Country", "District", "State"];
+           
+            ptableData = {
+                columns: [
+                    { title: "District", dataKey: "District" },
+                    { title: "State", dataKey: "State" },
+                    { title: "Country", dataKey: "Country" }
+                ],
+                rows: Data.dtable
+
+            };
+            ReportName ="District List"
+        } else if (ReportValue == 20) {
+            head = ["Sl No", "State"];
+           
+            ptableData = {
+                columns: [
+                    { title: "State", dataKey: "state" }
+                ],
+                rows: Data.dtable
+
+            };
+            ReportName = "Powerpoint"
+        } else if (ReportValue == 21) {
+            head = ["Sl No", "State"];
+           
+            ptableData = {
+                columns: [
+                    { title: "State", dataKey: "State" }
+                ],
+                rows: Data.dtable
+
+            };
+            ReportName = "State List"
+        }
+
+       // let ReportName = `${LeadType} Report`;
+
+        generateExell(ReportName, [head], ptableData, "", "", ReportName);
+
+
+    }
+
+
+</script>
+
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>

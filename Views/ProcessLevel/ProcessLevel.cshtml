@@ -1,0 +1,325 @@
+﻿
+
+@{
+    ViewBag.Title = "Process Level";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_ProcessLevel_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts{
+
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#jq_ProcessLevel_formContainer');
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: fn_ProcessLevel_loadProcessLevelUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: fn_ProcessLevel_deleteProcessLevel},</text>
+
+              }
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","ProcessLevel", "ShortName"],
+            hideColumn: [],
+            rowClickAction: fn_ProcessLevel_loadProcessLevelUpdateForm,
+            //serialNo: true,
+            renameHeader: { "SlNo":"SL NO","ProcessLevel": "Name", "ShortName": "ShortName" }
+        };
+
+
+        // Initial load functions
+        $(document).ready(function () {
+
+            fn_ProcessLevel_initialload();
+        });
+
+
+        var validationMessage = {
+
+            'ProcessLevel': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+           
+        };
+
+        function fn_ProcessLevel_initialload() {
+
+             @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> fn_ProcessLevel_loadProcessLevel(this); </text>
+              }
+       
+            fn_ProcessLevel_loadProcessLevelAddForm();
+        }
+
+
+        function fn_ProcessLevel_loadProcessLevel() {
+           
+
+            $.ajax({
+
+
+                url: "@Url.Action("GetProcessLevelList", "ProcessLevel")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+
+                        $sideMenuOptions.title.find('h4').text('Process Level List');
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                    }
+                    else {
+                        //$.each(ajaxOutput.Process.Message, function (key, value) {
+                        //    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        //});
+                        //---no record
+                        if (ajaxOutput.Process.Status == 'NoData') { }
+                        else {
+                            //$.each(ajaxOutput.Process.Message, function (key, value) {
+                            //    //toastr.warning(value, "Error");
+                            //    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            //});
+                            //---no record
+                            if (ajaxOutput.Process.Status == 'NoData') { }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    //toastr.warning(value, "Error");
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                        //---no record
+                        }
+
+                        //---no record
+                    }
+
+                },
+                complete: function () {
+
+                }
+            });
+
+
+
+        };
+
+        function fn_ProcessLevel_loadProcessLevelAddForm() {
+
+            $formContainer.load('@Url.Action("LoadProcessLevelForm", "ProcessLevel")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'fn_ProcessLevel_initialload');
+
+               // initFunctions($thisForm);
+            });
+
+        }
+
+        function fn_ProcessLevel_loadProcessLevelUpdateForm() {
+
+
+    let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+    console.log('View click', saveddata)
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+
+        ProcessLevelID: saveddata.ProcessLevelID
+    };
+
+    $.ajax({
+      url: "@Url.Action("GetProcessLevelInfo", "ProcessLevel")",
+      type: "POST",
+        data: inputData,
+        contentType: "application/json",
+        contentType: "application/x-www-form-urlencoded; charset=utf-8",  //antiforgery token
+
+      success: function(ajaxOutput) {
+
+        if (ajaxOutput.Process.IsProcess) {
+          //process is success
+            $formContainer.load('@Url.Action("LoadProcessLevelForm", "ProcessLevel")', function () {
+                $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].ProcessLevel)
+              console.log('Inside load');
+
+              let $thisForm = $(this).find('[perfect-class="form"]');
+
+              $thisForm.validate({ messages: validationMessage });
+
+            //initFunctions($thisForm);
+           
+            $thisForm.data({
+              pData: ajaxOutput.Data[0]
+            });
+
+            // Fill fields
+              $thisForm.find('[name="ProcessLevel"]').val(ajaxOutput.Data[0]['ProcessLevel']);
+            //$thisForm.find('[name="EmployeeLevelID"]').val(ajaxOutput.Data[0]['EmployeeLevelID']).selectpicker('refresh');
+            $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0]['ShortName']);
+            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0]['SortOrder']);
+
+
+            // stuff to do after filling data
+            $sideMenuOptions.close(); //<---  Close side menu
+            $thisForm.find('button[name=add]').addClass('d-none'); //<--- hide add cunsomer button
+            $thisForm.find('button[name=update]').removeClass('d-none'); //<--- show update cunsomer button
+
+              $thisForm.attr('perfect-onFormSuccess', 'fn_ProcessLevel_initialload');
+
+          });
+        } else {
+          //Error occured
+          $.each(ajaxOutput.Process.Message, function(key, value) {
+            NotificationMessage({
+              'type': 'error',
+              'heading': 'Error',
+              'message': value
+            });
+          });
+        }
+      }
+    });
+  }
+
+
+
+        
+
+
+         // Function to delete customer
+        function fn_ProcessLevel_deleteProcessLevel() {
+             let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                ProcessLevelID: Saveddata['ProcessLevelID']
+
+            };
+            //console.log('Delete function', Saveddata)
+
+       
+            $.ajax({
+                url: "@Url.Action("GetProcessLeveleReasonList", "ProcessLevel")",
+                @*url: "@Url.Action("DeleteProcessLevel", "ProcessLevel")",*@
+
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                          
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.ProcessLevel + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                          
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        //CustomerTypeID: Saveddata.CustomerTypeID,
+                                        ProcessLevelID: Saveddata['ProcessLevelID'],
+
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteProcessLevel", "ProcessLevel")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",//antiforgery token changed json->x-www-form-urlencode...
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    //toastr.success(value, "Success");
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    // toastr.warning(value, "Error");
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                            //row.remove();
+                                            //$(row).closest('table').reload()
+                                            
+                           
+                                        }
+                                    });
+                                }
+                                else {
+                                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                       }
+                }
+
+            });
+
+        };
+
+    </script>
+
+
+}

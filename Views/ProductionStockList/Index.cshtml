@@ -1,0 +1,55 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Productionstocklist-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        const $formContainer = $('#Productionstocklist-form');
+        $(document).ready(function () {
+            ProductionStocklistInitialLoad();
+            $('#jq-sidemenu').hide();
+        });
+
+        function ProductionStocklistInitialLoad() {
+
+            $formContainer.load('@Url.Action("LoadProductionStocklistForm", "ProductionStockList")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                let branch =@ViewBag.FK_Branch;
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="DeliveryDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name=Quantity]').val(1);
+                $thisForm.attr('perfect-onFormSuccess', 'ProductionStocklistInitialLoad');
+                //document.querySelector('#R_DTablediv').style.display = "none";
+            });
+        };
+        var validationMessage = {
+
+
+            'FK_Product': {
+                'required': 'Please Select Product',
+                'digits': 'Please Enter valid Product'
+
+            },
+
+            'Quantity': {
+                'required': 'Please Enter Quantity'
+                
+            },
+        
+
+        };
+    </script>
+}
+
+

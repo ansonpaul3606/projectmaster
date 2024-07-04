@@ -1,0 +1,121 @@
+﻿
+@{
+    ViewBag.Title = "AMCMonitoring";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group row" perfect-class="formGroup">
+                <div class="col-xl-4"> </div>
+                <div class="col-xl-4"> </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="jq_LeadManagementIndex_formContainer">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_LeadManagementIndex_formContainer');
+    var LeadMgtTransMode = '';
+
+    $(document).ready(function () {
+        fn_LeadManagementIndex_initialLoad()
+
+        $('#jq-sidemenu').hide();
+
+    });
+
+    function fn_showFilter() {
+        $formContainer.find('.jq_leadgeneration_body').toggleClass('.d-none');
+    }
+
+    function fn_LeadManagementIndex_initialLoad() {
+        @*LeadMgtTransMode = '@ViewBag.TransMode';*@
+        fn_AMCMonitoringAddForm();
+    }
+
+
+    function fn_AMCMonitoringAddForm() {
+
+        $formContainer.load('@Url.Action("LoadFormAMCMonitoring", "AMCMonitoring")?mtd=@ViewBag.mtd', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+
+            $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+            $('[name=Demand]').val(30);
+           
+            $thisForm.attr('perfect-onFormSuccess', 'fn_LeadManagementIndex_initialLoad');
+            $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').addClass('d-none');
+            $thisForm.find('[name="FK_Branch"]').val(@ViewBag.FK_Branch).selectpicker('refresh');
+            let inputData = {                
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'AMCNo': $('[name=AMCNo]').val().trim(),
+                'FromDate': $('[name=FromDate]').val(),
+                'ToDate': $('[name=ToDate]').val(),
+                'FK_Branch': $('[name=FK_Branch]').val().trim(),
+                'FK_Area': $('[name=FK_Area]').val().trim(),
+                'FK_Category': $('[name=FK_Category]').val().trim(),
+                'FK_Product': $('[name=FK_Product]').val().trim(),
+                'FK_AMCType': $('[name=FK_AmcType]').val().trim(),
+                'fk_Customer': $('[name=FK_Customer]').val().trim(),
+                'Status': $('[name=FK_Status]').val().trim(),
+                'Demand': $('[name=Demand]').val().trim(),
+                'Mode': 0,
+            };
+            $.ajax({
+                url: "@Url.Action("GetAMCMonitoringListOnLoad", "AMCMonitoring")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid <= 0) {
+                        $thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv').html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                    else if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].Masterid > 0) {
+                        $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                        $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                        $('#upcomingbadge').html("" + ajaxOutput.Data[2].Value + "");
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status == "NoData") { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Data Found' });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+        });
+    };
+    function fn_showFilter() {
+        $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+    }
+
+    var tableOptions = {
+
+        //textButton: {
+        //    buttons: [
+        //        { text: "", class: "tp-btn-light btn-info", action: fn_LeadManagementFollowup_loadLeadMgtFollowupForm }
+        //    ]
+        //},
+        onlyShowColumn: ['SLNo','AMCNo','CusName','CusMobile', 'AMCType', 'Product', 'CusMobile', 'DueDate', 'RenewDate'],
+        hideColumn: ["ID_AMCDetails", "FK_Master", "FK_Customer"],
+        //rowClickAction:,
+        serialNo: false,
+        renameHeader: { "AMCNo":"Amc No","CusName":"Customer Name","Product": "Product", "DueDate": "Due Date", "RenewDate": "Renew Date", "CusMobile": "Mobile"},
+        isDateType: ['DueDate', 'RenewDate'],       
+    };
+
+</script>
+}

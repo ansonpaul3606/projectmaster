@@ -1,0 +1,1796 @@
+﻿@model PerfectWebERP.Models.ServiceReportModel.Customerlist
+<style>
+    .loader-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7); /* semi-transparent white background */
+        z-index: 1000; /* adjust z-index as needed */
+        justify-content: center;
+        align-items: center;
+        color: darkcyan;
+    }
+
+    .loader {
+        width: 150px;
+        height: 100px;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+        <h4 class="card-title col-12">Service Reports@*<span class="badge light badge-success float-right" perfect-class="formTitle">REPORT</spa>n*@</h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label ">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.CompName" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" id="Admin" name="Admin" class="form-control" value="@ViewBag.Admin" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" id="Manager" name="Manager" class="form-control" value="@ViewBag.Manager" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control perfectValidate_numeric Action" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" onchange="bindReportField(this),OnChangeclear(this)" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    <option value="1">New List</option>
+                                    <option value="2">Service Profile</option>
+                                    <option value="3">Open Tickets</option>
+                                    <option value="4">Action List</option>
+                                    <option value="5">Employee Wise Open Tickets</option>
+                                    <option value="6">Service List</option>
+                                    <option value="7">Replaced Product List</option>
+                                    <option value="8">Ticket Assigned List</option>
+                                    <option value="9">Service Closed List</option>
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control  rptfilters" id="BranchID" name="BranchID" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclear(this)">
+
+                                    <option value="  ">All</option>
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.Branch</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class=" rptfilters form-control perfectValidate_date FromDate" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivAsonDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class=" rptfilters form-control perfectValidate_date AsonDate" id="AsonDate" data-id="AsonDate-error" name="AsonDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class=" rptfilters form-control perfectValidate_date ToDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="ToDateError" class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivTicketNo">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Ticket No</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group col-sm-8">
+                                <input type="text" class=" rptfilters form-control  TicketNo" data-id="TicketNo-error" name="TicketNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ID_Ticket" class="form-control perfectValidate_string ID_Ticket" data-id="ID_Ticket-error" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,28,'Ticket List',[])" Criterea1="BranchID" Criterea2="0" BindName="TicketNo" BindVal="ID_Ticket"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (ViewBag.Manager || ViewBag.Admin)
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="LgCollectedBy" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                        <input type="hidden" name="FK_LgCollectedBy" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="LgCollectedBy" BindVal="FK_LgCollectedBy" Function="1"></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+
+
+                    else
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="LgCollectedBy" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                                        <input type="hidden" name="FK_LgCollectedBy" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="LgCollectedBy" BindVal="FK_LgCollectedBy" disabled Function="1"></button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+
+
+
+                    <div class="col-sm-6 DivProduct">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields"><span perfect-class="formGroupLabel">Product</span></label>
+                            <div class="input-group col-sm-8">
+                                <input type="text" class="form-control rptfilters" name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ID_Product" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,18,'Product List',[])" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="ID_Product" Function="2"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivComplaintService">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Complaint/Service</span>
+
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control  rptfilters" id="ComplaintService" name="ComplaintService" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ComplaintServiceselect(this)">
+                                    <option value="0">Please select</option>
+                                    <option value="1">Complaint</option>
+                                    <option value="2">Service</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivComplainttype">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel" id="ComplntType">Complaint Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control rptfilters" id="FK_NetAction" name="FK_NetAction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+                                    @if (!(Model.ComplaintTypeList is null))
+                                    {
+                                        foreach (var CompntTypeList in Model.ComplaintTypeList)
+                                        {
+                                            <option value="@CompntTypeList.ID_Complaintlist">@CompntTypeList.CompntName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivServicetype">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel" id="ServType">Service Type</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control  rptfilters" id="FK_Servicetype" name="FK_Servicetype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+                                    @if (!(Model.ServiceTypeList is null))
+                                    {
+                                        foreach (var CompntTypeList in Model.ServiceTypeList)
+                                        {
+                                            <option value="@CompntTypeList.ID_Service">@CompntTypeList.SeviceName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="col-sm-6 DivComplaintProductType">
+                    <div class="form-group row" perfect-class="formGroup">
+                        <label class="col-sm-4 col-form-label">
+                            <span perfect-class="formGroupLabel">Complaint Product Type</span>
+
+                        </label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="FK_ActionType" name="FK_ActionType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                <option value="">Please select</option>
+                                @if (!(Model.Actntyplists is null))
+                                {
+                                    foreach (var Action in Model.Actntyplists)
+                                    {
+                                        <option value="@Action.ID_ActionType">@Action.ActnTypeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>*@
+                    <div class="col-sm-6 DivPriority">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Priority</span>
+
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control  rptfilters" id="FK_Priority" name="FK_Priority" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    <option value="1">High</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Low</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivCategory">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Category</span>
+
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control  rptfilters" id="FK_Category" name="FK_Category" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+                                    @if (!(Model.categorytyps is null))
+                                    {
+                                        foreach (var Action in Model.categorytyps)
+                                        {
+                                            <option value="@Action.ID_Category">@Action.CatName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivNextaction">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Action</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class=" rptfilters form-control " id="FK_NextAction" name="FK_NextAction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value=""> Select Action</option>
+                                    @if (!(Model.NextActionList is null))
+                                    {
+                                        foreach (var Mode in Model.NextActionList)
+                                        {
+                                            <option value="@Mode.ID_NextAction">@Mode.NxtActnName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivReplcementType">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Replacement Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class=" rptfilters form-control " id="ReplacementType" name="ReplacementType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value=""> Select Replacement Type</option>
+                                    @if (!(Model.ReplacementList is null))
+                                    {
+                                        foreach (var Mode in Model.ReplacementList)
+                                        {
+                                            <option value="@Mode.ID_Mode">@Mode.ModeName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivArea">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Area</span>
+                            </label>
+                            <div class="input-group col-sm-8 ">
+                                <input type="text" class="form-control rptfilters" name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Area" disabled />
+                                <input type="hidden" name="FK_Area" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,14,'Area List',[])" Criterea1="0" Criterea2="0" BindName="Area" BindVal="FK_Area"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivStatus">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Status</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control rptfilters" id="Status" name="Status" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="5">All</option>
+                                    <option value="0">New</option>
+                                    <option value="1">Pending</option>
+                                    <option value="3">On Hold</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivDuesFrom">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Due From</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="number" class="form-control rptfilters" name="DueDaysFrom" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Enter Due Days From" min="0" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivDuesTo">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Due To</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="number" class="form-control rptfilters" name="DueDaysTo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Enter Due Days From" min="0" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivDuesCriteria">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Due Criteria</span>
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control rptfilters" id="DueCriteria" name="DueCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="1">Register Date</option>
+                                    <option value="2">Follow Up Date</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivBillType">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Billing Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class=" rptfilters form-control " id="BillingType" name="BillingType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="">Please Select</option>
+                                    @if (!(Model.BillModeList is null))
+                                    {
+                                        foreach (var Mode in Model.BillModeList)
+                                        {
+                                            <option value="@Mode.ID_Mode">@Mode.ModeName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label  ">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control  " id="Rptype" name="Rptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="">Please Select</option>
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivCriteria">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label  ">
+                                <span perfect-class="formGroupLabel">Grouping</span>
+                                <span class="text-danger"></span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control  " id="Criteria" name="Criteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    @*<option value="1">Product</option>
+                                <option value="2">Complaint</option>
+                                <option value="3">Current Status</option>
+                                <option value="4">Customer</option>
+                                <option value="5">Category</option>
+                                <option value="6">Area</option>
+                                <option value="7">Priority</option>*@
+                                    @if (!(Model.CriteriaList is null))
+                                    {
+                                        foreach (var CriteriaList in Model.CriteriaList)
+                                        {
+                                            <option value="@CriteriaList.ID_Mode">@CriteriaList.ModeName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Field Type</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control rptfilters" id="RpFieldptype" name="RpFieldptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="2">HeaderLogo + WaterMark + Footer </option>
+                                    <option value="3">WaterMark</option>
+                                    <option value="4">HeaderLogo + Footer</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getreport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+                <div id="loading" class="loader-container">
+                    <img src="~/Assets/images/output-onlinegif.gif" alt="Loading..." class="loader">
+                </div>
+            </div>
+            <div class="col-sm-4"></div>
+           
+            <div class="col-sm-4"></div>
+        </form>
+    </div>
+
+
+    <div id="divReportSection">
+
+
+    </div>
+</div>
+<script>
+    (function () {
+        // jQuery('form').validate();//<-----  Validate/initialize our form on page load
+        jQuery('select').selectpicker();
+    })();
+    $(document).ready(function () {
+
+        GetLeadFromdefault();
+        bindReportField();
+    });
+
+
+    function onchangeBranchclear(ele)
+    {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name=LgCollectedBy]').val("");
+        $thisForm.find('[name=FK_LgCollectedBy]').val("");
+
+    }
+
+    function GetLeadFromdefault() {
+         let $thisForm = $('[perfect-class="form"]');
+                $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                 if (ajaxOutput.Process.IsProcess) {
+                     //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                     $.each(ajaxOutput.Data, function (key, value) {
+                         debugger
+
+                         console.log('>_ Search button > list click', value);
+                       
+                         $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+                         $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                         let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+                       
+                         if (parseFloat(Mode) == 1 && user == 'True') {
+                          
+                             $('#BranchID').prop('disabled', false );
+                         }
+                         else {
+                             $('#BranchID').prop('disabled', true);
+                         }
+                        
+                             
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+
+             },
+
+
+         });
+
+
+    }
+
+    function getEmployee(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=LgCollectedBy]').val('');
+        $thisForm.find('[name=FK_LgCollectedBy]').val('');
+         let ID_LeadFrom = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ID_LeadFrom: 6
+         };
+        $.ajax({
+
+            url: '@Url.Action("GetLeadFromList", "LeadGeneration")',
+            type: "POST",
+            data: ID_LeadFrom,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                // console.log("Data", data);
+
+                let table = JSON.parse(ajaxOutput.Data);
+                if (ajaxOutput.Process.IsProcess) {
+                    if (table.dtable.length > 0) {
+                        var stateModel = createSelectList({ data: table.dtable, hideColumn: ['ID_FIELD'], headingText: 'Employee Details' });
+                        stateModel.then(function (ret) {
+                            if (ret) {
+                                console.log('>_ Search button > list click', ret);
+
+                                $thisForm.find('[name=LgCollectedBy]').val(ret.Name);
+                                $thisForm.find('[name=FK_LgCollectedBy]').val(ret.ID_FIELD);
+                            }
+                            else {
+                                console.log(ret);
+                            }
+                        });
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found' });
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+
+
+        });
+
+    }
+
+    function OnChangeclear(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let pData = $thisForm.data('pData');
+        let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (pData) {
+            //alert('f345435');
+
+            if (user == 'True' || manager == 'True') {
+                $thisForm.find('[name="LgCollectedBy"]').val('');
+                $thisForm.find('[name="FK_LgCollectedBy"]').val('');
+            }
+            else {
+                $thisForm.find('[name="LgCollectedBy"]').val('@ViewBag.Employee');
+                $thisForm.find('[name="FK_LgCollectedBy"]').val('@ViewBag.FK_Employee');
+            }
+            //$thisForm.find('[name=LgCollectedBy]').val(pData.LgCollectedBy),
+            //    $thisForm.find('[name=FK_LgCollectedBy]').val(pData.FK_LgCollectedBy)
+            $thisForm.find('[name=FromDate]').val(pData.FromDate),
+                $thisForm.find('[name=ToDate]').val(pData.ToDate),
+                $thisForm.find('[name=Status]').val(pData.Status).selectpicker('refresh'),
+                // $thisForm.find('[name=Rptype]').val(pData.Rptype).selectpicker('refresh'),
+                $thisForm.find('[name=RpFieldptype]').val(pData.RpFieldptype).selectpicker('refresh'),
+                //$thisForm.find('[name=ID_Report]').val(pData.ID_Report).selectpicker('refresh'),
+                $thisForm.find('[name=ID_Product]').val(pData.ID_Product),
+                $thisForm.find('[name=BranchID]').val(pData.BranchID).selectpicker('refresh'),
+                $thisForm.find('[name=FK_Priority]').val(pData.FK_Priority).selectpicker('refresh'),
+                $thisForm.find('[name=FK_Area]').val(pData.FK_Area)
+
+        }
+        else {
+            if (user == 'True' || manager == 'True') {
+                $thisForm.find('[name="LgCollectedBy"]').val('');
+                $thisForm.find('[name="FK_LgCollectedBy"]').val('');
+            }
+            else {
+                $thisForm.find('[name="LgCollectedBy"]').val('@ViewBag.Employee');
+                $thisForm.find('[name="FK_LgCollectedBy"]').val('@ViewBag.FK_Employee');
+            }
+            // $thisForm.find('[name=LgCollectedBy]').val(""),
+            //$thisForm.find('[name=FK_LgCollectedBy]').val(""),
+
+
+            $thisForm.find('[name=FromDate]').val(""),
+                $thisForm.find('[name=ToDate]').val(""),
+                $thisForm.find('[name=Status]').val(""),
+
+                $thisForm.find('[name=RpFieldptype]').val("").selectpicker('refresh'),
+
+                $thisForm.find('[name=ID_Product]').val(""),
+                $thisForm.find('[name=BranchID]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=FK_Priority]').val("").selectpicker('refresh'),
+
+                $thisForm.find('[name=FK_Area]').val(""),
+                $thisForm.find('[name=Area]').val(""),
+                $thisForm.find('[name=ProductName]').val(""),
+                $thisForm.find('[name=DueDaysFrom]').val("")
+            $thisForm.find('[name=DueDaysTo]').val(""),
+                $thisForm.find('[name=DueCriteria]').val("1").selectpicker('refresh'),
+                $thisForm.find('[name=FK_Servicetype]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=ComplaintService]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=FK_NetAction]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=FK_NextAction]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=Status]').val("5").selectpicker('refresh'),
+                $thisForm.find('[name=FK_Category]').val("0").selectpicker('refresh')
+            $thisForm.find('[name=Criteria]').val("").selectpicker('refresh');
+            $thisForm.find('[name=BillingType]').val("").selectpicker('refresh');
+
+
+
+
+
+
+
+
+        }
+
+        bindReportField();
+        GetLeadFromdefault();
+        ComplaintServiceselect(this);
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.validate().resetForm();
+        fn_Criterialist(this);
+    }
+
+    function ResetButton(ele) {
+        debugger
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let pData = $thisForm.data('pData');
+
+        if (pData) {
+            //alert('f345435');
+            $thisForm.find('[name=LgCollectedBy]').val(pData.LgCollectedBy),
+                $thisForm.find('[name=FK_LgCollectedBy]').val(pData.FK_LgCollectedBy)
+            $thisForm.find('[name=FromDate]').val(pData.FromDate),
+                $thisForm.find('[name=ToDate]').val(pData.ToDate),
+                $thisForm.find('[name=Status]').val(pData.Status).selectpicker('refresh'),
+                // $thisForm.find('[name=Rptype]').val(pData.Rptype).selectpicker('refresh'),
+                $thisForm.find('[name=RpFieldptype]').val(pData.RpFieldptype).selectpicker('refresh'),
+                $thisForm.find('[name=ID_Report]').val(pData.ID_Report).selectpicker('refresh'),
+                $thisForm.find('[name=ID_Product]').val(pData.ID_Product),
+                $thisForm.find('[name=BranchID]').val(pData.BranchID).selectpicker('refresh'),
+                $thisForm.find('[name=FK_Priority]').val(pData.FK_Priority).selectpicker('refresh'), 
+                $thisForm.find('[name=FK_Area]').val(pData.FK_Area)
+
+        }
+        else {
+
+            $thisForm.find('[name=LgCollectedBy]').val(""),
+                $thisForm.find('[name=FromDate]').val(""),
+                $thisForm.find('[name=ToDate]').val(""),
+                $thisForm.find('[name=Status]').val(""),
+                //  $thisForm.find('[name=Rptype]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=RpFieldptype]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=ID_Report]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=ID_Product]').val(""),
+                $thisForm.find('[name=BranchID]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=FK_Priority]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=FK_LgCollectedBy]').val(""),
+                $thisForm.find('[name=FK_Area]').val(""),
+                $thisForm.find('[name=ProductName]').val(""),
+                $thisForm.find('[name=DueDaysFrom]').val("")
+                $thisForm.find('[name=DueDaysTo]').val(""),
+                $thisForm.find('[name=DueCriteria]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=FK_Servicetype]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=ComplaintService]').val("0").selectpicker('refresh'),
+                $thisForm.find('[name=FK_NetAction]').val("0").selectpicker('refresh')
+                $thisForm.find('[name=Criteria]').val("").selectpicker('refresh');
+                $thisForm.find('[name=BillingType]').val("").selectpicker('refresh');
+
+
+
+
+
+        }
+
+        bindReportField();
+        GetLeadFromdefault();
+        ComplaintServiceselect(this);
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.validate().resetForm();
+        fn_Criterialist(this);
+        $("#divReportSection").empty();
+    }
+
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if'); $("#ToDateError").show();
+            $("#ToDateError").text('To Date should be greater than  From Date');
+            return false;
+        }
+        else {
+            $("#ToDateError").hide();
+            console.log('inside limit check else')
+            $("#ToDateError").text('');
+            return true;
+        }
+
+
+    }
+
+    function ComplaintServiceselect(ele)
+    {
+        let $thisForm = $('[perfect-class="form"]');
+        let Compserv = $thisForm.find('[name="ComplaintService"]').val();
+        
+        if ($thisForm.find('[name="ID_Report"]').val() == 6 ) {
+
+            Compserv = 2;
+            $thisForm.find('[name="ComplaintService"]').val(2).selectpicker('refresh');
+            $thisForm.find('[name=ComplaintService]').attr("disabled","disabled");
+        }
+        //else if ($thisForm.find('[name="ID_Report"]').val() == 9) {
+        //    Compserv = 2;
+        //    $thisForm.find('[name="ComplaintService"]').val(2).selectpicker('refresh');
+        //}
+        else {
+            Compserv = $thisForm.find('[name="ComplaintService"]').val()
+            $thisForm.find('[name=ComplaintService]').attr("disabled", false);
+        }
+        debugger
+        if (Compserv == 1) {
+            $('.DivComplainttype').show();
+            $('.DivServicetype').hide();
+
+            $('#FK_Servicetype').val("0").selectpicker('refresh');
+        }
+        else if (Compserv == 2) {
+            $('.DivComplainttype').hide();
+            $('.DivServicetype').show();
+
+            $('#FK_NetAction').val("0").selectpicker('refresh');
+        }
+        else {
+            $('.DivComplainttype').hide();
+            $('.DivServicetype').hide();
+
+            $('#FK_Servicetype').val("0").selectpicker('refresh');
+            $('#FK_NetAction').val("0").selectpicker('refresh');
+        }
+    }
+
+    function bindReportField(ele) {
+        //fn_selectFieldlist(ele);
+        //GetName(ele);
+        let $thisForm = $('[perfect-class="form"]');
+        let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val('');
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+        if ($("#ID_Report").val() == 1 ) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            //$('.DivComplainttype').show();
+            $('.DivComplaintService').show();
+            //$('.DivServicetype').show();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').hide();
+            $('.DivPriority').show();
+            $('.DivArea').show();
+            $('.DivCategory').show();
+            $('.DivNextaction').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 2) {
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivProduct').hide();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivStatus').hide();
+            $('.DivTicketNo').show();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').hide();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 3)
+        {
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+            $('.DivAsonDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').show();
+            $('.DivArea').show();
+            $('.DivCategory').show();
+            $('.DivNextaction').hide();
+            $('.DivDuesFrom').show();
+            $('.DivDuesTo').show();
+            $('.DivDuesCriteria').show();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 4) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').show();
+            $('.DivArea').show();
+            $('.DivCategory').show();
+            $('.DivNextaction').show();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 5) {
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+            $('.DivAsonDate').show();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivLeadType').hide();
+            $('.DivFollowUp').hide();
+            $('.DivFollowUpType').hide();
+            $('.DivCriteria').hide();
+            $('.DivStatus').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').show();
+            $('.DivArea').show();
+            $('.DivCategory').show();
+            $('.DivNextaction').hide();
+            $('.DivDuesFrom').show();
+            $('.DivDuesTo').show();
+            $('.DivDuesCriteria').show();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 6) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').show();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').show();            
+            $('.DivCriteria').hide();
+            $('.DivStatus').show();            
+            $('.DivStatus').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').show();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 7) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').hide();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').hide();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').hide();
+            $('.DivStatus').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').show();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 8) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').hide();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').hide();
+            $('.DivStatus').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').show();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else if ($("#ID_Report").val() == 9) {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').show();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').show();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').show();
+            $('#ServType').text("Service");
+            $('#ComplntType').text("Complaint");
+        }
+        else if ($("#ID_Report").val() == 0){
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').show();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').show();
+            $('.DivComplainttype').show();
+            $('.DivComplaintProductType').show();
+            $('.DivStatus').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDuesFrom').hide();
+            $('.DivDuesTo').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+        else {
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivAsonDate').hide();
+            $('.DivEmployeeName').show();
+            $('.DivProduct').show();
+            $('.DivTicketNo').hide();
+            $('.DivComplainttype').show();
+            $('.DivComplaintProductType').hide();
+            $('.DivCriteria').show();
+            $('.DivStatus').show();
+            $('.DivComplainttype').hide();
+            $('.DivComplaintService').hide();
+            $('.DivServicetype').hide();
+            $('.DivComplaintProductType').show();
+            $('.DivStatus').hide();
+            $('.DivPriority').hide();
+            $('.DivNextaction').hide();
+            $('.DivArea').hide();
+            $('.DivCategory').hide();
+            $('.DivDues').hide();
+            $('.DivDuesCriteria').hide();
+            $('.DivReplcementType').hide();
+            $('.DivBillType').hide();
+            $('#ServType').text("Service Type");
+            $('#ComplntType').text("Complaint Type");
+        }
+      
+        if ($thisForm.find('[name="ID_Report"]').val() == 6 ) {            
+            $thisForm.find('[name=ComplaintService]').attr("disabled", true);
+        }
+        if ($thisForm.find('[name="ID_Report"]').val() == 9) {
+            Compserv = 2;
+            $thisForm.find('[name="ComplaintService"]').val(2).selectpicker('refresh');
+            $thisForm.find('[name=ComplaintService]').attr("disabled", false);
+        }
+        else {
+            $thisForm.find('[name=ComplaintService]').attr("disabled", false);
+        }
+    }
+    function GetName(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //$thisForm.find('[name=ID_Report]').val('');
+        let names = $thisForm.find('[name="ID_Report"] option:selected').text();
+        if (names == 'Outstanding') {
+            $thisForm.find('[name="SltName"]').text('As On Date')
+        }
+        else {
+            $thisForm.find('[name="SltName"]').text('From Date')
+        }
+    }
+    function fn_selectFieldlist(ele)
+    {
+
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         var modes;
+         if ($("#ID_Report").val() == 7) { modes = 2; }
+         else if ($("#ID_Report").val() == 8) { modes = 1; }
+         else if ($("#ID_Report").val() == 9) { modes = 11; }
+        let mode = { mode : modes }
+
+
+         $.ajax({
+                 url: "@Url.Action("getModeList", "ServiceReport")",
+                type: "POST",
+             data: mode,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                 console.log(ajaxOutput)
+                    let $menuDropdown = $thisForm.find('[name=Status]');//<--- Will give place select html element
+
+                 $menuDropdown.empty().selectpicker('refresh');
+                 $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh') });
+
+                     if ($menuDropdown.attr('perfect-onSelectLoad')) {
+                         $menuDropdown.val($menuDropdown.attr('perfect-onSelectLoad')).selectpicker('refresh');
+                         $menuDropdown.attr('perfect-onSelectLoad', '');
+                     }
+
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                         NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': value });
+                         });
+                     }
+                     }
+
+         });
+
+
+    }
+
+    function ValidateForm(ReportID, ele) {
+
+
+        var Error = 0;
+        if (ReportID ==2) {
+            const $inp = $(".TicketNo");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+
+                //const is_empty = !el.value.trim();
+                if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                    is_empty = false;
+                }
+                else {
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+                let ErrorID = $(el).attr('data-id');
+                console.log(ErrorID);
+                console.log("Element", el.name, "Value >", !el.value.trim());
+                if (is_empty) {
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+        }
+        else if (ReportID == 1 || ReportID == 4 || ReportID == 6 || ReportID == 7) {
+            const $inp = $(".ToDate");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+                debugger
+                //const is_empty = !el.value.trim();
+                if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                    is_empty = false;
+                }
+                else {
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+                let ErrorID = $(el).attr('data-id');
+                console.log(ErrorID);
+                console.log("Element", el.name, "Value >", !el.value.trim());
+                if (is_empty) {
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+        }
+        else if (ReportID == 1 || ReportID == 4 || ReportID == 6 || ReportID == 7) {
+            const $inp = $(".FromDate");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+                debugger
+                //const is_empty = !el.value.trim();
+                if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                    is_empty = false;
+                }
+                else {
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+                let ErrorID = $(el).attr('data-id');
+                console.log(ErrorID);
+                console.log("Element", el.name, "Value >", !el.value.trim());
+                if (is_empty) {
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+        }
+        else if (ReportID == 3 || ReportID == 5) {
+            const $inp = $(".AsonDate");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+                debugger
+                //const is_empty = !el.value.trim();
+                if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                    is_empty = false;
+                }
+                else {
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+                let ErrorID = $(el).attr('data-id');
+                console.log(ErrorID);
+                console.log("Element", el.name, "Value >", !el.value.trim());
+                if (is_empty) {
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+        }
+
+
+        else if (ReportID == 0) {
+            ele.find('[name=ID_Report]').val("").selectpicker('refresh');
+            Error == 2
+            const $inp = $(".Action");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+
+                //const is_empty = !el.value.trim();
+                if (ReportID == 0) {
+
+                    is_empty = false;
+                }
+                //else
+                //{
+                //    alert(is_empty)
+                //    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+
+                //}
+
+                let ErrorID = $(el).attr('data-id');
+                console.log('ee1', ErrorID);
+
+                if (!is_empty) {
+
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+        }
+        else if (ReportID == null) {
+
+            Error == 2
+            const $inp = $(".Action");
+            console.log('inp', $inp);
+            let is_empty = true;
+            $inp.each((i, el) => {
+
+                //const is_empty = !el.value.trim();
+                if (ReportID == null) {
+
+                    is_empty = false;
+                }
+                //else
+                //{
+                //    alert(is_empty)
+                //    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+
+                //}
+
+                let ErrorID = $(el).attr('data-id');
+                console.log('ee1', ErrorID);
+
+                if (!is_empty) {
+
+                    console.log(`field ${el.id} is empty`);
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+                    console.log("While empty", Error)
+                }
+                else {
+                    $('#' + ErrorID).css('display', 'none');
+                    console.log("While not empty", Error)
+                    //if (Error > 0) {
+                    //    Error--;
+                    //}
+                }
+                el.classList.toggle("is-empty", is_empty);
+            });
+
+
+        }
+        return Error;
+
+    }
+    function ValidateServiceReport(ReportID, ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        if (ReportID == 2) {
+            $thisForm.find('[name=FromDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ToDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=AsonDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Ticket]').addClass("perfectValidate_string");
+        }
+        else if (ReportID == 1 || ReportID == 4 || ReportID == 6 || ReportID == 7 || ReportID == 8 || ReportID == 9) {
+            $thisForm.find('[name=FromDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ToDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=AsonDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Ticket]').removeClass("perfectValidate_string");
+        }
+        else if (ReportID == 3 || ReportID == 5) {
+            $thisForm.find('[name=FromDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ToDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=AsonDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Ticket]').removeClass("perfectValidate_string");
+        }
+        else if (ReportID == "") {
+            $thisForm.find('[name=FromDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ToDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Report]').addClass("perfectValidate_numeric");
+            $thisForm.find('[name=AsonDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Ticket]').removeClass("perfectValidate_string");
+        }
+        else if (ReportID == null) {
+            $thisForm.find('[name=FromDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ToDate]').addClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Report]').addClass("perfectValidate_numeric");
+            $thisForm.find('[name=AsonDate]').removeClass("perfectValidate_date");
+            $thisForm.find('[name=ID_Ticket]').removeClass("perfectValidate_string");
+        }
+    }
+    ////Report generation
+    function getreport(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $("#divReportSection").empty();
+
+        console.log('> Service report form IS valid', $thisForm.valid())
+
+        ValidateServiceReport($('#ID_Report').val(), ele)
+
+        if (/*ValidateForm($('#ID_Report').val(), $thisForm) <= 0*/$thisForm.valid()) {
+            var dateval = true; var Fromdate = "";
+            if ($('#ID_Report').val() != 5 || $('#ID_Report').val() != 3) { dateval = checkLimit(ele) }
+            if (dateval) {
+                var Report_Id = $('#ID_Report').val();
+                var Employee = $thisForm.find('[name="FK_LgCollectedBy"]').val();
+                if (Report_Id == 3) {
+                      Fromdate = $('#AsonDate').val() == null ? null : $('#AsonDate').val();
+                    // var Fromdate = Frodate.split("-").reverse().join("/");
+                }
+                else {
+                      Fromdate = $('#FromDate').val() == null ? null : $('#FromDate').val();
+                    // var Fromdate = Frodate.split("-").reverse().join("/");
+                }
+
+                var comser = $thisForm.find('[name="ComplaintService"]').val();
+                var Todate = $('#ToDate').val();
+                //var Todate = Tdate.split("-").reverse().join("/");
+                var Product = $thisForm.find('[name="ID_Product"]').val();
+                var Branch = $('#BranchID').val();
+                var Priority = $('#FK_Priority').val();
+                var followupaction = 0;
+                var complaintservicename = "";
+                debugger
+                if (comser == 1) {
+                    followupaction = $('#FK_NetAction').val();
+                    complaintservicename = $thisForm.find('[name="FK_NetAction"] option:selected').text()
+                }
+                else if (comser == 2) {
+                    followupaction = $('#FK_Servicetype').val();
+                    complaintservicename = $thisForm.find('[name="FK_Servicetype"] option:selected').text()
+
+                }
+                //var complaintservice = $('#FK_NetAction').val();
+                var followuptype = $('#FK_ActionType').val();
+                var Reportformat = $('#Rptype').val();
+                var Company = $thisForm.find('[name="Companyname"]').val();
+                var Branchname = $('#BranchID :selected').text();
+                var Area = $thisForm.find('[name="FK_Area"]').val();
+                var Category = $('#FK_Category').val();
+                var Nextaction = $('#FK_NextAction').val();
+                var Duedaysfrom = $thisForm.find('[name="DueDaysFrom"]').val();
+                var DuedaysTo = $thisForm.find('[name="DueDaysTo"]').val();
+                var Duecriteria = $thisForm.find('[name="DueCriteria"]').val();
+                //var ServiceType = $thisForm.find('[name="FK_Servicetype"]').val();
+                var ServiceType= $('#FK_Servicetype').val();
+                var ReplacementType = $thisForm.find('[name="ReplacementType"]').val();
+                ////filter
+                var idproduct = $thisForm.find('[name="ID_Product"]').val();
+                var employ = $thisForm.find('[name="LgCollectedBy"]').val();
+                var product = $thisForm.find('[name="ProductName"]').val();
+                var action = $('#FK_NetAction :selected').text();
+                var actiontyp = $('#FK_ActionType :selected').text();
+                var stats = $('#Status :selected').text();
+                var crtireanam = $thisForm.find('[name="Criteria"] option:selected').text();
+                var priority = $thisForm.find('[name="FK_Priority"] option:selected').text();
+                var ticketno = $thisForm.find('[name="ID_Ticket"]').val();
+                var areas = $thisForm.find('[name="Area"]').val();
+                var categorys = $('#FK_Category :selected').text();//$thisForm.find('[name="FK_Category"] option:selected').text();
+                var nextaction = $('#FK_NextAction :selected').text();
+                var ReplacementTypeName = $('#ReplacementType :selected').text();
+                var BillingType = $('#BillingType').val();
+
+
+                ////
+                //var LeadNo = $thisForm.find('[name="LeadNo"]').val() == "" ? "0" : $thisForm.find('[name="LeadNo"]').val();
+                if (Report_Id == 2) {
+                    var TableCount = 4;
+                }
+                else {
+                    var TableCount = 0;
+                }
+                var Criteria = $('#Criteria').val();
+
+
+                var Status = $('#Status').val();
+                var Reportfieldtype = $('#RpFieldptype').val();
+                if (Reportfieldtype == undefined) {
+                    Reportfieldtype = 0;
+                }
+               let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    ReportMode: Report_Id,
+                    FromDate: Fromdate,
+                    ToDate: Todate,
+                    FK_Branch: Branch,
+                    FK_Employee: Employee,
+                    FK_Priority: Priority,
+                    ComplaintProductType: followuptype,
+                    ComplaintType: followupaction,
+                    Rptype: Reportformat,
+                    CompName: Company,
+                    Branchname: Branchname,
+                    Status: Status,
+                   Employee: employ,
+                   FK_Product: idproduct,
+                    Prodname: product,
+                    Actioname: action,                 
+                    Actiontypname: actiontyp,
+                    Statusname: stats, 
+                    Critername: crtireanam,
+                    TicketNo: ticketno,
+                    TableCount: TableCount,
+                    Criteria: Criteria,
+                    FK_Category: Category,
+                    FK_Area: Area,
+                    FK_NextAction: Nextaction,
+                    DueDaysFrom: Duedaysfrom,
+                    DueDaysTo: DuedaysTo,
+                    DueCriteria: Duecriteria,
+                    Priority: priority,
+                    FK_ServiceType: ServiceType,
+                    complaintservicename: complaintservicename,
+                    ComplaintService: comser,
+                    areas: areas,
+                    categorys: categorys,
+                    ReplacementType: ReplacementType,
+                    ReplacementTypeName: ReplacementTypeName,
+                    BillingType: BillingType,
+                };  
+                showLoader();
+                $.ajax({
+                    url: '@Url.Action("GetServiceReport", "Report")',
+                    type: "POST",
+                    dataType: "json",
+                    data: inputData,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    //beforeSend: function () {
+                    //    $('#loading').show(); // Show loading animation before AJAX request
+                    //},
+                    success: function (ajaxOutput) {
+                        hideLoader();
+                        var rptmode = $('select[name="ID_Report"] option:selected').val();
+                        
+                        $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+                        });
+                    },
+                    complete: function () {
+                        hideLoader(); // Hide loading animation after AJAX request completes
+                    }
+                });
+
+                    //? ReportMode = ' + Report_Id +
+                    //'&FK_Product=' + Product +
+                    //'&FromDate=' + Fromdate +
+                    //'&ToDate=' + Todate +
+                    //'&FK_Branch=' + Branch +
+                    //'&FK_Employee=' + Employee +
+                    //'&FK_Priority=' + Priority +
+                    //'&ComplaintProductType=' + followuptype +
+                    //'&ComplaintType=' + followupaction +
+                    //'&Rptype=' + Reportformat +
+                    //'&CompName=' + Company +
+                    //'&Branchname=' + Branchname +
+                   
+                    //'&Status=' + Status +
+                    //'&Employee=' + employ +
+                    //'&Prodname=' + product +
+                    //'&Actioname=' + action +
+                    //'&Actiontypname=' + actiontyp +
+                    //'&Statusname=' + stats +
+                    //'&Critername=' + crtireanam +
+                    //'&TicketNo=' + ticketno +
+                    //'&TableCount=' + TableCount +
+                    //'&Criteria=' + Criteria +
+                    //'&FK_Category=' + Category +
+                    //'&FK_Area=' + Area +
+                    //'&FK_NextAction=' + Nextaction +
+                    //'&DueDaysFrom=' + Duedaysfrom +
+                    //'&DueDaysTo=' + DuedaysTo +
+                    //'&DueCriteria=' + Duecriteria +
+                    //'&Priority=' + priority +
+                    //'&FK_ServiceType=' + ServiceType +
+                    //'&complaintservicename=' + complaintservicename +
+                    //'&ComplaintService=' + comser +
+                    //'&areas=' + areas +
+                    //'&categorys=' + categorys +
+                    //'&ReplacementType=' + ReplacementType +
+                    //'&ReplacementTypeName=' + ReplacementTypeName);
+
+     @*let pageUrl = '@Url.Action("GetSalesReport", "Report")';*@
+              
+                //popitup(Url);
+            }
+        }
+          
+    }
+
+
+    function fn_Criterialist(ele) {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        var modes;
+        var groups;
+        if ($("#ID_Report").val() < 9) { modes = 131, groups = 1 }
+        else if ($("#ID_Report").val() == 9) { modes = 131, groups = 2 }
+        
+        let Input = {
+            mode: modes,
+            group: groups
+        };
+
+        $.ajax({
+            url: "@Url.Action("getCriteriaList", "ServiceReport")",
+            type: "POST",
+            data: Input,
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+                console.log(ajaxOutput)
+                let $menuDropdown = $thisForm.find('[name=Criteria]');//<--- Will give place select html element
+
+                $menuDropdown.empty().selectpicker('refresh');
+                $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh');
+
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                    });
+
+                    if ($menuDropdown.attr('perfect-onSelectLoad')) {
+                        $menuDropdown.val($menuDropdown.attr('perfect-onSelectLoad')).selectpicker('refresh');
+                        $menuDropdown.attr('perfect-onSelectLoad', '');
+                    }
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': value });
+                    });
+                }
+            }
+        });
+    }
+
+
+    function popitup(url)
+    {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+        if (window.focus) { newwindow.focus() }
+        return false;
+    }
+
+    function fireDownload(url)
+    {
+        window.location.assign(url);
+    }
+
+    function showLoader() {
+        // Show loader by setting display property to 'flex'
+        document.getElementById('loading').style.display = 'flex';
+    }
+
+    function hideLoader() {
+        // Hide loader by setting display property to 'none'
+        document.getElementById('loading').style.display = 'none';
+    }
+    function getfunction(ele) {
+        $("#divReportSection").empty();
+    }
+    function getfunctionAssign(ele) {
+        $("#divReportSection").empty();
+    }
+</script>

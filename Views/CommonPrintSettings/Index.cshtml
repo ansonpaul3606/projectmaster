@@ -1,0 +1,477 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="CommonPrintSettings-form">
+
+        </div>
+    </div>
+    @*<button onclick="let y = trigerCategory( 2); console.log(y,'y');" >click</button>*@
+</div>
+
+@section scripts {
+<script type="text/javascript">
+        var ID_ServiceIncentiveSettings;
+    var isModifed = false;
+    var EditImagePath;
+    var EditFrntImg;
+    var EditTemp;
+    var PRevElem = [];
+    var parentElement_test = '';
+    var AddorUpdate1 = 0;
+    var PageSizeObj; 
+    //= {
+    //    A4P: {
+    //        valwidth: "794px",
+    //        valheight: "1123px",
+    //        datawidth: "794",
+    //        dataheight: "1123"
+    //    }
+    //}
+
+
+        //var IncTransMode = '';
+        const $formContainer = $('#CommonPrintSettings-form');
+
+         var tableOptions ={
+                dropdown: {
+                    buttons: [
+                      @if (ViewBag.PagedAccessRights.UsrrlStView)
+                       {
+                         <text> { displayName: "View", action: editIncentiveSettingsData },</text>
+                       }
+                        { type: "divider" },
+                       @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                        {
+                         <text>{ displayName: "Delete", action: deleteIncentiveSettingsData },</text>
+                        }
+                    ],
+                    class: "btn btn-success light sharp"
+                },
+             onlyShowColumn: ["SlNo", "SettingsName", "EntrOn", "Module"],
+            hideColumn: [],
+             rowClickAction: editIncentiveSettingsData,
+             isDateType: ["EntrOn"],
+             renameHeader: { "SlNo": "Sl No", "SettingsName": "Settings Name"}
+
+        };
+        var validationMessage = {
+            'ServiceID': {
+                'required': 'Please Select Service',
+                'digits': 'Invalid Service Selected'
+            },
+            'FK_Category': {
+                'required': 'Please Select Category',
+                'digits': 'Invalid Category Selected'
+            },
+            'IncTrDividentPercent': {
+                'required': 'Please enter Percentage'
+            },
+            'TransDate': {
+                'required': 'Please select Transdate'
+            },
+            'EffectDate': {
+                'required': 'Please Select Effect Date'
+            },
+            'DesignationID': {
+                'required': 'Please Select Designation'
+            }
+
+
+        };
+
+
+        $(document).ready(function () {
+
+            fn_CommonPrintSettings_initialLoad(this);
+            GetPageOrientaion();
+
+        });
+
+        function fn_CommonPrintSettings_initialLoad(els) {
+
+            LoadCommonPrintSettings();
+            LoadCommonPrintSettingsList();
+           
+        }
+
+
+
+
+        function LoadCommonPrintSettings() {
+            //isModifed = false;
+           // debugger
+            $formContainer.load('@Url.Action("LoadCommonPrintSettings", "CommonPrintSettings")', function () {
+               // debugger
+               // let $thisForm = $(this).find('[perfect-class="form"]');
+               // $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+               // //let $thisForm = $(this).find('[perfect-class="form"]');
+               // $thisForm.validate({ messages: validationMessage });
+               // //$thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+
+               // // $thisForm.attr('perfect-onFormSuccess', 'fn_incentive_initialLoad');
+               //// $('.percentageDiv').hide();
+                $('#SecondStpe').hide();
+                var Today = CurrentDate;
+               // $('#SecondStpe').show();
+                $(this).find('[name="add"]').show();
+                $(this).find('[name="Upadte"]').hide();
+                $(this).find('[name="hdnAddorUpdate"]').val(0);
+                AddorUpdate1 = 0;
+            });
+        }
+
+
+
+        function LoadCommonPrintSettingsList(ele)
+        {
+           
+           // debugger
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            $sideMenuOptions.title.find('h4').text('Common Print Settings List');
+            let pageUrl = "@Url.Action("SelectCommonPrintingSettings", "CommonPrintSettings")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log(ajaxOutput, 'ajaxOutput>>>>2');
+                    console.log("tableoption123", tableOptions)
+                    if (ajaxOutput.Process.IsProcess) {
+                        $sidemenu.find('.jq_sidemenu_title').text("IncentiveSettings List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCommonPrintSettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Language");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadCommonPrintSettingsList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) { NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value }); });
+                        }
+                    }
+                },
+                complete: function () {}
+            })
+
+        };
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+           // debugger
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function editIncentiveSettingsData()
+        {
+            
+            console.log(this, 'this')
+            debugger
+            //$'[name="hdnAddorUpdate"]').val(1);
+            AddorUpdate1 = 1;
+            $(this).find('[name="hdnAddorUpdate"]').val(1) ;
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+            ID_CommonPrintingSettings = savedData.ID_CommonPrintingSettings;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_CommonPrintingSettings: savedData.ID_CommonPrintingSettings
+            };
+
+            $.ajax({
+                url: '@Url.Action("SelectCommonPrintingSettingsbyId", "CommonPrintSettings")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+                    debugger
+                    console.log(ajaxOutput, '789')
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        $formContainer.load('@Url.Action("LoadCommonPrintSettings", "CommonPrintSettings")', function () {
+                            debugger
+                            $('#SecondStpe').hide();
+                            $('#step1').show();
+
+                            //console.log(ajaxOutput.maindata.Data[0].FK_Employee,' ajaxOutput.maindata.Data[0].FK_Employee')
+                            $(this).find('[name="add"]').hide();
+                            //$(this).find('[name="Upadte"]').hide();
+                            //$(this).find('[name="Upadte"]').hide();
+                           
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+                            $thisForm.find('[name="SettingNameID"]').val(ajaxOutput.Data[0].SettingsName);
+                            //$thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.Data[0].EffectDate).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="PageOrientation"]').val(ajaxOutput.Data[0].PageSize).selectpicker('refresh');
+                            //$thisForm.find('[name="DesignationID"]').trigger('change');
+                            $thisForm.find('[name="Module"]').val(ajaxOutput.Data[0]['CommonPrintSettingsMode']);
+                            $thisForm.find('#Module').trigger('change');
+                            EditTemp = ajaxOutput.Data[0].FrontSideString;
+                            EditFrntImg = ajaxOutput.Data[0].FrntImg;
+                            EditImagePath = ajaxOutput.Data[0].ImagePath;
+                            $thisForm.find('[name="ID_CommonPrintingSettings"]').val(ajaxOutput.Data[0].ID_CommonPrintingSettings);
+                            console.log('pagesize:',PageSizeObj);
+                            PageSizeObj.forEach((i) => {
+                               
+                                if (i.PValue == ajaxOutput.Data[0].PageSize) {
+                                    valwidth = i.width_in_px + 'mm';
+                                    valheight = i.height_in_px + 'mm';
+                                    datawidth = i.width_in_px;
+                                    dataheight = i.height_in_px;
+                                };
+                            });
+                            //valwidth = PageSizeObj.A4P.valwidth;
+                            //valheight = PageSizeObj.A4P.valheight;
+                            $thisForm.find('#FrontSide').remove();
+                            $thisForm.find('#FrontSideParent').append(EditTemp);
+
+                            $("#FrontSide").css({ 'width': valwidth, 'height': valheight });
+                            $("#workboard").css({ 'width': valwidth, 'height': valheight });
+
+                            //$thisForm.find('#FrontSide')[0].style.backgroundImage =  EditFrntImg ;
+                            $thisForm.find('#FrontSide')[0].style.backgroundImage = "url(" + EditFrntImg + ")";
+                            //show x mark for alredy present elemt
+                            const parentElement = $thisForm.find("#FrontSide");
+                            console.log(parentElement, 'parentElement');
+                            var parentElement1 = $("#FrontSide");
+                            var childElements = parentElement1[0].querySelectorAll("*");
+                            parentElement_test = childElements;
+                            if (EditFrntImg) {
+                                    $('#BackImage').css('display', 'none');
+                                    $('#BackImageRemove').css('display', 'block');
+                                }                       
+                            $sideMenuOptions.close();
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            $('.dataTable tr').removeClass("SelectForDelete");
+                        });
+                    }
+                }
+
+            });
+
+        };
+
+        function performRemainingCode() {
+
+        };
+
+        function deleteIncentiveSettingsData()
+        {
+            debugger;
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            console.log(Saveddata,'Saveddata>><')
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetReasonList", "IncentiveSettings")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log(ajaxReasonOutput,'ajaxReasonOutput,,,...')
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           confirmBoxObj.then(function (selectedOption) {
+                               //console.log(selectedOption, 'selectedOption>><<');
+                                if (selectedOption) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_CommonPrintingSettings: Saveddata.ID_CommonPrintingSettings,
+                                        FK_Reason: selectedOption
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCommonPrintingSettings", "CommonPrintSettings")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                               
+                                                AuthorizationlevelInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                $sideMenuOptions.close();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+        function removeTable(els) {
+            debugger
+            let $thistbl = $(els).closest('table');
+            let table = $thistbl.DataTable();
+            table.destroy();
+            if ($(els).closest('tbody').find('tr').length > 1) {
+                $(els).closest('tr').remove();
+                pft_table_slreset($thistbl);
+                $thistbl.dataTable({ paging: true });
+            }
+            else {
+                $('#AuthorizationLevelItemHead').attr('perfect-temptable-action', 0);
+                $('#AuthorizationLevelItemHead').attr('perfect-temptable-lastindex', 0);
+                $thistbl.remove();
+
+            }
+        }
+        function formatAmount(amount) {
+
+            const floatValue = parseFloat(amount);
+            const formattedAmount = floatValue.toFixed(2);
+            return formattedAmount;
+    }
+
+
+
+
+
+
+
+    function GetPageOrientaion()
+        {
+           
+
+               $.ajax({
+                   url: "@Url.Action("GetPageSize", "CommonPrintSettings")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log(ajaxReasonOutput,'GetPageSize')
+                           PageSizeObj = ajaxReasonOutput.Data;
+                        }
+                       else {
+
+                           $.each(ajaxOutput.Process.Message, function (key, value) {
+                               NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                             
+                           });
+                        }
+                   }
+
+               });
+    };
+
+    function CurrentDate() {
+        const currentDate = new Date();
+        const day = currentDate.getDate().toString().padStart(2, '0'); // Day with leading zero
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+        const year = currentDate.getFullYear();
+
+        var TodayDate = `${year}-${month}-${day}`;
+        return TodayDate;
+    }
+
+   
+   // Element_load.then(function () { })
+  </script>
+}
+
+

@@ -1,0 +1,487 @@
+﻿
+@{
+    ViewBag.Title = "Tax Type";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="taxtype-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#taxtype-form');
+
+        $(document).ready(function () {
+            taxtypeInitialLoad();
+
+        });
+
+
+        function taxtypeInitialLoad() {
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text>   loadTaxTypeList(this); </text>
+              }
+        
+             loadTaxTypeAddForm();
+        }
+
+
+           // Function to load TaxType ADD form
+        function loadTaxTypeAddForm() {
+
+            $formContainer.load('@Url.Action("LoadTaxTypeForm", "TaxType")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+
+                $thisForm.attr('perfect-onFormSuccess', 'taxtypeInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+        function loadTaxTypeList(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+
+       
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+           $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetTaxTypeList", "TaxType")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('TaxType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("TaxType");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadTaxTypeList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadTaxTypeList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+
+     
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlTyView) {
+        <text> { displayName: "View", action: editTaxType },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+             {
+                 <text> { displayName: "Delete", action: deleteTaxType },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "TaxType", 'ShortName', 'TypeModeName'],
+            hideColumn: [],
+
+            rowClickAction: editTaxType,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.","TaxType" :"Name","TypeModeName": "Mode"}
+        };
+
+
+        var validationMessage = {
+            'TypeModeID': {
+                'required': 'Please Select Type Mode',
+                'digits': 'Invalid Type Mode Selected'
+            },
+            'ActionModuleID': {
+                'required': 'Please Select Action Module',
+                'digits': 'Invalid Action Module Selected'
+            },
+        
+            'TaxType': {
+                'required': 'Please Enter Name',
+                'maxlength': jQuery.validator.format('Tax Type name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in Tax Type name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter  Short Name',
+                'stringonly': 'Invalid  Tax Type  Short Name',
+                'alphanumeric': 'Invalid Tax Type Short Name',
+            },
+
+        };
+
+
+
+
+        function editTaxType() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                TaxTypeID: Saveddata.TaxTypeID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetTaxTypeInfoByID", "TaxType")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                                $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetTaxTypeInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadTaxTypeForm", "TaxType")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].TaxType)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                    $thisForm.find('[name="TaxType"]').val(ajaxOutput.Data[0].TaxType),
+                                    $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                    $thisForm.find('[name="Interstate"]').prop('checked', ajaxOutput.Data[0].Interstate)
+                                    $thisForm.find('[name="Intrastate"]').prop('checked', ajaxOutput.Data[0].Intrastate)
+                                    $thisForm.find('[name="TypeModeID"]').val(ajaxOutput.Data[0].TypeModeID).selectpicker('refresh'),
+                                    $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AHeadName),
+                                    $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].ASHeadName),
+                                    $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                    $thisForm.find('[name="AccountHead"]').val(ajaxOutput.Data[0].AccountHead)
+                                    $thisForm.find('[name="AccountHeadSub"]').val(ajaxOutput.Data[0].AccountHeadSub)
+
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'taxtypeInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetTaxTypeInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+
+                            loadTaxTypeList()
+                },
+
+            });
+
+        }
+
+           // Function to delete TaxType
+
+          //---
+         // Function to delete customer
+        function deleteTaxType() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetTaxTypeDeleteReasonList", "TaxType")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       // console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.TaxType + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                          // var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           
+                           confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        TaxTypeID: Saveddata['TaxTypeID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteTaxTypeInfo", "TaxType")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message':'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        //--
+
+
+
+
+            @*function deleteTaxType() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+                let inputData = {
+               __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                TaxTypeID: Saveddata['TaxTypeID']
+            };
+            console.log('Delete function', Saveddata)
+            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.TaxType+" ?", cancel: "No", confirm: "Yes" };
+                var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                confirmBoxObj.then(function (selectedOption) {
+                    if (selectedOption) {
+
+                    $.ajax({
+                            url: "@Url.Action("DeleteTaxTypeInfo", "TaxType")",
+                            type: "POST",
+                            data: inputData,
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            loadTaxTypeList()
+                        }
+                    });
+
+
+                }
+                else {
+
+                    NotificationMessage({ 'message': 'No option selected' });
+                }
+
+            });
+        };*@
+
+
+
+
+    </script>
+
+
+
+}

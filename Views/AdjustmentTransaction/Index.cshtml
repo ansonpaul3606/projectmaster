@@ -1,0 +1,534 @@
+﻿
+@{
+    ViewBag.Title = "AdjustmentTransaction";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_AdjustmentTransaction_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+<script type="text/javascript">
+
+        const LastIDSessionKey = 'AdjustmentTransLastID';
+        var AcTransTransMode = '';
+        var LastID_AcTrans;
+
+        const $formContainer = $('#jq_AdjustmentTransaction_formContainer');
+
+
+
+        var validationMessage = {
+
+            'TransType': {
+                'required': 'Please Select Trans Type',
+                'digits': 'Invalid Trans Type selected'
+
+            },
+
+            'AccountHead': {
+                'required': 'Please Select Account Head',
+                'stringonly': 'Special Characters are not Allowed in  Account Head'
+
+            },
+
+            'FK_Branch': {
+                'required': 'Please Select Branch',
+                'digits': 'Invalid Branch selected'
+
+            },
+            'FK_AccountHead': {
+                'required': 'Please Select Account Head',
+                'digits': 'Invalid Account Head selected'
+
+            },
+
+            'AccountType': {
+                'required': 'Please Select Account Type',
+                'digits': 'Invalid Account Type selected'
+
+            },
+
+            'ProcessDate': {
+                'required': 'Please Select Process Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'AdjAmount': {
+                'required': 'Please Enter Amount',
+
+            },
+
+        };
+
+
+        $(document).ready(function () {
+            fn_Actionindex_load();
+
+        });
+        function fn_Actionindex_load() {
+
+                AcTransTransMode = '@ViewBag.TransMode';
+
+                fn_loadAdjustmentTransactionList(this);
+                fn_Action_loadAddForm();
+
+
+        }
+
+
+        function fn_Action_loadAddForm() {
+
+            $formContainer.load('@Url.Action("LoadAdjustmentTransaction", "AdjustmentTransaction")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="ProcessDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({  messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_Actionindex_load');
+                initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_AcTrans = result;
+                });
+
+            });
+
+        };
+
+        function fn_loadAdjustmentTransactionList(ele) {
+
+        let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            //$sideMenuOptions.title.find('h4').text('List');
+             $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+             let pageUrl = '@Url.Action("GetAccountHeadSubTransactionList", "AdjustmentTransaction")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransMode: AcTransTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        console.log('ajaxOutput', ajaxOutput);
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                        $sidemenu.find('.jq_sidemenu_title').text("Adjustment Transaction List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadAdjustmentTransactionList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: AcTransTransMode }, tableOptions, $table)
+                              });
+                          }
+                          else
+                          {
+                        setSessionValue(LastIDSessionKey, 0);
+                            if (ajaxOutput.Process.Status = "NoData") {
+                                $sidemenu.find('.jq_sidemenu_title').text("Adjustment Transaction List");
+
+                                $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadAdjustmentTransactionList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,
+                                    "processing": true,
+                                    "lengthMenu": [0],
+                                    "searching": false,
+                                    "ordering": false,
+                                    "deferLoading": ajaxOutput.totalrecord,
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                    "pageLength": ajaxOutput.pageSize,
+                                    "recordsFiltered": ajaxOutput.pageSize,
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: AcTransTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                          }
+            },
+            complete: function () {
+
+            }
+        });
+        }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page,TransMode: ajaxInfo.TransMode};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editAdjustmentTransaction },</text>
+                }
+                { type: "divider" },
+               @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteAdjustmentTransaction },</text>
+                 }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "ProcessDate", "AccountHead", "AdjAmount"],
+        hideColumn: [],
+        rowClickAction: fn_editAdjustmentTransaction,
+        renameHeader: { "SlNo": "Sl No", "AdjAmount":"Amount 1R"},
+        isDateType: ["ProcessDate"],
+        serialNo: false,
+    };
+
+
+
+        function fn_editAdjustmentTransaction() {
+        let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_AccountHeadSubTransaction: Saveddata.ID_AdjustingHeadTransaction,
+
+                TransMode: AcTransTransMode
+            };
+            fn_fillAdjustmentTransactionDetails(inputData);
+        }
+
+
+        function fn_fillAdjustmentTransactionDetails(inputData) {
+
+         $.ajax({
+                url: '@Url.Action("GetAdjustmentTransactionInfo", "AdjustmentTransaction")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.AccountTransInfo.Process.IsProcess)
+                            {
+                                $sideMenuOptions.close();
+                                $formContainer.load("@Url.Action("LoadFormAdjustmentTransaction", "AdjustmentTransaction")?mtd=@ViewBag.mtd", function () {
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    $(this).find('[perfect-class=formTitle]').text('update')
+
+
+                                    $thisForm.find('[name="ID_AdjustingHeadTransaction"]').val(ajaxOutput.AccountTransInfo.Data[0]['ID_AdjustingHeadTransaction']);
+                                    $thisForm.find('[name="ProcessDate"]').val(moment(ajaxOutput.AccountTransInfo.Data[0]['ProcessDate']).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="FK_Branch"]').val(ajaxOutput.AccountTransInfo.Data[0].FK_Branch).selectpicker('refresh');
+                                    $thisForm.find('[name="AccountType"]').val(ajaxOutput.AccountTransInfo.Data[0].AccountType).selectpicker('refresh');
+
+                                    $thisForm.find('[name="TransType"]').val(ajaxOutput.AccountTransInfo.Data[0].TransType).selectpicker('refresh');
+                                    $thisForm.find('[name="AccountHead"]').val(ajaxOutput.AccountTransInfo.Data[0]['AccountHead']);
+                                    $thisForm.find('[name="FK_AccountHead"]').val(ajaxOutput.AccountTransInfo.Data[0]['FK_AccountHead']);
+
+                                    $thisForm.find('[name="AdjAmount"]').val(ajaxOutput.AccountTransInfo.Data[0]['AdjAmount']);
+
+
+
+
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.attr('perfect-onFormSuccess', 'fn_loadAdjustmentTransactionList');
+                                    $sideMenuOptions.close();
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                });
+                            }
+
+                },
+
+            });
+        }
+
+        //function fn_fillTransactionItem(ele, tkey, data, tableOptionsTempOut) {
+        //    debugger;
+        //    let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //    let tableOptionsTemp = tableOptionsTempOut;
+        //    let insertData = []
+        //    let tableKey = tkey;
+
+        //    let indexname = tkey + 'index';
+        //    tableOptionsTemp.rowAttribute.push(indexname);
+        //    tableOptionsTemp.hideColumn.push(indexname);
+
+        //    let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+        //    $.each(data, function (keyOne, valOne) {
+
+        //        let pData = {};
+
+        //        pData[indexname] = keyOne + 1;
+        //        $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+        //        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+        //            let $this = $(this);
+        //            let headerName = $this.attr('perfect-tempTable-' + tableKey);
+        //            let nameAttr = $this.attr('name');
+        //            if (typeof valOne[nameAttr] !== undefined) {
+
+        //                if ($this.is('select')) {
+        //                    tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+        //                    tableOptionsTemp.hideColumn.push(nameAttr);
+        //                    pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+        //                    pData[nameAttr] = valOne[nameAttr];
+        //                }
+        //                else if ($this.is('input')) {
+        //                    let inputType = $this.attr('type').toLocaleLowerCase();
+        //                    if (inputType == 'checkbox') {
+        //                        pData[nameAttr] = valOne[nameAttr];
+        //                        tableOptionsTemp.isCheckType.push(nameAttr);
+        //                    }
+        //                    else if (inputType == 'hidden') {
+        //                        switch (nameAttr) {
+        //                            case "PaymentTotalAmount":
+        //                                break;
+        //                            default:
+        //                                tableOptionsTemp.hideColumn.push(nameAttr);
+        //                                break;
+        //                        }
+        //                        pData[nameAttr] = valOne[nameAttr];
+        //                    }
+        //                    else if (inputType == 'date') {
+        //                        debugger;
+
+        //                        if ((nameAttr == "AhstChequeDate") && (valOne.AhstChequeDate =="1900-01-01T00:00:00")){
+        //                            pData[nameAttr] = "";
+        //                        }
+        //                        else {
+        //                            pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+        //                        }
+        //                    }
+        //                    else {
+        //                        pData[nameAttr] = valOne[nameAttr];
+        //                    }
+        //                }
+        //                else {
+        //                    pData[nameAttr] = valOne[nameAttr];
+        //                }
+        //            }
+        //        });
+
+        //        insertData.push(pData);
+
+
+        //    });
+
+        //    $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        //    BindTotalAmount(ele, insertData.TransType);
+
+        //}
+
+        //var AdjustmentTransactionTempOut = {
+        //    iconButton: {
+        //        buttons: [
+
+        //            {
+        //                icon: "fa fa-pencil btnPerfectGridEdit",
+        //                action: function () {
+        //                    debugger;
+        //                    let savedData = $(this).closest('tr').data('pData')
+
+        //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                    let tableKey = $tablecontainer.attr('perfect-tempTable');
+        //                    let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+        //                    //index attribute name in table row
+        //                    let indexname = tableKey + 'index';
+
+        //                    //index number in table row
+        //                    let rindex = $(this).closest('tr').attr(indexname);
+
+        //                    $tablecontainer.attr('perfect-tempTable-action', rindex);
+        //                    BindTotalAmount($tablecontainer);
+        //                    console.log('Editclick', savedData);
+        //                    //filling data in available inputs
+        //                    $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+        //                        let $thisNode = $(this);
+        //                        let pf_name = $thisNode.attr('name');
+        //                        if ($thisNode.is('select')) {
+
+        //                            $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+        //                        }
+        //                        else if ($thisNode.is('input')) {
+        //                            let inputType = $thisNode.attr('type').toLocaleLowerCase();
+        //                            if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+        //                                $thisNode.prop('checked', savedData[pf_name]);
+        //                            }
+        //                            else if ($thisNode.attr('type').toLocaleLowerCase() == 'date') {
+        //                              savedData[pf_name];
+        //                            }
+        //                            else {
+
+        //                                $thisNode.val(savedData[pf_name]);
+        //                            }
+
+        //                        }
+
+        //                        else {
+        //                            $thisNode.val(savedData[pf_name]);
+        //                        }
+
+
+        //                    });
+
+
+        //                    BindTotalAmount($tablecontainer);
+
+        //                }
+        //            },
+        //            {
+        //                icon: "fa fa-trash btnPerfectGridDelete",
+        //                action: function () {
+        //                    let $tablecontainer = $(this).closest('[perfect-tempTable]');
+        //                    let $thistbl = $(this).closest('table');
+        //                    let table = $thistbl.DataTable();
+        //                    table.destroy();
+        //                    if ($(this).closest('tbody').find('tr').length > 1) {
+        //                        $(this).closest('tr').remove();
+        //                        pft_table_slreset($thistbl);
+        //                    }
+        //                    else {
+        //                        $thistbl.remove();
+        //                    }
+        //                    BindTotalAmount($tablecontainer);
+        //                }
+        //            },
+        //        ]
+        //    },
+        //    onlyShowColumn: ['Voucher', 'TransType_d', 'AccountHead', 'AccountSubHead', 'AhstNarration', 'AhstChequeDate', 'AhstChequeNo', 'AhstAmount','AhstParty'],
+        //    rowAttribute: [],
+        //    renameHeader: { "Voucher": "Voucher", "TransType_d": "Trans Type", "AccountHead": "A/c Head", "AccountSubHead": "A/c Sub Head", "AhstNarration": "Remarks", "AhstChequeDate": "Chq. Date", "AhstChequeNo": "Chq. No","AhstAmount":"Amount","AhstParty":"Party" },
+        //    hideColumn: ['ID_AccountHeadSubTransaction', 'FK_AccountHead', 'FK_AccountSubHead','AccountType_d','AccountType'],
+        //    serialNo: true
+        //    //isDateType: ["TransDate", "EffectDate", "AhstChequeDate"],
+        //};
+
+        function fn_deleteAdjustmentTransaction() {
+
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            let TransMode = AcTransTransMode;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+               $.ajax({
+                   url: "@Url.Action("GetAdjustmentTransactionReasonList", "AdjustmentTransaction")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this record?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_AdjustingHeadTransaction: Saveddata.ID_AdjustingHeadTransaction,
+                                        FK_Reason: selectedOption,
+                                        TransMode: TransMode
+
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAdjustmentTransaction", "AdjustmentTransaction")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_Actionindex_load();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        };
+</script>
+
+
+
+}

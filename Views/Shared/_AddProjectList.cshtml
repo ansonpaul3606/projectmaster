@@ -1,0 +1,910 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Aiswarya
+    Created On	:
+    Purpose		: Add Project List
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+
+
+    ------------------------------------------------------------------------*@
+
+@model PerfectWebERP.Models.ProjectListModel.ProjectListData
+<style>
+    .tab {
+        margin-right: 2.5em
+    }
+</style>
+
+
+<div class="card">
+
+    <div class="card-header">
+        <div class="col-sm-4">
+            <h4 class="card-title col-12">Project List</h4>
+
+        </div>
+    </div>
+
+    <div class="card-body jq_ProjectList_body">
+        <form id="" class="form-valide" perfect-class="form-Filter" action="#" method="post" perfect-onFormSuccess="">
+            <div class="searchservicefollowupsection">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Ticket Number</label>
+                            <input type="text" name="Ticket" class="form-control" placeholder="">
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Product</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="Product" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ProductID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,18,'Product List',[])" form="form-Filter" Criterea1="0" Criterea2="0" BindName="Product" BindVal="ProductID"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <input type="date" class="form-control perfectValidate_date" name="fromdate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="date" class="form-control perfectValidate_date" name="todate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Customer</label>
+                            <input type="text" name="Customer" class="form-control" placeholder="">
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+                    <div class="col-sm-10">
+                        <div class="form-group">
+
+
+                        </div>
+                    </div>
+
+                    @*<div class="col-sm-2">
+
+                            &nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;   &nbsp;
+                            <button type="button" onclick="SearchUsingKeyWord(this,1)" class="btn btn-primary">Search</button>
+
+
+
+                            &nbsp;
+                            <button type="button" id="clear" class="btn btn-light1" perfect-css="button" onclick="Cleardetails(this)">Clear</button>
+
+
+
+                        </div>*@
+                    <div class="col-sm-1">
+                        <input type="hidden" name="filt" />
+                        <input type="hidden" name="md" />
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary btn-sm " href="#profile" name="Search" perfect-css="button" onclick="SearchUsingKeyWord(this,1)"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+                    </div>
+                    <div class="col-sm-1">
+
+                        <button id="addcompany-jq-filterclear" type="button" class="btn btn-light btn-sm " name="Clearfilter" perfect-css="button" onclick="Cleardetails(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Clear</button>
+                    </div>
+
+                </div>
+                <hr />
+
+            </div>
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="default-tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="TodaysList" data-toggle="tab" href="#home" onclick="fn_LeadManagement_search(this, 1, '#test1', tableOptions2)"><i class="las la-tasks  mr-2"></i> Today's List&nbsp;&nbsp;<span><label id="TodaysListData" class="badge badge-circle badge-info">0</label></span> </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="Pending" data-toggle="tab" href="#profile" onclick="fn_LeadManagement_search(this, 2, '#test2', tableOptions2)"><i class="las la-check mr-2"></i> Pending&nbsp;&nbsp;<label id="PendingListData" class="badge badge-circle badge-success">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="Upcoming" data-toggle="tab" href="#Upcomingid" onclick="fn_LeadManagement_search(this, 3, '#test3', tableOptions2)"><i class="las la-exclamation mr-2"></i> Upcoming&nbsp;&nbsp;<label id="UpcomingListData" class="badge badge-circle badge-danger">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="AllProject" data-toggle="tab" href="#AllprojectID" onclick="fn_LeadManagement_search(this, 4, '#test4', tableOptions2)"><i class="las la-exclamation mr-2"></i> All Projects&nbsp;&nbsp;<label id="AllProjectListData" class="badge badge-circle badge-danger">0</label></a>
+                            </li>
+
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="home" role="tabpanel">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv" id="test1"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="profile">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv" id="test2"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="Upcomingid">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv" id="test3"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="AllprojectID">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv" id="test4"></div>
+
+                                </div>
+                            </div>
+
+                        
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+
+    <div class="modal fade bd-service-modal-sm" tabindex="-1" role="dialog" style="display: none; " aria-hidden="true">
+        <div class="modal-dialog modal-xl" id="modalid">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title Serviceassign" id="ServiceAssignModal">Project Details</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <form class="form-valide" perfect-class="form" id="formid" action="#" method="post" perfect-onFormSuccess="">
+                    <div class="modal fade" perfect-class="formGroupModalCustomerBalance" id="formGroupModalCustomerBalance">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content  rounded-lg">
+                                <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                    <div class="default-tab"> 
+                                    </div> 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0"></div>
+                    </div>
+                    <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                        <div  id="TopDetails">
+
+                        </div>
+                        <div></div>
+
+                    </div>
+                  
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+<script>
+
+    $(document).ready(function () {
+
+        let $thisForm = $(this).find('[perfect-class="form-Filter"]');
+        $thisForm.closest('.jq_ProjectList_body').find('.searchservicefollowupsection').addClass('d-none');
+      // SearchUsingKeyWord(this,0);
+        jQuery('form').validate();
+
+        /////////////////////// switch //////////////////////////
+        var url = window.location.pathname;
+        var id = url.substring(url.lastIndexOf('/') + 1);
+        console.log('ID------------------', id)
+        if (id != "Index") {
+            if (id != null && id != "") {
+                ////debugger
+                switch (id) {
+                    case "1": $("#TodaysList").click(); break;
+                    //case "2": $("#Onhold").click(); break;s
+
+                }
+            }
+        } else {
+            
+            $("#TodaysList")[0].click();
+        }
+    });
+
+
+
+    function fn_showFilter() {
+
+        $formContainer.find('.jq_ProjectList_body').find('.searchservicefollowupsection').toggleClass('d-none');
+        $('.bd-example-modal-sm').modal('show');
+    }
+
+
+     var Data;
+    var tabMode;
+    var tabledata;
+    function fn_LeadManagement_search(ele, M, ids, tabl) {
+       
+        let $sidemenu = $sideMenuOptions.body;
+       // ClearModalInput();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $formDivContainer = $thisForm.find('[name=SearchLoadDiv]');
+
+        var InputData = {
+            //'Status': $('[name=Complaintstatus]').val(),
+            'Status': $('[name=CurrentStatus]').val(),
+            'FK_Product': $('[name=ProductID]').val(),
+            'Mode': M,
+			'Detailed': 0,
+            'FromDate': $('[name=fromdate]').val(),
+            'ToDate': $('[name=todate]').val(),
+            'Customer': $('[name=Customer]').val(),
+            'pageSize': 15,
+            'pageIndex': 0,
+
+
+        
+        }
+        tabMode = M;
+
+
+          let pageUrl = '@Url.Action("GetProjectList", "ProjectList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        console.log('place', ajaxOutput);
+                        console.log(ajaxOutput.Data, 'value');
+                        $(ids).empty().append('<div class="d-flex justify-content-end mb-3 position-relative"><div class="col-md-1 position-absolute top-1 z-index"> <div class="input-group testSearchBox"></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tabl)))
+                       // $(ids).empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+
+                        let $table = $ids.find('table');
+                        console.log($table,"$table");
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({
+                                apiurl: pageUrl, pageSize: ajaxOutput.pageSize,
+                                'Project': $('[name=ProjName]').val(),
+                                'SlNo': $('[name=SlNo]').val(),
+                                'FK_Project': $('[name=FK_Project]').val(),
+                                'ProjectNumber': $('[name=ProjNumber]').val(),
+                                'CreateDate': $('[name=StartDate]').val(),
+                                'pageSize': 15,
+                                'pageIndex': 0,
+
+                            }, tableOptions2, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+
+
+                            $ids.empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+                            console.log('ajaxOutput.Data', ajaxOutput.Data);
+
+                            let $table = $ids.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+
+                                "ajax": returnajaxPagination({
+                                    apiurl: pageUrl, pageSize: ajaxOutput.pageSize,
+                                    'Project': $('[name=ProjName]').val(),
+                                    'FK_Project': $('[name=FK_Project]').val(),
+                                    'SlNo': $('[name=SlNo]').val(),
+                                    'ProjectNumber': $('[name=ProjectNumber]').val(),
+                                    'CreateDate': $('[name=StartDate]').val(),
+                                    'pageSize': 15,
+                                    'pageIndex': 0,
+                                }, tableOptions2, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+                    get_tab_count(this);
+
+            },
+            complete: function () {
+                $('[name=filt]').val(ids);
+                $('[name=md]').val(M);
+            }
+        });
+    }
+
+    /////////////////////////////
+
+    var tableOptions2 = {
+
+	 iconButton: {
+
+                    buttons: [
+
+                        {
+						icon: "fa fa-list  btnprojectList",
+						title: "Project Details",
+                            action: function () {
+							    
+                                let savedData = $(this).closest('tr').data('pData')
+								console.log(savedData,'savedData');
+								Fn_BindProjectInfo(this,savedData.FK_Project);
+								}
+                        },
+                        {
+                            icon: "fa fa-sitemap btnprojectList",
+							title: "Site Visit",
+                            action: function () {
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                window.open("@Url.Action("Index", "SiteVisit")" + '?ProjectID=' + savedData.FK_Project
+	                             +'&mgrp='+'@ViewBag.SiteVisitTranMode'+'&mtd='+'@ViewBag.SiteVisitMenu'
+								 + '&title=' +'SiteVisit',
+								 '_self');
+
+
+                                }
+                        },
+                        {
+                            icon: "fa fa-unlock btnprojectList ",
+							title: "Project Follow Up",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                window.open("@Url.Action("Index", "ProjectFollowUp")" + '?ProjectID=' + savedData.FK_Project  
+                                    + '&mgrp=' + '@ViewBag.ProjectFolupTranMode' + '&mtd=' +'@ViewBag.ProjectFolupMenu' + '&title=' +'ProjectFollowup','_self');
+
+
+                                }
+                        },
+                        {
+                            icon: "fa fa-exchange btnprojectList",
+							title: "Project Transaction",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                window.open("@Url.Action("Index", "ProjectTransaction")" + '?ProjectID=' + savedData.FK_Project 
+                                    + '&mgrp=' + '@ViewBag.ProjectTransationMode'+ '&mtd=' +'@ViewBag.ProjectTransactionMenu'+ '&title=' +'ProjectTransaction','_self');
+
+
+                                }
+                            },
+
+                        {
+                            icon: "fa fa-location-arrow btnprojectList ",
+							title: "Material Allocation",
+                            action: function () {
+                                let savedData = $(this).closest('tr').data('pData')
+                                window.open("@Url.Action("Index", "MaterialAllocation")" + '?ProjectID=' + savedData.FK_Project
+	                             +'&mgrp='+'@ViewBag.MatAllocationTranMode'+'&mtd='+'@ViewBag.MatAllocationMenu'+ '&title=' +'MaterialAllocation','_self');
+
+
+                                }
+                        },
+                        {
+                            icon: "fa fa-cogs btnprojectList",
+							title: "Material Usage",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                window.open("@Url.Action("Index", "MaterialUsage")" + '?ProjectID=' + savedData.FK_Project  
+                                    + '&mgrp=' + '@ViewBag.MatUsageTranMode' + '&mtd=' +'@ViewBag.MatUsageMenu'+ '&title=' +'MaterialUsage','_self');
+
+
+                                }
+                        },
+						 {
+                            icon: "fa fa-usd btnprojectList",
+							title: "Fund Allocation",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                 window.open("@Url.Action("Index", "ProjectTransaction")" + '?ProjectID=' + savedData.FK_Project 
+                                    + '&mgrp=' + '@ViewBag.ProjectTransationMode'+ '&mtd=' +'@ViewBag.ProjectTransactionMenu'
+									+ '&title=' +'FundAllocation'
+									,'_self');
+
+
+                                }
+                        },
+						 {
+                            icon: "fa fa-compress btnprojectList",
+							title: "Fund Spend",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                 window.open("@Url.Action("Index", "ProjectTransaction")" + '?ProjectID=' + savedData.FK_Project 
+                                    + '&mgrp=' + '@ViewBag.ProjectTransationMode'+ '&mtd=' +'@ViewBag.ProjectTransactionMenu'
+									+ '&title=' +'FundSpend'
+									,'_self');
+
+
+                                }
+                        },
+						 {
+                            icon: "fa fa-long-arrow-right btnprojectList",
+							title: "Fund Return",
+                            action: function () {
+
+                                let savedData = $(this).closest('tr').data('pData')
+                                console.log(savedData, 'savedData789');
+                                 window.open("@Url.Action("Index", "ProjectTransaction")" + '?ProjectID=' + savedData.FK_Project 
+                                    + '&mgrp=' + '@ViewBag.ProjectTransationMode'+ '&mtd=' +'@ViewBag.ProjectTransactionMenu'
+									+ '&title=' +'FundReturn'
+									,'_self');
+
+
+                                }
+                        },
+
+								],
+								class: "btnprojectListbtn"
+								},
+
+        onlyShowColumn: ['SlNo', 'ProjNumber', 'ProjName', 'Customer', 'StartDate', 'Duration', 'Stage'],
+        hideColumn: ["FK_Project"],
+       //trackInfo: { "Project": "Click to more information" },
+
+        renameHeader: {  "ProjName": "Project Name","ProjNumber":"Project Number", "StartDate":"Start Date","Stage":"Current Stage"}
+
+    };
+
+
+    var tabledata;
+    function SearchUsingKeyWord(ele,Mod) {
+
+        // let $thisForm = $(ele).closest('.Search-Control');
+        let $thisForm;
+        if (Mod == 0) {
+            $thisForm = $(ele).find('[perfect-class="form-Filter"]');
+        }
+        else {
+            $thisForm = $(ele).closest('[perfect-class="form-Filter"]');
+        }
+        let $ids = $thisForm.find('[name=home]');
+        console.log('$ids', $ids);
+        var InputData = {
+            //'Status': $('[name=Complaintstatus]').val(),
+            'Status': $('[name=CurrentStatus]').val(),
+            'FK_Product': $('[name=ProductID]').val(),
+            'TicketNumber': $('[name=Ticket]').val(),
+            'FromDate': $('[name=fromdate]').val(),
+            'ToDate': $('[name=todate]').val(),
+            'Customer': $('[name=Customer]').val(),
+            'pageSize': 15,
+            'pageIndex': 0,
+
+
+        }
+        console.log(InputData);
+
+          let pageUrl = '@Url.Action("GetProjectList", "ProjectList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('place', ajaxOutput.Data);
+                              $ids.empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+
+                              let $table = $ids.find('table');
+
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({
+                                      apiurl: pageUrl, pageSize: ajaxOutput.pageSize,
+                                      'Project': $('[name=Project]').val(),
+									  'SlNo': $('[name=SlNo]').val(),
+									  'FK_Project': $('[name=FK_Project]').val(),
+									  'ProjectNumber': $('[name=ProjectNumber]').val(),
+									  'CreateDate': $('[name=CreateDate]').val(),
+                                      'pageSize': 15,
+                                      'pageIndex': 0,
+
+                                  }, tableOptions2, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+
+
+                                  $ids.empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions2)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+                                  console.log('ajaxOutput.Data', ajaxOutput.Data);
+
+                        let $table = $ids.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+
+                            "ajax": returnajaxPagination({
+                                apiurl: pageUrl, pageSize: ajaxOutput.pageSize,
+                                'Project': $('[name=Project]').val(),
+                               'FK_Project': $('[name=FK_Project]').val(),
+							   'SlNo': $('[name=SlNo]').val(),
+							   'ProjectNumber': $('[name=ProjectNumber]').val(),
+							    'CreateDate': $('[name=CreateDate]').val(),
+                                'pageSize': 15,
+                                'pageIndex': 0,
+                            }, tableOptions2, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+            },
+            complete: function () {
+
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        console.log('RETURN AJAX', ajaxInfo)
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = {
+                    pageSize: info.length, pageIndex: info.page,
+
+                    //Status: ajaxInfo.CurrentStatus,
+                    Status: ajaxInfo.CurrentStatus,
+                    FK_Product: ajaxInfo.ProductID,
+                    FromDate: ajaxInfo.fromdate,
+                    ToDate: ajaxInfo.todate,
+                    TicketNumber: ajaxInfo.Ticket,
+                    Customer: ajaxInfo.Customer
+                };
+
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+     function Fn_BindProjectInfo(ele,FK_Project)
+	 {
+	
+        
+
+        
+        $('.Serviceassign').show();
+        $('.Employeeadd').show();
+        $('#TopDetails').show();
+        $('#modalid').removeClass('modal-lg');
+         $('#modalid').addClass('modal-xl');
+         var Detailed = true;
+         var InputData = {
+             //'Status': $('[name=Complaintstatus]').val(),
+             'Status': $('[name=CurrentStatus]').val(),
+             'FK_Project': FK_Project,
+             'Detailed': Detailed,
+             'FromDate': $('[name=fromdate]').val(),
+             'ToDate': $('[name=todate]').val(),
+             'Customer': $('[name=Customer]').val(),
+             'pageSize': 15,
+             'pageIndex': 0,
+
+
+
+         }
+
+        $.ajax({
+            url: "@Url.Action("GetProjectList", "ProjectList")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+               //let $thisForm = $(this).find('[perfect-class="form"]');
+                //$thisForm.validate({ messages: validationMessage });
+                let $thisForm = $(ele).closest('[perfect-class="form"]');
+                if (ajaxOutput != null) {
+                    
+                    $TicketHtml = '';
+                    $('#TopDetails').empty();
+                    var Income = "";
+                    if (ajaxOutput.Data[0].LossProfit > 0)
+                        Income = "Profit"
+                    else
+                        Income = "Loss"
+                    //Ticket Information
+				  
+                    $TicketHtml += "<div class='row px-12'>";
+                    $TicketHtml += "<div class='col-sm-4'>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Category<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].Category + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Project Number <span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].ProjectNumber + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Project Name<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].ProjectName + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Short Name<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].ShortName + "</span></div></div>";
+                    
+                   
+                    $TicketHtml += "</div>";
+                    
+                      $TicketHtml += "<div class='col-sm-4'>";
+                    
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Customer Name <span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].CustomerName + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Contact Number<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].ContactNumber + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Address<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].Address + "</span></div></div>";
+             
+               
+                    $TicketHtml += "</div>";
+                   
+                  $TicketHtml += "<div class='col-sm-4'>";
+                   
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Duration <span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].Duration + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Current Stage<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].CurrentStage + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Total Expense<span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].TotalExpense + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'>Total Income <span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].TotalIncome + "</span></div></div>";
+                    $TicketHtml += "<div class='row mb-2'><div class='col-6'><h6 class='f-w-500'> " + Income +" <span class='pull-right'>:</span></h6></div>";
+                    $TicketHtml += "<div class='col-6'><span>" + ajaxOutput.Data[0].LossProfit + "</span></div></div>";
+                    $TicketHtml += "</div>";
+                 
+                       
+
+                    $('#TopDetails').append($TicketHtml);
+
+                   
+                    //////////////////////////////////////////
+                    $('.bd-service-modal-sm').modal('show');
+                }
+
+                else {
+
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Error" });
+
+
+                }
+
+
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+                $('.bd-service-modal-sm').validate().resetForm();
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="Employee"]').closest('[perfect-class="formGroup"]').find('temptableError2').text('');
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="DepartmentName"]').closest('[perfect-class="formGroup"]').find('temptableError').text('');
+                //$thisForm.find('[perfect-tempTable-ComplaintDetails="Role"]').closest('[perfect-class="formGroup"]').find('temptableError2').text('');
+                $('#modalid').on('hidden.bs.modal', function () {
+                    $('#modalid form')[0].reset();
+                });
+
+            }
+        });
+	 }
+  
+
+    function Cleardetails(ele) {
+
+       // $thisForm = $(ele).find('[perfect-class="form-Filter"]');
+        let $container = $(ele).closest('[perfect-class="form-Filter"]');
+        $container.find('[name=Product]').val('')
+        $container.find('[name=ProductID]').val('0');
+        $container.find('[name=fromdate]').val('');
+        $container.find('[name=todate]').val('');
+        $container.find('[name=CurrentStatus]').val('0');
+        $('select[name=CurrentStatus]').val('0');
+        $container.find('[name=Customer]').val('');
+        $container.find('[name=Ticket]').val('');
+        SearchUsingKeyWord(ele, 1);
+
+    }
+
+
+
+
+
+
+
+
+
+
+    function RemoveEmptyRow(ID) {
+        let val = $('#' + ID).find('tr:first').attr('id');
+        if (val == 0) {
+            $('#' + ID).empty();
+        }
+    }
+
+    function CheckNumber(n) {
+
+        if (n % 2 == 0) {
+            return 1;
+        } else if (Math.abs(n % 2) == 1) {
+            return 0;
+        }
+
+    }
+
+
+
+
+
+    function ConvertJsonDate(Jsondate) {
+        var date = "";
+        if (Jsondate != "" && Jsondate != null && Jsondate != undefined) {
+            var dateString = Jsondate.substr(6);
+            var currentTime = new Date(parseInt(dateString));
+            var month = currentTime.getMonth() + 1;
+            if (month <= 9) {
+                month = "0" + month;
+            }
+            var day = currentTime.getDate();
+            if (day <= 9) {
+                day = "0" + day;
+            }
+            var year = currentTime.getFullYear();
+            date = day + "-" + month + "-" + year;
+
+
+        }
+        return date;
+    }
+
+
+
+
+</script>
+<script src="~/Scripts/jqDOM/tableDOMCreation.js"></script>

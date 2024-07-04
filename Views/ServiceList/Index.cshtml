@@ -1,0 +1,337 @@
+﻿@{
+    ViewBag.Title = "Service List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <input type="hidden" id="ServiceTransMode" value="@ViewBag.TransMode"/>
+    <div class="row">
+        <div class="col-lg-12" id="jq_ServiceListIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+<script type="text/javascript">
+
+        //--- Form
+        const $formContainer = $('#jq_ServiceListIndex_formContainer');
+        // Initial load functions
+        $(document).ready(function () {
+            fn_ServiceListIndex_initialLoad();
+        });
+
+    function fn_ServiceListIndex_initialLoad() {
+       
+        loadservicefollowupList(this, fn_ServiceList_LoadForm);
+    }
+
+    function fn_ServiceList_LoadForm() {
+
+        $formContainer.load('@Url.Action("LoadServiceListForm", "ServiceList")?mgrp=' + '@ViewBag.TransMode'+'&mtd=@ViewBag.mtd', function () {
+
+    let $thisForm = $(this).find('[perfect-class="form"]');
+
+    // ... Custom validation message
+            $('.divaasignedto').hide();
+            $('.divfollowupdate').hide();
+            $('.divactiontype').hide();
+        $thisForm.validate({ messages: validationMessage });
+        $thisForm.attr('perfect-onFormSuccess', 'fn_ServiceListIndex_initialLoad');
+        initFunctions($thisForm);
+
+    });
+    }
+
+
+      //////sideview list//// 
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+
+                { displayName: "View", action: EditServicefollowup },
+
+                { type: "divider" },
+
+                {
+
+                    displayName: "Delete", action: deleteServiceFollowUp
+                }
+            ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "TicketNo", "CusName", /*"NxtActnName",*/ "Mobile"],
+        hideColumn: ["ID_CustomerServiceRegisterProductDetails"],
+        //  isDateType: [],
+        rowClickAction: EditServicefollowup,
+        serialNo: false,
+        renameHeader: { "SlNo": "SL NO", "TicketNo": "Ticket No", "CusName": "Customer", /*"NxtActnName": "Status",*/ "Mobile": "Mobile" }
+    };
+
+    var validationMessage = {
+
+        'VisitedDateAfter': {
+            'required': 'Please Enter A Date',
+            'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in  Name'
+
+        },
+        'ID_NextAction': {
+            'required': 'Please Select Next Action',
+            'digits': 'Invalid  Next Action selected'
+        },
+          'BillTypeID': {
+              'required': 'Please Select Bill Type',
+              'digits': 'Invalid BillType selected'
+        }
+
+    };
+     function loadservicefollowupList(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+         let SearchName = $("#serchname").val();
+         if (SearchName == undefined) {
+             SearchName = "";
+         }
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+          let pageUrl = '@Url.Action("GetServiceFollowupList", "ServiceList")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+
+                              $sidemenu.find('.jq_sidemenu_title').text("Service Follow Up List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" id="serchname" class="form-control " name="SearchName"  value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadservicefollowupList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                //  "lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Service Follow Up List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" id="serchname" value="' + SearchName +'"  perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadservicefollowupList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+     //Edit servicefollowup
+
+    function EditServicefollowup()
+    {
+        let row = $(this).closest('tr');
+
+        let Saveddata = row.data('pData');
+        
+        $sideMenuOptions.close();
+
+        window.open("@Url.Action("ServiceListCustomer1", "ServiceList")" + '?ID=' + Saveddata.FK_Customerserviceregister + '&ServiceID=' + Saveddata.FK_ServiceFollowUp + '&ID_CustomerserviceregisterProductDetails=' + Saveddata.ID_CustomerServiceRegisterProductDetails + '&mgrp=' + '@ViewBag.TransMode', '_self');
+
+
+    }
+
+     function deleteServiceFollowUp() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+         console.log("Saveddata>>>>>>>>>>>>>>", Saveddata)
+         
+         var today = new Date();
+         date1 = new Date(Saveddata.EntrOn);
+         date1.setHours(0, 0, 0, 0)
+         
+         var today = new Date();
+         today.setHours(0, 0, 0, 0)
+         
+         if (today.toDateString() != date1.toDateString()) {
+             console.log('today', today)
+             console.log('date1', date1)
+             NotificationMessage({ 'type': 'warning', 'heading': 'Warning', 'message': 'Entered on Date and System Date does not Matches' });
+         }
+         else
+         {
+
+             //get reason list-
+
+             $.ajax({
+                 url: "@Url.Action("GetServiceFollowUpReasonList", "ServiceList")",
+                 type: "GET",
+                 // data: inputReason,
+                 contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                 success: function (ajaxReasonOutput) {
+                     if (ajaxReasonOutput.Process.IsProcess) {
+
+                         console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                         //let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                         let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.TicketNo + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                         var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                         confirmBoxObj.then(function (selectedOption) {
+                             if (selectedOption) {
+                                 //  console.log('customerIndex> delete function:',selectedOption)
+
+                                 let inputData = {
+                                     __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                     ID_ServiceFollowUp: Saveddata['FK_ServiceFollowUp'],
+                                     ReasonID: selectedOption
+                                 };
+                                 $.ajax({
+                                     url: "@Url.Action("DeleteServiceFollowUpInfo", "ServiceList")",
+                                     type: "POST",
+                                     data: inputData,
+                                     contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                     success: function (ajaxOutput) {
+                                         if (ajaxOutput.Process.IsProcess) {
+
+                                             let table = $row.closest('table').DataTable()
+                                             table.row($row).remove().draw();
+
+                                             $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                 NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                             });
+                                             fn_ServiceListIndex_initialLoad();
+                                             //removing a data
+
+
+                                         }
+                                         else {
+                                             $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                 NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                             });
+                                         }
+                                     }
+                                 });
+                             }
+                             else {
+                                 NotificationMessage({ 'message': 'No option selected' });
+                             }
+
+                         });
+
+
+                     }
+                     else {
+
+
+
+                     }
+                 }
+
+             });
+
+         }
+
+
+        };
+
+</script>
+}
+

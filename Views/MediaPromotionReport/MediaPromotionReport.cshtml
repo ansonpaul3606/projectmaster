@@ -1,0 +1,58 @@
+﻿
+@{
+    ViewBag.Title = "MediaPromotionReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+
+        <div class="col-lg-12" id="jq_MediaPromotionReport_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#jq_MediaPromotionReport_formContainer');
+    RPTusername = '@ViewBag.Username';
+
+    $(document).ready(function () {
+        fn_MediaPromotionReport_initialload();
+    });
+    var MediaPromotionRptTransMode = '';
+    function fn_MediaPromotionReport_initialload() {
+        MediaPromotionRptTransMode='@ViewBag.TransMode';
+
+        fn_loadMediaPromotionReportAddForm();
+    }
+
+    function fn_loadMediaPromotionReportAddForm() {
+        $formContainer.load('@Url.Action("MediaPromotionReportForm", "MediaPromotionReport")?mtd=@ViewBag.mtd', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            fn_showFiltersearchs();
+            //$thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'fn_MediaPromotionReport_initialload');
+
+        });
+    }
+    function fn_showFiltersearchs() {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.closest('.ReportFilter').find('.filter').toggleClass('d-none');
+
+        $thisform.find('[name="MediaID"]').val('');
+        $thisform.find('[name="SubMediaID"]').val('');    
+    }
+    var validationMessage = {
+        'ID_Report': {
+            'required': 'Please Select Report Name',
+        },
+    };
+</script>
+}

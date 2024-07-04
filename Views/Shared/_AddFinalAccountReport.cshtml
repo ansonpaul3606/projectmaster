@@ -1,0 +1,1826 @@
+﻿@model PerfectWebERP.Models.FinalAccountReportModel.FinalAccountReportview
+
+@*@Scripts.Render("~/Scripts/exportFile.js")*@
+
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .form-control1 {
+        background: white;
+        border: white;
+    }
+
+    .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .tableFixHead {
+        overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+        height: 400px; /* gives an initial height of 200px to the table */
+    }
+
+    .thead {
+        position: sticky; /* make the table heads sticky */
+        /*top: 0px;*/ /* table head will be placed from the top of the table and sticks to it */
+    }
+
+    .btn-nt:hover {
+        outline: none;
+    }
+
+
+    table.dataTable tfoot th {
+        border: 1px solid #ddd !important;
+    }
+
+    table.dataTable tbody td {
+        border: 1px solid #ddd !important;
+    }
+
+    table.dataTable thead th {
+        border: 1px solid #ddd !important;
+    }
+
+
+    .bold-text {
+        font-weight: bold;
+    }
+
+    /*.dataTables_scrollBody > table > thead > tr  {
+        visibility: collapse;
+        height: 0px !important;
+    }*/
+    .pdf {
+        color: #2aa2ad;
+        border: 0px !important;
+        padding: 10px,10px,10px,10px !important;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    .thead-primary {
+        position: sticky;
+        top: 0;
+        min-height
+        /*background-color: #fff;*/
+    }
+
+        .thead-primary tr {
+            height: 30px;
+            /*position: sticky;
+            top: 0;*/
+            /*background-color: #fff;*/
+            /*height:30px;
+            color:white;*/
+        }
+
+    #FinalAccountReportList > thead > tr:nth-child(2) > th > div {
+        height: 20px !important;
+        color: white !important;
+    }
+
+    .dataTables_scrollHeadInner .table-striped {
+        display: none;
+    }
+
+    #FinalAccountReportList > thead > tr {
+        /*border: 1px solid #ddd;*/
+    }
+
+        #FinalAccountReportList > thead > tr:nth-child(2) > th.hrow.sorting_asc {
+            background-image: none;
+        }
+
+    .hrow {
+        width: 20%;
+    }
+
+    #FinalAccountReportList > thead > tr > th {
+        border: 1px solid #ddd;
+    }
+
+    #FinalAccountReportList > thead > tr.fheader.finalaccount_mainhead > th {
+        height: 20px !important;
+        text-align: center;
+    }
+
+        #FinalAccountReportList > thead > tr.fheader.finalaccount_mainhead > th > div {
+            height: 20px !important;
+            text-align: center !important;
+        }
+
+        #FinalAccountReportList > thead > tr.fheader.finalaccount_mainhead > th:nth-child(1), #FinalAccountReportList > thead > tr.fheader.finalaccount_mainhead > th:nth-child(1) {
+            border-bottom: 0px solid transparent !important;
+        }
+
+    #FinalAccountReportList > thead > tr:nth-child(2) > th.hrow.sorting_asc.sorting_disabled, #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(1) {
+        border-top: 0px solid transparent !important;
+    }
+    /*//new line color-profile code*/
+    #FinalAccountReportList > thead > tr > th:nth-child(1) {
+        width: 20px !important;
+    }
+    /* #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(2), #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(5) {
+        width: 50px !important;
+    }
+    #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(3), #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(4), #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(6), #FinalAccountReportList > thead > tr:nth-child(2) > th:nth-child(7) {
+        width: 80px !important;
+    }*/
+
+
+
+</style>
+<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />
+
+
+
+
+
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="FinalAccountreportInitialLoadAddForm()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearch()" title="To Filter"><i class="fa fa-filter"></i></button>
+
+        </div>
+
+    </div>
+    <div class="card-body Accountreport">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="accountreportsearch-body" @* id="filterid" style="display: none;"*@>
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="" perfect-class="formGroupControl" perfect-css="input" />
+
+                                <select class="form-control  Action " id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" onchange="bindReportField(this)" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+
+                                    @if (!(Model.ReportType is null))
+                                    {
+                                        foreach (var data in Model.ReportType)
+                                        {
+                                            <option value="@data.ID_Mode">@data.ModeName</option>
+                                        }
+                                    }
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            @*<div class="col-sm-12">*@
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <span class="text-danger">*</span>
+                            </label>
+                            @*</div>*@
+                            <div class="col-sm-8">
+                                @*<input type="hidden" name="BranchID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />*@
+                                <select class="form-control" id="BranchID" name="BranchID" perfect-class="formGroupControl" onChange="getdata(this)" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    @if (ViewBag.UsrrlAdmin)
+                                    {
+                                        <option value="0">All</option>
+
+                                    }
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.Branch</option>
+                                        }
+
+                                    }
+
+
+                                </select>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="col-sm-6 Divbranch">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclear(this)">
+
+                                        <option value="0">All</option>
+
+
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branchList in Model.BranchList)
+                                            {
+                                                if (branchList.BranchID == ViewBag.FK_Branch)
+                                                {
+                                                    <option value="@branchList.BranchID" selected>@branchList.Branch</option> }
+                                                else
+                                                {
+                                                    <option value="@branchList.BranchID">@branchList.Branch</option>}
+
+                                            }
+
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>*@
+
+                    <div class="col-sm-6 DivAsOnDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="AsonDate" data-id="AsonDate-error" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="CheckAsOnDate()">
+
+                                <div id="AsOnDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="col-sm-6 ">
+                        <div class="card-footer text-right" perfect-class="formFooter">
+                            <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getgridout(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                            <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+
+
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+            @*<button type="button" class="btn btn-nt" id="exppdf" style="display:none; float:right;" onclick="generatePdf()" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>*@
+
+
+
+            <br />
+            <div id="divReportSection">
+                <h2 id="ReportName" style="text-align:center"></h2>
+            </div>
+
+            <div id="table-container">
+                <table id="FinalAccountReportList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr class="fheader finalaccount_mainhead">
+                            <th rowspan="1"></th>
+                            <th colspan="2" name="fheader1">Expenditure</th>
+                            <th colspan="2" name="fheader2">Income</th>
+                        </tr>
+                        <tr>
+                            <th class="hrow">Sl.No</th>
+                            <th class="hrow">Particular</th>
+                            @*<th class="hrow">Debit</th>*@
+                            <th class="hrow">Balance</th>
+                            <th class="hrow">Particular</th>
+                            @*<th class="hrow">Debit</th>*@
+                            <th class="hrow">Balance</th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot align="right">
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+
+                        </tr>
+
+                    </tfoot>
+                </table>
+            </div>
+
+
+
+
+        </form>
+    </div>
+
+
+
+    @*<a href="@Url.Action("ExportToExcel", "FinalAccountReport")">Export to Excel</a>*@
+
+</div>
+
+<script>
+
+    var miandata = [];
+    
+    var pageTitleVar = '@ViewBag.PageTitle';
+    
+
+        $(document).ready(function () {
+            var now = new Date();
+
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+            var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+            $('#AsonDate').val(today);
+            Getdepartmentdefault(this);
+            //fn_showFiltersearch()  //new line
+        });
+
+     function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+                     
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+
+    function ResetButton(ele) {
+       
+
+        var now = new Date();
+
+        var day = ("0" + now.getDate()).slice(-2);
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+        var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+        $('#AsonDate').val(today);
+        $("#ID_Report").val('0');
+        $("#BranchID").val('0');
+       //  $('#BranchID').val('@ViewBag.FK_Branch').selectpicker('refresh');
+        Getdepartmentdefault(this);
+           // AccountGeneralreportInitialLoadAddForm();
+
+    }
+
+
+
+
+        function Getdepartmentbranchnamedefault() {
+
+            let $thisForm = $('[perfect-class="form"]');
+            $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "LeadGeneration")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+            });
+        }
+
+
+
+        function checkLimit(ele) {
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            let Fromdate = $thisForm.find('[name="FromDate"]').val();
+            let Todate = $thisForm.find('[name="ToDate"]').val();
+
+            Fromdate = new Date(Fromdate);
+            Fromdate.setHours(0, 0, 0, 0)
+
+            Todate = new Date(Todate);
+            Todate.setHours(0, 0, 0, 0)
+
+            if (Todate < Fromdate) {
+
+               
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+                return false;
+            }
+            else {
+
+                
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+                return true;
+            }
+
+
+        }
+
+    var item;
+    var vfromdate;
+    var vtodate;
+    var vBranch = "";
+    var exportbtntoogle;
+    var selectedName = "";
+    var difference;
+    var difference2;
+    var callno = 0;
+
+
+
+
+
+    function getgridout(ele)
+    {
+        //=======================
+        //Importent
+        //For Calculating Total we use Harded corded parameter like DIFFERENCE IN BALANCE SHEET,NET LOSS,TRADING LOSS,NET PROFIT,TRADING PROFIT,
+        //=======================
+
+        
+        var expdebit = 0;
+        var expcredit = 0;
+        var incdebit = 0;
+        var inccredit = 0;
+
+         //let _Receipt = 0;
+         //let _payment = 0;
+      //  let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $thisForm = $('form[perfect-class="form"]');
+        $('#ReportName').html('');
+         $thisForm.find('[name=AccountGeneralReport]').empty();
+        let $formDivContainer = $thisForm.find('[name=AccountGeneralReport]');
+
+        var debitTT1 = 0;
+        var type = $("#ID_Report").val().trim();
+        let isValid = RptValidation(type, $thisForm);
+        if (isValid) {
+            let element = document.querySelector('tfoot');
+            if (element == undefined || element == null) {
+                //createfooterElement();
+            }
+            var inputData = {
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                        'BranchID': $thisForm.find('[name=BranchID]').val(),
+                        'ReportName': $thisForm.find('#ID_Report').val(),
+                        'AsonDate': $thisForm.find('#AsonDate').val()
+             }
+
+              $.ajax({
+                  url: '@Url.Action("GetFinalAccountReportgridViewList", "FinalAccountReport")',
+                  type: "POST",
+                  dataType: "json",
+                  data: inputData,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                  success: function (ajaxOutput) {
+                    
+                     
+                      miandata= JSON.parse(ajaxOutput.item);
+                     
+
+                      let table = $('#FinalAccountReportList').DataTable();
+                      table.destroy();
+
+
+                      let headerRow = $("#FinalAccountReportList").prop("tHead").rows[0];
+                      let header_row = $('[class="fheader"]');
+                      
+
+                      //Setting Table Header Name
+                    
+                      if (type == 1) {
+                          $('#ReportName').html('Trading Report');
+                          headerRow.cells[1].innerHTML = "Expenditure";
+                          headerRow.cells[2].innerHTML = "Income";
+
+                      } else if (type == 2) {
+                          $('#ReportName').html('Profit & Loss Report');
+                          headerRow.cells[1].innerHTML = "Expenditure";
+                          headerRow.cells[2].innerHTML = "Income";
+                      } else {
+                          $('#ReportName').html('Balance Sheet Report');
+                          headerRow.cells[1].innerHTML = "Asset";
+                          headerRow.cells[2].innerHTML = "Liability";
+                      }
+
+
+
+                      //calculating Total Amount
+                      if (type == 1) {
+                          //check for exp ParticularA
+                          miandata.forEach(e => {
+                              if (e.ParticularA.toUpperCase() == "GROUP TOTAL" || e.ParticularA.toUpperCase() == "TRADING PROFIT" || e.ParticularA.toUpperCase() == "NET PROFIT") {
+                                  if (Number(e.AmountA1) > 0) {
+                                      //expdebit += Number(e.AmountA1);
+                                      expcredit += Number(e.AmountA1);
+                                  }
+                                  else if (Number(e.AmountA2) > 0) {
+                                      //expcredit += Number(e.AmountA2);
+                                      expdebit += Number(e.AmountA2);
+                                  }
+                              }
+
+                              if (e.ParticularB.toUpperCase() == "GROUP TOTAL" || e.ParticularB.toUpperCase() == "TRADING LOSS" || e.ParticularB.toUpperCase() == "NET LOSS") {
+                                  if (Number(e.AmountB1) > 0) {
+                                     // incdebit += Number(e.AmountB1);
+                                      inccredit += Number(e.AmountB1);
+                                  }else if (Number(e.AmountB2) > 0) {
+                                      //inccredit += Number(e.AmountB2);
+                                      incdebit += Number(e.AmountB2);
+                                  }
+                              }
+                          });
+                      } else if (type == 2){
+                          miandata.forEach(e => {
+                              if (e.ParticularA.toUpperCase() == "GROUP TOTAL" || e.ParticularA.toUpperCase() == "TRADING LOSS" || e.ParticularA.toUpperCase() == "NET PROFIT") {
+                                  if (Number(e.AmountA1) > 0) {
+                                      //expdebit += Number(e.AmountA1);
+                                      expcredit += Number(e.AmountA1);
+                                  }
+                                  else if (Number(e.AmountA2) > 0) {
+                                     // expcredit += Number(e.AmountA2);
+                                      expdebit += Number(e.AmountA2);
+                                  }
+                              }
+
+                              if (e.ParticularB.toUpperCase() == "GROUP TOTAL" || e.ParticularB.toUpperCase() == "TRADING PROFIT" || e.ParticularB.toUpperCase() == "NET LOSS") {
+                                  if (Number(e.AmountB1) > 0) {
+                                      //incdebit += Number(e.AmountB1);
+                                      inccredit += Number(e.AmountB1);
+                                  }else if (Number(e.AmountB2) > 0) {
+                                     // inccredit += Number(e.AmountB2);
+                                      incdebit += Number(e.AmountB2);
+                                  }
+                              }
+                          });
+                      } else if (type == 3) {
+                           miandata.forEach(e => {
+                             
+                               if (e.ParticularA.toUpperCase() == "GROUP TOTAL" || e.ParticularA.toUpperCase() == "DIFFERENCE IN BALANCE SHEET" || e.ParticularA.toUpperCase() == "NET LOSS") {
+                                  if (Number(e.AmountA1) > 0) {
+                                     // expdebit += Number(e.AmountA1);
+                                      expcredit += Number(e.AmountA1);
+                                  }
+                                  else if (Number(e.AmountA2) > 0) {
+                                     // expcredit += Number(e.AmountA2);
+                                      expdebit += Number(e.AmountA2);
+                                  }
+                              }
+
+                               if (e.ParticularB.toUpperCase() == "GROUP TOTAL" || e.ParticularB.toUpperCase() == "DIFFERENCE IN BALANCE SHEET" || e.ParticularB.toUpperCase() == "NET PROFIT") {
+                                  if (Number(e.AmountB1) > 0) {
+                                     // incdebit += Number(e.AmountB1);
+                                      inccredit += Number(e.AmountB1);
+                                  }else if (Number(e.AmountB2) > 0) {
+                                      //inccredit += Number(e.AmountB2);
+                                      incdebit += Number(e.AmountB2);
+                                  }
+                              }
+                          });
+                      }
+
+                    
+
+
+
+                     
+                      $('#DivFinalAccountReportList').show();
+                     // $("#FinalAccountReportList").removeClass("dataTable");
+                      if (ajaxOutput.data.Process.IsProcess) {
+                          
+                          var _Payment = 0, _Receipt = 0;
+                         
+                          // item = ajaxOutput.Data;
+                          if (ajaxOutput.data.Data.length > 1) {
+
+                              let x = document.getElementById("exppdf");
+                              x.style.display = "block";
+                          }else{
+
+                              let x = document.getElementById("exppdf");
+                              x.style.display = "none";
+                          };
+
+
+
+                          tableData = $('#FinalAccountReportList').DataTable({
+                              pagination: "bootstrap",
+                              filter: true,
+                              //orderable:false,
+                              data: miandata,
+                              destroy: true,
+                              paging: false,
+                              bSort: false,
+                              //autoWidth: false,
+                             // responsive: true,  //new
+                              columnDefs: [
+
+                                  { width: '10px', targets: 0 }, // Set width for the first column
+                                  //{ width: '50px', targets: '1' }, // Set width for the second column
+                                  //{ width: '50px', targets: 2 },
+                                  //{ width: '100px', targets: 3 },
+                                  //{ width: '200px', targets: 4 },
+                                  //{ width: '100px', targets: 5 },
+                                  //{ width: '100px', targets: 6 }
+                              ],
+                              info: false,
+                              searching: false,
+                              "columns": [
+                                  { "data": null, title: "Sl.No" },
+                                  { "data": "ParticularA", title: "Particular" },
+                                 // { "data": "AmountA2", title: "Debit ", className: "text-right" },
+                                  { "data": "AmountA1", title: "Balance ", className: "text-right" },
+                                  { "data": "ParticularB", title: "Particular" },
+                                 // { "data": "AmountB2", title: "Debit ", className: "text-right" },
+                                  { "data": "AmountB1", title: "Balance ", className: "text-right" }
+                              ],
+                              scrollY: 500,
+                              scrollX: true,
+                              scrollX: '100%',
+                              scrollCollapse: true,
+                              paging: false,
+                              fixedHeader: {
+                                  header: false,
+                                  footer: true,
+                              },
+                              header: false,
+                              "order": [[0, "asc"]],
+                              "columnDefs": [
+                                 // { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6] },
+                                  { "orderable": false, "targets": [0, 1, 2, 3, 4] },
+                              ],
+                              //drawCallback: function (settings) {
+                              //    var api = this.api();
+                              //    var rows = api.rows({ page: 'current' }).nodes();
+                              //    var last = null;
+                              //    //console.log(api, rows);
+                              //    api.column(9, { page: 'current' }).data().each(function (group, i) {
+
+                              //        if (last !== group) {
+                              //            $(rows).eq(i).before(
+                              //               // '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">'+group + '</td></tr>'
+                              //            );
+                              //            last = group;
+                              //        }
+                              //    });
+                              //},
+                              "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                
+                                  $("td:first", nRow).html(iDisplayIndex + 1);
+
+
+
+                                  //bring commans in number
+
+                                  if ($('td:eq(2)', nRow).text()) {
+                                      $('td:eq(2)', nRow).text(parseFloat($('td:eq(2)', nRow).text()).toLocaleString('en-IN', {
+                                          useGrouping: true,
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                      }));
+                                  }
+                                  //if ($('td:eq(3)', nRow).text()) {
+                                  //    $('td:eq(3)', nRow).text(parseFloat($('td:eq(3)', nRow).text()).toLocaleString('en-IN', {
+                                  //        useGrouping: true,
+                                  //        minimumFractionDigits: 2,
+                                  //        maximumFractionDigits: 2,
+                                  //    }));
+                                  //}
+                                  if ($('td:eq(4)', nRow).text()) {
+                                      $('td:eq(4)', nRow).text(parseFloat($('td:eq(4)', nRow).text()).toLocaleString('en-IN', {
+                                          useGrouping: true,
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                      }));
+                                  }
+                                  //if ($('td:eq(6)', nRow).text()) {
+                                  //    $('td:eq(6)', nRow).text(parseFloat($('td:eq(6)', nRow).text()).toLocaleString('en-IN', {
+                                  //        useGrouping: true,
+                                  //        minimumFractionDigits: 2,
+                                  //        maximumFractionDigits: 2,
+                                  //    }));
+
+                                  //}
+
+
+                                  //coloring Difference in Balance sheet
+                                  if (aData.ParticularA.toUpperCase() == "DIFFERENCE IN BALANCE SHEET") {
+
+                                      $('td:eq(1)', nRow).addClass('bold-text').css('color', '#ba361c');;
+                                      $('td:eq(2)', nRow).addClass('bold-text').css('color', '#ba361c');;
+                                     // $('td:eq(3)', nRow).addClass('bold-text').css('color', '#ba361c');;
+
+                                  }
+                                  if (aData.ParticularB.toUpperCase() == "DIFFERENCE IN BALANCE SHEET") {
+
+                                      $('td:eq(3)', nRow).addClass('bold-text').css('color', '#ba361c');;
+                                      $('td:eq(4)', nRow).addClass('bold-text').css('color', '#ba361c');;
+                                     // $('td:eq(6)', nRow).addClass('bold-text').css('color', '#ba361c');;
+
+                                  }
+
+                                  //newly added code
+                                  if (aData.ParticularB.toUpperCase() == "NET LOSS") {
+
+                                      $('td:eq(4)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                      $('td:eq(5)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                     // $('td:eq(6)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+
+                                  }
+                                  if (aData.ParticularA.toUpperCase() == "NET PROFIT") {
+
+                                      $('td:eq(1)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                      $('td:eq(2)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                     // $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+
+                                  }
+                                  if (aData.ParticularB.toUpperCase() == "NET PROFIT") {
+
+                                      $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                      $('td:eq(4)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                     // $('td:eq(6)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+
+                                  }
+                                  if (aData.ParticularA.toUpperCase() == "NET LOSS") {
+
+                                      $('td:eq(1)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                      $('td:eq(2)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+                                     // $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');
+
+                                  }
+                                  if (aData.ParticularA.toUpperCase() == "TRADING PROFIT") {
+
+                                      $('td:eq(1)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                      $('td:eq(2)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                     // $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+
+                                  }
+
+                                  if (aData.ParticularB.toUpperCase() == "TRADING PROFIT") {
+
+                                      $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                      $('td:eq(4)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                    //  $('td:eq(6)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+
+                                  }
+                                  if (aData.ParticularA.toUpperCase() == "TRADING LOSS") {
+
+                                      $('td:eq(1)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                      $('td:eq(2)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                     // $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+
+                                  }
+                                  if (aData.ParticularB.toUpperCase() == "TRADING LOSS") {
+
+                                      $('td:eq(3)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                      $('td:eq(4)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+                                    //  $('td:eq(6)', nRow).addClass('bold-text').css('color', '#2aa2ad');;
+
+                                  }
+
+
+
+                                  if (aData.ParticularA.toUpperCase() == "GROUP TOTAL") {
+                                      $('td:eq(1)', nRow).html('<b>Group Total</b>');
+                                      $('td:eq(2)', nRow).addClass('bold-text');
+                                     // $('td:eq(3)', nRow).addClass('bold-text');
+
+                                  }
+
+                                  //console.log($('td:eq(2)', nRow).text(), "console--report")
+                                  if (aData.ParticularB.toUpperCase() == "GROUP TOTAL") {
+                                      $('td:eq(3)', nRow).html('<b>Group Total</b>');
+                                      $('td:eq(4)', nRow).addClass('bold-text');
+                                      //$('td:eq(6)', nRow).addClass('bold-text');
+                                  }
+
+                                  if (aData.ColumnType1 == 2 && aData.ParticularA.toUpperCase() != "GROUP TOTAL") {
+
+                                      //let result = text1.concat(val);
+                                      let cell = '<span style="margin-left: 10px;">' + aData.ParticularA + '</span>';
+
+                                      $('td:eq(1)', nRow).html(cell);
+                                  }
+                                  if (aData.ColumnType2 == 2 && aData.ParticularB.toUpperCase() != "GROUP TOTAL") {
+
+                                      //let result = text1.concat(val);
+                                      let cell = '<span style="margin-left: 10px;">' + aData.ParticularB + '</span>';
+
+                                      $('td:eq(3)', nRow).html(cell);
+                                  }
+                              },
+
+
+                              // Setting Footer
+                            "footerCallback": function (row, data, start, end, display) {
+                                var api = this.api(), data;
+                                 //$(api.column(4).footer()).html('Total');
+                                $('tr:eq(0) th:eq(1)', api.table().footer()).html('Grand Total');
+                                $('tr:eq(0) th:eq(3)', api.table().footer()).html('Grand Total');
+
+                                $('tr:eq(0) th:eq(1)', api.table().footer()).css('color', 'black');
+                                $('tr:eq(0) th:eq(3)', api.table().footer()).css('color', 'black');
+
+                                difference = Number((expcredit.toFixed(2) - expdebit.toFixed(2) ).toFixed(2));
+                                difference2 = Number((inccredit.toFixed(2) - incdebit.toFixed(2) ).toFixed(2));
+                                $('tr:eq(0) th:eq(2)', api.table().footer()).html(difference.toLocaleString('en-IN', {
+                                    useGrouping: true,
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }));
+                                $('tr:eq(0) th:eq(4)', api.table().footer()).html(difference2.toLocaleString('en-IN', {
+                                    useGrouping: true,
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }));
+
+                                $('tr:eq(0) th:eq(2)', api.table().footer()).css('color', 'black');
+                                $('tr:eq(0) th:eq(4)', api.table().footer()).css('color', 'black');
+
+
+                              }
+
+
+                          });  //Datatable end
+
+
+                      } else {
+
+                        //  alert("else condition called");
+                              $('#FinalAccountReportList').DataTable({
+                                info: false,
+                                "ordering": false,
+                                paging: false,
+                                searching:false,
+                                "language": {
+                                    "emptyTable": "No data available"
+                                  }
+                              });
+                       }
+                  },
+                  complete: function () {
+                      
+                      let headerRow = $("#FinalAccountReportList").prop("tHead").rows[0];
+                      if (type == 1) {
+                          $('#ReportName').html('Trading Report');
+                          headerRow.cells[1].innerHTML = "Expenditure";
+                          headerRow.cells[2].innerHTML = "Income";
+
+
+                      } else if (type == 2) {
+                          $('#ReportName').html('Profit & Loss Report');
+                          headerRow.cells[1].innerHTML = "Expenditure";
+                          headerRow.cells[2].innerHTML = "Income";
+
+                      } else {
+                          $('#ReportName').html('Balance Sheet Report');
+                          headerRow.cells[1].innerHTML = "Asset";
+                          headerRow.cells[2].innerHTML = "Liability";
+
+                      }
+
+                  },
+                  error: function (xhr, status, error) {
+                      // Handle error condition
+                      
+                      //console.log('Status:', status);
+                      //console.log('Error:', error);
+                      let table = $('#FinalAccountReportList').DataTable();
+                      table.destroy();
+
+                      $('#FinalAccountReportList').find('tbody').empty();
+                      // // $('#FinalAccountReportList').find('tfoot').empty();
+                      clearfooter();
+
+                      $('#FinalAccountReportList').DataTable({
+                          info: false,
+                          "ordering": false,
+                          paging: false,
+                          searching: false,
+                          "language": {
+                              "emptyTable": "No data available"
+                          }
+                      });
+
+                      let x = document.getElementById("exppdf");
+                      x.style.display = "none";
+
+                  }
+              });
+
+
+
+        }
+        else {
+
+            
+            let table = $('#FinalAccountReportList').DataTable();
+            ////table.destroy();
+
+            //$('#FinalAccountReportList').DataTable()
+            table.destroy()
+            $('#FinalAccountReportList').find('tbody').empty();
+            clearfooter();
+           
+        }
+        $("#FinalAccountReportList > thead > tr:nth-child(2) > th.hrow.sorting_asc.sorting_disabled").removeClass("sorting_asc");
+
+       
+
+     }
+
+
+    function bindReportField() {
+        if ($("#ID_Report").val() != "0") {
+
+            $("#ID_Report-error").text("");
+
+         document.getElementById("exppdf").style.display = "none";
+
+        }
+
+
+    }
+
+    function getdata(ele, val) {
+        //var selectedOption = $(this).find('option:selected').text();
+        //alert($(this).find('option:selected').text());
+        //selectedName = selectedOption;
+
+        //console.log(selectedOption, "selectedName");
+        document.getElementById("exppdf").style.display = "none";
+
+    }
+    function generatePdf() {
+        var cdata;
+        //test start
+        let $thisForm = $('[perfect-class="form"]');
+        var AsOnDate = $('#AsonDate').val();
+        //var Branch = $('#BranchID').val();
+       // = $('[name=BranchID]').val()
+
+       ;
+        var vBranchID = selectedOption;
+        if (vBranchID == "") {
+            vBranchID = "All";
+        }
+
+        //var id = $thisForm.find('[name="Companyname"]').val();
+        //alert(id)
+        //var idnam = $thisForm.find('[name="Branchname"]').val();
+        //alert(idnam)
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+                complete: function () {
+
+                    var head;
+                    let Reporttype = $("#ID_Report").val();
+
+                    if (Reporttype == 3) {
+                        head = [
+                            [{ content: '', colSpan: 1, styles: { halign: 'center', fillColor: [42, 162, 173] } },
+                            { content: 'Asset', colSpan: 2, styles: { halign: 'center', fillColor: [42, 162, 173] } },
+                                { content: 'Liability', colSpan: 2, styles: { halign: 'center', fillColor: [42, 162, 173] } }
+                            ],
+                            ['Sl.No', 'Particular', 'Debit', 'Credit', 'Particular', 'Debit', 'Credit'],
+                        ];
+                    } else {
+                         head = [
+                            [{ content: '', colSpan: 1, styles: { halign: 'center', fillColor: [42, 162, 173] } },
+                            { content: 'Expenditure', colSpan: 2, styles: { halign: 'center', fillColor: [42, 162, 173] } },
+                            { content: 'Income', colSpan: 2, styles: { halign: 'center', fillColor: [42, 162, 173] } }
+                            ],
+                             ['Sl.No', 'Particular', 'Balance', 'Particular', 'Balance'],
+                        ];
+                    }
+
+
+
+
+                    var body = [];
+                    var collen=":"
+
+                    var pAsOnDate= formatDate(AsOnDate.toString());
+
+
+                    var upperhead = {
+
+                       // columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //columnStyles: { 1: { halign: 'right', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //margin: { top: 10, bottom:0 },
+
+
+                        body: [
+                            [
+                                {
+                                    content: 'As On Date  :   ' + pAsOnDate,
+
+                                    styles: {
+                                        halign: 'left'
+
+                                    }
+                                },
+
+                                {
+                                    content: 'Branch  :   ' + vBranchID,
+                                    styles: {
+                                        halign: 'right'
+
+                                    }
+                                }
+                            ],
+                        ],
+                        theme: 'plain',
+                        styles: {
+                           // fillColor: '#3366ff',
+                            color:'black'
+                        }
+
+
+                    };
+                    //var aralenth = item.length;
+                    //var c = item.slice(0, (aralenth - 1));
+                    //let data = miandata;
+
+
+                    let table_data2 = [];
+                    //let table_data2 = [...miandata, {
+                    //    ParticularA: "Total",
+                    //    AmountA2: Number(difference),
+                    //    AmountA1:0,
+                    //    ParticularB: "Total",
+                    //    AmountB2: Number(difference2),
+                    //    AmountB1:0
+                    //}];
+
+                    $.each(miandata, function (key, value) {
+                        let obj = {};
+                        for (let e in value) {
+                            //console.log(e, value[e], 'eeee');
+                            if (e == "AmountA1" || e == "AmountA2" || e == "AmountB1" || e == "AmountB2") {
+                                if (value[e] != "") {
+                                    obj[e] = Number(value[e]);
+                                } else {
+                                    obj[e] = value[e];
+                                   // array.push(value[e]);
+                                }
+
+                            } else {
+                                obj[e]=value[e];
+                            }
+
+                        };
+                       
+                        table_data2.push(obj);
+                    });
+
+
+                    //push last row
+                   
+                    table_data2.push({
+                        ParticularA: "Grand Total",
+                        AmountA2: "",
+                        AmountA1: difference,
+                        ParticularB: "Grand Total",
+                        AmountB2: "",
+                        AmountB1: difference2
+                    });
+                    
+
+                    var ptableData = {
+                        columns: [
+
+                            { title: "Particular", dataKey: "ParticularA" },
+                           // { title: "Debit", dataKey: "AmountA2" },
+                            { title: "Balance", dataKey: "AmountA1" },
+                            { title: "Particular", dataKey: "ParticularB" },
+                           // { title: "Debit", dataKey: "AmountB2" },
+                            { title: "Balance", dataKey: "AmountB1" }
+                            //{ title: "Narration", dataKey: "Narration" }
+                        ],
+                        rows: table_data2
+
+                    };
+
+
+
+
+
+
+                    var ReportName = $('#ReportName').text();
+
+
+                    var tableOptions = {
+                        didParseCell: function (data) {
+
+
+                            //Total bold
+                            if (data.column.index == 1 && data.cell.raw == "Group Total") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [0, 0, 0]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [0, 0, 0]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "Group Total") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [0, 0, 0]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [0, 0, 0]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+
+                            ///Grand Total bold
+                            if (data.column.index == 1 && data.cell.raw == "Grand Total") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [0, 0, 0]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [0, 0, 0]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "Grand Total") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [0, 0, 0]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [0, 0, 0]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+
+                            ///new old of code ******
+
+                            if (data.column.index == 3 && data.cell.raw == "Net Loss") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+
+                            if (data.column.index == 1 && data.cell.raw == "Net Profit") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "Net Profit") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                }
+                            }
+                            if (data.column.index == 1 && data.cell.raw == "Net Loss") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 1 && data.cell.raw == "Trading Profit") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "Trading Profit") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 1 && data.cell.raw == "Trading Loss") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "Trading Loss") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [42, 162, 173]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [42, 162, 173]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 3 && data.cell.raw == "DIFFERENCE IN BALANCE SHEET") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [186, 54, 28]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 3; i <= 4; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [186, 54, 28]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+                            if (data.column.index == 1 && data.cell.raw == "DIFFERENCE IN BALANCE SHEET") {
+                                // Modify the content of the first row, second column
+                                data.cell.styles.fillColor = [218, 224, 224];
+                                //data.cell.text = 'New value';
+                                data.cell.styles.textColor = [186, 54, 28]; // Red text color
+                                data.cell.styles.fontStyle = 'bold';
+                                var rowCells = data.row.raw; // Get the raw data of the current row
+
+
+                                for (var i = 1; i <= 2; i++) {
+                                    //if (i != data.column.index) {
+                                    // Modify the styles of other cells in the same row
+                                    data.row.cells[i].styles.fontStyle = 'bold';
+                                    data.row.cells[i].styles.textColor = [186, 54, 28]; // Red text color
+                                    data.row.cells[i].styles.fillColor = [218, 224, 224];
+                                    //}
+                                }
+                            }
+
+                            if (data.row.index == ptableData.rows.length-1) {
+                                data.row.cells[0].text = "";
+                            }
+
+
+                        }
+                    };
+                    
+                    columnStyles = {
+                        1: { cellWidth: 180 },
+                        4: { cellWidth: 180 },
+                       
+                    };
+
+
+                    exportPdf(ReportName, head, cdata, upperhead, "", ptableData, "", ReportName, "a4", tableOptions, columnStyles,'l');
+                    
+
+                }
+         });
+    }
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function RptValidation(type) {
+        var isrptValid = true;
+        if (type == "") {
+            isrptValid = false;
+
+            $("#ID_Report-error").css('display', 'block');
+            $("#ID_Report-error").text("Please Select Report");
+            return isrptValid;
+        }
+        else if (type == "0") {
+
+            isrptValid = false;
+            $("#ID_Report-error").css('display', 'block');
+            $("#ID_Report-error").text("Please Select Report");
+            return isrptValid;
+        }
+        else if (type == "1") {
+            isrptValid = CheckAsOnDate();
+        }
+        else if (type == "2") {
+
+            isrptValid = CheckAsOnDate();
+        }
+        else if (type == "3") {
+
+
+            isrptValid = CheckAsOnDate();
+        }
+
+
+        return isrptValid;
+
+    }
+    function CheckAsOnDate() {
+        document.getElementById("exppdf").style.display = "none";
+
+        var _DateValid = true;
+        let AsonDate = $("#AsonDate").val();
+        if (AsonDate == null || AsonDate == "") {
+            $("#AsOnDate-error").css('display', 'block');
+
+            $('#AsOnDate-error').text("Please Select As On Date"); _DateValid = false;
+        } else {
+            $('#AsOnDate-error').text("");
+        }
+        return _DateValid;
+    }
+
+    function formatDate(date) {
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+
+    $('#BranchID').on('change', function () {
+         selectedOption = $(this).find('option:selected').text();
+
+        selectedName = selectedOption;
+
+
+    });
+
+    function onExell() {
+        var cdata;
+        const obj = {
+            "As on Date": $('input[name="AsonDate"]').val(),
+            Branch: $('select[name="BranchID"] option:selected').text(),
+        };
+        const obj2 = {
+        };
+        let table_data = [];
+       $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 
+                 $.each(miandata, function (key, value) {
+                     let obj = {};
+                     for (let e in value) {
+                         //console.log(e, value[e], 'eeee');
+                         if (e == "AmountA1" || e == "AmountA2" || e == "AmountB1" || e == "AmountB2") {
+                             if (value[e] != "") {
+                                 obj[e] = Number(value[e]);
+                             } else {
+                                 obj[e] = value[e];
+                                 // array.push(value[e]);
+                             }
+
+                         } else {
+                             obj[e] = value[e];
+                         }
+                        
+                     };
+                     table_data.push(obj);
+                 });
+
+
+
+
+
+                 table_data.push({
+                     ParticularA: "Grand Total",
+                     AmountA2: "",
+                     AmountA1: difference,
+                     ParticularB: "Grand Total",
+                     AmountB2: "",
+                     AmountB1: difference2
+                 });
+
+                 let ptableData = {
+                     columns: [
+
+                         { title: "Particular", dataKey: "ParticularA" },
+                         // { title: "Debit", dataKey: "AmountA2" },
+                         { title: "Balance", dataKey: "AmountA1" },
+                         { title: "Particular", dataKey: "ParticularB" },
+                         //  { title: "Debit", dataKey: "AmountB2" },
+                         { title: "Balance", dataKey: "AmountB1" }
+                       
+                     ],
+                     rows: table_data
+
+                 };
+
+                 let Reporttype = $("#ID_Report").val();
+                 var head = [];
+                 if (Reporttype == 3) {
+                     head = [
+                         ["", "Asset", "", "", "Liability", "", ""], ["Sl No", "Particular", "Balance", "Particular", "Balance"]
+                     ];
+
+                 } else {
+                     head = [
+                         ["", "Expenditure", "", "", "Income", "", ""], ["Sl No", "Particular", "Balance", "Particular", "Balance"]
+                     ];
+
+                 }
+
+                 var mergeRanges = [
+
+                     { s: { r: 1, c: 1 }, e: { r: 1, c: 2 } },
+                     { s: { r: 1, c: 3 }, e: { r: 1, c: 4 } },
+
+                 ];
+                 var reportName = $('select[name="ID_Report"] option:selected').text();
+                 var Pagename = '@ViewBag.PageTitle';
+                 var str = "";
+                 var str2 = `Report : ${Pagename} - ${reportName} List`;
+                 var filename = `${Pagename} - ${reportName} List`;
+                 var num = 0;
+
+                 for (var i in obj) {
+                     if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0 && obj[i] != "Select Terminal" && obj[i] != "Select Complaint Type" && obj[i] != "Select Status" && obj[i] != "Select Sort Order") {
+
+                         if (num == 0) {
+                             str = "Filter By : ";
+                         }
+                         str = str + i + ' : ' + obj[i] + ' , ';
+                         num++;
+                     }
+
+                 };
+                 for (var i in obj2) {
+                     if (obj2[i] != "" && obj2[i] != undefined) {
+
+                         str2 = str2 + i + ' : ' + (obj2[i]) + ' , ';
+                     }
+                 };
+
+                 ReportName1 = `${cdata.Company} \n${cdata.Branch}\n ${str2} \n ${str} `;
+                 generateExell(ReportName1, head, ptableData, mergeRanges, "", `${reportName} Report`);
+             }
+         });
+
+
+
+
+
+
+
+
+    }
+
+
+    function generateTable() {
+        
+        var table = document.createElement("table");
+        table.id = "FinalAccountReportList";
+        table.className = "table table-striped dt-responsive nowrap";
+        table.style.width = "100%";
+
+        
+        var thead = document.createElement("thead");
+        thead.className = "thead-primary";
+
+        var headerRow1 = document.createElement("tr");
+        headerRow1.className = "fheader";
+        var headerCell1 = document.createElement("th");
+        headerCell1.rowSpan = "1";
+        headerRow1.appendChild(headerCell1);
+        var headerCell2 = document.createElement("th");
+        headerCell2.colSpan = "3";
+        headerCell2.setAttribute("name", "fheader1");
+        headerCell2.textContent = "Expenditure";
+        headerRow1.appendChild(headerCell2);
+        var headerCell3 = document.createElement("th");
+        headerCell3.colSpan = "3";
+        headerCell3.setAttribute("name", "fheader2");
+        headerCell3.textContent = "Income";
+        headerRow1.appendChild(headerCell3);
+        thead.appendChild(headerRow1);
+        var headerRow2 = document.createElement("tr");
+        var headerLabels = ["Sl.No", "Particular", "Debit", "Credit", "Particular", "Debit", "Credit"];
+        for (var i = 0; i < headerLabels.length; i++) {
+            var headerCell = document.createElement("th");
+            headerCell.textContent = headerLabels[i];
+            headerRow2.appendChild(headerCell);
+        }
+        thead.appendChild(headerRow2);
+        var tfoot = document.createElement("tfoot");
+        tfoot.align = "right";
+        var footerRow = document.createElement("tr");
+        for (var j = 0; j < headerLabels.length; j++) {
+            var footerCell = document.createElement("th");
+            footerRow.appendChild(footerCell);
+        }
+        tfoot.appendChild(footerRow);
+        table.appendChild(thead);
+        table.appendChild(tfoot);
+        var container = document.getElementById("table-container");
+        container.appendChild(table);
+
+    }
+    function createfooterElement() {
+        var tfoot = document.createElement("tfoot");
+        tfoot.align = "right";
+        var tr = document.createElement("tr");
+        var emptyCells = ['', '', '', '', '', '', ''];
+        for (var i = 0; i < emptyCells.length; i++) {
+            var th = document.createElement("th");
+            tr.appendChild(th);
+        }
+        tfoot.appendChild(tr);
+        var table = document.getElementById("FinalAccountReportList");
+        table.appendChild(tfoot);
+
+    }
+
+    function clearfooter() {
+   
+        var tfoot = document.querySelector("#FinalAccountReportList tfoot");
+        var footerRow = tfoot.querySelector("tr");
+        var thElements = footerRow.querySelectorAll("th");
+        thElements[0].textContent = "";
+        thElements[1].textContent = "";
+        thElements[2].textContent = "";
+        thElements[3].textContent = "";
+        thElements[4].textContent = "";
+
+    }
+
+
+
+</script>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+

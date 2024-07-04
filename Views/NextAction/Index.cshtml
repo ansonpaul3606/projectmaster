@@ -1,0 +1,514 @@
+﻿
+@{
+    ViewBag.Title = "";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="nextaction-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+<script type="text/javascript">
+
+        const $formContainer = $('#nextaction-form');
+
+        $(document).ready(function () {
+            nextactionInitialLoad();
+
+        });
+
+
+
+        function nextactionInitialLoad() {
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadNextActionList(); </text>
+              }
+
+             loadNextActionAddForm();
+        }
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                        {
+                           <text> { displayName: "View", action: editNextAction },</text>
+                        }
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                        {
+                            <text>{displayName: "Delete", action: deleteNextAction}</text>
+                        }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "NextAction", 'ShortName', 'ActionModuleName','ActionStatusName'],
+            hideColumn: [],
+            rowClickAction: editNextAction,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No." }
+        };
+
+        var validationMessage = {
+            'NextAction': {
+                'required': 'Please Enter  Name',
+                'stringonly': 'Invalid NextAction Name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter Short Name',
+                'stringonly': 'Invalid NextAction Name',
+                'alphanumeric': 'Invalid NextAction Short Name',
+            },
+            'ActionModuleID': {
+                'required': 'Please Select a Action Module',
+                //'digits': 'Invalid Trans Type selected'
+            },
+            'ActionStatusID': {
+                'required': 'Please Select a Action Status',
+               // 'digits': 'Invalid Trans Type selected'
+            },
+            'Description': {
+                'required': 'Please Enter  Description',
+
+            },
+            'ActionStageID': {
+                'required': 'Please Select a Action Stage',
+                // 'digits': 'Invalid Trans Type selected'
+            },
+
+        };
+
+
+
+
+           // Function to load NextAction ADD form
+        function loadNextActionAddForm() {
+
+            $formContainer.load('@Url.Action("LoadNextActionForm", "NextAction")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'nextactionInitialLoad');
+               initFunctions($thisForm);
+                $('.stageid').hide();
+            });
+
+        };
+
+
+        function loadNextActionList1() {
+            let $sidemenu = $sideMenuOptions.body;
+           // $sideMenuOptions.title.find('h4').text('Follow Up Action List');
+             $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+            $.ajax({
+                url: "@Url.Action("GetNextActionList", "NextAction")",
+                type: "Get",
+                headers: { "token_key": "1234" },
+                //data: { branchID: id },
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        //$sidemenu.find('.jq_sidemenu_title').text("NextAction list");
+                        //$sideMenuOptions.title.text("NextAction List");
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                        console.log('Load NextAction List', ajaxOutput);
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                        });
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status == 'NoData') { }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                //toastr.warning(value, "Error");
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                    console.log('NextAction Load', ajaxOutput);
+                },
+                complete: function () {
+                }
+            });
+        };
+    function loadNextActionList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH", SearchName)
+        if (SearchName == undefined) {
+            SearchName = "";
+        }
+         $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle'+' '+'List');
+        let pageUrl = '@Url.Action("GetNextActionList", "NextAction")';
+        $.ajax({
+            url: pageUrl,
+            type: "POST",
+            data: { pageSize: 15, pageIndex: 0, Name: SearchName},
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                if (ajaxOutput.Process.IsProcess) {
+                   
+                    console.log('Follow Up Action List', ajaxOutput);
+                    $sidemenu.find('.jq_sidemenu_title').text("Follow Up Action List");
+
+                    $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadNextActionList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                    // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                    let $table = $sidemenu.find('table');
+                    $table.dataTable({
+                        "serverSide": true,//no change
+                        "processing": true,//-- process text when clicked
+                        //  "lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                        "searching": false,//--no change
+                        "ordering": false,//--sorting
+                        "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                        "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                        "pageLength": ajaxOutput.pageSize,//<----page size
+                        "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                        "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                    });
+                }
+                else {                    
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("Follow Up Action List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName +'" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadNextActionList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+        function editNextAction() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                NextActionID: Saveddata.NextActionID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetNextActionInfoByID", "NextAction")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetNextActionInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadNextActionForm", "NextAction")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].NextAction)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                        $thisForm.find('[name="NextAction"]').val(ajaxOutput.Data[0].NextAction),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                            $thisForm.find('[name="ActionModuleID"]').val(ajaxOutput.Data[0].ActionModuleID).selectpicker('refresh'),
+                                            $thisForm.find('[name=ActionModuleID]').trigger('change');
+
+                                    $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder),
+                                        $thisForm.find('[name="ActionModuleName"]').val(ajaxOutput.Data[0].ActionModuleName),
+                                        $thisForm.find('[name="ActionStatusName"]').val(ajaxOutput.Data[0].ActionStatusName),
+                                        $thisForm.find('[name="ActionStageID"]').val(ajaxOutput.Data[0].NxtActnStage).selectpicker('refresh'),
+
+                                    $sideMenuOptions.close();
+                                    if ($thisForm.find('[name="ActionModuleID"]').val() == 1) {
+                                        $('.stageid').show();
+                                    }
+                                    else {
+                                        $('.stageid').hide();
+                                    }
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'nextactionInitialLoad');
+                                    $thisForm.find('[name="ActionStatusID"]').attr('perfect-onLoadSelect', ajaxOutput.Data[0].ActionStatusID);
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetNextActionInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+
+                           
+                },
+
+            });
+
+        }
+
+           // Function to delete NextAction
+
+          //---
+         // Function to delete customer
+        function deleteNextAction() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetNextActionDeleteReasonList", "NextAction")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                          // let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                          // var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.NextAction + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        NextActionID: Saveddata['NextActionID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteNextActionInfo", "NextAction")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        //--
+
+
+            @*function deleteNextAction() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log("Saved data", Saveddata);
+                let inputData = {
+               __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                NextActionID: Saveddata['NextActionID']
+            };
+            console.log('Delete function', Saveddata)
+            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.NextAction+" ?", cancel: "No", confirm: "Yes" };
+                var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                confirmBoxObj.then(function (selectedOption) {
+                    if (selectedOption) {
+
+                    $.ajax({
+                            url: "@Url.Action("DeleteNextActionInfo", "NextAction")",
+                            type: "POST",
+                            data: inputData,
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            loadNextActionList()
+                        }
+                    });
+
+
+                }
+                else {
+
+                    NotificationMessage({ 'message': 'No option selected' });
+                }
+
+            });
+        };*@
+
+
+
+
+</script>
+
+
+
+}
+

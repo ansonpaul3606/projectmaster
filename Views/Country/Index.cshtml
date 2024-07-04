@@ -1,0 +1,399 @@
+﻿
+@{
+    ViewBag.Title = "Country";
+}
+
+
+
+<div class="container-fluid">
+  
+    <div class="row">
+        <div class="col-lg-12" id="country-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts{
+
+
+<script>
+
+
+
+
+    const $formContainer = $('#country-form');
+
+        $(document).ready(function () {
+            countryInitialLoad();
+    });
+
+
+    var validationMessage = {
+
+        'CountryName': {
+            'required': 'Please Enter a Name',
+            'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in  Name'
+
+        },
+        'CountryShortName': {
+            'required': 'Please Enter a Short Name',
+            'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+            'alphanumeric': 'Special characters are not allowed in short name'
+        },
+
+        'CountryCode': {
+            'required': 'Please Enter Country Code',
+            'stringonly': 'Special characters are not allowed'
+        },
+    };
+
+
+
+    function countryInitialLoad() {
+
+        loadCountryAddForm();
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadCountryList(this); </text>
+              }
+             //loadCountryList(this);
+            
+        }
+
+
+           // Fucntion to load Country ADD form
+        function loadCountryAddForm() {         
+            $formContainer.load('@Url.Action("LoadFormCountry", "Country")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'countryInitialLoad');
+            });
+
+        };
+
+   
+
+    function loadCountryList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetCountryList", "Country")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Country', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Country");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCountryList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                        $sidemenu.find('.jq_sidemenu_title').text("Country");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCountryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+   
+
+     //--- Common table settings for this page
+
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+            
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editCountry },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteCountry },</text>
+
+              }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        hideColumn: ["EntrOn","FK_Machine", "AuditData","CountryID", "BackupId", "BranchCode", "Cancelled", "FK_Country", "EntrBy", "FK_BranchCodeUser", "FK_Company", "FK_Machine", "FK_Reason",  "Sort", "SqlUpdateQuery", "UserAction", "UserCode","TotalCount","TransMode"],
+        rowClickAction: editCountry,
+        //serialNo: true,
+        renameHeader: { "SlNo":"SL NO","CountryName": "Name", "CountryShortName": "ShortName" }
+
+    };
+
+     function editCountry() {
+
+            let $thisUser = $(this).closest('tr');
+         
+         let savedData = $thisUser.data('pData');
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+         let inputData = { FK_Country: savedData.CountryID};
+            //dbcall
+         $('#LoadFormCountry').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetCountryInfo", "Country")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            console.log('>_ Inside GetCountryInfo', ajaxOutput)
+
+                            $sideMenuOptions.close();
+
+                            $formContainer.load("@Url.Action("LoadFormCountry", "Country")?mtd=@ViewBag.mtd", function () {
+
+
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].CountryName)
+                            console.log('Inside load');
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                            $thisForm.attr('perfect-onFormSuccess', 'countryInitialLoad');
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+
+                            $thisForm.find('[name=CountryName]').val(ajaxOutput.Data[0].CountryName),
+                                $thisForm.find('[name=CountryShortName]').val(ajaxOutput.Data[0].CountryShortName),
+                                $thisForm.find('[name=CountryCode]').val(ajaxOutput.Data[0].CountryCode),
+
+                                $thisForm.find('[name=Sort]').val(ajaxOutput.Data[0].Sort)
+
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                    
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+         });
+
+     }
+
+
+
+   
+
+
+
+    function deleteCountry() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+     
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetCountryReasonList", "Country")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                          // let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.CountryName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        CountryID: Saveddata['CountryID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCountryInfo", "Country")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+</script>
+
+
+
+
+}

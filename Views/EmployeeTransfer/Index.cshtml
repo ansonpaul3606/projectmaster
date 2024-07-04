@@ -1,0 +1,444 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="employeetransfer_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script type="text/javascript">
+
+
+        const $formContainer = $('#employeetransfer_formContainer');
+       
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+               <text> { displayName: "View", action: EmployeeTransferUpdate},</text>
+
+               }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: EmployeeTransferDelete},</text>
+
+              }
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "EmployeeName", 'BranchNew', 'NewDesignation','DepartmentNew'],
+            hideColumn: [],         
+            rowClickAction: EmployeeTransferUpdate,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "EmployeeName": "EmployeeName", "BranchNew": "Branch", "DepartmentNew":"Department", "NewDesignation":"Designation"}
+        };
+
+
+        var validationMessage = {
+            'NewBranchID': {
+                'required': 'Please select a Branch',
+                'digits': 'Invalid Branch selected'
+            },
+          
+            'NewDesignationID': {
+                'required': 'Please select Designation ',
+                'digits': 'Invalid Designation selected'
+            },
+            'EmployeeID': {
+                'required': 'Please Select Employee name',
+                'maxlength': jQuery.validator.format('Employee name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in employee name'
+            },          
+            
+            'NewBranchtypeID': {
+                'required': 'Please select a Branch Type',
+                'digits': 'Invalid Branch Type selected'
+            },
+
+            'NewDepartmentID': {
+                'required': 'Please select a Department',
+                'digits': 'Invalid Department selected'
+            },
+
+
+
+        };
+
+       
+        $(document).ready(function () {
+            fn_employeetransfer_initialLoad()
+
+
+
+        });
+      
+        function fn_employeetransfer_initialLoad() {
+           
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>  fn_employeetransfer_loadEmployee(this); </text>
+              }
+
+            fn_employeetransfer_loadEmployeeAddForm();
+
+        }
+
+
+        // Fucntion to load EmployeeList
+
+
+        function fn_employeetransfer_loadEmployee(ele) {
+        let $sidemenu = $sideMenuOptions.body;       
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+
+        $sideMenuOptions.title.find('h4').text('Employee Transfer List');
+          let pageUrl = '@Url.Action("GetEmployeeTransferList", "EmployeeTransfer")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Employee', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Employee Transfer List");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_employeetransfer_loadEmployee(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                        $sidemenu.find('.jq_sidemenu_title').text("Employee Transfer");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_employeetransfer_loadEmployee(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+        // Fucntion to load Employee ADD form
+        function fn_employeetransfer_loadEmployeeAddForm() {
+
+            $formContainer.load('@Url.Action("LoadEmployeeTransferForm", "EmployeeTransfer")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[perfect-elemet="BranchTypeID" ]').prop('disabled', true).selectpicker('refresh');
+                $thisForm.find('[perfect-elemet="BranchID"]').prop('disabled', true).selectpicker('refresh');
+                $thisForm.find('[perfect-elemet="DesignationID"]').prop('disabled', true).selectpicker('refresh');
+                $thisForm.find('[perfect-elemet="DepartmentID"]').prop('disabled', true).selectpicker('refresh');
+                // ... Custom validation message
+                $thisForm.validate({
+                    // ...
+                    messages: validationMessage
+                    // ...
+                });
+                // ... Custom validation message
+                $thisForm.attr('perfect-onFormSuccess', 'fn_employeetransfer_initialLoad');
+
+                initFunctions($thisForm);
+                
+            });
+
+        };
+        // Function to load employee Update from
+        
+        function EmployeeTransferUpdate() {
+
+             let $thisUser = $(this).closest('tr');
+            let saveddata = $thisUser.data('pData');
+             debugger
+
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+
+             let inputData = {
+                 ID_EmployeeTransfer: saveddata.ID_EmployeeTransfer
+             };
+
+
+             $.ajax({
+                 url: '@Url.Action("GetEmployeeTransferInfoByID", "EmployeeTransfer")',
+                 type: "POST",
+                 data: JSON.stringify(inputData),
+                 dataType: "json",
+                 contentType: "application/json",
+                 success: function (ajaxOutput) {
+                     console.log('ajaxOutput', ajaxOutput);
+                     console.log('saveddata ', saveddata);
+
+
+                     debugger
+
+                     if (ajaxOutput.employeeInfo.Process.IsProcess) {
+                         $formContainer.load("@Url.Action("LoadEmployeeTransferForm", "EmployeeTransfer")?mtd=@ViewBag.mtd", function () {
+                             debugger;
+
+                             let $thisForm = $(this).find('[perfect-class="form"]');
+
+                             $thisForm.validate({ messages: validationMessage });
+
+                             $thisForm.data({ pData: ajaxOutput.employeeInfo.Data[0] });
+
+
+                             //$(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.employeeInfo.Data[0].EmployeeName)
+                             $thisForm.find('[perfect-elemet="BranchTypeID" ]').prop('disabled', true).selectpicker('refresh');
+                             $thisForm.find('[perfect-elemet="BranchID"]').prop('disabled', true).selectpicker('refresh');
+                             $thisForm.find('[perfect-elemet="DesignationID"]').prop('disabled', true).selectpicker('refresh');
+                             $thisForm.find('[perfect-elemet="DepartmentID"]').prop('disabled', true).selectpicker('refresh');
+                             // Fill fields
+                             $thisForm.find('[name=ID_EmployeeTransfer]').val(saveddata.ID_EmployeeTransfer),
+                             $thisForm.find('[name="EmployeeNo"]').val(saveddata.Employeeno);
+                             $thisForm.find('[name="Employee"]').val(saveddata.EmployeeName);
+                             $thisForm.find('[name="EmployeeID"]').val(saveddata.EmployeeID);
+                             $thisForm.find('[name="BranchTypeID"]').val(saveddata.BranchTypeID).selectpicker('refresh');
+                             $thisForm.find('[name="NewBranchtypeID"]').val(saveddata.NewBranchtypeID).selectpicker('refresh');                           
+                             $thisForm.find('[name="BranchID"]').val(saveddata.BranchID).selectpicker('refresh');
+
+                             $thisForm.find('[name="BranchID"]').attr('perfect-onloadSelect', saveddata.BranchID);
+                             $thisForm.find('[name="NewBranchID"]').attr('perfect-onloadSelect', saveddata.NewBranchID);
+
+
+                             $thisForm.find('[name="BranchTypeID"]').trigger('change');
+                             $thisForm.find('[name="NewBranchID"]').val(saveddata.NewBranchID).selectpicker('refresh');                           
+                             $thisForm.find('[name="NewBranchtypeID"]').trigger('change');
+                             $thisForm.find('[name="DesignationID"]').val(saveddata.DesignationID).selectpicker('refresh');
+                             $thisForm.find('[name="DepartmentID"]').val(saveddata.DepartmentID).selectpicker('refresh');                       
+                             $thisForm.find('[name="NewDesignationID"]').val(saveddata.NewDesignationID).selectpicker('refresh');                        
+                             $thisForm.find('[name="NewDepartmentID"]').val(saveddata.NewDepartmentID).selectpicker('refresh');
+                           
+                              
+
+
+                             $thisForm.find('button[name=add]').addClass('d-none');
+                             $thisForm.find('button[name=update]').removeClass('d-none');
+
+                             $thisForm.attr('perfect-onFormSuccess', 'fn_employeetransfer_initialLoad');
+                             $sideMenuOptions.close();
+                         });
+                     }
+                     else {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+            });
+         }
+
+
+
+       
+        function FillBranch(ele) {
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+            console.log("Input data", inputData)
+
+
+
+        }
+
+        // Function to delete employee
+        function EmployeeTransferDelete() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            //get reason list-
+
+               $.ajax({
+                   url: '@Url.Action("GetEmployeeReasonList", "EmployeeTransfer")',
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           // var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.EmployeeName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('employeeIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_EmployeeTransfer: Saveddata['ID_EmployeeTransfer'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: '@Url.Action("DeleteEmployeeTransfer", "EmployeeTransfer")',
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+    </script>
+
+
+
+}

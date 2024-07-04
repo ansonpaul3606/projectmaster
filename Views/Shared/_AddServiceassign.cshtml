@@ -1,0 +1,1070 @@
+﻿@model PerfectWebERP.Models.CustomerserviceassignModel.CustomerserviceassignView
+
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-sm-8 d-md-flex">
+                <input class="form-control input-rounded mr-auto mb-md-0 mb-3" name="Content" type="text" placeholder="Search by Ticket, product or customer...">
+            </div>
+            <div class="col-sm-4 d-md-flex">
+                <button type="button" class="btn btn-sm btn-rounded btn-primary" onclick="Filter(this);">
+                    <span class="btn-icon-left text-primary">
+                        <i class="fa fa-filter"></i>
+                    </span> Filter
+                </button>
+                &nbsp;&nbsp; &nbsp;&nbsp;
+                <button type="button" class="btn btn-sm btn-rounded btn-primary" onclick="SearchUsingKeyWord(this);">
+                    <span class="btn-icon-left text-primary">
+                        <i class="fa fa-search"></i>
+                    </span> Search
+                </button>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="d-flex flex-wrap mb-4 align-items-center search-filter">
+                    <div class="mr-auto mb-2 pr-2" style="display:none;" id="TicketCountParent">
+                        <h6 class="text-black fs-16 font-w600 mb-1" id="TicketCount"></h6><span class="fs-14">Based your preferences</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div></div>
+
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-responsive-lg mb-0 text-black" id="Tblsearchresult">
+                                <thead>
+                                    <tr>
+                                        <th class="align-middle">
+                                            SI.No.
+                                        </th>
+                                        <th class="align-middle">Ticket No.</th>
+                                        <th class="align-middle pr-7">Ticket Date</th>
+                                        <th class="align-middle minw200">Branch</th>
+                                        <th class="align-middle ">Customer</th>
+                                        <th class="align-middle ">Priority</th>
+                                        <th class="align-middle ">Status</th>
+                                        <th class="align-middle ">Action</th>
+                                        <th class="no-sort"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="Tblsearchresultbody">
+                                  <tr id="0"><td colspan="7" style="text-align:center;">No Records..</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filters</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>×</span>
+                        </button>
+                    </div>
+                    <form class="form-valide" perfect-class="form-Filter" action="#" method="post" perfect-onFormSuccess="">
+                        <div class="modal-body">
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Branch</label>                                  
+                                    <select class="form-control " name="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branch in Model.BranchList)
+                                            {
+                                                <option value="@branch.ID_Branch">@branch.BranchName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Product</label>
+                                    <input type="text" name="Product" class="form-control" placeholder="">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Complaint Type</label>                                  
+                                    <select class="form-control " name="ComplaintType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        @if (!(Model.ComplaintList is null))
+                                        {
+                                            foreach (var complaint in Model.ComplaintList)
+                                            {
+                                                <option value="@complaint.ID_ComplaintList">@complaint.ComplaintName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Complaint status</label>
+                                    <select class="form-control" name="Complaintstatus">
+                                        <option>Please select</option>
+                                        <option>Pending</option>
+                                        <option>Assigned</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>From Date</label>
+                                    <input type="date" class="form-control perfectValidate_date" name="fromdate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>To Date</label>
+                                    <input type="date" class="form-control perfectValidate_date" name="todate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Customer</label>
+                                    <input type="text" name="Customer" class="form-control" placeholder="">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Customer Mobile</label>
+                                    <input type="text" name="Mobile" class="form-control" placeholder="">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Ticket Number</label>
+                                    <input type="text" name="Ticket" class="form-control" placeholder="">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" onclick="Searchtableresult(this);" class="btn btn-primary">Apply</button>
+                            <button type="button" class="btn btn-danger light" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade bd-service-modal-sm" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Service Assign</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>×</span>
+                        </button>
+                    </div>
+                    <form class="form-valide" perfect-class="form-Assign" action="#" method="post" perfect-onFormSuccess="">
+                        <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+
+                            <div class="form-row" id="TopDetails">
+
+                            </div>
+                            <div class="form-row">
+                                <div class="col-sm-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4 class="card-title">Product Details</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-responsive-sm" id="Product">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>SI.No.</th>
+                                                            <th>Product</th>
+                                                            <th>Complaint</th>
+                                                            <th>Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="ProductTbody">
+                                                        <tr id="0">
+                                                            <td colspan="4" style="text-align:center;">No Records...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /# card -->
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4 class="card-title">Other Company Product Details</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-responsive-sm" id="OtherPorudct">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>SI.No.</th>
+                                                            <th>Company</th>
+                                                            <th>Product</th>
+                                                            <th>Complaint</th>
+                                                            <th>Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="OtherPorudctTbody">
+                                                        <tr id="0"><td colspan="5" style="text-align:center;">No Records...</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /# card -->
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="FK_Customerserviceregister" />
+                            <div class="form-row">
+
+
+                                <div class="form-group col-md-6">
+                                    <label>Employee</label>&nbsp;<span class="text-danger">*</span>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="FK_Employee" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                            <button id="addCustomer-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="showSearchModal(this)"></button>
+                                            @* Modal *@
+                                            <div class="modal fade EmployeeModal" perfect-class="formGroupModal" style="padding-left:0px !important;">
+                                                <div class="modal-dialog modal-lg" role="document">
+                                                    <div class="modal-content  rounded-0">
+                                                        <div class="modal-header border-0">
+                                                            <h5 class="modal-title">Employee Search </h5>
+                                                            <button type="button" class="close CloseEmpModal">
+                                                                <span>&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-row">
+                                                                <div class="col-md-6 form-group">
+                                                                    @*<label>Branch</label>*@
+                                                                    <select class="form-control " placeholder="Branch" name="Emp_Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                                        <option value="">Please select</option>
+                                                                        @if (!(Model.BranchList is null))
+                                                                        {
+                                                                            foreach (var branch in Model.BranchList)
+                                                                            {
+                                                                                <option value="@branch.ID_Branch">@branch.BranchName</option>
+                                                                            }
+                                                                        }
+                                                                    </select>
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    @*<label>Employee Name</label>*@
+                                                                    <input type="text" class="form-control" placeholder=">Employee Name" name="Emp_Name">
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    @*<label>Employee Code</label>*@
+                                                                    <input type="text" class="form-control" placeholder="Employee Code" name="Emp_Code">
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    @*<label>Visit Date</label>*@
+                                                                    <input type="date" class="form-control" placeholder="Visit Date" name="Emp_Fromdate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    @*<label>Last Visit Date</label>*@
+                                                                    <input type="date" class="form-control"  placeholder="Visit Date" name="Emp_Todate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                                                </div>
+                                                                <div class="col-md-6 form-group">
+                                                                    @*<label>Visit Time</label>*@
+                                                                    <input type="time" class="form-control" placeholder="Visit Time" name="Emp_VisitTime" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input">
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    @*<label>Pin Code</label>*@
+                                                                    <input type="text" class="form-control" placeholder="Pin Code" name="Emp_PinCode">
+                                                                </div>
+                                                                <div class="form-group col-md-6" perfect-class="formGroup" >
+                                                                    @*<label>Product&nbsp;<span class="text-danger"></span></label>*@
+                                                                    <div class="input-group">
+                                                                        <input type="text" placeholder="Product" class="form-control product" name="ProductName" data-id="ProductName-error" id="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                                                        <input type="hidden" name="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                                        <div class="input-group-append">
+                                                                            <button id="addCustomer-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="ShowProductSearchModal(this)"></button>
+                                                                            @* Modal *@
+                                                                            <div class="modal fade" perfect-class="formProductGroupModal">
+                                                                                <div class="modal-dialog modal-lg" role="document">
+                                                                                    <div class="modal-content  rounded-0">
+                                                                                        <div class="modal-header border-0">
+                                                                                            <h5 class="modal-title">Search modal</h5>
+                                                                                            <button type="button" class="close" data-dismiss="modal">
+                                                                                                <span>&times;</span>
+                                                                                            </button>
+                                                                                        </div>
+                                                                                        <div class="modal-body">
+                                                                                            <div class="form-row">
+                                                                                                <div class="form-group col-md-6">
+                                                                                                    <label>Product Name</label>
+                                                                                                    <input type="text" class="form-control" placeholder="" name="search-name">
+                                                                                                </div>
+                                                                                                <div class="form-group col-md-6">
+                                                                                                    <label>Product Code</label>
+                                                                                                    <input type="text" class="form-control" placeholder="" name="search-place">
+                                                                                                </div>
+                                                                                                <div class="form-group col-md-6">
+                                                                                                    <div class="form-check mb-2">
+                                                                                                        <input type="checkbox" class="form-check-input" id="Mode" name="Mode" />
+                                                                                                        <label class="form-check-label" for="check1">List All Products</label>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="form-group">
+                                                                                                    <label>&nbsp;&nbsp;</label>
+                                                                                                    <button type="button" class="btn btn-sm btn-primary" onclick="searchbtn2(this)">Search</button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-md-12 mt-3" perfect-class="formGroupModalTable">
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            @* Modal *@
+                                                                        </div>
+                                                                    </div>                                                                    
+                                                                </div>
+
+                                                                <div class="form-group col-md-6">
+                                                                    <label>&nbsp;&nbsp;</label>
+                                                                    <button type="button" class="btn btn-sm btn-primary" onclick="searchbtn2(this)">Search</button>
+                                                                </div>
+
+                                                            </div>
+                                                            
+                                                            <div class="col-md-12 mt-3" perfect-class="formGroupModalTable">
+
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @* Modal *@
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label>Visit Date</label>&nbsp;<span class="text-danger">*</span>
+                                    <input type="date" class="form-control perfectValidate_date" name="CSAVisitdate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Visit Time</label>&nbsp;<span class="text-danger">*</span>
+                                    <input type="time" class="form-control" placeholder="" name="CSAVisittime" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Priority</label>&nbsp;
+                                    <select class="form-control" name="CSAPriority">
+                                        <option>Please select</option>
+                                        <option value="1">Low</option>
+                                        <option value="2">Medium</option>
+                                        <option value="3">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-12">
+                                    <label>Remarks</label>&nbsp;
+                                    <textarea rows="4" name="CSARemarks" class="form-control" maxlength="500"></textarea>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" id="btnUpdate" onclick="fn_SaveCustomerServiceAssign(this);" class="btn btn-primary">Update</button>
+                            <button type="button" id="btnSave" onclick="fn_SaveCustomerServiceAssign(this);" class="btn btn-primary">Save</button>
+                            <button type="button" class="btn btn-danger light" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    $(document).ready(function () {
+
+        SearchUsingKeyWord();
+    });
+
+    function Filter(ele) {
+
+        $('.bd-example-modal-sm').modal('show');
+    }
+
+    function SearchUsingKeyWord(ele) {
+
+
+      
+        var InputData = {
+            'Content': $('[name=Content]').val().trim(),
+        }
+                
+       
+            $.ajax({
+                url: "@Url.Action("GetSearchResult", "Service")",
+                type: "Get",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    $('#Tblsearchresultbody').empty(); 
+                    $TableHtml = '';
+                    console.log("First Result", ajaxOutput);
+                    if (ajaxOutput.Process.IsProcess) {
+                        console.log("Result >", ajaxOutput.Data)
+                        let SearchResult = ajaxOutput.Data;
+
+                        let TicketCount = SearchResult.length;
+                        $('#TicketCount').html('Showing ' + TicketCount + ' tickets result');
+                        $('#TicketCountParent').css('display', 'block');
+                        if (SearchResult.length > 0) {
+
+                            $.each(SearchResult, function (i, value) {
+                                let trclass = CheckNumber(i) == "1" ? "odd" : "even";
+                                $Pending = "<a class='btn btn-rounded btn-outline-dark mr-3 ml-auto float-left w-50' data-id=" + value.FK_Customerserviceregister + " href ='#' onclick='fn_ShowServiceAssignDetails(this);'>View</a >";
+                                $Assigned = "<a class='btn btn-rounded btn-success mr-3 ml-auto w-50' href='#' data-id=" + value.FK_Customerserviceregister + " onclick='GetTicketDetails(this);'>Assign</a>";
+                                $TableHtml += "<tr role='row' class=" + trclass + ">";
+                                $TableHtml += "<td style=''>" + (i + 1) + "</td>";
+                                $TableHtml += "<td style=''>" + value.Ticket + "</td>";
+                                $TableHtml += " <td style=''>" + value.TicketDate + "</td>";
+                                $TableHtml += "<td>" + value.Branch + "</td>";
+                                $TableHtml += " <td><div class='media'><div class='media-body text-nowrap'><h6 class='text-black font-w600 fs-16 mb-0'>" + value.Customer + "</h6><span class='fs-14'>" + value.Mobile + "</span></div></div></td>";
+                                //$TableHtml += "<td>" + value.Product + "</td>"
+                                $TableHtml += "<td>" + value.Priority + "</td>";
+                                if (value.TicketStatus == 0) {
+                                    
+                                    $TableHtml += "<td><span class='btn light btn-warning w-75' >New<span class='ml-1 fas fa-stream'></span></span></td>"
+
+                                    $TableHtml += "<td><div class='' style=''>" + $Assigned + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+
+                                }
+                                else if (value.TicketStatus == 1) {
+                                    $TableHtml += "<td><span class='btn light btn-primary w-75'>Assigned<span class='ml-1 fas fa-stream'></span></span></td>"
+                                    $TableHtml += "<td><div class='' style=''>" + $Pending + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                }
+                                else if (value.TicketStatus == 5 || value.TicketStatus == 7) {
+                                    $TableHtml += "<td><span class='btn light btn-success w-75'>Completed<span class='ml-1 fas fa-stream'></span></span></td>"
+                                    $TableHtml += "<td><div class='' style=''>" + $Pending + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                }
+                                else {
+                                    $TableHtml += "<td><span class='btn light btn-secondary w-75'>On Hold<span class='ml-1 fas fa-stream'></span></span></td>"
+                                    $TableHtml += "<td><div class='' style=''>" + $Assigned + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                }
+                                //if (value.Assigned == 0) {
+                                //    $TableHtml += "<td><span class='badge badge-warning'>Pending<span class='ml-1 fas fa-stream'></span></span></td>"
+                                //    $TableHtml += "<td><div class='' style=''>" + $Assigned + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                //}
+                                //else if (value.Assigned == 1) {
+                                //    $TableHtml += "<td><span class='badge badge-success'>Completed<span class='ml-1 fa fa-check'></span></span></td>"
+                                //    $TableHtml += "<td><div class='' style=''>" + $Pending + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                //}
+                                $TableHtml += '</tr>';
+                            });
+                        }
+                        else {
+                            $TableHtml += "<tr role='row' class='odd'><td colspan='5'>No Records..</td></tr>";
+                        }
+                        $('#Tblsearchresult tbody').append($TableHtml);
+                    }
+                    else {
+                        $TableHtml += "<tr role='row'  class='odd'><td colspan='7' style='text-align:center;'>No Records..</td></tr>";
+                        $('#Tblsearchresult tbody').append($TableHtml);
+                    }
+                    
+                  },
+            complete: function () {
+                $(ele).prop('disabled', false);
+                }
+            });
+    }
+
+    $(document).on('click', '.CloseEmpModal', function () {
+        $(this).closest('.modal').modal('hide');
+    });
+
+    //Save  service assign details
+    function fn_SaveCustomerServiceAssign(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form-Assign"]');
+        if ($thisForm.valid()) {
+            $(ele).prop('disabled', true);
+            
+           
+            var inputData =
+                {
+                    '__RequestVerificationToken': $('[name="__RequestVerificationToken"]').val(),                    
+                    'FK_Customerserviceregister': $thisForm.find('[name=FK_Customerserviceregister]').val().trim(),
+                    'FK_Employee': $thisForm.find('[name=FK_Employee]').val().trim(),
+                    'CSAVisitdate': $thisForm.find('[name=CSAVisitdate]').val().trim(),
+                    'CSAVisittime': $thisForm.find('[name=CSAVisittime]').val().trim(),
+                    'CSAPriority': $thisForm.find('[name=CSAPriority]').val().trim(),
+                    'CSARemarks': $thisForm.find('[name=CSARemarks]').val().trim()                 
+                }
+
+            $.ajax({
+                url: "@Url.Action("AddCustomerserviceAssign","Service")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                        });
+                        // Get the value set in form's perfect-onFormSuccess attribute
+                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                        if (onSuccess) {
+                            window[onSuccess]();
+                        }
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                    $('.bd-service-modal-sm').modal('hide');
+                    Searchtableresult(this);
+                }
+            });
+        }
+    }
+    //End save  service assign details
+
+    function fn_ShowServiceAssignDetails(ele) {
+        ClearModalInput();
+ var InputData = {
+            'FK_Customerserviceregister': $(ele).attr('data-id')
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetTicketDetailsById", "Service")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                
+                $('[name=Employee]').val(ajaxOutput['Employee']);
+                $('[name=FK_Employee]').val(ajaxOutput['FK_Employee']);
+                $('[name=CSAVisitdate]').val(moment(ajaxOutput.Visitdate).format('YYYY-MM-DD'));
+                $('[name=CSAVisittime]').val(ajaxOutput['Visittime']);
+                $('[name=CSAPriority]').val(ajaxOutput['Priority']);
+                $('[name=CSARemarks]').val(ajaxOutput['Remarks']);
+
+                console.log("Output >", ajaxOutput)
+
+                if (ajaxOutput.customerDetails != null) {
+
+                    $('#TopDetails').empty();
+
+                    $TicketHtml = '';
+                  
+                   
+                    $TicketHtml += "<div class='col-sm-6'>";
+                    $TicketHtml += "<div class='profile-personal-info'>";
+                    $TicketHtml += "<h4 class='text-primary mb-4'>Ticket Information</h4>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Ticket <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].Ticket +"</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Customer <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].Customer + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Address <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].Address + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Landmark <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].Landmark + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Mobile <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].Mobile + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Phone <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].OtherMobile+ "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += "</div>";
+
+
+                    $TicketHtml += "<div class='col-sm-6'>";
+                    $TicketHtml += "<div class='profile-personal-info'>";
+                    $TicketHtml += "<h4 class='text-primary mb-4'>Service Information</h4>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Visit Date <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ConvertJsonDate(ajaxOutput.customerDetails[0].FromDate) + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Visit Time <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput.customerDetails[0].FromTime+ "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += "</div>";
+
+
+              
+                    $('#TopDetails').append($TicketHtml);
+                    
+                    if (ajaxOutput.Product != null) {
+                       
+                        $('#ProductTbody').empty();                        
+                        var ProductData = ajaxOutput.Product;
+                        $ProductHtml = '';
+                        if (ProductData.length > 0) {
+                            $.each(ProductData, function (i, value) {
+                                let rowCount = (i + 1);
+                               
+                                $ProductHtml += "<tr id=" + rowCount + ">";
+                                $ProductHtml += "<td style='text-align: center;'>" + rowCount + "</td>";
+                                $ProductHtml += "<td>" + value.Productname + "</td>";
+                                $ProductHtml += "<td>" + value.ProductComplaint + "</td>";
+                                $ProductHtml += "<td>" + value.ProductDescription + "</td>";
+                                $ProductHtml += "</tr>";
+                            });
+                        }
+                        else {
+                            $ProductHtml += "<tr id='0'><td colspan='4' style'text-align:center'>No Records..</td></tr>";
+                        }
+
+                        $('#ProductTbody').append($ProductHtml);
+                    }  
+
+                    if (ajaxOutput.OtherProducts != null) {
+                        $OtherProductHtml = '';
+                        $('#OtherPorudctTbody').empty();
+                        var OtherProductData = ajaxOutput.OtherProducts;
+                        if (OtherProductData.length > 0) {
+                            $.each(OtherProductData, function (i, value) {
+                                let rowCount = (i + 1);
+                                $OtherProductHtml += "<tr id=" + rowCount  + ">";
+                                $OtherProductHtml += "<td style='text-align: center;'>" + rowCount + "</td>";
+                                $OtherProductHtml += "<td>" + value.Company + "</td>";
+                                $OtherProductHtml += "<td>" + value.Product + "</td>";
+                                $OtherProductHtml += "<td>" + value.Complaint + "</td>";
+                                $OtherProductHtml += "<td>" + value.Description + "</td>";
+                                $OtherProductHtml += "</tr>";
+                            });
+                        }
+                        else {
+                            $OtherProductHtml += "<tr id='0'><td colspan='5' style'text-align:center'>No Records..</td></tr>";
+                        }
+                        $('#OtherPorudctTbody').append($OtherProductHtml)
+                    }
+
+                    $('#btnUpdate').css('display', 'block');
+                    $('#btnSave').css('display', 'none');
+                    $('.bd-service-modal-sm').modal('show');
+                }
+                else {
+
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Error" });
+
+                 
+                }
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+            }
+        });
+
+    }
+
+    function ClearModalInput() {
+        $('[name=Employee]').val('');
+        $('[name=FK_Employee]').val('');
+        $('[name=CSAVisitdate]').val('');
+        $('[name=CSAVisittime]').val('');
+        $('[name=CSAPriority]').val('');
+        $('[name=CSARemarks]').val('');
+    }
+
+    function GetTicketDetails(ele) {
+
+        ClearModalInput();
+
+        var $thisForm = $(ele).closest('[perfect-class="form-Assign"]');
+        var InputData = {
+            'FK_Customerserviceregister': $(ele).attr('data-id')          
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetTicketDetails", "Service")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {                
+                $('[name=FK_Customerserviceregister]').val($(ele).attr('data-id'));                                
+                $TicketHtml = '';
+                if (ajaxOutput != null) {
+                    $('#TopDetails').empty();                                                       
+                    $TicketHtml += "<div class='col-sm-6'>";
+                    $TicketHtml += "<div class='profile-personal-info'>";
+                    $TicketHtml += "<h4 class='text-primary mb-4'>Ticket Information</h4>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Ticket <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['Ticket'] +"</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Customer <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['Customer'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Address <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['Address'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Landmark <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['Landmark'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Mobile <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['Mobile'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Phone <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['OtherMobile'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += "</div>";
+
+                    $TicketHtml += "<div class='col-sm-6'>";
+                    $TicketHtml += "<div class='profile-personal-info'>";
+                    $TicketHtml += "<h4 class='text-primary mb-4'>Service Information</h4>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Visit Date <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ConvertJsonDate(ajaxOutput['FromDate']) + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "<div class='row mb-2'>";
+                    $TicketHtml += "<div class='col-6'>";
+                    $TicketHtml += "<h5 class='f-w-500'>Visit Time <span class='pull-right'>:</span></h5>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += " <div class='col-6'><span>" + ajaxOutput['FromTime'] + "</span>";
+                    $TicketHtml += "</div></div>";
+                    $TicketHtml += "</div>";
+                    $TicketHtml += "</div>";
+              
+                    $('#TopDetails').append($TicketHtml);
+                    
+                    if (ajaxOutput.Product != null) {
+                       
+                        $('#ProductTbody').empty();                        
+                        var ProductData = ajaxOutput.Product;
+                        $ProductHtml = '';
+                        if (ProductData.length > 0) {
+                            $.each(ProductData, function (i, value) {
+                                let rowCount = (i + 1);
+                               
+                                $ProductHtml += "<tr id=" + rowCount + ">";
+                                $ProductHtml += "<td style='text-align: center;'>" + rowCount + "</td>";
+                                $ProductHtml += "<td>" + value.Productname + "</td>";
+                                $ProductHtml += "<td>" + value.ProductComplaint + "</td>";
+                                $ProductHtml += "<td>" + value.ProductDescription + "</td>";
+                                $ProductHtml += "</tr>";
+                            });
+                        }
+                        else {
+                            $ProductHtml += "<tr id='0'><td colspan='4' style'text-align:center'>No Records..</td></tr>";
+                        }
+
+                        $('#ProductTbody').append($ProductHtml);
+                    }  
+
+                    if (ajaxOutput.OtherProducts != null) {
+                        $OtherProductHtml = '';
+                        $('#OtherPorudctTbody').empty();
+                        var OtherProductData = ajaxOutput.OtherProducts;
+                        if (OtherProductData.length > 0) {
+                            $.each(OtherProductData, function (i, value) {
+                                let rowCount = (i + 1);
+                                $OtherProductHtml += "<tr id=" + rowCount  + ">";
+                                $OtherProductHtml += "<td style='text-align: center;'>" + rowCount + "</td>";
+                                $OtherProductHtml += "<td>" + value.Company + "</td>";
+                                $OtherProductHtml += "<td>" + value.Product + "</td>";
+                                $OtherProductHtml += "<td>" + value.Complaint + "</td>";
+                                $OtherProductHtml += "<td>" + value.Description + "</td>";
+                                $OtherProductHtml += "</tr>";
+                            });
+                        }
+                        else {
+                            $OtherProductHtml += "<tr id='0'><td colspan='5' style'text-align:center'>No Records..</td></tr>";
+                        }
+                        $('#OtherPorudctTbody').append($OtherProductHtml)
+                    }
+
+                    $('#btnUpdate').css('display', 'none');
+                    $('#btnSave').css('display', 'block');
+                    $('.bd-service-modal-sm').modal('show');
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+            complete: function () {
+                $(ele).prop('disabled', false);
+            }
+        });
+
+    }
+
+    function Searchtableresult(ele) {
+        
+        let $thisForm = $(ele).closest('[perfect-class="form-Filter"]');
+
+        var InputData = {
+            'Product': $thisForm.find('[name=Product]').val().trim() ,
+            'FK_ComplaintType': $thisForm.find('[name=ComplaintType]').val(), 
+            'FK_Branch': $thisForm.find('[name=Branch]').val(),
+            'Status': $thisForm.find('[name=Complaintstatus]').val(),
+            'TicketNumber': $thisForm.find('[name=Ticket]').val(),
+            'Customer': $thisForm.find('[name=Customer]').val(),
+            'Mobile': $thisForm.find('[name=Mobile]').val(),
+            'FromDate': $thisForm.find('[name=fromdate]').val(),
+            'ToDate': $thisForm.find('[name=ToDate]').val(),
+            'Content': $('[name=Content]').val().trim()
+
+        }
+            $.ajax({
+                url: "@Url.Action("GetSearchResult", "Service")",
+                type: "Get",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    $TableHtml = '';
+                    $('#Tblsearchresult tbody').empty();
+                    if (ajaxOutput.Process.IsProcess) {                        
+                        let SearchResult = ajaxOutput.Data;
+                        console.log("gfg",ajaxOutput)
+                        let TicketCount = SearchResult.length;
+                        $('#TicketCount').html('Showing ' + TicketCount + ' tickets result');
+                        $('#TicketCountParent').css('display', 'block');
+                        if (SearchResult.length > 0) {
+                            
+                            $.each(SearchResult, function (i, value) {
+                               
+                                let trclass = CheckNumber(i) == "1" ? "odd" : "even";
+                                $Pending = "<a class='btn btn-rounded btn-outline-dark mr-3 ml-auto float-left' data-id=" + value.FK_Customerserviceregister + " href ='#' onclick='fn_ShowServiceAssignDetails(this);'>View</a >";
+                                $Assigned = "<a class='btn btn-rounded btn-success mr-3 ml-auto' href='#' data-id=" + value.FK_Customerserviceregister + " onclick='GetTicketDetails(this);'>Assign</a>";
+                                $TableHtml += "<tr role='row' class=" + trclass + ">";
+                                $TableHtml += "<td style=''>" + (i + 1) + "</td>";
+                                $TableHtml += "<td style=''>" + value.Ticket + "</td>";
+                                $TableHtml += " <td style=''>" + value.TicketDate + "</td>";
+                                $TableHtml += "<td>" + value.Branch + "</td>";
+                                $TableHtml += " <td><div class='media'><div class='media-body text-nowrap'><h6 class='text-black font-w600 fs-16 mb-0'>" + value.Customer + "</h6><span class='fs-14'>" + value.Mobile + "</span></div></div></td>";
+                                //$TableHtml += "<td>" + value.Product + "</td>"
+                                $TableHtml += "<td>" + value.Priority + "</td>";
+                                if (value.TicketStatus == 0) {
+                                    
+                                    $TableHtml += "<td><span class='badge badge-warning'>New<span class='ml-1 fas fa-stream'></span></span></td>"
+                                    //$TableHtml += "<td><div class='' style=''>" + $Assigned + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                }
+                                else if (value.TicketStatus == 1) {
+                                    $TableHtml += "<td><span class='badge badge-warning'>Assigned<span class='ml-1 fas fa-stream'></span></span></td>"
+                                }
+                                else if (value.TicketStatus == 5 || value.TicketStatus == 7) {
+                                    $TableHtml += "<td><span class='badge badge-warning'>Completed<span class='ml-1 fas fa-stream'></span></span></td>"
+                                }
+                                else {
+                                    $TableHtml += "<td><span class='badge badge-warning'>On Hold<span class='ml-1 fas fa-stream'></span></span></td>"
+                                }
+                                //else if (value.Assigned == 1) {
+                                //    $TableHtml += "<td><span class='badge badge-success'>Completed<span class='ml-1 fa fa-check'></span></span></td>"
+                                //    $TableHtml += "<td><div class='' style=''>" + $Pending + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                //}
+                                //if (value.Assigned == 0) {
+                                //    $TableHtml += "<td><span class='badge badge-warning'>Pending<span class='ml-1 fas fa-stream'></span></span></td>"
+                                //    $TableHtml += "<td><div class='' style=''>" + $Assigned + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                //}
+                                //else if (value.Assigned == 1) {
+                                //    $TableHtml += "<td><span class='badge badge-success'>Completed<span class='ml-1 fa fa-check'></span></span></td>"
+                                //    $TableHtml += "<td><div class='' style=''>" + $Pending + "<div class='dropdown float-left custom-dropdown mb-0'></div></div><td>";
+                                //}
+                                $TableHtml += '</tr>';
+                            });
+                        }
+                        else {
+                            $TableHtml += "<tr role='row' class='odd'><td style='text-align:center' colspan='7'>No Records..</td></tr>";
+                        }
+                        $('#Tblsearchresult tbody').append($TableHtml);
+                    }
+                    else {
+                        $TableHtml += "<tr role='row' class='odd'><td style='text-align:center' colspan='7'>No Records..</td></tr>";
+                        $('#Tblsearchresult tbody').append($TableHtml);
+                    }
+                  
+                    $('.bd-example-modal-sm').modal('hide');
+                  },
+            complete: function () {
+                $(ele).prop('disabled', false);
+            }
+            });
+    }
+
+    function RemoveEmptyRow(ID) {
+        let val = $('#' + ID).find('tr:first').attr('id');
+        if (val == 0) {
+            $('#' + ID).empty();
+        }
+    }
+
+    function CheckNumber(n) {
+
+        if (n % 2 == 0) {
+            return 1;
+        } else if (Math.abs(n % 2) == 1) {
+            return 0;
+        }
+        
+    }
+
+
+     function showSearchModal(ele) {
+         let $thisForm = $(ele).closest('[perfect-class="form-Assign"]');
+
+        let $model = $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]');
+        $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("GetEmployee", "Service")',
+            type: "Get",
+            headers: { "token_key": "1234" },
+            //data: { branchID: id },
+            dataType: "json",
+            contentType: "application/json",
+            success: function (successData) {
+                console.log('> Search button click success', successData);
+
+                if (successData.Process.IsProcess) {
+                    var sss = createSelectListWithSearch({ data: successData.Data, element: $model, onlyShowColumn: ["EmployeeCode", "EmployeeName"] });
+                    sss.then(function (ret) {
+                        if (ret) {
+                            //console.log('>_ Search button > list click', ret);
+                            //console.log("Customer>", );
+
+                            $.ajax({
+                                url: '@Url.Action("GetEmployeeInfo", "Service")',
+                                type: "Get",
+                                headers: { "token_key": "1234" },
+                                data: { FK_Employee: ret.ID_Employee },
+                                dataType: "json",
+                                contentType: "application/json",
+                                success: function (EmployeeData) {
+                                    if (EmployeeData.Process.IsProcess) {
+
+                                        $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]').modal('hide');
+
+                                        $thisForm.find('[name=FK_Employee]').val(EmployeeData.Data[0].ID_Employee);
+                                        $thisForm.find('[name=Employee]').val(EmployeeData.Data[0].EmployeeName);
+                                        
+
+                                    }
+                                },
+                                error: function (EmployeeData) {
+
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Error selecting customer" });
+                                }
+
+
+                            });
+
+
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+
+                }
+                else {
+                    $.each(successData.Process.Message, function (key, value) {
+                        //toastr.warning(value, "Error");
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+            complete: function () {
+
+                //a.find('.dataTables_wrapper').css('width', '100%');
+            }
+        });
+    }
+
+
+    function ConvertJsonDate(Jsondate) {
+        var date = "";
+        if (Jsondate != "" && Jsondate != null && Jsondate != undefined) {
+            var dateString = Jsondate.substr(6);
+            var currentTime = new Date(parseInt(dateString));
+            var month = currentTime.getMonth() + 1;
+            if (month <= 9) {
+                month = "0" + month;
+            }
+            var day = currentTime.getDate();
+            if (day <= 9) {
+                day = "0" + day;
+            }
+            var year = currentTime.getFullYear();
+            date = day + "-" + month + "-" + year;
+
+
+        }
+        return date;
+    }
+
+     
+    
+
+</script>

@@ -1,0 +1,363 @@
+﻿
+@{
+    ViewBag.Title = "Account Head";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_Accounthead_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+        var AccountHeadTransMode = '';
+        const $formContainer = $('#jq_Accounthead_formContainer');
+
+        $(document).ready(function () {
+            InitailAccountHead();
+        });
+
+        function InitailAccountHead() {  
+            getSessionValue("TeceA0meGoYkbRz8CrlSB6d7b1SUT0bo+xBtMu1Vtfg=", function (result) {
+                AccountHeadTransMode = result;
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text>  fn_LoadAccountHeadList(this); </text>
+              }
+
+            });
+                LoadFormAccountHead();
+        }
+
+        var validationMessage = {
+            'AHName': {
+                'required': 'Please Enter Name',
+                'stringonly': 'Invalid Account Head Name',
+            },
+            'AHShortName': {
+                'required': 'Please Enter Short Name',
+                'stringonly': 'Invalid Account Head Short Name',
+            },
+            'FK_AccountGroup':{
+                'required': 'Please Select Account Group',
+                'stringonly': 'Invalid Account Group',
+            },
+             'FK_AccountSubGroup': {
+                'required': 'Please Select Account Sub Group',
+                'stringonly': 'Invalid Account Sub Group',
+            },
+            'AHAccountMode': {
+                'required': 'Please Select Account Type',
+                'stringonly': 'Invalid Account Type',
+            },
+            'AHVoucherGrouping': {
+                'required': 'Please Select Voucher Grouping',
+                'stringonly': 'Invalid Voucher Grouping',
+            },
+            'TaxGroupID': {
+                'required': 'Please Select a TaxGroup'
+            }
+        }
+
+
+        function LoadFormAccountHead() {
+           // debugger;
+             $formContainer.load('@Url.Action("LoadFormAccountHead", "AccountHead")?mtd=@ViewBag.mtd', function () {
+                 let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                 $thisForm.attr('perfect-onFormSuccess', 'InitailAccountHead');
+            });
+        }
+
+        function fn_LoadAccountHeadList(ele) {
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+       
+        $sideMenuOptions.title.find('h4').text('List');
+          let pageUrl = '@Url.Action("GetAccountHeadList", "AccountHead")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: AccountHeadTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('AccountHead', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("AccountHead");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LoadAccountHeadList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                           
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: AccountHeadTransMode  }, tableOptions, $table)
+                              });
+
+                          }
+                            else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("AccountHead");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_LoadAccountHeadList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                           "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+       
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+               
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: AccountHeadTransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+               
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+         var tableOptions = {
+            dropdown: {
+                buttons: [
+                
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+               {
+               <text> { displayName: "View", action: fn_EditAccountHead },</text>
+               }
+                    { type: "divider" },
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                {
+                 <text> { displayName: "Delete", action: fn_DeleteAccountHead },</text>
+                }
+                  
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo","AHName", "AHShortName"],
+            hideColumn: ["ID_AccountHead"],
+
+          rowClickAction: fn_EditAccountHead,
+           serialNo: false,
+
+           renameHeader: { "SlNo": "Sl No", "AHName": "Name", "AHShortName": "ShortName" }
+
+        };
+
+        function fn_EditAccountHead() {
+           // debugger;
+                let $thisRow = $(this).closest('tr');
+            let Saveddata = $thisRow.data('pData');
+
+     
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('View click', Saveddata)
+            let inputData = {
+               __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                ID_AccountHead: Saveddata.ID_AccountHead
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetAccountHeadInfo", "AccountHead")",
+                type: "POST",
+                data: inputData,
+                // dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",  //antiforgery token
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                  
+                        $formContainer.load('@Url.Action("LoadFormAccountHead", "AccountHead")?mtd=@ViewBag.mtd', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].AHName)
+                            console.log('Inside load');
+                     
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+                            $thisForm.find('[name=ID_AccountHead]').val(ajaxOutput.Data[0].ID_AccountHead);
+                            $thisForm.find('[name="AHName"]').val(ajaxOutput.Data[0].AHName),
+                            $thisForm.find('[name="AHShortName"]').val(ajaxOutput.Data[0].AHShortName),                            
+                            $thisForm.find('[name="FK_AccountGroup"]').val(ajaxOutput.Data[0].FK_AccountGroup).selectpicker('refresh');
+                            $thisForm.find('[name="FK_AccountGroup"]').trigger('change');   
+                            //$thisForm.find('[name="FK_AccountSubGroup"]').val(ajaxOutput.Data[0].FK_AccountSubGroup).selectpicker('refresh');
+                            $thisForm.find('[name="FK_AccountSubGroup"]').attr('perfect-onloadSelect', ajaxOutput.Data[0]['FK_AccountSubGroup']);  
+                            $thisForm.find('[name="AHAccountMode"]').val(ajaxOutput.Data[0].AHAccountMode).selectpicker('refresh');
+                            $thisForm.find('[name="AHVoucherGrouping"]').val(ajaxOutput.Data[0].AHVoucherGrouping).selectpicker('refresh');
+                            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder);
+                            $thisForm.find('[name="TaxGroupID"]').val(ajaxOutput.Data[0].TaxGroupID);
+                            $thisForm.find('[name="FK_Branch"]').val(ajaxOutput.Data[0].FK_Branch);
+
+                   
+                            $sideMenuOptions.close();
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+
+                            $thisForm.attr('perfect-onFormSuccess', 'InitailAccountHead');
+
+                        });
+                    }
+                    else {
+                   
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            });
+    };
+
+        function fn_DeleteAccountHead() {
+           // debugger;
+        let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputReason = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                ID_AccountHead: Saveddata.ID_AccountHead,
+            };
+            
+            $.ajax({
+                   url: "@Url.Action("GetAccountHeadDeleteReasonList", "AccountHead")",
+                   type: "GET",
+                   data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove    " + Saveddata.AHName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                          
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        ID_AccountHead: Saveddata.ID_AccountHead,
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAccountHead", "AccountHead")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {                     
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                       }
+                }
+
+            });
+
+        }
+</script>
+}

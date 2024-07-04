@@ -1,0 +1,317 @@
+﻿
+
+@{
+    ViewBag.Title = "Services";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="services-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#services-form');
+
+        $(document).ready(function () {
+            servicesInitialLoad();
+
+        });
+
+
+
+        function servicesInitialLoad() {
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>loadServicesList(this); </text>
+              }
+       
+             loadServicesAddForm();
+        }
+
+
+           // Function to load Services ADD form
+        function loadServicesAddForm() {
+
+            $formContainer.load('@Url.Action("LoadServicesForm", "Services")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'servicesInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+
+
+        function loadServicesList() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Services List');
+
+            $.ajax({
+                url: "@Url.Action("GetServicesList", "Services")",
+                type: "Get",
+                headers: { "token_key": "1234" },
+               
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                        console.log('Load Services List', ajaxOutput);
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                    console.log('Services Load', ajaxOutput);
+                },
+                complete: function () {
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                  @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editServices },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteServices },</text>
+
+              }
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+
+
+            onlyShowColumn: ["SlNo", "Services", 'ShortName'],
+            hideColumn: [],
+            rowClickAction: editServices,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL NO", "Services": "Name", "ShortName": "Short Name" }
+           
+        };
+
+        var validationMessage = {
+            'Services': {
+                'required': 'Please Enter Services Name',
+                'stringonly': 'Invalid Services Name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter  Services Short Name',
+                'stringonly': 'Invalid Services Name',
+                'alphanumeric': 'Invalid Services Short Name',
+            },
+            'Description': {
+                'required': 'Please Enter  Description',
+
+            }
+
+        };
+
+
+
+
+        function editServices() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ServicesID: Saveddata.ServicesID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetServicesInfoByID", "Services")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+
+                                $formContainer.load("@Url.Action("LoadServicesForm", "Services")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Services)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                                                $thisForm.find('[name="Services"]').val(ajaxOutput.Data[0].Services),
+                                                    $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                                    $thisForm.find('[name="Description"]').val(ajaxOutput.Data[0].Description),
+                                                 $thisForm.find('[name="Paid"]').prop('checked', ajaxOutput.Data[0].Paid),
+                                                 $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AHeadName),
+                                                 $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].ASHeadName),
+                                                 $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                                $thisForm.find('[name="AccountHead"]').val(ajaxOutput.Data[0].AccountHead)
+                                    $thisForm.find('[name="AccountHeadSub"]').val(ajaxOutput.Data[0].AccountHeadSub)
+                                   
+                                        $thisForm.find('[name="TaxGroupID"]').val(ajaxOutput.Data[0]['FK_TaxGroup']).selectpicker('refresh');                                              
+                                    $thisForm.find('[name="IncludeTax"]').prop('checked', ajaxOutput.Data[0]['ServiceChargeIncludeTax']);
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'servicesInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetServicesInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            loadServicesList()
+                },
+
+            });
+
+        }
+
+           // Function to delete Services
+
+
+           //---
+         // Function to delete customer
+        function deleteServices() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetServicesDeleteReasonList", "Services")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                         
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Services + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ServicesID: Saveddata['ServicesID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteServicesInfo", "Services")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+     
+
+
+    </script>
+
+
+
+}

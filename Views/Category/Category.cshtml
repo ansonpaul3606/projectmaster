@@ -1,0 +1,430 @@
+﻿
+@{
+    ViewBag.Title = "Category";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Category-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+<script type="text/javascript">
+
+        const $formContainer = $('#Category-form');
+
+        $(document).ready(function () {
+            CategoryInitialLoad();
+
+        });
+
+        var validationMessage = {
+            'CategoryName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            'ModeID': {
+                'required': 'Please Select a Mode',
+                'stringonly': 'Special characters are not allowed in Mode'
+            },
+        };
+
+
+        function CategoryInitialLoad() {
+          //  loadCategoryList(1);
+           
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>  loadCategoryList(this); </text>
+              }
+           
+            loadCategoryAddForm();
+
+        }
+
+
+           // Function to load Category ADD form
+        function loadCategoryAddForm() {
+
+            $formContainer.load('@Url.Action("LoadCategoryForm", "Category")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+                $thisForm.attr('perfect-onFormSuccess', 'CategoryInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+    function loadCategoryList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Category List');
+          let pageUrl = '@Url.Action("GetCategoryList", "Category")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: localStorage.getItem("FRM_TRANSMODE") },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Category', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Category");
+                           
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCategoryList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Category");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadCategoryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: localStorage.getItem("FRM_TRANSMODE") };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+       
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                 @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editCategory },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteCategory },</text>
+
+              }
+                   
+                    
+                ],
+                class: "btn btn-success light sharp"
+            },
+            //hideColumn: ["CategoryID", "ModeID", "AccountHead", "AccountHeadSub", "AccountCode", "AccountSHCode"],
+            onlyShowColumn: ['SlNo', 'Category', 'ShortName'],
+            rowClickAction: editCategory,
+            //serialNo: true,
+            renameHeader: { "SlNo":"SL NO","Category": "Name", "ShortName": "ShortName"}
+        };
+        function editCategory() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                CategoryID: Saveddata.CategoryID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetCategoryInfoByID", "Category")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                            console.log("Return", ajaxOutput.Data[0]);
+                    
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+                             
+                                console.log('>_ Inside GetCategoryInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadCategoryForm", "Category")", function () {
+                                    console.log("ajaxOutput.Data",ajaxOutput.Data);
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Category)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+
+                                    // ... Custom validation message
+                                    $thisForm.validate({ messages: validationMessage });
+            
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); 
+
+
+                                    $thisForm.find('[name="CategoryName"]').val(ajaxOutput.Data[0].Category);
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName);
+                                    $thisForm.find('[name="ModeID"]').val(ajaxOutput.Data[0].Mode).selectpicker('refresh');
+                                    $thisForm.find('[name="AHeadName"]').val(ajaxOutput.Data[0].AccountHeadName);
+                                    $thisForm.find('[name="ASHeadName"]').val(ajaxOutput.Data[0].AccountHeadSubName);
+                                   
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                    $thisForm.find('[name="Project"][value="Project"]').prop('checked', ajaxOutput.Data[0].Project),
+                                    $thisForm.find('[name="AccountHeadID"]').val(ajaxOutput.Data[0].AccountHeadID)
+                                    $thisForm.find('[name="AccountHeadSubID"]').val(ajaxOutput.Data[0].AccountHeadSubID),
+
+                                    $thisForm.find('[name="ProdSales"]').prop('checked', ajaxOutput.Data[0]['ProdSales']);
+                                    $thisForm.find('[name="ProdSalesReturn"]').prop('checked', ajaxOutput.Data[0]['ProdSalesReturn']);
+                                    $thisForm.find('[name="ProdPurchase"]').prop('checked', ajaxOutput.Data[0]['ProdPurchase']);
+
+
+
+                                    $thisForm.find('[name="ProdPurchaseReturn"]').prop('checked', ajaxOutput.Data[0]['ProdPurchaseReturn']);
+                                    $thisForm.find('[name="ProdStockTransfer"]').prop('checked', ajaxOutput.Data[0]['ProdStockTransfer']);
+                                    $thisForm.find('[name="ProdProductionIn"]').prop('checked', ajaxOutput.Data[0]['ProdProductionIn']);
+                                    $thisForm.find('[name="ProdProductionOut"]').prop('checked', ajaxOutput.Data[0]['ProdProductionOut']);
+   
+                                    $thisForm.find('[name="ProdLead"]').prop('checked', ajaxOutput.Data[0]['ProdLead']);
+                                    $thisForm.find('[name="ProdProject"]').prop('checked', ajaxOutput.Data[0]['ProdProject']);
+
+                                    if (ajaxOutput.Data[0]['ProdSales'] == true && ajaxOutput.Data[0]['ProdSalesReturn'] == true && ajaxOutput.Data[0]['ProdPurchase'] == true
+                                        && ajaxOutput.Data[0]['ProdPurchaseReturn'] == true && ajaxOutput.Data[0]['ProdStockTransfer'] == true && ajaxOutput.Data[0]['ProdProductionIn'] == true
+                                        && ajaxOutput.Data[0]['ProdProductionOut'] == true && ajaxOutput.Data[0]['ProdLead'] == true && ajaxOutput.Data[0]['ProdProject'] == true)
+                                    {
+
+                                        
+                                        $thisForm.find('[name="ProdAll"]').prop('checked', true);
+
+                                    }
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'CategoryInitialLoad');
+
+                                   
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetCategoryInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                },
+
+            });
+
+        }
+
+         
+              // Function to delete customer
+        function deleteCategory() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            console.log('Delete function', Saveddata)
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetCategoryReasonList", "Category")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Category + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        CategoryID: Saveddata['CategoryID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteCategoryInfo", "Category")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        }
+
+</script>
+
+
+
+}

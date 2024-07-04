@@ -1,0 +1,79 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="incentiveprocesslistreport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+<script type="text/javascript">
+
+        const $formContainer = $('#incentiveprocesslistreport-form');
+    RPTusername = '@ViewBag.Username';
+    var IncentiveRptTransMode = '';
+        $(document).ready(function () {
+
+           IncentiveprocesslistreportInitialLoadAddForm();
+            $('#jq-sidemenu').hide();
+        });
+
+
+        function IncentiveprocesslistreportInitialLoadAddForm() {
+
+            $formContainer.load('@Url.Action("LoadIncentiveprocesslistReport", "RptIncentiveProcessList")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                IncentiveRptTransMode = '@ViewBag.TransMode';
+                Getdepartmentdefault();
+               
+                $('.DivGrouping').show();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="AsOnDate"]').val(moment().format('YYYY-MM-DD'));
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("AsOnDate")[0].setAttribute('max', today);
+                $thisForm.attr('perfect-onFormSuccess', 'IncentiveprocesslistreportInitialLoadAddForm');
+
+            });
+
+        };
+
+        debugger
+
+        var validationMessage = {
+
+            'RptName': {
+                'required': 'Please select Report Name',
+            },
+
+            'FromDate': {
+                'required': 'Please select From Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+
+            },
+            'AsOnDate': {
+                'required': 'Please select AsOn Date Date',
+                'max': jQuery.validator.format('Future Date Not Allowed'),
+
+            },
+            'ToDate': {
+                'required': 'Please select To Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+            },
+            'Employee_ID': {
+                'required': 'Please select Employee',                
+            },
+        };
+
+
+</script>
+
+}

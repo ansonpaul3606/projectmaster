@@ -1,0 +1,236 @@
+﻿
+@{
+    ViewBag.Title = "UserPolicySettings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="userpolicysettings-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#userpolicysettings-form');
+
+        $(document).ready(function () {
+            UserPolicySettingsInitialLoad();
+            
+            $('#jq-sidemenu').hide();
+
+        });
+
+        
+
+
+        var validationMessage = {
+            'Passwordcombination': {
+                'required': 'Please select Password combination',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'Passwordminimumlength': {
+                'required': 'Please Enter Minimum length',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'numeric': 'Special characters are not allowed in short name'
+            },
+
+            'Passwordmaximumlength': {
+                'required': 'Please enter maximum length',
+
+            },
+            'Passwordchangeperiod': {
+                'required': 'Please enter password change period',
+
+            },
+            'Passwordloginattempt': {
+                'required': 'Please enter login attempts count',
+
+            },
+            'Passwordhistorycheck': {
+                'required': 'Please enter password history check count ',
+
+            },
+            'Unuseduserbanperiod': {
+                'required': 'Please enter unused user ban period',
+
+            },
+        };
+        function UserPolicySettingsInitialLoad()
+        {
+            UserPolicySettingsLoad(this);
+           
+        }
+            // Fucntion to load user policy settings Partialview form.
+        function UserPolicySettingsLoad() {
+
+            $formContainer.load('@Url.Action("LoadUserPolicySettingsForm", "UserPolicySettings")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                //Custom Validation messages.
+                $thisForm.validate({ messages: validationMessage });
+
+                getuserpolicydatas(this);
+                //$thisForm.attr('perfect-onFormSuccess', 'getuserpolicydatas');
+                $thisForm.attr('perfect-onFormSuccess', 'getuserpolicydatas');
+                //$thisForm.attr('perfect-onFormSuccess', 'UserPolicySettingsLoad');
+               
+            });
+            
+        };
+
+        function getuserpolicydatas() {
+        
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+           //PaymentmethodID: Saveddata.PaymentmethodID
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetUserPolicydata", "UserPolicySettings")',
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            success: function (ajaxOutput) {
+
+
+                //console.log("Return", ajaxOutput);
+                if (ajaxOutput.Process.IsProcess) {
+
+                    console.log('>_ Inside Getuserpolicy AP', ajaxOutput)
+
+                    //$sideMenuOptions.close();
+
+                    $formContainer.load("@Url.Action("LoadUserPolicySettingsForm", "UserPolicySettings")", function () {
+
+
+                        $(this).find('[perfect-class=formTitle]').text('UPDATE : ' +'User policy settings')
+                        //console.log('Inside load');
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        //$thisForm.validate({ messages: validationMessage });
+
+                        $thisForm.data({ pData: ajaxOutput }); //setting the pdata value in form for update -id is taking
+                        $thisForm.attr('perfect-onFormSuccess', 'getuserpolicydatas');
+                        //$thisForm.attr('perfect-onFormSuccess', 'UserPolicySettingsLoad');
+                        // alert(ajaxOutput.Data[0].BranchTypeID);
+                        $thisForm.find('button[name=save]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                         $thisForm.find('[name="Passwordcombination"]').val(ajaxOutput.Data[0].UplSecValue).selectpicker('refresh') ,
+                            $thisForm.find('[name="Passwordminimumlength"]').val(ajaxOutput.Data[1].UplSecValue),
+                            $thisForm.find('[name="Passwordmaximumlength"]').val(ajaxOutput.Data[2].UplSecValue),
+                            $thisForm.find('[name="Passwordchangeperiod"]').val(ajaxOutput.Data[3].UplSecValue),
+                            $thisForm.find('[name="Passwordloginattempt"]').val(ajaxOutput.Data[4].UplSecValue),
+                            $thisForm.find('[name="Passwordhistorycheck"]').val(ajaxOutput.Data[5].UplSecValue),
+                            $thisForm.find('[name="Unuseduserbanperiod"]').val(ajaxOutput.Data[6].UplSecValue)
+                       
+                    })
+                }
+                else {
+                    console.log('>_ Inside GetPaymentMethodById :false')
+
+                    //$.each(ajaxOutput.Process.Message, function (key, value) {
+                    //    NotificationMessage({ 'type': 'error', 'heading': 'Error' });
+                    //});
+                }
+            }
+         
+
+        });
+
+        }
+
+
+        @*function getuserpolicydatass(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+               //console.log("Input data",inputData)
+
+                $.ajax({
+                 url: '@Url.Action("Getuserpolicydata", "UserPolicySettings")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                       // console.log("Data", data);
+
+                        if (ajaxOutput.Process.IsProcess) {
+                            var DATA =  ajaxOutput.Data;
+                            console.log('>_ Inside GetPaymentMethodById', ajaxOutput)
+
+                    $sideMenuOptions.close();
+
+                    $formContainer.load("@Url.Action("LoadUserPolicySettingsForm", "UserPolicySettings")", function () {
+
+                        //$(this).find('[perfect-class=formTitle]').text('UPDATE : ' + ajaxOutput.Data[0].Name)
+                        console.log('Inside load');
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        $thisForm.validate({ messages: validationMessage });
+
+                        $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                        $thisForm.attr('perfect-onFormSuccess', 'PaymentMethodInitialLoad');
+                        // alert(ajaxOutput.Data[0].BranchTypeID);
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                        $thisForm.find('[name="Passwordcombination"]').val(ajaxOutput.Data[0].UplSecValue),
+                            $thisForm.find('[name="Passwordminimumlength"]').val(ajaxOutput.Data[0].UplSecValue),
+                            $thisForm.find('[name="Passwordmaximumlength"]').val(ajaxOutput.Data[0].UplSecValue), 
+                            $thisForm.find('[name="Passwordchangeperiod"]').val(ajaxOutput.Data[0].UplSecValue),
+                            $thisForm.find('[name="Passwordloginattempt"]').val(ajaxOutput.Data[0].UplSecValue),
+                            $thisForm.find('[name="Passwordhistorycheck"]').val(ajaxOutput.Data[0].UplSecValue),
+                            $thisForm.find('[name="Unuseduserbanperiod"]').val(ajaxOutput.Data[0].UplSecValue),
+                           
+
+                    });
+                                //if (DATA) {
+                                //    console.log('>_ Search button > list click', DATA);
+                                //    $thisForm.find('[name=Passwordcombination]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Passwordminimumlength]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Passwordmaximumlength]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Passwordchangeperiod]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Passwordloginattempt]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Passwordhistorycheck]').val(DATA.UplSecValue);
+                                //    $thisForm.find('[name=Unuseduserbanperiod]').val(DATA.UplSecValue);
+                                    
+                                //    //clear other field
+                                   
+                                //}
+                                //else {
+                                //    console.log(ret);
+                                //}
+                            
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+
+
+
+
+                },
+
+
+            });
+
+
+    }*@
+    </script>
+    }

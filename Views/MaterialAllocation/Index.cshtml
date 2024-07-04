@@ -1,0 +1,892 @@
+﻿
+@{
+    ViewBag.Title = "Material Allocation";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="MaterialAllocation-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+      var LastIDSessionKey = 'MaterialAllocationLastID';
+        var LastID_MaterialAllocation;
+        var MaterialAllocationTransMode = "";
+        const $formContainer = $('#MaterialAllocation-form');
+
+        var ChekStandBy1 = '@ViewBag.ChekStandBy';
+        var Admin = '@ViewBag.Admin';
+        $(document).ready(function () {
+            MaterialAllocationInitialLoad();
+
+        });
+
+
+
+        function MaterialAllocationInitialLoad() {
+            ChekStandBy1 = '@ViewBag.ChekStandBy';
+            Admin = '@ViewBag.Admin';
+            console.log('ChekStandBy1 ---------', ChekStandBy1);
+            console.log('Admin ---------', Admin);
+            MaterialAllocationTransMode = '@ViewBag.TransMode';
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadMaterialAllocationList(this,loadMaterialAllocationAddForm); </text>
+              }
+
+             loadMaterialAllocationAddForm();
+        }
+
+
+           // Function to load MaterialAllocation ADD form
+        function loadMaterialAllocationAddForm() {
+
+            $formContainer.load('@Url.Action("LoadMaterialAllocationForm", "MaterialAllocation")?mtd=@ViewBag.mtd', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="CreateDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="StartDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="EndDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'MaterialAllocationInitialLoad');
+               // initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_MaterialAllocation = result;
+                });
+                $('[name="Mode"]').val('P');
+				const urlValues = new URLSearchParams(window.location.search);
+				if(urlValues.get('ProjectID')>0)
+				{
+				$thisForm.find('button[name=btnclose]').removeClass('d-none')
+				$thisForm.find('[name="ProjectID"]').val(urlValues.get('ProjectID'));
+				}
+				if(urlValues.get('title')=='MaterialAllocation')
+				{
+				 $thisForm.find('button[name=btnclose]').removeClass('d-none')
+				}
+            });
+
+        };
+
+
+        var tableOptionsTempOut1 = {
+            iconButton: {
+                buttons: [
+                   
+                    {
+                      icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                    
+                                }
+                                else if ($thisNode.is('input')) {
+                                    let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else if (inputType == 'date') {
+                                        console.log('datess', savedData)
+                                        console.log('datess', savedData[pf_name])
+                                        // $thisNode.val(moment(savedData[pf_name]).format('YYYY-DD-MM'));
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                    else {
+
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                     icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                //$thistbl.dataTable({ paging: true, searchbtn: false });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        }
+                    },
+                ]
+            },
+
+
+
+            onlyShowColumn: ["Department_d", "Employee", "EmployeeTypeID_d", "FK_NetAction_d", "FK_ActionType_d", "NextActionDate", "LgpPQuantity", "MeasurementTypeID_d", "MeasurementUnitID_d", "MDRemarks", "MeasurementValue", "ProductID_d", "StandByQuantity", "StandByProdName"],
+            hideColumn: ["EmployeeTypeID", "MeasurementTypeID", "MeasurementUnitID", "Mode_d","StandByProduct"],
+            serialNo: true,
+            renameHeader: {
+                "FK_NetAction": "Action", "FK_ActionType": "Action Type", "Department_d": "Department", "MeasurementTypeID_d": "Measurment Type", "MeasurementUnitID_d": "Unit", "MDRemarks": "Remarks", "MeasurementValue": "Value", "NextActionDate": "Follow up Dt", "FK_Category": "Category", "FK_Priority": "Priority", "EmployeeTypeName": "Employeee Type", "StandByQuantity": "Stand By Quantity1R", "StandByProdName":"Stand By Product"
+            },
+
+            rowAttribute: [],
+            isCheckType: [],
+            isDateType: ["NextActionDate"],
+        };
+
+        function loadMaterialAllocationList(ele,callback) {
+             let $sidemenu = $sideMenuOptions.body;
+
+            // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Material Allocation List');
+
+
+
+
+                let pageUrl = '@Url.Action("GetMaterialAllocationList", "MaterialAllocation")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: MaterialAllocationTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              console.log('Material Allocation List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Material Allocation List");
+
+                              //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadMaterialAllocationList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: MaterialAllocationTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+                        setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Material Allocation List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadMaterialAllocationList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                             "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: MaterialAllocationTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editMaterialAllocation },</text>
+    }
+
+                    @*{ type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteMaterialAllocation },</text>
+
+              }*@
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Project", "Stage", "Team", "Employee"],
+            hideColumn: [],
+            rowClickAction: editMaterialAllocation,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No.", "Project": "Project/Request" },
+            isDateType: ["VisitDate"],
+        };
+
+        var validationMessage = {
+            'ID_Name': {
+                'required': 'Please Select Material Request ',
+
+            },
+            'ProjectID': {
+                'required': 'Please Select Project ',
+
+            },
+            'StageID': {
+                'required': 'Please Select Stage ',
+
+            },
+            'TeamID': {
+                'required': 'Please Select Team ',
+
+            },
+           
+
+        };
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+        var materialid = 0;
+        function editMaterialAllocation() {
+
+            debugger
+            
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            materialid = Saveddata.ProjectMaterialAllocationID;
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ProjectMaterialAllocationID: Saveddata.ProjectMaterialAllocationID,
+                TransMode: MaterialAllocationTransMode
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetMaterialAllocationInfoByID", "MaterialAllocation")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                            debugger;
+
+                            console.log("Return", ajaxOutput.MaterialAllocationDetails);
+                            if (ajaxOutput.MaterialAllocationDetails.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetMaterialAllocationInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadMaterialAllocationForm", "MaterialAllocation")?mtd=@ViewBag.mtd", function () {
+
+                                    debugger
+                                    //   check the Mode
+
+                                     
+                         
+
+                                    //  $thisForm.find( stuff to hide).hide()
+                                    //  $thisForm.find(stuff to show).val( value) 
+                                    //$thisForm.find(stuff to show).show()
+
+
+
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.MaterialAllocationDetails.Data[0].Project)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+         
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+                                   
+
+                                        $thisForm.data({ pData: ajaxOutput.MaterialAllocationDetails.Data[0] });
+
+
+                                    if (ajaxOutput.MaterialAllocationDetails.Data[0].RequestMode == 2) {
+
+                                        $thisForm.find('[perfect-container="materialRequest"]').removeClass('d-none');
+                                        //document.getElementById("ModeIDD").style.display = 'none';
+
+                                        $thisForm.find('[perfect-elemet="stage"]').prop('disabled', true).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="team"]').prop('disabled', true).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="Project1"]').prop('disabled', true).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="Project"]').prop('disabled', true).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="ProjectButton"]').prop('disabled', true).selectpicker('refresh');
+                                        //$thisForm.find('[perfect-elemet="ModeID1"]').prop('disabled', true).selectpicker('refresh');
+
+                                        $("#CreateDate").attr('readOnly', true);
+
+                                        //$thisForm.find('[name="Mode"]').val("P");
+                                    }
+                                    else {
+                                        $thisForm.find('[perfect-container="materialRequest"]').addClass('d-none');
+                                        //document.getElementById("ModeIDD").style.display = 'display';
+                                        $thisForm.find('[perfect-elemet="stage"]').prop('disabled', false).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="team"]').prop('disabled', false).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="Project"]').prop('disabled', false).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="ProjectButton"]').prop('disabled', false).selectpicker('refresh');
+                                        //$thisForm.find('[perfect-elemet="ModeID1"]').prop('disabled', false).selectpicker('refresh');
+                                        $thisForm.find('[perfect-elemet="Project1"]').prop('disabled', true).selectpicker('refresh');
+                                        $("#CreateDate").attr('readOnly', false);
+
+                                    }
+
+
+
+                                    $thisForm.find('[name="BranchID"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_Branch).selectpicker('refresh');
+                                    $thisForm.find('[name="ModeID"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].RequestMode).selectpicker('refresh');
+                                    $thisForm.find('[name="ID_FIELD"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_ProjectMaterialRequest).selectpicker('refresh');
+                                    $thisForm.find('[name="ID_Name"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].RequestNo).selectpicker('refresh');
+                                    debugger
+                                        $thisForm.find('[name="ProjectID"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_Project).selectpicker('refresh');
+                                        $thisForm.find('[name="ProjectID"]').trigger('change');
+
+                                        $thisForm.find('[name="Project"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].Project),
+                                            $thisForm.find('[name="StageID"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_Stage).selectpicker('refresh');
+                                        $thisForm.find('[name="StageID"]').trigger('change'),
+
+
+                                            $thisForm.find('[name="TeamID"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_Team).selectpicker('refresh'),
+                                            $thisForm.find('[name="TeamID"]').attr('perfect-onloadSelect', ajaxOutput.MaterialAllocationDetails.Data[0].FK_Team);
+                                    $thisForm.find('[name="FK_Employee"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_Employee),
+                                            $thisForm.find('[name="Employee"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].Employee),
+
+                                            $thisForm.find('[name="CreateDate"]').val(moment(ajaxOutput.MaterialAllocationDetails.Data[0].Date).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="ProjectDate"]').val(moment(ajaxOutput.MaterialAllocationDetails.Data[0].ProjectDate).format('YYYY-MM-DD'));
+
+
+                                    $thisForm.find('[name="MaterialAllocationDetailsId"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].ProjectMaterialAllocationID);
+                                    $thisForm.find('[name="CategoryID"]').attr('perfect-onloadSelect', ajaxOutput.MaterialAllocationDetails.Data[0].FK_Category);
+                                    GetCategoryList(this, ajaxOutput.MaterialAllocationDetails.Data[0].FK_Project);
+                                    //    $thisForm.find('[name="CategoryID"]').attr('perfect-onloadSelect', ajaxOutput.MaterialAllocationDetails.Data[0].FK_Category);
+                                        //$thisForm.find('[name="ID_BOMProject"]').val(ajaxOutput.MaterialAllocationDetails.Data[0].FK_BOMProject).selectpicker('refresh'),
+                                        $thisForm.find('[name="ID_BOMProject"]').attr('perfect-onloadSelect', ajaxOutput.MaterialAllocationDetails.Data[0].FK_BOMProject);
+                                    GetBomList(this, ajaxOutput.MaterialAllocationDetails.Data[0].FK_Category, ajaxOutput.MaterialAllocationDetails.Data[0].FK_BOMProject)
+                                    //if (ajaxOutput.MaterialAllocationDetails.Data[0].RequestMode == 2) {
+
+                                    //    if (ajaxOutput.MaterialDetails.Process.IsProcess) {
+                                    //        fillTable($thisForm, 'MaterialDetailsTable', ajaxOutput.MaterialDetails.Data, tableOptionsTempOut1);
+                                    //    }
+                                    //}
+                                    //    else {
+                                    if (ajaxOutput.MaterialDetails.Process.IsProcess) {
+
+
+                                                fillTable($thisForm, 'MaterialDetailsTable', ajaxOutput.MaterialDetails.Data, tableOptionsTempOut);
+                                            }
+                                        
+
+                                   
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=slip]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'MaterialAllocationInitialLoad');
+                                    $sideMenuOptions.close();
+
+                                    if (ajaxOutput.SerialNumberInfo.Process.IsProcess) {
+                                        if (ajaxOutput.SerialNumberInfo.Data != null) {
+                                            productSerialNum = ajaxOutput.SerialNumberInfo.Data;
+                                            console.log("productSerialNum select>>>>>", productSerialNum)
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetMaterialAllocationInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                           // loadMaterialAllocationList()
+                },
+
+            });
+
+        }
+        function fn_LoadTeam(ProjectID,StageID, htmlEl, TeamID) {
+            
+            let $thisForm = htmlEl;
+
+            let $placeDropdown = $thisForm.find('[name=TeamID]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+      
+            $.ajax({
+                url: "@Url.Action("GetProjectTeam", "MaterialAllocation")",
+                type: "POST",
+
+                data: JSON.stringify({ FK_Project: ProjectID, FK_Stage: StageID  }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.TeamID }).text(value.Team)).selectpicker('refresh')
+                        });
+                        $placeDropdown.val(TeamID).selectpicker('refresh');
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                     }
+                     }
+
+                 });
+
+
+        }
+        function fn_LoadStage(ProjectID, htmlEl, StageID) {
+            
+            let $thisForm = htmlEl;
+
+            let $placeDropdown = $thisForm.find('[name=StageID]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+            
+            $.ajax({
+               url: "@Url.Action("GetProjectStages", "MaterialAllocation")",
+                type: "POST",
+
+                data: JSON.stringify({ FK_Project: ProjectID }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.StageID }).text(value.StageName)).selectpicker('refresh')
+                        });
+                        $placeDropdown.val(StageID).selectpicker('refresh');
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                     }
+                     }
+
+                 });
+
+
+    }
+        function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+            var ChekStandBy1 = '@ViewBag.ChekStandBy';
+            console.log('ChekStandBy1>>>213', ChekStandBy1)
+            debugger
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    debugger;
+                   console.log('name56', valOne[nameAttr])
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+
+                            //tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+                            
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+
+                            console.log('select123', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+                            console.log('select124', $this.find('[value="' + valOne[nameAttr] + '"]').text());
+                        }
+                        else if ($this.is('input')) {
+
+                            pData[nameAttr] = valOne[nameAttr];
+                            if (ChekStandBy1 == "True") {
+
+                                if (nameAttr == "StandByQuantity") {
+                                    
+                                    tableOptionsTemp.onlyShowColumn.push(nameAttr);
+                                    tableOptionsTemp.onlyShowColumn.push("Stand By Quantity");
+                                }
+                                else if (nameAttr == "StandByProdName") {
+                                    
+                                    tableOptionsTemp.onlyShowColumn.push(nameAttr);
+
+                                }
+                               
+                            } 
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log('inputType>>>>>>',inputType)
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+
+                                console.log('checkbox', nameAttr)
+
+
+                            }
+                            else if (inputType == 'hidden') {
+
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                            else if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+
+
+                //----
+
+            });
+            $tblcontainer.empty();
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+
+        }
+
+        function fn_LoadSubcategory(CategoryId, htmlEl, subCatId) {
+
+            let $thisForm = htmlEl;
+            debugger;
+        let $placeDropdown = $thisForm.find('[name=SubCategotyID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+            let CategoryID = CategoryId;
+
+
+        // let ModeDropdown = $thisForm.find('[name=Mode]')
+         //if ($thisForm.find('[name=Mode]').val() == "") {
+         //    $thisForm.find('[name=Mode]').val(0);
+         //}
+         //alert($thisForm.find('[name=Mode]').val())
+         $.ajax({
+                 url: "@Url.Action("GetSubcategory", "MaterialAllocation")",
+                type: "POST",
+
+             data: JSON.stringify({ CategoryID: CategoryID}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                             $.each(ajaxOutput.Data, function (key, value) {
+                                 $placeDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                                 });
+
+                     $placeDropdown.val(subCatId).selectpicker('refresh')
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+           // Function to delete MaterialAllocation
+
+
+          //---
+         // Function to delete customer
+        function deleteMaterialAllocation() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetMaterialAllocationDeleteReasonList", "MaterialAllocation")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove Material Allocation of :  " + Saveddata.Project + " " + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ProjectMaterialAllocationID: Saveddata['ProjectMaterialAllocationID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    console.log(inputData);
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteMaterialAllocationInfo", "MaterialAllocation")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                     NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                $formContainer.load("@Url.Action("LoadMaterialAllocationForm", "MaterialAllocation")", function () {
+                                                    let $thisForm = $(this).find('[perfect-class="form"]')
+                                                    $thisForm.find('[name="CreateDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                    $thisForm.find('[name="StartDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                    $thisForm.find('[name="EndDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

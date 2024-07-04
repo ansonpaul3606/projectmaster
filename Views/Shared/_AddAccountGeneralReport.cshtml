@@ -1,0 +1,958 @@
+﻿@model PerfectWebERP.Models.AccountGeneralReportModel.AccountGeneralReportView
+
+@*@Scripts.Render("~/Scripts/exportFile.js")*@
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .form-control1 {
+        background: white;
+        border: white;
+    }
+
+    .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .tableFixHead {
+        overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+        height: 400px; /* gives an initial height of 200px to the table */
+    }
+
+    .thead {
+        position: sticky; /* make the table heads sticky */
+        /*top: 0px;*/ /* table head will be placed from the top of the table and sticks to it */
+    }
+
+    .btn-nt:hover {
+        outline: none;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Account General</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="ResetButton()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearch()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body Accountreport">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="accountreportsearch-body" @* id="filterid" style="display: none;"*@>
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-4 DivFromDate">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>
+                                    <span perfect-class="formGroupLabel">From Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="col-sm-12">
+                                <input type="date" class="form-control ActionDate" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 DivToDate">
+                        <div class="form-group">
+
+                            <div class="col-sm-12">
+                                <label>
+                                    <span perfect-class="formGroupLabel">To Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="col-sm-12">
+                                <input type="date" class="form-control ActionDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>
+                                    <span perfect-class="formGroupLabel">Branch</span>
+                                    <span class="text-danger">*</span>
+                                    <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                </label>
+                            </div>
+                            <div class="col-sm-12">
+
+                                <select class="form-control" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                    @if (ViewBag.UsrrlAdmin)
+                                    {
+                                        <option value="0">All</option>
+                                    }
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.Branch</option>
+                                        }
+
+                                    }
+
+
+                                </select>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div id="accordion-nine" class="accordion accordion-active-header">
+                                    <div class="accordion__item">
+                                        <div class="accordion__header collapsed" data-toggle="collapse" data-target="#active-header_collapseOne">
+                                            <span class="accordion__header--icon"></span>
+                                            <span class="accordion__header--text">More</span>
+                                            <span class="accordion__header--indicator"></span>
+                                        </div>
+                                        <div id="active-header_collapseOne" class="collapse accordion__body" data-parent="">
+                                            <div class="accordion__body--text">
+                                                <div class="row">
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Transaction Type</span>
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <select class="form-control" id="TransTypeID" name="TransTypeID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                                                    <option value="0">All</option>
+                                                                    @if (!(Model.TransactionTypeList is null))
+                                                                    {
+                                                                        foreach (var tranactionList in Model.TransactionTypeList)
+                                                                        {
+                                                                            if (tranactionList.TransTypeID != 0)
+                                                                            {
+                                                                                if (tranactionList.TransTypeID == 1)
+                                                                                {
+                                                                                    tranactionList.TransType = "Payment";
+                                                                                }
+                                                                                if (tranactionList.TransTypeID == 2)
+                                                                                {
+                                                                                    tranactionList.TransType = "Receipt";
+                                                                                }
+
+
+                                                                                <option value="@tranactionList.TransTypeID">@tranactionList.TransType</option>
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Transaction Mode</span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <div class="input-group">
+
+                                                                    <select class="form-control" id="TransModeid" name="TransModeID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                                        <option value="">All</option>
+                                                                        <option value="0">Cash</option>
+                                                                        <option value="1">Transfer</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Sort By</span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <div class="input-group">
+                                                                    <select class="form-control" name="SortByID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                                                        <option value="0">Voucher</option>
+                                                                        <option value="1">Account Head</option>
+                                                                        <option value="2">Transaction Type</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Account Head</span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control perfectValidate_string" name="AHeadName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                                                    <input type="hidden" name="AccountHeadID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+
+                                                                    <div class="input-group-append">
+
+                                                                        <button id="addaccounthead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,16,'Account Head List',['','','AccountHeadSubID','ASHeadName'])" Criterea1="0" Criterea2="0" BindName="AHeadName" BindVal="AccountHeadID"></button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Account Sub Head</span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control perfectValidate_string" name="ASHeadName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                                                    <input type="hidden" name="AccountHeadSubID" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+
+                                                                    <div class="input-group-append">
+
+                                                                        <button id="addaccountsubhead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,17,'Account Sub Head List',['AccountHeadID','AHName'])" Criterea1="AccountHeadID" Criterea2="0" BindName="ASHeadName" BindVal="AccountHeadSubID"></button>
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                            <label class="col-sm-12 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Reference Number</span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control" name="ReferenceNo"  id="ReferenceNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"   />
+                                                                     
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getgridout(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+
+
+                </div>
+            </div>
+
+            @*<button type="button" class="btn btn-nt" id="exppdf" style="display:none; float:right;" onclick="generatePdf()" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>*@
+
+
+
+            <br />
+            <table id="AccountGeneralList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                <thead class="thead-primary">
+                    <tr>
+                        <th>Sl.No</th>
+                        <th>Voucher</th>
+                        <th>Account Head</th>
+                        <th>Sub Head</th>
+                        <th>Party</th>
+                        <th>Receipt</th>
+                        <th>Payment</th>
+                        <th>Trans Date</th>
+                        <th>Transaction</th>
+                        <th>Remarks</th>
+                        <th>Ref.No</th>
+                        <th style="display:none">Branch</th>
+                    </tr>
+                </thead>
+                <tfoot align="right">
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th style="color: black;"></th>
+                        <th style="color: black;"></th>
+                        <th style="color: black;"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th style="display:none"></th>
+                    </tr>
+                    <tr>
+                        <th colspan="3" style="color: black;"></th>
+                        <th colspan="3" style="color: black;"></th>
+                        <th colspan="2" style="color: black;"></th>
+                        <th colspan="3" style="color: black;"></th>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+
+
+
+
+        $(document).ready(function () {
+            var now = new Date();
+
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+            var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+            $('#FromDate').val(today);
+            $('#ToDate').val(today);
+            Getdepartmentdefault(this);
+        });
+
+
+
+     function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+
+                        if (parseFloat(Mode) == 1) {
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+
+        function ResetButton(ele) {
+
+            $('#BranchID').val(0);
+            AccountGeneralreportInitialLoadAddForm();
+
+        }
+
+
+
+
+        function Getdepartmentbranchnamedefault() {
+
+            let $thisForm = $('[perfect-class="form"]');
+            $.ajax({
+                url: '@Url.Action("GetEmployeeLeadDefault", "LeadGeneration")',
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+            });
+        }
+
+
+
+        function checkLimit(ele) {
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            let Fromdate = $thisForm.find('[name="FromDate"]').val();
+            let Todate = $thisForm.find('[name="ToDate"]').val();
+
+            Fromdate = new Date(Fromdate);
+            Fromdate.setHours(0, 0, 0, 0)
+
+            Todate = new Date(Todate);
+            Todate.setHours(0, 0, 0, 0)
+
+            if (Todate < Fromdate) {
+
+                //console.log('inside limit check if')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+                return false;
+            }
+            else {
+
+               // console.log('inside limit check else')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+                return true;
+            }
+
+
+        }
+
+    var item;
+    var vfromdate;
+    var vtodate;
+    var vBranch = "";
+    var exportbtntoogle;
+
+     function getgridout(ele)
+     {
+         let _Receipt = 0;
+         let _payment = 0;
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+         $thisForm.find('[name=AccountGeneralReport]').empty();
+         let $formDivContainer = $thisForm.find('[name=AccountGeneralReport]');
+
+            if ($thisForm.valid() && checkLimit(ele) && ValidateAddrepdetails() <= 0){
+                vfromdate = $thisForm.find('[name=FromDate]').val();
+                vtodate = $thisForm.find('[name=ToDate]').val();
+                var vBranchID=$thisForm.find('[name=BranchID]').val();
+                var vmodel = @Html.Raw(Json.Encode(Model));
+                if (vBranchID == "0") {
+                    vBranch = "All"
+                } else {
+                    if (vmodel.BranchList != null) {
+                        $.each(vmodel.BranchList, function (key, value) {
+                            if (value.BranchID == vBranchID) {
+                                vBranch = value.Branch
+                            }
+                        });
+                    }
+                }
+
+
+                var obj = {
+                    FromDate: $thisForm.find('[name=FromDate]').val(),
+                    ToDate: $thisForm.find('[name=ToDate]').val(),
+                    BranchID: $thisForm.find('[name=BranchID]').val(),
+                    TransTypeID: $thisForm.find('[name=TransTypeID]').val(),
+                    TransModeID: $thisForm.find('[name=TransModeID]').val(),
+                    SortByID: $thisForm.find('[name=SortByID]').val(),
+                    AccountHeadID: $thisForm.find('[name=AccountHeadID]').val().trim(),
+                    AccountHeadSubID: $thisForm.find('[name=AccountHeadSubID]').val().trim(),
+                    ReferenceNumber: $thisForm.find('[name=ReferenceNo]').val().trim()
+                }
+
+              $.ajax({
+              url: '@Url.Action("GetAccountgeneralReportgridViewList", "AccountGeneralReport")',
+                  type: "GET",
+              data: obj,
+              dataType: "json",
+                  contentType: "application/json",
+                  success: function (ajaxOutput) {
+                      if (ajaxOutput.Process.IsProcess) {
+                          var _Payment = 0, _Receipt = 0;
+                          //console.log(ajaxOutput.Data);
+                          item = ajaxOutput.Data;
+                          if (ajaxOutput.Data.length == 1) {
+                              debugger
+                              let x = document.getElementById("exppdf");
+                              x.style.display = "none";
+                          } else {
+
+                              let x = document.getElementById("exppdf");
+                              x.style.display = "block";
+                          }
+                          tableData = $('#AccountGeneralList').DataTable({
+                            pagination: "bootstrap",
+                            filter: true,
+                            data: ajaxOutput.Data,
+                            destroy: true,
+                            paging: false,
+                            info: false,
+                            searching: false,
+                            "columns": [
+                                { "data": null },
+                                { "data": "Voucher" },
+                                { "data": "AccountCode", title:"Account Head" },
+                                { "data": "SubHead" },
+                                { "data": "Party" },
+                                { "data": "Payment", className: "text-right" },
+                                { "data": "Receipt", className: "text-right" },
+                                { "data": "TransDate", title: "Trans Date" },
+                                { "data": "Transfer", title: "Transaction" },
+                                { "data": "Narration", title: "Remarks" },  
+                                { "data": "ReferenceNumber", title: "Ref.No" },
+                                { "data": "Branch" },
+                               
+                            ],
+                            scrollY: 500,
+                            scrollX: true,
+                            scrollCollapse: true,
+                            paging: false,
+                            fixedHeader: {
+                                header: true,
+                                footer: true
+                            },
+                            "order": [[11, "asc"]],
+                            "columnDefs": [
+                                { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7,8,9,10,11]},
+                                { "visible": false, "targets": 11}
+                            ],
+                            drawCallback: function (settings) {
+                                var api = this.api();
+                                var rows = api.rows({ page: 'current' }).nodes();
+                                var last = null;
+                                //console.log(api, rows);
+                                api.column(11, { page: 'current' }).data().each(function (group, i) {
+
+                                    if (last !== group) {
+                                        $(rows).eq(i).before(
+                                            '<tr class="group"><td colspan="11" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">'+group + '</td></tr>'
+                                        );
+                                        last = group;
+                                    }
+                                });
+                            },
+                            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                $("td:first", nRow).html(iDisplayIndex + 1);
+                                return nRow;
+                            },
+                            createdRow: function (row, data, type) {
+                                if (data['Voucher'] == '-1') {
+                                    $(row).hide();
+                                    _Payment = data['Payment'], _Receipt = data['Receipt'];
+                                }
+                            },
+                            "footerCallback": function (row, data, start, end, display) {
+                                var api = this.api(), data;
+                                 //$(api.column(4).footer()).html('Total');
+                                $('tr:eq(0) th:eq(4)', api.table().footer()).html('Total');
+                                 //$(api.column(5).footer()).html(_Payment);
+                                $('tr:eq(0) th:eq(5)', api.table().footer()).html(_Payment);
+                                 //$(api.column(6).footer()).html(_Receipt);
+                                $('tr:eq(0) th:eq(6)', api.table().footer()).html(_Receipt);
+
+                                fn_GetTrailBalance(ele, function (_data) {
+                                    $('tr:eq(1) th:eq(0)', api.table().footer()).html('Opening Cash Balance : ' + _data['OpeningCashBalance']);
+                                    $('tr:eq(1) th:eq(1)', api.table().footer()).html('Receipt : ' + _data['Receipt']);
+                                    $('tr:eq(1) th:eq(2)', api.table().footer()).html('Payment : ' + _data['Payment']);
+                                    $('tr:eq(1) th:eq(3)', api.table().footer()).html('Closing Cash Balance : ' + _data['ClosingCashBalance']);
+                                });
+
+                              },
+                              //dom: 'Bfrtip',
+                              //buttons: [
+
+                              //    'excelHtml5',
+                              //    'csvHtml5',
+                              //    'pdfHtml5'
+                              //],
+
+
+
+
+
+                          ////<tr>
+                          //    $.each(table[0], function (tkey, tval) {
+                          //        //th -->tkey
+
+                          //    });
+                          //    $.each(table, function (key,value) {
+                          //        //tr
+
+                          //        $.each(value, function (tkey,tval) {
+                          //            //td  tval
+
+                          //        });
+
+                          //    });
+
+
+                          //test//
+                         // let Reporttitl = $thisForm.find('[name="Report"] option:selected').text();
+                          //console.log(Reporttitl)
+
+                          });
+
+                         // fn_setExportTableHead(tableData, 'test data', [0, 2, 3, 4, 5, 6, 7, 8, 9], "landscape", $thisForm);
+
+
+                      }
+
+                      else {
+
+
+                        $('#AccountGeneralList').DataTable({
+                            info: false,
+                            "ordering": false,
+                            paging: false,
+                            searching:false,
+                            "language": {
+                                "emptyTable": "No data available"
+                            }
+                        });
+                      }
+                  },
+                  error: function (xhr) {
+                      //console.log('Request Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText);
+                  },
+                complete: function () {
+                  }
+              });
+
+            }
+            else {
+
+
+                NotificationMessage({
+                    'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than  From Date' });
+            }
+         fn_showFiltersearch();
+
+     }
+
+     var tableOptions = {
+         onlyShowColumn: ['Voucher', 'AccountCode', 'SubHead', 'Party', 'TransType', 'Transfer', 'Branch', 'Payment', 'Receipt','TransDate'],
+        hideColumn: [],
+        serialNo: false,
+      //  renameHeader: {
+      //      "SlNo": "Sl No", "NextActionDate": "Next Action Date", "DueDays": "Due Days", "ProdName": "Product", "LgCusName": "Customer", "LgCollectedBy": "Collected By", "Preference": "Priorty", "AssignedTo": "Assigned To", "LgLeadDate": "Enquiry Date", "Area":"Area"}
+    };
+
+    var GetTrailBalance;
+    function fn_GetTrailBalance(ele,callback)
+     {
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            var obj = {
+                FromDate: $thisForm.find('[name=FromDate]').val(),
+                ToDate: $thisForm.find('[name=ToDate]').val(),
+                BranchID: $thisForm.find('[name=BranchID]').val()
+            }
+            $.ajax({
+                url: "@Url.Action("Gettrialbalanceamount", "AccountGeneralReport")",
+                type: "GET",
+                data: obj,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {
+                        if (ajaxOutput.Data.length > 0) {
+                            GetTrailBalance = ajaxOutput.Data[0];    //newly added
+                            callback(ajaxOutput.Data[0]);
+                        }
+                    }
+                    else {
+                        callback([]);
+                    }
+                }
+
+            });
+        }
+
+      function ValidateAddrepdetails() {
+        var Error = 0;
+        let $inp;
+      $inp = $(".ActionDate");
+        let is_empty;
+        $inp.each((i, el) => {
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+    var tabley;
+    var ptableData;
+    function generatePdf() {
+
+        var cdata;
+        //test start
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+                complete: function () {
+
+                    var head = ['Sl No', 'Voucher', 'Account Head', 'Sub Head', 'Party', 'Receipt', 'Payment', 'Trans Date', 'Transaction', 'Remarks','Ref.No'];
+                    var body = [];
+                    var collen=":"
+
+                    var pfromdate = formatDate(vfromdate.toString());
+                    var ptodate = formatDate(vtodate.toString());
+
+                    var upperhead = {
+
+                        columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //margin: { top: 10, bottom:0 },
+
+                        body: [
+                            [
+                                "From Date  :   " + pfromdate.padEnd(20) + "To Date :   " + ptodate.padEnd(20) + "Branch  :   " + vBranch]
+
+                        ],
+
+                    };
+                    var aralenth = item.length;
+                    var c = item.slice(0, (aralenth - 1));
+                     ptableData = {
+                        columns: [
+                            { title: "Voucher", dataKey: "Voucher" },
+                            { title: "Account Code", dataKey: "AccountCode" },
+                            { title: "Sub Head", dataKey: "SubHead" },
+                            { title: "Party", dataKey: "Party" },
+                            { title: "Receipt", dataKey: "Payment" },
+                            { title: "Payment", dataKey: "Receipt" },
+                            { title: "TransDate", dataKey: "TransDate" },
+                            { title: "Transfer", dataKey: "Transfer" },
+                            { title: "Narration", dataKey: "Narration" },
+                            { title: "Ref.No", dataKey: "ReferenceNumber" }
+                        ],
+                        rows: c
+
+                    };
+
+
+                    var footerdata = {
+
+                        columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        margin: { top: 20 },
+
+                        body: [
+                            ["Total Receipt" + collen.padStart(38) + " "+ GetTrailBalance['Receipt'] +
+                                "\nTotal Payment" + collen.padStart(39) + " " + GetTrailBalance['Payment'] +
+                                "\nOpening Cash Balance" + collen.padStart(19) + " " + GetTrailBalance['OpeningCashBalance'] +
+                                "\nClosing Cash Balance " + collen.padStart(20) + " " + GetTrailBalance['ClosingCashBalance']
+                            ],
+                            //[
+
+                            //    "Opening Cash Balance         :  " + GetTrailBalance['OpeningCashBalance'] +
+                            //    "\nClosing Cash Balance         :   " + GetTrailBalance['ClosingCashBalance']
+                            //]
+
+                        ],
+
+                    };
+
+                    exportPdf('Account General Report', [head], cdata, upperhead, footerdata, ptableData, "Branch", "Report","a4",'','','l');
+                    //abc('AccountGeneralReport', [head], cdata, upperhead, footerdata, ptableData, "Branch", "Report");
+
+                }
+         });
+
+    }
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+    function onExell() {
+        let reportName = "GENERAL ACCOUNT REPORT";
+        let head = [['Sl No', 'Voucher', 'Account Head', 'Sub Head', 'Party', 'Receipt', 'Payment', 'Trans Date', 'Transaction', 'Remarks','Ref.No']];
+        let grpby = "Branch";
+        let mergeRanges = {};
+
+
+        let aralenth = item.length;
+        let c = item.slice(0, (aralenth - 1));
+        ptableData = {
+            columns: [
+                { title: "Voucher", dataKey: "Voucher" },
+                { title: "Account Code", dataKey: "AccountCode" },
+                { title: "Sub Head", dataKey: "SubHead" },
+                { title: "Party", dataKey: "Party" },
+                { title: "Receipt", dataKey: "Payment" },
+                { title: "Payment", dataKey: "Receipt" },
+                { title: "TransDate", dataKey: "TransDate" },
+                { title: "Transfer", dataKey: "Transfer" },
+                { title: "Narration", dataKey: "Narration" },
+                { title: "Ref.No", dataKey: "ReferenceNumber" }
+            ],
+            rows: c
+
+        };
+
+        generateExell(reportName, head, ptableData, mergeRanges, grpby, reportName);
+    }
+
+
+</script>

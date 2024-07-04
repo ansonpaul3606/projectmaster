@@ -1,0 +1,349 @@
+﻿
+@{
+    ViewBag.Title = "SalesOrder";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_SalesOrder_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        //--- Form
+        const $formContainer = $('#jq_SalesOrder_formContainer');
+        // Initial load functions
+
+        $(document).ready(function () {
+            salesordInitialLoad();
+
+        });
+
+        var validationMessage = {
+            'PrdID': {
+                'required': 'Please Select Product',
+                'digits': 'Invalid Product Selected'
+
+            },
+            'ServiceID': {
+                'required': 'Please Select Service',
+                'digits': 'Invalid Service Selected'
+            },
+            'ID_Mode': {
+                'required': 'Please Select Period Type',
+                'digits': 'Invalid Period Type Selected'
+            },
+            'EffectDate': {
+                'required': 'Please Enter Effect Date'
+            },
+            'perdFrm': {
+                'digits': 'Invalid PeriodFrom Selected'
+            },
+            'perdTo': {
+                'digits': 'Invalid PeriodTo Selected'
+            },
+            'servCst': {
+                'digits': 'Invalid Service Cost Selected'
+            }
+
+
+        };
+
+
+        function salesordInitialLoad() {
+            fn_salesordlst();           
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    //{ displayName: "View", action: editProductWiseService },
+                    ////{ displayName: "Go to", action: "" },
+                    //{ type: "divider" },
+
+                    //{
+                    //    displayName: "Delete", action: deleteProductWiseService
+                    //}
+                ],
+                class: "btn btn-success light sharp"
+            },
+            //onlyShowColumn: ["SlNo", "Product", "ServiceList","EffectDate"],
+            hideColumn: [],
+      //      rowClickAction: editProductWiseService,
+
+           // isDateType: ["EffectDate"],
+            //serialNo: true,
+          //  renameHeader: { "SlNo": "SL NO",  "ServiceList": "Service", "EffectDate":"Effect Date"}
+        };
+
+           // Fucntion to load ProductWise ADD form
+        function fn_salesordlst() {
+
+            $formContainer.load('@Url.Action("LoadFormSalesOrder", "SalesOrder")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'salesordInitialLoad');
+            });
+
+        };
+
+       //list ProductWise
+
+        function fn_prdwiseIndex_loadprdwiselst() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Sales Order ');
+
+            let pageUrl = '@Url.Action("GetProductWiseList", "ProductWiseService")';
+
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('ProductWiseService', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Product Wise Service");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    return { pageSize: info.length, pageIndex: info.page }
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": true,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+
+          // Function to delete ProductWiseService
+
+        function deleteProductWiseService()
+        {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+                console.log("Saved data", Saveddata);
+                $.ajax({
+                    url: "@Url.Action("GetPrdWiseDeleteReasonList", "ProductWiseService")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Product + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_ProductWiseServices: Saveddata['ID_ProductWiseServices'],
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeletePrdWiselist", "ProductWiseService")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        }
+
+  function editProductWiseService() {
+
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+            let savedData = $thisUser.data('pData');
+
+      let inputData = { FK_ProductWiseServices: savedData.ID_ProductWiseServices };
+            //dbcall
+      $('#LoadProductWise').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetProductWiseServiceInfo", "ProductWiseService")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            console.log('>_ Inside GetProductWise', ajaxOutput)
+
+                            $sideMenuOptions.close();
+
+                        $formContainer.load("@Url.Action("LoadFormProductWise", "ProductWiseService")", function () {
+
+
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].StName)
+                            console.log('Inside load');
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                            $thisForm.attr('perfect-onFormSuccess', 'prdwiseInitialLoad');
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+
+                                $thisForm.find('[name=PrdID]').val(ajaxOutput.Data[0].PrdID),
+                                $thisForm.find('[name=Product]').val(ajaxOutput.Data[0].Product),
+                                $thisForm.find('[name="ServiceID"]').val(ajaxOutput.Data[0].ServiceID).selectpicker('refresh'),
+                                $thisForm.find('[name="ID_Mode"]').val(ajaxOutput.Data[0].ID_Mode).selectpicker('refresh'),
+                                $thisForm.find('[name=perdFrm]').val(ajaxOutput.Data[0].perdFrm),
+                                $thisForm.find('[name=perdTo]').val(ajaxOutput.Data[0].perdTo),
+                                $thisForm.find('[name=servCst]').val(ajaxOutput.Data[0].servCst),
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.Data[0].EffectDate).format('YYYY-MM-DD')),
+
+
+                            $sideMenuOptions.close();
+
+                     });
+                 }
+                 else {
+                     console.log('>_ Inside GetCountryInfo :false')
+
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                     });
+                 }
+             },
+
+         });
+
+     }
+
+    </script>
+}
+

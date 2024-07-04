@@ -1,0 +1,1672 @@
+﻿@model PerfectWebERP.Models.PickupdeliveryReportModel.PickupdeliveryReportView
+
+
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />
+
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Pick Up And Delivery Reports</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @*@Html.AntiForgeryToken()*@
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.Companyname" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control Action ActionDate" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="shownecessayfeilds(this)">
+                                    <option value="0">Please select</option>
+
+                                    <option value="1">Area Wise</option>
+                                    <option value="2">Delivery</option>
+
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 ">
+
+                    </div>
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onChange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onChange="checkLimit(this)">
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6  divbranch">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclears(this)">
+
+                                    <option value="0">All Branch</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="col-sm-6 divdepartment">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearemployee(this)">
+
+                                    <option value="0">All Department</option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var deprtmnt in Model.DepartmentList)
+                                        {
+                                            <option value="@deprtmnt.DepartmentID">@deprtmnt.DepartmentName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    @if (ViewBag.Manager || ViewBag.Admin)
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID" Function="1"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+
+
+                    else
+                    {
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Employee Name</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                                        <div class="input-group-append">
+
+                                            <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,149,'Employee List',[],['FK_Branch','FK_Department'])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID" Function="1"disabled></button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                  
+                    <div class="col-sm-6 DivEmployeeName">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Area</span>
+
+                            </label>
+
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" id="AreaID" name="AreaID" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="Areaid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,14,'Area List',['',''])" Criterea1="" Criterea2="" BindName="Area" BindVal="AreaID" Function="1"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divadvancetype">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                &nbsp;&nbsp;&nbsp;
+                                <span perfect-class="formGroupLabel"></span>
+
+                                @*<span class="text-danger">*</span>*@
+
+
+                            </label>
+                            @*<div class="col-sm-8">
+                    <select class="form-control" name="FK_AllowanceType" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                        <option value="0">All Allowance Type </option>
+
+                        @if (!(Model.AllowanceTypeList is null))
+                        {
+                            foreach (var AllowanceTypeList in Model.AllowanceTypeList)
+                            {
+                                <option value="@AllowanceTypeList.FK_AllowanceType">@AllowanceTypeList.Allowancetype</option>
+                            }
+
+                        }
+
+                    </select>
+
+                </div>*@
+                        </div>
+
+
+                    </div>
+
+
+
+
+
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getpickupdeliveryreport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+
+          
+
+
+
+            <br />
+            <div id="divAreawiseList">
+                <table id="AreawiseList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th></th>
+                            <th>Date</th>
+                            <th>Branch</th>
+                            <th>Department</th>
+                            <th>EmployeeCode</th>
+                            <th>Employee</th>
+                            <th>Customer</th>
+                            <th>Present</th>
+                            <th>Site</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+            <div id="divDeliveryreportList">
+                <table id="DeliveryreportList" class="table table-striped dt-responsive nowrap" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th></th>
+                            <th>FromDate</th>
+                            <th>ToDate</th>
+                            <th>Branch</th>
+                            <th>Department</th>
+                            <th>EmployeeCode</th>
+                            <th>Employee</th>
+                            <th>Designation</th>
+                            <th>Leave Type</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+           
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+
+    var exportfile_toogle = false;
+    (function () {
+        // jQuery('form').validate();//<----- Validate/initialize our form on page load
+        jQuery('select').selectpicker();
+        Getdepartmentdefault(this);
+    })();
+
+     function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+
+                     
+                        let user = '@ViewBag.Admin';
+                     
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    function shownecessayfeilds() {
+
+        $('#divAreawiseList').hide();
+        $('#divDeliveryreportList').hide();
+       
+
+        let x = document.getElementById("exppdf");
+        x.style.display = "none";
+        if ($("#ID_Report").val() == 1) {
+            $('.Divadvancetype').hide();
+            $('.divdepartment').show();
+            $('.divbranch').show();
+            $('.DivEmployeeName').show();
+
+        }
+        else if ($("#ID_Report").val() == 2) {
+            $('.Divadvancetype').hide();
+            $('.divdepartment').show();
+            $('.divbranch').show();
+            $('.DivEmployeeName').show();
+
+        }
+      
+        else {
+            $('.Divadvancetype').hide();
+            $('.divdepartment').show();
+            $('.divbranch').show();
+            $('.DivEmployeeName').show();
+        }
+
+    }
+
+    function ResetButton(ele) {
+        PayrollattendancereportInitialLoadAddForm()
+    }
+
+
+    function onchangeBranchclears(ele) {
+        document.getElementById("exppdf").style.display = "none";
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=DepartmentID]').val(0);
+        $thisForm.find('[name=DepartmentName]').val('');
+           let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val(0);
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+       
+    }
+    function clearemployee(ele) {
+        document.getElementById("exppdf").style.display = "none";
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let user = '@ViewBag.Admin';
+        let manager = '@ViewBag.Manager';
+        if (user == 'True' || manager == 'True') {
+            $thisForm.find('[name="Employee"]').val('');
+            $thisForm.find('[name="Employee_ID"]').val(0);
+        }
+        else
+        {
+            $thisForm.find('[name="Employee"]').val('@ViewBag.Employee');
+            $thisForm.find('[name="Employee_ID"]').val('@ViewBag.FK_Employee');
+        }
+    }
+
+    function checkLimit(ele) {
+        document.querySelector('#exppdf').style.display = "none";
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+        let mindate = "1899/12/31";
+        mindate = new Date(mindate);
+        mindate.setHours(0, 0, 0, 0)
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        debugger
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+            return false;
+        }
+        else if (Todate < mindate) {
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else if (Fromdate < mindate) {
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter a Valid Date');
+            return false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+
+    function ValidateAddrepdetails() {
+        var Error = 0;
+        let $inp;
+        $inp = $(".ActionDate");
+        let is_empty;
+        $inp.each((i, el) => {
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+
+
+    function checkLimit(ele) {
+        document.getElementById("exppdf").style.display = "none";
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date')
+            return false;
+        }
+        else {
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+    }
+
+    var item;
+    var vfromdate;
+    var vtodate;
+    var vBranch = "";
+    var exportbtntoogle;
+
+    function getpickupdeliveryreport(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        debugger
+
+        if ($thisForm.valid()  && ValidateAddrepdetails() <= 0) {
+
+
+            vfromdate = $thisForm.find('[name=FromDate]').val();
+
+
+
+            const dateObject = new Date(vfromdate);
+
+            // Extract the month, day, and year from the date object
+            const month = dateObject.getMonth() + 1;
+            const day = dateObject.getDate();
+            const year = dateObject.getFullYear();
+
+            // Create a new date string with the 'MM-DD-YYYY' format
+
+            vfromdate = `${day}/${month}/${year}`;
+
+            // Use the newDateString variable to display the date in the desired format
+
+
+
+
+            // Extract the month, day, and year from the date object
+            vtodate = $thisForm.find('[name=ToDate]').val();
+
+            const dateObjects = new Date(vtodate);
+            const months = dateObjects.getMonth() + 1;
+            const days = dateObjects.getDate();
+            const years = dateObjects.getFullYear();
+
+
+
+
+            vtodate = `${days}/${months}/${years}`;
+
+            var vBranchID = $thisForm.find('[name=BranchID]').val();
+            var vmodel = @Html.Raw(Json.Encode(Model));
+            if (vBranchID == "0") {
+                vBranch = "All"
+            } else {
+                if (vmodel.BranchList != null) {
+                    $.each(vmodel.BranchList, function (key, value) {
+                        if (value.BranchID == vBranchID) {
+                            vBranch = value.BranchName
+                        }
+                    });
+                }
+            }
+            console.log(vBranch, vfromdate, vtodate)
+            var dateval = true;
+            dateval = checkLimit(ele);
+            if (dateval) {
+
+                var obj = {
+                    FromDate: $thisForm.find('[name=FromDate]').val(),
+                    ToDate: $thisForm.find('[name=ToDate]').val(),
+                    DepartmentID: $thisForm.find('[name=DepartmentID]').val(),
+                    BranchID: $thisForm.find('[name=BranchID]').val(),
+                    EmployeeID: $thisForm.find('[name=EmployeeID]').val(),
+                    ReportMode: $('#ID_Report').val(),
+                    FK_AllowanceType: $thisForm.find('[name="FK_AllowanceType"]').val(),
+                    ID_Report: $thisForm.find('[name=ID_Report]').val(),
+                }
+
+
+                $.ajax({
+                    url: "@Url.Action("GetPayrollattendancereportdetail", "PayRollReport")",
+                    type: "POST",
+                    data: obj,
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+
+                        if ($('#ID_Report').val() == 1) {
+                            console.log(ajaxOutput,'--ajaxOutput--');
+                            $('#divPayRollAttendanceList').show();
+                            $('#divPayRollLeaveList').hide();
+                            $('#divPayRollAdvanceList').hide();
+                            if (ajaxOutput.Process.IsProcess) {
+                                exportfile_toogle = true;
+                                item = ajaxOutput.Data;
+                                console.log(item, 'item')
+                                tableData = $('#PayRollAttendanceList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: ajaxOutput.Data,
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+                                        { "data": null },
+                                        { "data": "Date" },
+                                        { "data": "Branch" },
+                                        { "data": "Department" },
+                                        { "data": "EmployeeCode" },
+                                        { "data": "Employee" },
+                                        { "data": "Designation" },
+                                        { "data": "Present" },
+                                        { "data": "Site" },
+                                        { "data": "Status" },
+
+                                    ],
+                                    scrollY: 500,
+                                    scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        footer: true
+                                    },
+                                    "order": [[2, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 3, 4, 5, 6, 7, 8] },
+                                        { "visible": false, "targets": [2] }
+                                    ],
+                                    drawCallback: function (settings) {
+                                        var api = this.api();
+                                        var rows = api.rows({ page: 'current' }).nodes();
+                                        var last = null;
+                                        //console.log(api, rows);
+                                        api.column(2, { page: 'current' }).data().each(function (group, i) {
+
+                                            if (last !== group) {
+                                                $(rows).eq(i).before(
+                                                    '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                );
+                                                last = group;
+                                            }
+                                        });
+                                    },
+                                    "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                        $("td:first", nRow).html(iDisplayIndex + 1);
+                                        return nRow;
+                                    },
+                                    createdRow: function (row, data, type) {
+
+                                    },
+                                    "footerCallback": function (row, data, start, end, display) {
+                                        var api = this.api(), data;
+
+                                    },
+
+
+                                });
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                            }
+                            else {
+                                document.getElementById("exppdf").style.display = "none";
+                                exportfile_toogle = false;
+                                $('#divPayRollAttendanceList').show();
+                                $('#divPayRollLeaveList').hide();
+                                $('#divPayRollAdvanceList').hide();
+                                tableData = $('#PayRollAttendanceList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: [],
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+                                        { "data": null },
+                                        { "data": "Date" },
+                                        { "data": "Branch" },
+                                        { "data": "Department" },
+                                        { "data": "EmployeeCode" },
+                                        { "data": "Employee" },
+                                        { "data": "Designation" },
+                                        { "data": "Present" },
+                                        { "data": "Site" },
+                                        { "data": "Status" },
+
+                                    ],
+                                    "language": {
+                                        "emptyTable": "No data available"
+                                    },
+                                    scrollY: 500,
+                                    scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        footer: true
+                                    },
+                                    "order": [[2, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 3, 4, 5, 6, 7, 8] },
+                                        { "visible": false, "targets": [2] }
+                                    ],
+
+                                    createdRow: function (row, data, type) {
+
+                                    },
+                                    "footerCallback": function (row, data, start, end, display) {
+                                        var api = this.api(), data;
+
+                                    },
+
+
+                                });
+
+
+                            }
+
+                        }
+                        if ($('#ID_Report').val() == 2) {
+                            if (ajaxOutput.Process.IsProcess) {
+                                exportfile_toogle = true;
+
+                                $('#divPayRollLeaveList').show();
+                                $('#divPayRollAttendanceList').hide();
+                                $('#divPayRollAdvanceList').hide();
+                                item = ajaxOutput.Data;
+
+                                tableData = $('#PayRollLeaveList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: ajaxOutput.Data,
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+                                        { "data": null },
+                                        { "data": "FromDate" },
+                                        { "data": "ToDate" },
+                                        { "data": "Branch" },
+                                        { "data": "Department" },
+                                        { "data": "EmployeeCode" },
+                                        { "data": "Employee" },
+                                        { "data": "Designation" },
+                                        { "data": "LeaveType" },
+
+
+                                    ],
+                                    scrollY: 500,
+                                    scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        footer: true
+                                    },
+                                    "order": [[3, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 2, 4, 5, 6, 7, 8] },
+                                        { "visible": false, "targets": [3] }
+                                    ],
+                                    drawCallback: function (settings) {
+                                        var api = this.api();
+                                        var rows = api.rows({ page: 'current' }).nodes();
+                                        var last = null;
+                                        //console.log(api, rows);
+                                        api.column(3, { page: 'current' }).data().each(function (group, i) {
+
+                                            if (last !== group) {
+                                                $(rows).eq(i).before(
+                                                    '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                                );
+                                                last = group;
+                                            }
+                                        });
+                                    },
+                                    "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                        $("td:first", nRow).html(iDisplayIndex + 1);
+                                        return nRow;
+                                    },
+                                    createdRow: function (row, data, type) {
+
+                                    },
+                                    "footerCallback": function (row, data, start, end, display) {
+                                        var api = this.api(), data;
+
+                                    },
+
+
+                                });
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+
+
+                            }
+
+                            else {
+                                document.getElementById("exppdf").style.display = "none";
+                                exportfile_toogle = false;
+                                $('#divPayRollLeaveList').show();
+                                $('#divPayRollAttendanceList').hide();
+                                $('#divPayRollAdvanceList').hide();
+
+                                tableData = $('#PayRollLeaveList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: [],
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+
+
+
+                                    ],
+                                    "language": {
+                                        "emptyTable": "No data available"
+                                    },
+                                    scrollY: 500,
+                                    scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        footer: true
+                                    },
+                                    "order": [[2, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 3, 4, 5, 6, 7, 8] },
+                                        { "visible": false, "targets": [2] }
+                                    ],
+
+                                    createdRow: function (row, data, type) {
+
+                                    },
+                                    "footerCallback": function (row, data, start, end, display) {
+                                        var api = this.api(), data;
+
+                                    },
+
+
+                                });
+
+
+                            }
+                        }
+                      
+                    },
+                    complete: function () {
+                    }
+                });
+
+            }
+            else {
+                NotificationMessage({
+                    'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than  From Date'
+                });
+
+            }
+
+
+    
+
+            }
+
+            else {
+
+
+
+                    
+                }
+
+
+
+            }
+
+
+
+    var tabley;
+
+    function generatePdf() {
+
+        const obj = {
+
+            Department: $('select[name="DepartmentID"] option:selected').text(),
+            Employee: $('input[name="Employee"]').val(),
+            Branch: $('select[name="BranchID"] option:selected').text()
+
+        };
+        const obj2 = {
+            "Report Name": $('select[name="ID_Report"] option:selected').text(),
+            "From ": changeDateFormat($('input[name="FromDate"]').val()),
+            "To": changeDateFormat( $('input[name="ToDate"]').val())
+        }
+
+
+
+        console.log(obj, '--obj--');
+
+
+
+        var str = "Filtre By : ";
+        var str2 = "";
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + (obj2[i]) + ' , ';
+            }
+
+        };
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+
+                     str2 +
+
+
+                    '\n' + str
+
+
+                ],
+                //[
+                //    str
+                //]
+
+
+
+            ],
+
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black',
+                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+            }
+
+
+
+        };
+
+
+        if ($('#ID_Report').val() == 1) {
+
+            generatePdfAttendance(upperhead, obj2["Report Name"]);
+        }
+
+        if ($('#ID_Report').val() == 2) {
+            generatePdfLeaveRegister(upperhead, obj2["Report Name"]);
+
+        }
+        if ($('#ID_Report').val() == 3) {
+            generatePdfAdvancePaymentlist(upperhead, obj2["Report Name"]);
+
+        }
+        if ($('#ID_Report').val() == 4) {
+            generatePdfRecoveryCollectionlist(upperhead, obj2["Report Name"]);
+
+        }
+        if ($('#ID_Report').val() == 5) {
+            generatePdfAcquaintancelist(upperhead, obj2["Report Name"]);
+
+        }
+    }
+    function generatePdfAttendance(upperhead,filename) {
+
+                var cdata;
+                //test start
+
+                $.ajax({
+                    url: '@Url.Action("GetCompanyDetails", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+                        debugger
+                        console.log('pdf', ajaxOutput);
+                        cdata = ajaxOutput;
+
+                    },
+
+                    complete: function () {
+
+                        var head = [['Sl No', 'Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'Present', 'Site', 'Status']];
+                        var body = [];
+
+
+                        debugger
+
+
+
+                      
+                        var ptableData = {
+                            columns: [
+                                { title: "Date", dataKey: "Date" },
+
+                                { title: "Department", dataKey: "Department" },
+                                { title: "Employee Code", dataKey: "EmployeeCode" },
+                                { title: "Employee", dataKey: "Employee" },
+                                { title: "Designation", dataKey: "Designation" },
+                                { title: "Present", dataKey: "Present" },
+                                { title: "Site", dataKey: "Site" },
+                                { title: "Status", dataKey: "Status" }
+                            ],
+                            rows: item
+
+                        };
+
+
+                        var footerdata = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 0 },
+
+
+
+                        };
+
+
+                        grpvariable = "Branch";
+
+                        if (exportfile_toogle) {
+                            exportPdf('PAYROLL REPORTS', head, cdata, upperhead, footerdata, ptableData, grpvariable, filename, "a4");
+                        }
+                        //exportPdf('Attendance Register Report', head, cdata, upperhead, footerdata, ptableData, grpvariable, "Report", "a4");
+
+
+
+                    }
+                });
+
+
+
+
+
+                //test end
+
+
+
+        }
+
+    function generatePdfLeaveRegister(upperhead, filename) {
+
+                var cdataleave;
+                //test start
+
+                $.ajax({
+                    url: '@Url.Action("GetCompanyDetails", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+                        debugger
+                        console.log('pdf', ajaxOutput);
+                        cdataleave = ajaxOutput;
+
+                    },
+
+                    complete: function () {
+
+                        var headLeave = [['Sl No', 'FromDate','ToDate', 'Department', 'Employee Code', 'Employee', 'Designation', 'LeaveTye']];
+                        var body = [];
+
+
+                        debugger
+
+
+
+                        //var upperheadleave = {
+
+                        //    columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                        //    margin: { top: 10 },
+
+                        //    body: [
+                        //        [
+                        //            "From Date  :   " + vfromdate + "           To Date :   " + vtodate + "         Branch  :   " + vBranch]
+
+
+
+                        //    ],
+
+                        //};
+                        //var aralenthleave = item.length;
+                        //var cl = item.slice(0, (aralenthleave));
+                        //var ptableDataleave = {
+                        //    columns: [
+                        //        { title: "From Date", dataKey: "FromDate" },
+                        //        { title: "To Date", dataKey: "ToDate" },
+                        //        { title: "Department", dataKey: "Department" },
+                        //        { title: "Employee Code", dataKey: "EmployeeCode" },
+                        //        { title: "Employee", dataKey: "Employee" },
+                        //        { title: "Designation", dataKey: "Designation" },
+                        //        { title: "Leave Type", dataKey: "LeaveType" }
+
+                        //    ],
+                        //    rows: cl
+
+                        //};
+
+                        var ptableDataleave = {
+                            columns: [
+                                { title: "From Date", dataKey: "FromDate" },
+                                { title: "To Date", dataKey: "ToDate" },
+                                { title: "Department", dataKey: "Department" },
+                                { title: "Employee Code", dataKey: "EmployeeCode" },
+                                { title: "Employee", dataKey: "Employee" },
+                                { title: "Designation", dataKey: "Designation" },
+                                { title: "Leave Type", dataKey: "LeaveType" }
+
+                            ],
+                            rows: item
+
+                        };
+
+
+                        var footerdataleave = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 0 },
+
+
+
+                        };
+
+
+                        grpvariableleave = "Branch"
+
+
+
+                        if (exportfile_toogle) {
+                            exportPdf('PAYROLL REPORTS', headLeave, cdataleave, upperhead, footerdataleave, ptableDataleave, grpvariableleave, filename, "a4");
+                        }
+
+                    }
+                });
+
+
+
+
+
+
+
+    }
+
+    function generatePdfAdvancePaymentlist(upperhead, filename) {
+
+                var cdataadvance;
+                //test start
+
+                $.ajax({
+                    url: '@Url.Action("GetCompanyDetails", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+                        debugger
+                        console.log('pdf', ajaxOutput);
+                        cdataadvance = ajaxOutput;
+
+                    },
+
+                    complete: function () {
+
+                        var headadvance = [['Sl No', 'Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'Allowance Type', 'Advance Amount', 'Recovery Amount']];
+                        var body = [];
+
+
+                        debugger
+
+
+
+                        //var upperheadadvance = {
+
+                        //    columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                        //    margin: { top: 10 },
+
+                        //    body: [
+                        //        [
+                        //            "From Date  :   " + vfromdate + "           To Date :   " + vtodate + "         Branch  :   " + vBranch]
+
+
+
+                        //    ],
+
+                        //};
+                        //var aralenthadvance = item.length;
+                        //var cad = item.slice(0, (aralenthadvance));
+                        //var ptableDataadvance = {
+                        //    columns: [
+                        //        { title: "Date", dataKey: "Date" },
+                        //       { title: "Department", dataKey: "Department" },
+                        //        { title: "Employee Code", dataKey: "EmployeeCode" },
+                        //        { title: "Employee", dataKey: "Employee" },
+                        //        { title: "Designation", dataKey: "Designation" },
+                        //        { title: "Allowance Type", dataKey: "AllowanceType" },
+                        //        { title: "Advance Amount", dataKey: "AdvanceAmount" },
+                        //        { title: "Recovery Amount", dataKey: "RecoveryAmount" }
+                        //    ],
+                        //    rows: cad
+
+                        //};
+
+                        var ptableDataadvance = {
+                            columns: [
+                                { title: "Date", dataKey: "Date" },
+                                { title: "Department", dataKey: "Department" },
+                                { title: "Employee Code", dataKey: "EmployeeCode" },
+                                { title: "Employee", dataKey: "Employee" },
+                                { title: "Designation", dataKey: "Designation" },
+                                { title: "Allowance Type", dataKey: "AllowanceType" },
+                                { title: "Advance Amount", dataKey: "AdvanceAmount" },
+                                { title: "Recovery Amount", dataKey: "RecoveryAmount" }
+                            ],
+                            rows: item
+
+                        };
+
+
+                        var footerdataadvance = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 0 },
+
+
+
+                        };
+
+
+                        grpvariableadvance = "Branch"
+
+
+                        if (exportfile_toogle) {
+                            exportPdf('PAYROLL REPORTS', headadvance, cdataadvance, upperhead, footerdataadvance, ptableDataadvance, grpvariableadvance, filename, "a4");
+                        }
+
+
+                    }
+                });
+
+
+
+
+
+
+
+
+    }
+
+    function generatePdfRecoveryCollectionlist(upperhead, filename) {
+
+                var cdatarecovery;
+                //test start
+
+                $.ajax({
+                    url: '@Url.Action("GetCompanyDetails", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+                        debugger
+                        console.log('pdf', ajaxOutput);
+                        cdatarecovery = ajaxOutput;
+
+                    },
+
+                    complete: function () {
+
+                        var headrecovery = [['Sl No', 'Process Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'TypeName', 'Amount']];
+                        var body = [];
+
+
+                        debugger
+
+
+
+                        var upperheadrecovery = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 10 },
+
+                            body: [
+                                [
+                                    "From Date  :   " + vfromdate + "           To Date :   " + vtodate + "         Branch  :   " + vBranch]
+
+
+
+                            ],
+
+                        };
+                        //var aralenthrecovery = item.length;
+                        //var cad = item.slice(0, (aralenthrecovery));
+                        //var ptableDatarecovery = {
+                        //    columns: [
+                        //        { title: "Process Date", dataKey: "ProcessDate" },
+                        //       { title: "Department", dataKey: "Department" },
+                        //        { title: "Employee Code", dataKey: "EmployeeCode" },
+                        //        { title: "Employee", dataKey: "Employee" },
+                        //        { title: "Designation", dataKey: "Designation" },
+                        //        { title: "TypeName", dataKey: "TypeName" },
+                        //        { title: "Amount", dataKey: "Amount" }
+
+                        //    ],
+                        //    rows: cad
+
+                        //};
+
+                        var ptableDatarecovery = {
+                            columns: [
+                                { title: "Process Date", dataKey: "ProcessDate" },
+                                { title: "Department", dataKey: "Department" },
+                                { title: "Employee Code", dataKey: "EmployeeCode" },
+                                { title: "Employee", dataKey: "Employee" },
+                                { title: "Designation", dataKey: "Designation" },
+                                { title: "TypeName", dataKey: "TypeName" },
+                                { title: "Amount", dataKey: "Amount" }
+
+                            ],
+                            rows: item
+
+                        };
+
+                        var footerdatarecovery = {
+
+                            columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                            margin: { top: 0 },
+
+
+
+                        };
+
+
+                        grpvariablerecovery = "Branch"
+
+                        if (exportfile_toogle) {
+
+                            exportPdf('Recovery Collection Report', headrecovery, cdatarecovery, upperhead, footerdatarecovery, ptableDatarecovery, grpvariablerecovery, filename, "a4");
+                        }
+
+
+                    }
+                });
+
+
+    }
+
+  
+    function clearexportfile() {
+
+    }
+    //test
+    function onExell() {
+        var head = [];
+        var ptableData;
+        var grpvariable;
+        let ReportName;
+
+        var cdata;
+
+
+
+
+        const obj = {
+
+            Department: $('select[name="DepartmentID"] option:selected').text(),
+            Employee: $('input[name="Employee"]').val(),
+            Branch: $('select[name="BranchID"] option:selected').text()
+
+        };
+        const obj2 = {
+            "Report Name": $('select[name="ID_Report"] option:selected').text(),
+            "From ": changeDateFormat($('input[name="FromDate"]').val()),
+            "To": changeDateFormat($('input[name="ToDate"]').val())
+        }
+
+
+
+        console.log(obj, '--obj--');
+
+
+
+        var str = "Filtre By : ";
+        var str2 = "";
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + (obj2[i]) + ' , ';
+            }
+
+        };
+
+
+
+
+
+        ////**Test-start
+          $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+                 console.log(cdata, "---cdata----");
+
+
+                 if ($('#ID_Report').val() == 1) {
+                     head = ['Sl No', 'Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'Present', 'Site', 'Status'];
+                     var aralenthleave = item.length;
+                     var c = item.slice(0, (aralenthleave));
+                     ptableData = {
+                         columns: [
+                             { title: "Date", dataKey: "Date" },
+
+                             { title: "Department", dataKey: "Department" },
+                             { title: "Employee Code", dataKey: "EmployeeCode" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Designation", dataKey: "Designation" },
+                             { title: "Present", dataKey: "Present" },
+                             { title: "Site", dataKey: "Site" },
+                             { title: "Status", dataKey: "Status" }
+                         ],
+                         rows: item
+
+                     };
+                     grpvariable = "Branch";
+                     ReportName = "Attendance Register"
+                 } else if ($('#ID_Report').val() == 2) {
+                     head = ['Sl No', 'FromDate', 'ToDate', 'Department', 'Employee Code', 'Employee', 'Designation', 'LeaveTye'];
+                     var aralenthleave = item.length;
+                     var cl = item.slice(0, (aralenthleave));
+                     ptableData = {
+                         columns: [
+                             { title: "From Date", dataKey: "FromDate" },
+                             { title: "To Date", dataKey: "ToDate" },
+                             { title: "Department", dataKey: "Department" },
+                             { title: "Employee Code", dataKey: "EmployeeCode" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Designation", dataKey: "Designation" },
+                             { title: "Leave Type", dataKey: "LeaveType" }
+
+                         ],
+                         rows: item
+
+                     };
+
+                     grpvariable = "Branch";
+                     ReportName = "Leave Register";
+                 } else if ($('#ID_Report').val() == 3) {
+                     head = ['Sl No', 'Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'Allowance Type', 'Advance Amount', 'Recovery Amount'];
+                     var aralenthadvance = item.length;
+                     var cad = item.slice(0, (aralenthadvance));
+                     ptableData = {
+                         columns: [
+                             { title: "Date", dataKey: "Date" },
+                             { title: "Department", dataKey: "Department" },
+                             { title: "Employee Code", dataKey: "EmployeeCode" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Designation", dataKey: "Designation" },
+                             { title: "Allowance Type", dataKey: "AllowanceType" },
+                             { title: "Advance Amount", dataKey: "AdvanceAmount" },
+                             { title: "Recovery Amount", dataKey: "RecoveryAmount" }
+                         ],
+                         rows: item
+
+                     };
+                     grpvariable = "Branch";
+                     ReportName = "Advance Payment List";
+                 } else if ($('#ID_Report').val() == 4) {
+                     head = ['Sl No', 'Process Date', 'Department', 'Employee Code', 'Employee', 'Designation', 'TypeName', 'Amount'];
+                     var aralenthrecovery = item.length;
+                     var cad = item.slice(0, (aralenthrecovery));
+                     var ptableData = {
+                         columns: [
+                             { title: "Process Date", dataKey: "ProcessDate" },
+                             { title: "Department", dataKey: "Department" },
+                             { title: "Employee Code", dataKey: "EmployeeCode" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Designation", dataKey: "Designation" },
+                             { title: "TypeName", dataKey: "TypeName" },
+                             { title: "Amount", dataKey: "Amount" }
+
+                         ],
+                         rows: item
+
+                     };
+                     grpvariable = "Branch";
+                     ReportName = "Recovery Collection List";
+                 } else if ($('#ID_Report').val() == 5) {
+                     head = ['Sl No', 'Process Date', 'Employee Code', 'Employee', 'Designation', 'Amount'];
+                     var aralenthaquaintance = item.length;
+                     var cad = item.slice(0, (aralenthaquaintance));
+                     ptableData = {
+                         columns: [
+                             { title: "Process Date", dataKey: "ProcessDate" },
+
+                             { title: "Employee Code", dataKey: "EmployeeCode" },
+                             { title: "Employee", dataKey: "Employee" },
+
+                             { title: "Designation", dataKey: "Designation" },
+
+                             { title: "Amount", dataKey: "Amount" }
+
+                         ],
+                         rows: item
+
+                     };
+                     grpvariable = "Department";
+                     ReportName = "Acquaintance Register List";
+                 }
+
+
+
+
+                 let ReportName1 = `${cdata.Company} \n${cdata.Branch}\n    PAYROLL REPORTS    \n \n ${str2} \n ${str} `;
+                  //  // generateExell(ReportName, [head], ptableData, "", "", ReportName, str);
+
+                     generateExell(ReportName1, [head], ptableData, "", grpvariable, ReportName);
+              }
+          });
+
+        ////*Test-end
+
+
+        //ReportName = `${cdata.Company} \n${cdata.Branch}\n    ${LeadType} Report    \n  ${str2} \n ${str} `
+
+       // generateExell(ReportName, [head], ptableData, "", grpvariable, ReportName);
+
+
+    }
+
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+
+    function getfunction() {
+        document.querySelector('#exppdf').style.display = 'none';
+    }
+
+</script>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+

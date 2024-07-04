@@ -1,0 +1,324 @@
+﻿
+@model PerfectWebERP.Models.HomeModel.TimeLineVM
+<style>
+    section {
+        /*padding: 100px 0;*/
+    }
+
+    .timelineTrack {
+        position: relative;
+    }
+
+        .timelineTrack::before {
+            content: '';
+            background: #b8c9cb;
+            width: 5px;
+            height: 95%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+    .timelineTrack-item {
+        width: 100%;
+        margin-bottom: 70px;
+    }
+
+        .timelineTrack-item:nth-child(even) .timelineTrack-content {
+            float: right;
+            /*padding: 40px 30px 10px 30px;*/
+        }
+
+            .timelineTrack-item:nth-child(even) .timelineTrack-content .date {
+                /*right: auto;
+     left: 0;*/
+                float: left;
+            }
+
+            .timelineTrack-item:nth-child(even) .timelineTrack-content::after {
+                content: '';
+                position: absolute;
+                border-style: solid;
+                width: 0;
+                height: 0;
+                top: 30px;
+                left: -15px;
+                border-width: 10px 15px 10px 0;
+                border-color: transparent #f5f5f5 transparent transparent;
+            }
+
+        .timelineTrack-item::after {
+            content: '';
+            display: block;
+            clear: both;
+        }
+        .tblreponsive{
+            width:100%;
+            overflow-x:auto;
+
+        }
+    .timelineTrack-content {
+        position: relative;
+        width: 45%;
+        
+        padding: 10px 30px;
+        border-radius: 4px;
+        background: #f5f5f5;
+        box-shadow: 10px 20px 44px 20px rgba(0, 0, 0, .3);
+    }
+
+        .timelineTrack-content::after {
+            content: '';
+            position: absolute;
+            border-style: solid;
+            width: 0;
+            height: 0;
+            top: 30px;
+            right: -15px;
+            border-width: 10px 0 10px 15px;
+            border-color: transparent transparent transparent #f5f5f5;
+        }
+
+    .timelineTrack-img {
+        width: 30px;
+        height: 30px;
+        background: #7fbabf;
+        border-radius: 50%;
+        position: absolute;
+        left: 50%;
+        margin-top: 25px;
+        margin-left: -15px;
+    }
+
+    a:hover, a:active, a:focus {
+        /*background: #32408f;*/
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .timelineTrack-card {
+        padding: 0 !important;
+    }
+
+        .timelineTrack-card p {
+            padding: 0 20px;
+        }
+
+        .timelineTrack-card a {
+            margin-left: 20px;
+        }
+
+    .timelineTrack-item .timelineTrack-img-header {
+        /*background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .4)), url('https://picsum.photos/1000/800/?random') center center no-repeat;*/
+        background-size: cover;
+    }
+
+    .timelineTrack-img-header {
+        height: 200px;
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+        .timelineTrack-img-header h2 {
+            color: #fff;
+            position: absolute;
+            bottom: 5px;
+            left: 20px;
+        }
+
+    blockquote {
+        margin-top: 30px;
+        color: #757575;
+        border-left-color: #3f51b5;
+        padding: 0 20px;
+    }
+
+    .date {
+        background: #2e666a;
+        display: inline-block;
+        color: #fff;
+        padding: 6px;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+</style>
+
+<div>
+    <section class="timelineTrack">
+        <div class="container">
+            @if (Model.TimeLineData != null)
+            {
+                foreach (var list in Model.TimeLineData)
+                {
+                    <div class="timelineTrack-item">
+                        <div class="timelineTrack-img"></div>
+                        <div class="timelineTrack-content @((list.SLNo%2)==0?"js--fadeInRight":"js--fadeInLeft")">
+                            <h5 style="color:var(--perfect-primary);">@list.Title1</h5>
+                            <div class="date">@list.Title2</div>
+                            <address>
+                                @Html.Raw((String)list.Description)
+                            </address>
+                            @if (list.MoreData.Length > 0)
+                            {
+                                <a class="bnt-more" href="javascript:void(0)" data-toggle="modal" data-target="#modalPssTrackMoreInfo@(list.SLNo)">More</a>
+                                <div class="modal fade" id="modalPssTrackMoreInfo@(list.SLNo)" data-backdrop="static" data-keyboard="false" tabindex="1001" style="margin-top: 72px;">
+                                    <div class="modal-dialog modal-xl" role="dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header border-0">
+                                                <h5 class="modal-title">More Details</h5>
+                                                <button type="button" class="close" aria-label="Close" data-index="@(list.SLNo)" onclick="fn_closeModal(this)">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <address>
+                                                            @Html.Raw((String)list.MoreData)
+                                                        </address>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <a class="bnt-more" href="javascript:void(0)">&nbsp;</a>
+                            }
+                            @*<address class="float-right">Enter By/On :  @Html.Raw((String)list.EntrBy) / @Html.Raw((String)list.EntrOn)</address>*@
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+</div>
+<script src="~/Scripts/scrollreveal.min.js"></script>
+<script>
+    function fn_closeModal(ele) {
+      
+        $("#modalPssTrackMoreInfo" + $(ele).attr("data-index")).modal('hide');
+    }
+
+    //load fn
+    $(document).ready(function () {
+        
+    });
+    (function () {
+
+
+    })();
+   
+    //ScrollReveal({ reset: true });
+
+   
+
+    //ScrollReveal().reveal('.js--fadeInRight', {
+    //    origin: 'right',
+    //    distance: '300px',
+    //    easing: 'ease-in-out',
+    //    duration: 800,
+    //});
+
+
+    //ScrollReveal().reveal(".show-once", {
+    //    reset: false
+    //});
+
+    //ScrollReveal().reveal(".title", {
+    //    duration: 3000,
+    //    origin: "top",
+    //    distance: "400px",
+    //    easing: "cubic-bezier(0.5, 0, 0, 1)",
+    //    rotate: {
+    //        x: 20,
+    //        z: -10
+    //    }
+    //});
+
+    //ScrollReveal().reveal(".fade-in", {
+    //    duration: 5000,
+    //    move: 0
+    //});
+
+    //ScrollReveal().reveal(".scaleUp", {
+    //    duration: 4000,
+    //    scale: 0.85
+    //});
+
+    //ScrollReveal().reveal(".flip", {
+    //    delay: 500,
+    //    duration: 2000,
+    //    rotate: {
+    //        x: 20,
+    //        z: 20
+    //    }
+    //});
+
+    //ScrollReveal().reveal(".js--fadeInRight", {
+    //    duration: 3000,
+    //    origin: "left",
+    //    distance: "300px",
+    //    easing: "ease-in-out"
+    //});
+
+    //ScrollReveal().reveal("js--fadeInLeft", {
+    //    duration: 2000,
+    //    origin: "bottom",
+    //    distance: "100px",
+    //    easing: "cubic-bezier(.37,.01,.74,1)",
+    //    opacity: 0.3,
+    //    scale: 0.5
+    //});
+
+
+
+    //if ($(window).width() < 768) {
+    //    alert('test data if')
+    //    if ($('.timelineTrack-content').hasClass('js--fadeInLeft')) {
+    //        $('.timelineTrack-content').removeClass('js--fadeInLeft').addClass('js--fadeInRight');
+    //    }
+
+    //    sr.reveal('.js--fadeInRight', {
+    //        origin: 'right',
+    //        distance: '300px',
+    //        easing: 'ease-in-out',
+    //        duration: 800,
+    //    });
+
+    //} else {
+       
+    //    sr.reveal('.js--fadeInLeft', {
+    //        origin: 'left',
+    //        distance: '300px',
+    //        easing: 'ease-in-out',
+    //        duration: 1000,
+    //    });
+
+    //    sr.reveal('.js--fadeInRight', {
+    //        origin: 'right',
+    //        distance: '300px',
+    //        easing: 'ease-in-out',
+    //        duration: 1000,
+    //    });
+
+    //}
+
+    //sr.reveal('.js--fadeInLeft', {
+    //    origin: 'left',
+    //    distance: '300px',
+    //    easing: 'ease-in-out',
+    //    duration: 1000,
+    //});
+
+    //sr.reveal('.js--fadeInRight', {
+    //    origin: 'right',
+    //    distance: '300px',
+    //    easing: 'ease-in-out',
+    //    duration: 1000,
+    //});
+</script>

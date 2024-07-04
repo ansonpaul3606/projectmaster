@@ -1,0 +1,745 @@
+﻿
+
+@model PerfectWebERP.Models.PurchaseReturnReportModel.PurchaseReturnList
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+
+
+        <h4 class="card-title col-12">@ViewBag.PageTitle<span class="badge light badge-success float-right" perfect-class="formTitle"></span></h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.Companyname" perfect-class="formGroupControl" perfect-css="input" />
+
+                                <select class="form-control  Action Actionbill" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" onchange="bindReportField(this)" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+                                    <option value="1">Purchase Return Non-Detailed</option>
+                                    <option value="2">Purchase Return Detailed</option>
+
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-sm-6 Divbranch">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclear(this)">
+
+                                    <option value="0">All</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            if (branchList.BranchID == ViewBag.FK_Branch)
+                                            {
+                                                <option value="@branchList.BranchID" selected>@branchList.Branch</option> }
+                                            else
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>}
+
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divdep">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="DepId" name="DepId" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclear(this)">
+
+                                    <option value="0">All</option>
+
+                                    @if (!(Model.deprtmnt is null))
+                                    {
+                                        foreach (var deprtmnt in Model.deprtmnt)
+                                        {
+                                            if (deprtmnt.DepId == ViewBag.FK_Department)
+                                            {
+                                                <option value="@deprtmnt.DepId" selected>@deprtmnt.Depname</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@deprtmnt.DepId">@deprtmnt.Depname</option>
+                                            }
+
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivProduct">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label"><span perfect-class="formGroupLabel">Product</span></label>
+                            <div class="input-group col-sm-8">
+                                <input type="text" class="form-control" name="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ID_Product" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" name="MRPs" class="form-control " perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" name="SalePrice" class="form-control " perfect-ctype="hidden" perfect-css="input" />
+                                <input type="hidden" name="StockId" class="form-control " perfect-ctype="hidden" perfect-css="input" />
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,40,'Product Details',[])" Criterea1="0" Criterea2="0" BindName="ProductName" BindVal="ID_Product" Function="2"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control  Action" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                                <div class="invalid-feedback animated fadeInUp error" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+
+                                <input type="date" id="ToDate" class="form-control  Action" name="ToDate" data-id="ToDate-error" perfect-class="formGroupControl" perfect-ctype="date" max="2050-01-01" onchange="checkLimit(this)" perfect-css="date" />
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                                @*<input type="date" class="form-control perfectValidate_date ToDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">*@
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivBillNo">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Bill No</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group col-sm-8">
+                                <input type="text" class="form-control " data-id="BillNo-error" name="BillNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="Billid" class="form-control   Actionbill" data-id="Billid-error" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                <div class="input-group-append">
+                                    <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,55,'Bill List',[])" Criterea1="BranchID" Criterea2="DepId" BindName="BillNo" BindVal="Billid"></button>
+                                </div>
+                                <div id="Billid-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Bill No</div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivSupplier">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label"><span perfect-class="formGroupLabel">Supplier</span></label>
+                            <div class="input-group col-sm-8">
+                                <input type="hidden" name="SupplierID" class="form-control" perfect-ctype="hidden" />
+                                <input type="text" class="form-control perfectValidate_string" name="SupplierName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,20,'Supplier List',[],['SupplierID','SupplierName'])" Criterea1="0" Criterea2="0" BindName="SupplierName" BindVal="SupplierID"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivCategory">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Category</span>
+
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control " id="FK_Category" name="FK_Category" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">All</option>
+                                    @if (!(Model.categorytyps is null))
+                                    {
+                                        foreach (var Action in Model.categorytyps)
+                                        {
+                                            <option value="@Action.ID_Category">@Action.CatName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivCriteria">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Grouping</span>
+                                <span class="text-danger"></span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <select class="form-control" id="Criteria" name="Criteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="0">Please select</option>
+                                    <option value="1">Supplier</option>
+                                    @*<option value="2">Product</option>*@
+                                    <option value="3">Branch</option>
+                                    <option value="4">Department</option>
+                                    @*<option value="5">Category</option>*@
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="Rptype" name="Rptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getreport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>
+<script>
+    (function () {
+        // jQuery('form').validate();//<-----  Validate/initialize our form on page load
+        jQuery('select').selectpicker();
+    })();
+    $(document).ready(function () {
+
+        Getdepartmentdefault(this);
+        bindReportField();
+    });
+      function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepId]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+
+                        let user = '@ViewBag.Admin';
+                     
+                       
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                        
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+
+
+
+    function onchangeBranchclear(ele)
+    {
+        let $thisForm = $('[perfect-class="form"]');
+        $thisForm.find('[name=LgCollectedBy]').val("");
+        $thisForm.find('[name=FK_LgCollectedBy]').val("");
+
+    }
+
+    function bindReportField(ele) {
+
+        if ($("#ID_Report").val() == 1 || $("#ID_Report").val() == 4) {
+            $('.Divbilltype').show();
+            $('.Divbranch').show();
+            $('.Divdep').show();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivBillNo').hide();
+            $('.DivCategory').hide();
+            $('.DivProduct').hide();
+            $('.DivCriteria').show();
+            $('.DivSupplier').show();
+
+        }
+        else if ($("#ID_Report").val() == 2) {
+            $('.Divbilltype').show();
+            $('.Divbranch').show();
+            $('.Divdep').show();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivBillNo').hide();
+            $('.DivCategory').show();
+            $('.DivProduct').hide();
+            $('.DivCriteria').hide();
+            $('.DivSupplier').show();
+        }
+        else if ($("#ID_Report").val() == 3) {
+            $('.Divbilltype').show();
+            $('.Divbranch').show();
+            $('.Divdep').show();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivBillNo').hide();
+            $('.DivCategory').show();
+            $('.DivProduct').hide();
+            $('.DivCriteria').show();
+            $('.DivSupplier').hide();
+        }
+        else if ($("#ID_Report").val() == 5) {
+            $('.Divbilltype').hide();
+            $('.Divbranch').hide();
+            $('.Divdep').hide();
+            $('.DivFromDate').hide();
+            $('.DivToDate').hide();
+            $('.DivBillNo').show();
+            $('.DivCategory').hide();
+            $('.DivProduct').hide();
+            $('.DivCriteria').hide();
+            $('.DivSupplier').hide();
+        }
+        else {
+            $('.Divbilltype').show();
+            $('.Divbranch').show();
+            $('.Divdep').show();
+            $('.DivFromDate').show();
+            $('.DivToDate').show();
+            $('.DivBillNo').hide();
+            $('.DivCategory').hide();
+            $('.DivProduct').hide();
+            $('.DivCriteria').hide();
+            $('.DivSupplier').hide();
+        }
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+       $thisForm.find('[perfect-ctype="input"]').val('');
+        debugger
+        $thisForm.find('[perfect-ctype="date"]').val('');
+        $thisForm.find('[perfect-ctype="hidden"]').val('');
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        let branch = @ViewBag.FK_Branch;
+        let dept = @ViewBag.FK_Department;
+        Getdepartmentdefault(this);
+        $thisForm.find('[name="BranchID"]').val(branch).selectpicker('refresh');
+        $thisForm.find('[name="DepId"]').val(dept).selectpicker('refresh');
+        $thisForm.find('[name="FK_Category"]').val(0).selectpicker('refresh');
+        $thisForm.find('[name="Rptype"]').val(1).selectpicker('refresh');
+        //bindReportField()
+        //$thisForm.validate().resetForm();
+    }
+
+    function ResetButton(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[perfect-ctype="select"]').val(0).selectpicker('refresh');
+        $thisForm.find('[perfect-ctype="input"]').val('');
+
+        $thisForm.find('[perfect-ctype="date"]').val('');
+        $thisForm.find('[perfect-ctype="hidden"]').val('');
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        let branch = @ViewBag.FK_Branch;
+        let dept = @ViewBag.FK_Department;
+
+        $thisForm.find('[name="BranchID"]').val(branch).selectpicker('refresh');
+        $thisForm.find('[name="DepId"]').val(dept).selectpicker('refresh');
+        $thisForm.find('[name="Rptype"]').val(1).selectpicker('refresh');
+        bindReportField()
+        //$thisForm.validate().resetForm();
+        $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('');
+        $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+    }
+
+     @*$('#ID_Report').on('change', function () {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+       $thisForm.find('[perfect-ctype="input"]').val('');
+        debugger
+        $thisForm.find('[perfect-ctype="date"]').val('');
+        $thisForm.find('[perfect-ctype="hidden"]').val('');
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+        let branch = @ViewBag.FK_Branch;
+        let dept = @ViewBag.FK_Department;
+
+        $thisForm.find('[name="BranchID"]').val(branch).selectpicker('refresh');
+        $thisForm.find('[name="DepId"]').val(dept).selectpicker('refresh');
+        $thisForm.find('[name="FK_Category"]').val(0).selectpicker('refresh');
+        $thisForm.find('[name="Rptype"]').val(1).selectpicker('refresh');
+        bindReportField()
+        $thisForm.validate().resetForm();
+    });*@
+
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+        let Fromdts = $thisForm.find('[name="FromDate"]').val();
+        let Todts = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        let Fyear = Fromdate.getYear();
+        let Tyear = Todate.getYear();
+
+        $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('')
+        $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+
+        if (Todate < Fromdate) {
+            $('#ToDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  or equal to From Date')
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+
+            ValidateAddrepdetails($('#ID_Report').val());
+
+        }
+        if (Fromdts < "1800-01-01" && Fromdts >= "0001-01-01") {
+            $('#FromDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+
+        }
+
+        if (Fromdts > "2050-01-01") {
+            $('#FromDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+            //datevalids = false;
+        }
+        if (Todts > "2050-01-01") {
+            $('#ToDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+            //datevalids = false;
+        }
+        if (Todts < "1800-01-01" && Todts >= ("0001-01-01")) {
+            $('#ToDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+            //datevalids = false;
+
+        }
+        if (isNaN(Fyear) && Fromdts > ("0000/01/01")) {
+            $('#FromDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+            //datevalids = false;
+        }
+        if (isNaN(Tyear) && Todts > ("0000/01/01")) {
+            $('#ToDate-error').hide();
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+            //datevalids = false;
+        }
+        //else {
+        //    console.log('inside limit check if')
+        //    $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('')
+        //    $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+        //    ValidateAddrepdetails($('#ID_Report').val());
+        //}
+        ValidateAddrepdetails($('#ID_Report').val());
+    }
+
+
+
+    function ValidateAddrepdetails(Rptval) {
+        var Error = 0;
+        let $inp;
+        if (Rptval == 1 || Rptval == 2 || Rptval == 3 || Rptval == 4) { $inp = $(".Action");  }
+
+        else if (Rptval == 5) { $inp = $(".Actionbill"); }
+        else if (Rptval == 0) { $inp = $(".Action"); }
+        let is_empty;
+        $inp.each((i, el) => {
+
+
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+
+
+
+
+
+    ////Report generation
+    function getreport(ele)
+    {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Frodate = $thisForm.find('[name="FromDate"]').val();
+        let Tdate = $thisForm.find('[name="ToDate"]').val();
+        let Fromdts = $thisForm.find('[name="FromDate"]').val();
+        let Todts = $thisForm.find('[name="ToDate"]').val();
+
+        let datevalids = true;
+
+
+        //$thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('');
+        //$thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+
+        Frodate = new Date(Frodate);
+        Frodate.setHours(0, 0, 0, 0)
+        debugger
+        Tdate = new Date(Tdate);
+        Tdate.setHours(0, 0, 0, 0)
+        let Fyear = Frodate.getYear();
+        let Tyear = Tdate.getYear();
+
+        let Isvalid = false;
+        if (Tdate < Frodate) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than or equal to From Date')
+            Isvalid = false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            Isvalid = true;
+        }
+
+        if ((ValidateAddrepdetails($('#ID_Report').val()) <= 0) && Isvalid == true) {
+            
+            if (Tdate < Frodate) {
+
+                console.log('inside limit check if')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than or equal to From Date');
+                Isvalid = false;
+            }
+            else {
+
+                console.log('inside limit check else')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+                Isvalid = true;
+            }
+
+            if (Fromdts < "1800-01-01") {
+                $('#FromDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+                datevalids = false;
+            }
+            if (Fromdts >= "2050-01-01") {
+                $('#FromDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+                datevalids = false;
+            }
+            if (isNaN(Fyear)) {
+                $('#FromDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('Enter Valid From Date')
+                datevalids = false;
+            }
+            if (isNaN(Tyear)) {
+                $('#ToDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+                datevalids = false;
+            }
+            if (Todts < "1800-01-01") {
+                $('#ToDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+                datevalids = false;
+            }
+            if (Todts >= "2050-01-01") {
+                $('#ToDate-error').hide();
+                console.log('inside limit check if')
+                $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Enter Valid To Date')
+                datevalids = false;
+            }
+            if (datevalids == true && Isvalid == true) {
+                    $thisForm.find('[name="FromDate"]').closest('[perfect-class="formGroup"]').find('.error').text('');
+                    $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+
+                    var Report_Id = $('#ID_Report').val();
+                    var BillNo = $('[name="BillNo"]').val();
+                    var Company = $thisForm.find('[name="Companyname"]').val();
+                    var billtype = $thisForm.find('[name="FK_BillType"]').val();
+                    var billtypename = $thisForm.find('[name="FK_BillType"] option:selected').text();
+                    var Fromdate = $('#FromDate').val();
+                    var Todate = $('#ToDate').val();
+                    var Product = $thisForm.find('[name="ID_Product"]').val();
+                    var Supplier = $thisForm.find('[name="SupplierID"]').val();
+
+                    var Branch = $('#BranchID').val();
+                    var Depid = $('#DepId').val();
+                    var Criteria = $('#Criteria').val();
+                    var categorys = $('#FK_Category :selected').text();
+                    var Reportformat = $('#Rptype').val();
+                    var Category = $('#FK_Category').val();
+                    ////filter
+
+                    var product = $thisForm.find('[name="ProductName"]').val();
+                    var suppliername = $thisForm.find('[name="SupplierName"]').val();
+                    var crtireanam = $thisForm.find('[name="Criteria"] option:selected').text();
+                    var Branchname = $thisForm.find('[name="BranchID"] option:selected').text();
+                    var depname = $thisForm.find('[name="DepId"] option:selected').text();
+
+                    var Url = ('@Url.Action("GetPurchaseReturnReport", "Report")?ReportMode=' + Report_Id +
+                        '&FK_Product=' + Product +
+                        '&FromDate=' + Fromdate +
+                        '&ToDate=' + Todate +
+                        '&FK_Branch=' + Branch +
+                        '&FK_Department=' + Depid +
+                        '&FK_Supplier=' + Supplier +
+                        '&billtype=' + billtype +
+                        '&BillNo=' + BillNo +
+                        '&depname=' + depname +
+                        '&billtypename=' + billtypename +
+                        '&Branchname=' + Branchname +
+                        '&Prodname=' + product +
+                        '&Critername=' + crtireanam +
+                        '&Rptype=' + Reportformat +
+                        '&Criteria=' + Criteria +
+                        '&FK_Category=' + Category +
+                        '&CompName=' + Company +
+                        '&SuppName=' + suppliername +
+                        '&categorys=' + categorys +
+                        '&TransMode=' + PurchaseReturnReportTransmode);
+                    popitup(Url);
+                }
+            
+        }
+    }
+
+    function popitup(url)
+    {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+        if (window.focus) { newwindow.focus() }
+        return false;
+    }
+
+    function fireDownload(url)
+    {
+        window.location.assign(url);
+    }
+</script>

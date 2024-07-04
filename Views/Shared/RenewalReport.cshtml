@@ -1,0 +1,573 @@
+﻿
+@model PerfectWebERP.Models.Renewalreportmodel.RenewalReportView
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="RenewreportInitialLoadAddForm()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body " style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label" id="Products">@ViewBag.lblpro &nbsp;</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " perfect-tempTable-Purchase="EmpName" name="ID_Name" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="ID_FIELD" perfect-tempTable-Purchase="Item" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search" type="button" onclick="fn_showpopuplist(this)" perfect-css="button"></button>
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-4">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Paper</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control Subproduct" id="FK_Paper" name="FK_Paper" onchange="fn_selectprovider(this);" placeholder="Please Select" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                    <option value="">Please select</option>
+                                    @if (!(Model.PaperList is null))
+                                    {
+                                        foreach (var menuGroup in Model.PaperList)
+                                        {
+                                            <option value="@menuGroup.FK_Paper">@menuGroup.PaperName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-sm-4">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Provider</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control Subproduct" id="FK_Provider" name="FK_Provider" placeholder="Please Select" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+                                    <option value="">Please select</option>
+                                    @if (!(Model.ProviderList is null))
+                                    {
+                                        foreach (var menuGroup in Model.ProviderList)
+                                        {
+                                            <option value="@menuGroup.FK_Provider">@menuGroup.PaperProviderName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Paper Number</span>                               
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control Subproduct" placeholder="" name="PmdPaperNo" perfect-class="formGroupControl" perfect-ctype="input" oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '')" maxlength="12" perfect-css="input" perfect-tempTable-cstatus="Number" />
+                                
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="OnDate" data-id="ToDate-error" name="AsonDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" @*onchange="checkLimit(this)"*@>
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select As On Date</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Demand Days</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" placeholder="Demand in Days" maxlength="5" name="DemandDays" perfect-class="formGroupControl" perfect-ctype="input" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" perfect-css="input" />
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    @*<div class="card-footer text-right" perfect-class="formFooter">
+            <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getrenewreport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+            <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+        </div>*@
+                    <div class="col-sm-12 text-right">
+
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary"  name="Search" perfect-css="button" onclick=" fn_showFilter(); fn_LeadSearchbyfilter(this);"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+
+                        <button type="button" id="clear" class="btn btn-light1" perfect-css="button" onclick="Cleardetailsfilter(this)">Clear</button>
+
+
+
+                    </div>
+                </div>
+                  </div>
+
+            <div class="row">
+                <div class="col-xl-12">
+
+                    <div class="default-tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="Todolist" data-toggle="tab" href="#home" onclick="fn_LeadManagement_search(this,1,'#home',toDoTabOpt)"><i class="las la-tasks  mr-2"></i> To-Do List &nbsp;&nbsp;<span><label id="todobadge" class="badge badge-circle badge-info">0</label></span> </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="OverdueList" data-toggle="tab" href="#profile" onclick="fn_LeadManagement_search(this,2,'#profile',overDueOpt)"><i class="las la-exclamation mr-2"></i> Over Due&nbsp;&nbsp;<label id="overduebadge" class="badge badge-circle badge-primary">0</label></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="UpcomingList" data-toggle="tab" href="#contact" onclick="fn_LeadManagement_search(this,3,'#contact',upComOpt)"><i class="las la-scroll mr-2"></i>UpComing&nbsp;&nbsp;<label id="upcomingbadge" class="badge badge-circle badge-success">0</label></a>
+                            </li>
+
+
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade active show" id="home" role="tabpanel">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="home" id="home"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="profile">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="profile" id="profile"></div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="contact">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="contact" id="contact"></div>
+
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="message">
+                                <br />
+                                <div class="row">
+
+                                    <div class="table-responsive col-md-12 SearchLoadDiv" name="SearchLoadDiv"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+        debugger
+        initFunctions('form');
+
+        //var url = window.location.pathname;
+        //var id = url.substring(url.lastIndexOf('/') + 1);
+        //if (id != "PaperRenewalReport") {
+        //    if (id != null && id != "") {
+
+        //        switch (id) {
+        //            case "1": $("#Todolist").click(); break;
+        //            case "2": $("#OverdueList").click(); break;
+        //            case "3": $("#UpcomingList").click(); break;
+        //        }
+
+        //    }
+        //} else {
+        //    $("#Todolist")[0].click();
+        //} fn_LeadSearchbyfilter(this) 
+        
+    });
+
+
+
+
+    function fn_showpopuplist(ele) {
+        debugger
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (RenewalreportTransMode == 'VLRPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 95, 'Vehicle List', [], ['VehicleNo', 'ID_FIELD', 'ID_Name', 'FK_Master'], RenewalreportTransMode)
+
+
+        }
+        else if (RenewalreportTransMode == 'TORPT') {
+
+            GetCmnPopUpSearchValAssign(ele, 95, 'Tool List', [], ['ID_FIELD', 'ID_Name', 'HSNCode', 'FK_Master'], RenewalreportTransMode)
+        }
+        else {
+            NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'Please Select Import From' });
+        }
+    }
+
+    function decimalpnt(ele, id, range) {
+
+        let input = $('#' + id);
+        ele.value = ele.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+        input.on('keydown', function () {
+            if (ele.value.includes('.')) {
+
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.length == 9) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+
+  function fn_LeadSearchbyfilter(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=home]').empty();
+        $thisForm.find('[name=profile]').empty();
+        $thisForm.find('[name=contact]').empty();
+
+        $(".nav-link").removeClass("active");
+        $('#Todolist').addClass('active');
+
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            'AsonDate': $('[name=AsonDate]').val(),
+            'DemandDays': $('[name=DemandDays]').val(),
+            'FK_Papper': $('[name=FK_Paper]').val(),
+            'FK_Provider': $('[name=FK_Provider]').val(),
+            'PmdPaperNo': $('[name=PmdPaperNo]').val(),
+            'FK_ModuleType': $('[name=ID_FIELD]').val(),
+            'TransMode': RenewalreportTransMode,           
+            'Mode': 0,
+        };
+
+           $.ajax({
+                url: "@Url.Action("GetrenewList", "PaperRenewalReport")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterID > 0) {
+                        debugger                        
+                        $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                        $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                        $('#upcomingbadge').html("" + ajaxOutput.Data[2].Value + "");
+                        $('#Todolist')[0].click();
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                },
+                complete: function () {
+
+                }
+           });
+
+    }
+
+
+
+    var titlepdf;
+
+    function fn_LeadManagement_search(ele, MasterID,id,tabOp) {
+
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $pssExportTable = $thisForm.find('[name=pssExportTable]');
+            $pssExportTable.empty();
+        let $formDivContainer;
+        let masterId = MasterID;
+        $thisForm.find('[name=home]').empty();
+        $thisForm.find('[name=profile]').empty();
+        $thisForm.find('[name=contact]').empty();
+        if (MasterID == 1) {
+            titlepdf = "To-do List";
+            $formDivContainer = $thisForm.find('[name=home]');
+            $formDivContainer.empty();
+
+        }
+        else if (MasterID == 2) {
+            titlepdf = "Over Due";
+            $formDivContainer = $thisForm.find('[name=profile]');
+            $formDivContainer.empty();
+
+        }
+        else if (MasterID == 3) {
+            titlepdf = "Upcoming Tasks";
+            $formDivContainer = $thisForm.find('[name=contact]');
+            $formDivContainer.empty();
+
+        }
+
+        var InputData = {
+
+            'AsonDate': $('[name=AsonDate]').val(),
+            'DemandDays': $('[name=DemandDays]').val(),
+            'FK_Papper': $('[name=FK_Paper]').val(),
+            'FK_Provider': $('[name=FK_Provider]').val(),
+            'PmdPaperNo': $('[name=PmdPaperNo]').val(),
+            'FK_ModuleType': $('[name=ID_FIELD]').val(),
+            'TransMode': RenewalreportTransMode,
+            'PageSize': 10,
+            'Pageindex': 0,
+            'Mode': masterId,
+        };
+
+        let pageUrl = '@Url.Action("GetrenewList", "PaperRenewalReport")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                 
+                    if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterID <= 0) {
+
+
+                        debugger;
+                        $formDivContainer.append('<div class="d-flex justify-content-end mb-3 position-relative"><div class="col-md-1 position-absolute top-1 z-index1"><div class="input-group testSearchBox" id="pssExportButtons"></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tabOp)))
+                        let $table = '';
+                        $table = $formDivContainer.find('table');
+
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [
+                                [10, 15, 20, 25, 50, 100, 0],
+                                ["10", "15", "20", "25", "50", "100", "All"]
+                            ],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.Pageindex * ajaxOutput.PageSize,
+                            "pageLength": ajaxOutput.PageSize,
+                            "recordsFiltered": ajaxOutput.PageSize,
+                            "ajax": returnajaxPagination({
+                                apiurl: pageUrl,
+                                pageSize: ajaxOutput.PageSize,
+                                'AsonDate': $('[name=AsonDate]').val(),
+                                'DemandDays': $('[name=DemandDays]').val(),
+                                'FK_Papper': $('[name=FK_Paper]').val(),
+                                'FK_Provider': $('[name=FK_Provider]').val(),
+                                'PmdPaperNo': $('[name=PmdPaperNo]').val(),
+                                'FK_ModuleType': $('[name=ID_FIELD]').val(),
+                                'TransMode': RenewalreportTransMode,
+                                'Mode': masterId,
+
+
+
+                            }, tabOp, $table, titlepdf)
+                        });
+                       fn_setExportTableHead($table, titlepdf, [0, 2, 3, 4, 5, 6], "portrait", $thisForm);
+                        $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            $formDivContainer.append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tabOp)))
+                            let $table = '';
+                            $table = $formDivContainer.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.Pageindex * ajaxOutput.PageSize,
+                                "pageLength": ajaxOutput.PageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+
+                                "ajax": returnajaxPagination({
+                                    apiurl: pageUrl, pageSize: ajaxOutput.PageSize,
+                                    'AsonDate': $('[name=AsonDate]').val(),
+                                    'DemandDays': $('[name=DemandDays]').val(),
+                                    'FK_Papper': $('[name=FK_Paper]').val(),
+                                    'FK_Provider': $('[name=FK_Provider]').val(),
+                                    'PmdPaperNo': $('[name=PmdPaperNo]').val(),
+                                    'FK_ModuleType': $('[name=ID_FIELD]').val(),
+                                    'TransMode': RenewalreportTransMode,
+                                    'Mode': masterId,
+
+                                }, tabOp, $table, titlepdf)
+                            });
+
+                            fn_setExportTableHead($table, titlepdf, [0, 2, 3, 4, 5, 6], "portrait", $thisForm);
+                            $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_leadgeneration_body').find('.SearchLoadDiv')).offset().top }, 1000);
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.IsProcess, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                  
+            },
+            complete: function () {
+              
+            }
+        });
+    }
+    
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid, title) {
+        debugger 
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+
+                let input = {
+                    PageSize: info.length,
+                    Pageindex: info.page,
+                    AsonDate: ajaxInfo.AsonDate,
+                    FK_Papper: ajaxInfo.FK_Paper,
+                    FK_Provider: ajaxInfo.FK_Provider,
+                    PmdPaperNo: ajaxInfo.PmdPaperNo,
+                    FK_ModuleType: ajaxInfo.ID_FIELD,
+                    DemandDays: ajaxInfo.DemandDays,
+                    TransMode: RenewalreportTransMode,
+                    Mode: ajaxInfo.Mode,
+
+
+                };
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [ [10, 15, 20, 25, 50, 100, 0],["10", "15", "20", "25", "50", "100", "All"] ],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.PageIndex * dtajaxOutput.PageSize,
+                    "pageLength": dtajaxOutput.PageSize,
+                    "recordsFiltered": dtajaxOutput.PageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid, title)
+                })
+              fn_setExportTableHead(tableid, title, [0, 2, 3, 4, 5, 6, 7, 8, 9])
+            },
+        }
+    }
+
+
+     function Cleardetailsfilter(ele) {
+
+        let $container = $(ele).closest('[perfect-class="form"]');
+
+        
+        $container.find('[perfect-ctype="select"]').val(0).selectpicker('refresh');        
+        $container.find('[perfect-ctype="select"]').val('').selectpicker('refresh');        
+        $container.find('[perfect-ctype="date"]').val(moment().format('YYYY-MM-DD'));
+        $container.find('[perfect-ctype="hidden"]').val("");
+         $container.find('[perfect-ctype="input"]').val("");
+         $('[name=DemandDays]').val(30);
+       
+        
+    }
+   /* ----------------------------------------------------------------------------------
+    * Aiswarya   Modified For Loading Provider based on Paper*/
+    
+      function fn_selectprovider(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let $placeDropdown = $thisForm.find('[name=FK_Provider]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+       let FK_Paper = $thisForm.find('[name=FK_Paper]').val()
+        
+        $.ajax({
+            url: "@Url.Action("BindProvider", "Paper")",
+            type: "POST",
+
+            data: JSON.stringify({ FK_Paper: FK_Paper,}),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Process.IsProcess) {
+
+                    $.each(ajaxOutput.Data, function (key, value) {
+                        $placeDropdown.append($('<option/>', { "value": value.ID_Provider }).text(value.ProvName)).selectpicker('refresh')
+                    });
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        
+                    });
+                }
+            }
+
+        });
+
+
+    }
+   
+   /* ----------------------------------------------------------------------------------*/
+</script>

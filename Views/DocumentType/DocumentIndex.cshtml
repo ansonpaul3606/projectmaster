@@ -1,0 +1,384 @@
+﻿@{
+    ViewBag.Title = "Document Type";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="document-sample-form">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script>
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                
+                 @if (ViewBag.PagedAccessRights.UsrrlTyView) {
+        <text> { displayName: "View", action: editDocument },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+             {
+                 <text> { displayName: "Delete", action: deleteDocument },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["Document", "ShortName"],
+            hideColumn: [],
+            rowClickAction: editDocument,
+            renameHeader: { "SlNo": "SL NO", "Document": "Name", "ShortName": "Short Name" },
+            serialNo: true,
+        };
+        var validationMessage = {
+            'Document': {
+                'required': 'Please Enter Name',
+                'stringonly': 'Invalid Document Name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter Short Name',
+                'stringonly': 'Invalid Document Short Name',
+          
+                'alphanumeric': 'Invalid Document Short Name',
+            },
+
+            
+            'Description': {
+                'required': 'Please Enter  Description',
+
+            }
+
+        }
+
+
+
+        $(document).ready(function () {
+            InnitialDocform();
+        });
+
+        function InnitialDocform() {
+            loadDoclistForm();
+
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text> loadDocumentList(this); </text>
+              }
+            
+
+        }
+
+        function loadDoclistForm()
+        {
+            $('#document-sample-form').load("@Url.Action("LoadDocumentTypeForm", "DocumentType")", function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({
+                    // ...
+                    messages: validationMessage
+                    // ...
+                });
+                $thisForm.attr('perfect-onFormSuccess', 'InnitialDocform');
+
+            });
+        }
+
+        function loadDocumentList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Document Type List');
+          let pageUrl = '@Url.Action("GetDocumentList", "DocumentType")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('DocumentType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("DocumentType");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadDocumentList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("DocumentType");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadDocumentList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+          
+
+ function editDocument() {
+
+            let $thisUser = $(this).closest('tr');
+     let savedData = $thisUser.data('pData');
+
+
+
+     $('.dataTable tr').removeClass("SelectForDelete");
+     $(this).closest('tr').addClass('SelectForDelete');
+
+            
+     let inputData = { DocumentTypeID: savedData.DocumentTypeID };
+            
+            //dbcall
+            $('#document-sample-form').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetDocumentInfo", "DocumentType")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                contentType: "application/json",
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                            if (ajaxOutput.Process.IsProcess) {
+
+
+                                $('#document-sample-form').load("@Url.Action("LoadDocumentTypeForm", "DocumentType")", function () {
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Document)
+                                    console.log('Inside load');
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+
+                                    $thisForm.data({ 'pData': ajaxOutput.Data[0] });//setting pdata : which is used to get PostID when updating the  form in partial page
+
+
+                                    $thisForm.find('[name=Document]').val(ajaxOutput.Data[0].Document),
+                                        $thisForm.find('[name=ShortName]').val(ajaxOutput.Data[0].ShortName),
+                                        $thisForm.find('[name=SortOrder]').val(ajaxOutput.Data[0].SortOrder),
+                                        $thisForm.find('[name=Description]').val(ajaxOutput.Data[0].Description)
+                                    //show update button
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'InnitialDocform');
+
+                                    $sideMenuOptions.close();
+
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    // toastr.warning(value, "Error");
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+
+            });
+
+        }
+
+
+        function deleteDocument() {
+            let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+    
+               $.ajax({
+                   url: "@Url.Action("GetDocumentDeleteReasonList", "DocumentType")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                          //old delete section
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.Document + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                       __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        DocumentTypeID: Saveddata.DocumentTypeID,
+                                        ReasonID: ret
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteDocument", "DocumentType")",
+                                        type: "POST",
+                                        data: inputData, //antiforgery token removed json.stringify
+                                        contentType: "application/x-www-form-urlencoded; charset=utf-8",//antiforgery token changed json->x-www-form-urlencode...
+                                        success: function (data) {
+
+                                            if (data.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                loadDoclistForm();
+                                                InnitialDocform();
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    //toastr.success(value, "Success");
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(data.Process.Message, function (key, value) {
+                                                    // toastr.warning(value, "Error");
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                            //row.remove();
+                                            //$(row).closest('table').reload()
+                                            
+                           
+                                        }
+                                    });
+                                }
+                                else {
+                                    //toastr.warning("Clicked no in comfirmation box", "Confirmation Box in table");
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+
+                           //old delete section
+
+                    }
+                }
+
+            });
+
+
+
+
+        };
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+
+
+
+
+
+
+
+}

@@ -1,0 +1,513 @@
+﻿
+@{
+    ViewBag.Title = "LogIndex";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_LogIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+        var LogTransMode = '';
+        var logID = 0;
+        const LastIDSessionKey = 'EquipmentLogLastID';
+        var LastID_EquipmentLog;
+    const $formContainer = $('#jq_LogIndex_formContainer');
+    $(document).ready(function () {
+        fn_LogIndex_initialLoad();
+    });
+
+    function fn_LogIndex_initialLoad() {
+
+        LogTransMode = '@ViewBag.TransMode';
+       
+        loadLogList(this, loadAddLogForm);
+    }
+    var validationMessage = {
+
+        'LogStartDate': {
+            'required': 'Please Select Start Date',
+            //'max': jQuery.validator.format('Please Enter a Valid Date')
+        },
+        'Employee': {
+            'required': function () {
+                if (LogTransMode == 'VLLOG') {
+                    return 'Please select Driver'
+                }
+                else if (LogTransMode == 'TOLOG') {
+                    return 'Please select Operator'
+                }
+            }
+        },
+        'LogStartTime': {
+            'required': 'Please Select Start Time'
+        },
+        'LogEndDate': {
+            'required': 'Please Select End date',
+           //  'max': jQuery.validator.format('Please Enter a Valid Date')
+        },
+        'LogEndTime': {
+            'required': 'Please Select End Time'
+        },
+        'LogDescription': {
+            'required': function () {
+                if (LogTransMode == 'VLLOG') {
+                    return 'Please enter Route details'
+                }
+                else if (LogTransMode == 'TOLOG') {
+                    return 'Please enter Description'
+                }
+            }
+        },
+        'LogFuelType': {
+            'required': 'Please Select fuelType'
+        },
+
+        'LogFuelAmount': {
+            'required': 'Please Enter Fuel Amount'
+        },
+        'LogEndKm': {
+            'required' : 'Please Enter Ending Kilometer '
+        },
+       'LogStartKm': {
+           'required': 'Please Enter Start Kilometer '
+        },
+        'ID_Name': {
+            'required': function () {
+                if (LogTransMode == 'TOLOG') {
+                    return 'Please select Tool'
+                }
+                else if (LogTransMode == 'VLLOG') {
+                    return 'Please select Vehicle'
+
+                }
+            }
+        },
+        'VlgLogDate': {
+            'required': 'Please Select Log Date',
+            'max': jQuery.validator.format('Please Enter a Valid Date')
+
+        },
+        'VtlLogDate': {
+            'required': 'Please select Log date'
+        },
+        'OtherCharge': {
+            'maxlength': 'Please enter no more than 12 Numbers.'
+        },
+        'PAmount': {
+            'maxlength': 'Please enter no more than 12 Numbers.'
+        },
+        'otheramt': {
+            'maxlength': 'Please enter no more than 12 Numbers.'
+        },
+
+
+
+    }
+
+    function loadAddLogForm() {
+
+        $formContainer.load('@Url.Action("LogView", "EquipmentLog")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="LogStartDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="LogEndDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="VtlLogDate"]').val(moment().format('YYYY-MM-DD'));
+            $thisForm.find('[name="LogStartKm"]').val(0);
+            $thisForm.find('[name="LogEndKm"]').val(0);
+
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'fn_LogIndex_initialLoad');
+            getSessionValue(LastIDSessionKey, function (result) {
+                LastID_EquipmentLog = result;
+            });
+
+        });
+
+    }
+
+
+    var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                               {
+
+                                <text>   { displayName: "View", action: fn_LogIndex_UpdateForm }, </text>
+                              }
+
+                  { type: "divider" },
+
+                    @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                         {
+                               <text> { displayName: "Delete", action: deletelog},</text>
+                        }
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+        onlyShowColumn: ["SlNo", "VtLogStartDate", "VtLogEndDate", "Employee", "VtLogEndTime","VtLogStartTime"],
+            hideColumn: [],
+            rowClickAction: fn_LogIndex_UpdateForm,
+        renameHeader: { "SlNo": "SL No", "Employee": '@ViewBag.headlog', "VtLogStartDate": "StartDate", "VtLogEndDate": "End Date", "VtLogEndTime": "End Time", "VtLogStartTime": "Start Time" },
+        isDateType: ['VtLogStartDate', 'VtLogEndDate'],
+
+        };
+
+    function loadLogList(ele,callback) {
+       
+
+
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            //console.log("GHc", SearchName)
+        if (SearchName == undefined) {
+            SearchName = '';
+        }
+
+
+            //let tableOptions = servtableOptions;
+
+
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+            let pageUrl = "@Url.Action("GetLogList", "EquipmentLog")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: LogTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput)
+                    if (ajaxOutput.Process.IsProcess) {
+                       // debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadLogList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        //$sidemenu.append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control "id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_Servicebill_Select(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: LogTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey, 0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadLogList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: LogTransMode}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+      debugger
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+
+
+       function fn_LogIndex_UpdateForm() {
+
+        
+         let $thisUser = $(this).closest('tr');
+         let savedData = $thisUser.data('pData');
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+         $(this).closest('tr').addClass('SelectForDelete');
+           console.log('fd', savedData);
+
+
+         $formContainer.load('@Url.Action("LogView", "EquipmentLog")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+                            debugger
+                            //$(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].ALWName);
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $thisForm.validate({ messages: validationMessage });
+                           // $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+
+                            //$thisForm.find('button[name=add]').addClass('d-none');
+                            //$thisForm.find('button[name=update]').removeClass('d-none');
+
+             $thisForm.find('[name="ID_Name"]').val(savedData.Vehicle).selectpicker('refresh');
+             $thisForm.find('[name="Employee"]').val(savedData.Employee).selectpicker('refresh');
+             $thisForm.find('[name="EmployeeID"]').val(savedData.FK_Employee).selectpicker('refresh');
+             $thisForm.find('[name="ID_FIELD"]').val(savedData.FK_Vehicle).selectpicker('refresh');
+             $thisForm.find('[name="LogStartDate"]').val(moment(savedData.VtLogStartDate).format('YYYY-MM-DD'));
+             $thisForm.find('[name="LogStartTime"]').val(savedData.VtLogStartTime);
+             $thisForm.find('[name="LogEndDate"]').val(moment(savedData.VtLogEndDate).format('YYYY-MM-DD'));
+             $thisForm.find('[name="VtlLogDate"]').val(moment(savedData.VtlLogDate).format('YYYY-MM-DD'));
+             $thisForm.find('[name="LogEndTime"]').val(savedData.VtLogEndTime);
+             $thisForm.find('[name="LogDescription"]').val(savedData.VtLogDescription);
+             $thisForm.find('[name="LogRemarks"]').val(savedData.VtLogRemarks);
+             $thisForm.find('[name="OtherCharge"]').val((savedData.VtLogOtherCharges).toFixed(2));
+             $thisForm.find('[name="LogNetAmount"]').val((savedData.VtLogNetAmount).toFixed(2));
+             $thisForm.find('[name="LogTotAmount"]').val((savedData.VtLogTotalAmount).toFixed(2));
+             $thisForm.find('[name="LogFuelAmount"]').val(savedData.VtLogFuelAmount);
+             $thisForm.find('[name="LogFuelType"]').val(savedData.VtlogFuelType).selectpicker('refresh');
+             $thisForm.find('[name="LogStartKm"]').val(savedData.VtlogStartKm);
+             $thisForm.find('[name="LogEndKm"]').val(savedData.VtlogEndKm);
+             $thisForm.find('[name="ID_VehicleAndToolLog"]').val(savedData.ID_VehicleAndToolLog);
+
+             logID = savedData.ID_VehicleAndToolLog;
+                                //$thisForm.find('[name=Sort]').val(ajaxOutput.Data[0].Sort)
+
+
+
+
+
+           let inputData = {
+               FK_VehicleAndToolLog: savedData.ID_VehicleAndToolLog,
+               TransMode: LogTransMode
+           };
+            //dbcall
+           // $('#jq_LogIndex_formContainer').empty();
+               $.ajax({
+                 url: '@Url.Action("GetLogInfoByID", "EquipmentLog")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                 type: "POST",
+                 data: inputData,//<---- Input json : data passed to controller
+                 dataType: "json",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                       console.log('ajaxOutput', ajaxOutput);
+
+                       if (ajaxOutput != null) {
+                          
+                           $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+
+                           if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                               let othechg = ajaxOutput.OtherCharge.Data;
+                               console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                               othrchargelst = [];
+                               othrchargelst = othrchargelst.concat(othechg);
+                               console.log('OTH INFOT>', othrchargelst);
+                               $thisForm.data({ prtothchgData: othrchargelst });
+                           }
+                           if (ajaxOutput.lgdata.Process.IsProcess) {
+                              
+                        
+                               fn_fillVtLog($thisForm, 'MaintenanceDetails', ajaxOutput.lgdata.Data, tableOptionsTemp);
+                           }
+                         
+                           //if (savedData.ID_VehicleAndToolLog != 0) {
+                           //    fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                           //}
+                           //if (ajaxOutput.paymentdetail.Process.IsProcess) {
+                           //    fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                           //}
+                           let adamt = 0;
+                           $thisForm.find('[name=BalAmt]').text(parseFloat(adamt).toFixed(2));
+                           if (ajaxOutput.paymentdetail.Process.IsProcess) {
+                               $thisForm.data({ pEPayment: ajaxOutput.paymentdetail.Data });
+                               $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+                               fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                           }
+                           $thisForm.find('button[name=add]').addClass('d-none');
+                           $thisForm.find('button[name=update]').removeClass('d-none');
+                             $thisForm.attr('perfect-onFormSuccess', 'fn_LogIndex_initialLoad');
+                           //}
+
+                       }
+                       else {
+                           $.each(ajaxOutput.lgdata.Process.Message, function (key, value) {
+                               NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                               // $('.dataTable tr').removeClass("SelectForDelete");
+                           });
+                       }
+                 },
+
+               }); $sideMenuOptions.close();
+         });
+
+       }
+
+    function deletelog() {
+
+        
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        console.log(Saveddata,'sa')
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetlogReasonList", "EquipmentLog")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    debugger;
+                    console.log('ajre', ajaxReasonOutput)
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                      
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    ID_VehicleAndToolLog: Saveddata.ID_VehicleAndToolLog,
+                                    ReasonID: ret,
+                                    TransMode: LogTransMode
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteLog", "EquipmentLog")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();
+                                                loadAddLogForm();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+
+        }
+
+    
+
+
+  
+
+
+    </script>
+}
+

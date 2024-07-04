@@ -1,0 +1,579 @@
+﻿@model PerfectWebERP.Models.EMICollectionReportModel.ReportViewlist
+@{
+    string ColumnName = "", Allignment = ""; string[] Column;
+}
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    #R_DTable > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">EMI Collection Report</h4>
+        </div>
+        @*<div class="col-xl-7 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_Customer_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+
+        </div>*@
+        @*<div class="col-xl-1 text-right">
+                <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                    <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                        <a class="dropdown-item" href="#" onclick="onExell(this)">EXCEL </a>
+
+                    </div>
+                </div>
+            </div>*@
+
+    </div>
+    <div class="card-body Customer_rp">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onformsuccess="AccountsReportInitialLoad" novalidate="novalidate">
+            <div class="CustomerReportfilters">
+                <div class="">
+                    <div class="row">
+
+                        <div class="col-sm-6">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label ">
+                                    <span perfect-class="formGroupLabel">Report Name</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@ViewBag.Company" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" id="Admin" name="Admin" class="form-control" value="@ViewBag.Admin" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" id="Manager" name="Manager" class="form-control" value="@ViewBag.Manager" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <select class="form-control perfectValidate_numeric Action  Actionbill" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                        <option value="">Please select</option>
+                                        <option value="1" selected>EMI Collection List</option>
+                                    </select>
+                                    <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 divBranch" id="divBranch">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+                                    <input type="hidden" name="FK_BranchMode" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control   rptfilters" id="BranchID" name="BranchID" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                        <option value="  ">All</option>
+
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branchList in Model.BranchList)
+                                            {
+                                                if (branchList.BranchID == ViewBag.FK_Branch)
+                                                {
+                                                    <option value="@branchList.BranchID" selected>@branchList.Branch</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@branchList.BranchID">@branchList.Branch</option>
+                                                }
+
+                                            }
+
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivFromDate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">From Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control perfectValidate_date  FromDate rptfilters Actionbill" id="FromDate" onchange="checkLimit(this)" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date">
+                                    <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror " style="display: none;">Please Select From Date</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivToDate">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">To Date</span>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control perfectValidate_date  ToDate rptfilters Actionbill" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                    <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivAmountCriteria">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Amount Criteria</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control   rptfilters" id="AmountCriteria" name="AmountCriteria" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="AmountCriteriaCheck(this),clearAmountFromTo(this)">
+
+                                        <option value="0">Please Select</option>
+
+                                        @if (!(Model.CommonListAmount is null))
+                                        {
+                                            foreach (var modeList in Model.CommonListAmount)
+                                            {
+                                                <option value="@modeList.ID_Mode">@modeList.ModeName</option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 DivAmount">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel" name="SltName">Amount</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" placeholder="" maxlength="12" id="AmountFrom" name="AmountFrom" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'AmountFrom',3)" onchange="AmountCriteriaCheck(this)" />
+                                        <input type="text" style="display:none" class="form-control" maxlength="12" placeholder="" id="AmountTo" name="AmountTo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'AmountTo',3)" onchange="AmountCriteriaCheck(this)" />
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*@if (ViewBag.Manager || ViewBag.Admin)
+        {*@
+                        <div class="col-sm-6 DivEmployeeName">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Collected By</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" disabled />
+                                        <input type="hidden" id="Employee_ID" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+
+                                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="Employee" BindVal="Employee_ID" Function="1"></button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        @*}*@
+
+
+
+                        @*else
+        {*@
+                        @*<div class="col-sm-6 DivEmployeeName">
+            <div class="form-group row" perfect-class="formGroup">
+                <label class="col-sm-4 col-form-label rptfilterfields">
+                    <span perfect-class="formGroupLabel">Collected By</span>
+                </label>
+                <div class="col-sm-8">
+                    <div class="input-group">
+
+                        <input type="text" class="form-control rptfilters" name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" placeholder="Select Employee" value='@ViewBag.Employee' disabled />
+                        <input type="hidden" name="Employee_ID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value='@ViewBag.FK_Employee' />
+
+                        <div class="input-group-append">
+
+                            <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,148,'Employee List',[])" Criterea1="BranchID" Criterea2="0" BindName="Employee" BindVal="Employee_ID" disabled></button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>*@
+                        @*}*@
+
+                        <div class="col-sm-6 DivDateCriteria">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Date Criteria</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control rptfilters" id="DateCriteria" name="DateCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                        @if (!(Model.CommonListDate is null))
+                                        {
+                                            foreach (var modeList in Model.CommonListDate)
+                                            {
+                                                if (@modeList.selected == 1)
+                                                {
+                                                    <option value="@modeList.ID_Mode" selected>@modeList.ModeName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@modeList.ID_Mode">@modeList.ModeName</option>
+                                                }
+
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 DivGroupCriteria">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Grouping</span>
+                                    <span class="text-danger"></span>
+                                </label>
+                                <div class="col-sm-8 ">
+                                    <select class="form-control rptfilters" id="GroupCriteria" name="GroupCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" perfect-selectButtonAction="testing" perfect-elemet="bom" perfect-onloadSelect="">
+                                        <option value="">Please select</option>
+                                        @if (!(Model.GroupByList is null))
+                                        {
+                                            foreach (var groupList in Model.GroupByList)
+                                            {
+                                                if (@groupList.selected == 1)
+                                                {
+                                                    <option value="@groupList.ID_Mode" selected>@groupList.ModeName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@groupList.ID_Mode">@groupList.ModeName</option>
+                                                }
+
+                                            }
+
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 filter Area">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label rptfilterfields">
+                                    <span perfect-class="formGroupLabel">Area</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control rptfilters" name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                        <input type="hidden" name="AreaID" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                        <div class="input-group-append">
+                                                                                                                                                 
+                                            <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchValAssign(this,14,'Area List',[''])" Criterea1="0" Criterea2="0" BindName="Area" BindVal="AreaID" Function="2"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="ShowReport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+                </div>
+            </div>
+
+            <br />
+
+            <div id="divReportSection">
+
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+    const $formContainer = $('#divReportSection');
+
+    $(document).ready(function () {      
+
+        if ('@ViewBag.Admin' == 'True') {
+            $('#divBranch *').prop('disabled', false);
+        }
+        else {
+            $('#divBranch *').prop("disabled", "disabled");
+        }
+        
+    });
+    function ResetButton() {
+        fn_EMICollection_initialLoad();
+    }
+    function getfunction() {
+        $("#divReportSection").html("");
+    }
+    function getfunctionAssign() {
+        $("#divReportSection").html("");
+    }
+    function ShowReport(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //if (ValidateAddrepdetails($('#ID_Report').val()) <= 0) {
+
+        //  if (ValidateForm($('#ID_Report').val(), $thisForm) <= 0) {
+        var dateval = true;
+        $("#divReportSection").html("");
+        if ($('#ID_Report').val() == 1) { dateval = checkLimit(ele) }
+        if ($thisForm.valid()) {
+            if (checkLimit(ele)) {
+                if (AmountCriteriaCheck(ele)) {
+
+                    $thisForm.find('[name="AmountCriteria"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+                    $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+
+                    var Report_Id = $('#ID_Report').val();
+                    var Company = $thisForm.find('[name="Companyname"]').val();
+                    var Fromdate = $('#FromDate').val();
+                    var Todate = $('#ToDate').val();
+                    var Branch = $('#BranchID').val();
+                    var AmountCriteria = $('#AmountCriteria').val();
+                    var AmountFrom = $('#AmountFrom').val();
+                    var AmountTo = $('#AmountTo').val();
+                    var Employee_ID = $('#Employee_ID').val();
+                    var DateCriteria = $('#DateCriteria').val();
+                    var GroupCriteria = $('#GroupCriteria').val();
+                    var AreaID = $thisForm.find('[name="AreaID"]').val();
+                    ////filter
+                    debugger
+                    
+                    let inputData = {
+                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                        ReportMode: Report_Id,
+                        FromDate: Fromdate,
+                        ToDate: Todate,
+                        FK_Branch: Branch,
+                        AmountCriteria: AmountCriteria,
+                        AmountFrom: AmountFrom,
+                        AmountTo: AmountTo,
+                        Employee_ID: Employee_ID,
+                        DateCriteria: DateCriteria,
+                        GroupCriteria: GroupCriteria,
+                        CompName: Company,
+                        FK_Area: AreaID
+                    };
+                    let pageUrl = '@Url.Action("GetEMIReportData", "EMICollectionReport")';
+                    $.ajax({
+                        url: pageUrl,
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                            debugger
+                            console.log('ajaxOutput>>', ajaxOutput);
+                            var rptmode = $('select[name="ID_Report"] option:selected').val();
+                           
+                            $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+                                
+                            });
+                        }
+                    });
+                }
+
+            }
+        }
+
+
+
+
+
+    }
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+        $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+        if (Todate < Fromdate) {
+            console.log('inside limit check if');
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').show();
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than or equal to From Date');
+            return false;
+        }
+        else {
+            console.log('inside limit check else');
+
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+    }
+    function AmountCriteriaCheck(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+        debugger
+        
+        let AmountFrom = isNaN(parseFloat($thisForm.find('[name="AmountFrom"]').val())) ? "" : parseFloat($thisForm.find('[name="AmountFrom"]').val());
+        let AmountTo = isNaN(parseFloat($thisForm.find('[name="AmountTo"]').val())) ? "" : parseFloat($thisForm.find('[name="AmountTo"]').val());
+        let AmountCriteria = parseFloat($thisForm.find('[name="AmountCriteria"]').val()); 
+        let valid = true;
+        if (AmountCriteria == 6) {
+            $("#AmountTo").css("display", "block");
+            $thisForm.find('[name="SltName"]').text('Amount From / Amount To');
+        }
+        else {
+            $("#AmountTo").css("display", "none");
+            $thisForm.find('[name="SltName"]').text('Amount');
+        }
+        if (AmountCriteria != 0) {
+            if (AmountCriteria == 6 && (AmountFrom === "" || AmountFrom < 0) && (AmountTo === "" || AmountTo < 0)) {
+                $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Enter Amount From and Amount To');
+                valid = false;
+            }
+            else if (AmountCriteria == 6 && (AmountFrom > AmountTo) && (AmountFrom !== "" && AmountTo!=="")) {
+                $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Amount From Should be less than Amount To');
+                valid = false;
+            }
+            else if (AmountCriteria == 6 && AmountFrom !== "" && (AmountTo === "" && AmountTo !== 0)) {
+                $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Enter Amount To');
+                valid = false;
+            }
+            else if (AmountCriteria == 6 && (AmountFrom == AmountTo) && (AmountFrom!==""&& AmountTo!=="")) {
+                $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+            }
+            else if (AmountCriteria != 0 && AmountCriteria != 6 && (AmountFrom < 0|| AmountFrom === "" )) {
+                $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Enter Amount');
+                valid = false;
+            }
+            else if (AmountTo != 0 || AmountTo!=="") {
+                if (AmountFrom == "" && AmountFrom!==0) {
+                    $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Enter Amount From');
+                    valid = false;
+                }
+            }
+
+        }
+        else if ((AmountFrom >= 0) && AmountCriteria == 0 && AmountFrom!=="") {
+            $thisForm.find('[name="AmountCriteria"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('Select Amount Criteria');
+            valid = false;
+        }
+        else {
+            $thisForm.find('[name="AmountCriteria"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+            $thisForm.find('[name="AmountFrom"]').closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+            valid = true;
+        }
+        return valid;
+    }
+
+
+
+    function clearAmountFromTo() {
+        let $thisForm = $('[perfect-class="form"]');
+        let AmountCriteria = $thisForm.find('[name="AmountCriteria"]').val(); 
+        if (AmountCriteria != 6) {
+            $thisForm.find('[name="AmountTo"]').val("");
+        }
+        
+    }
+    function decimalpnt(ele, id, range) {
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            else if (ele.value === '.' && (event.key === '.' || event.keyCode === 190)) {
+                ele.value = '0.00'; // Change the value to '0.00' if only a dot is entered
+                // Prevent the dot from being entered in the input field
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+        });
+    }
+</script>

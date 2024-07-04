@@ -1,0 +1,180 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Athul mathew
+    Created On	: 02/02/2022
+    Purpose		: Customer service asssign
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*@
+
+@model PerfectWebERP.Models.CustomerserviceregisterModel.CustomerserviceregisterView
+@{
+    ViewBag.Title = "Serviceassign";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Customerserviceregister-form">
+
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+@section scripts{
+
+<script>
+
+    const $formContainer = $('#Customerserviceregister-form');
+
+    $(document).ready(function () {
+
+        fn_ServiceAssign_LoadAssignForm();
+
+        $('#jq-sidemenu').hide();      
+
+    });
+    function fn_showFilter() {
+        $formContainer.find('.jq_leadgeneration_body').toggleClass('.d-none');
+    }
+    var validationMessage = {
+
+
+        'CSAPriority': {
+            'required': 'Please select priority',
+
+        },
+        'CSAVisitdate':
+        {
+            'required': 'Please enter Attended date',
+
+        },
+
+
+        'Attendedby': {
+
+            'required': 'Please Select Attended By',
+
+        },
+    };
+
+     // Fucntion to load Customer Service Register ADD form
+    function fn_ServiceAssign_LoadAssignForm() {
+
+         $formContainer.load('@Url.Action("LoadServiceassignForm", "Service")?mtd=@ViewBag.mtd', function () {
+             let $thisForm = $(this).find('[perfect-class="form"]');
+             //$thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').addClass('d-none');
+             //$thisForm.closest('.jq_leadgeneration_bodys').find('.leadformSesctions').addClass('d-none');
+             //$thisForms.find('[name="CSAVisitdate"]').val(moment().format('YYYY-MM-DD'));
+                 // ... Custom validation message
+             $thisForm.validate({
+                 messages: validationMessage
+             });
+
+             $thisForm.attr('perfect-onFormSuccess', 'fn_ServiceAssign_LoadAssignForm');
+
+             get_tab_count(this);
+
+            });
+        }
+    function fn_showFilter() {
+
+        $formContainer.find('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+
+    }
+
+    function get_tab_count(ele) {
+      
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var InputData = {
+            'Customer': $('[name=Customer]').val().trim(),
+            'FromDate': $('[name=FromDate]').val(),
+            'ToDate': $('[name=ToDate]').val(),
+            'FK_Branch': $('[name=Branch]').val().trim(),
+            'Status': $('[name=Complaintstatus]').val().trim(),
+            'FK_ComplaintType': $('[name=ComplaintType]').val().trim(),
+            'FK_Product': $('[name=ProductID]').val().trim(),
+            'Mobile': $('[name=Mobile]').val().trim(),
+            'Sortorder': $('[name=Sortorder]').val().trim(),
+            'TicketNumber': $('[name=Ticket]').val().trim(),
+            'pageSize': 15,
+            'pageIndex': 0,
+            'Mode': 1,
+            'FK_Area': $('[name=AreaID]').val().trim(),
+            'FK_Post': $('[name=PostID]').val().trim(),
+            'FK_Employee': $('[name=FK_EmployeeSearch]').val().trim(),
+            'DueDays': $('[name=DueDays]').val().trim(),
+        }
+         console.log('FILTER INPUT 2', InputData);
+         let pageUrl = '@Url.Action("GetSearchResults", "Service")';
+         $.ajax({
+             url: pageUrl,
+             type: "POST",
+             data: InputData,
+             dataType: "json",
+             contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+             success: function (ajaxOutput) {
+                 console.log('> Count data', ajaxOutput);
+         
+                 if (ajaxOutput.Process.IsProcess) {
+                     $("#Onhold").attr('style', "" + ajaxOutput.obj.CompletedStatus + "");
+                     $("#pending").attr('style', "" + ajaxOutput.obj.PendingStatus + "");
+                     $("#pickup").attr('style', "" + ajaxOutput.obj.PickupRequestStatus + "");
+                     $("#replacement").attr('style', "" + ajaxOutput.obj.ReplacementRequestStatus + "");
+                     $("#deliveryrequest").attr('style', "" + ajaxOutput.obj.DeliveryRequestStatus + "");
+                     $("#factory").attr('style', "" + ajaxOutput.obj.FactoryServiceStatus + "");
+                     //$("#Onhold").attr('style', "block");
+                     //$("#pending").attr('style', "block");
+                     //$("#pickup").attr('style', "block");
+                     //$("#replacement").attr('style', "block");
+                     //$("#deliveryrequest").attr('style', "block");
+                     //$("#factory").attr('style', "block");
+                     
+                     $('#todobadge').html("" + ajaxOutput.obj.New == null ? 0 : ajaxOutput.obj.New + "");
+                    
+                     $('#overduebadge').html("" + ajaxOutput.obj.Completed == null ? 0 : ajaxOutput.obj.Completed + "");
+                     $('#pendingbadge').html("" + ajaxOutput.obj.Pending == null ? 0 : ajaxOutput.obj.Pending+ "");
+                     $('#pickupbadge').html("" + ajaxOutput.obj.PickupRequest == null ? 0 : ajaxOutput.obj.PickupRequest + "");
+                     $('#replacementbadge').html("" + ajaxOutput.obj.ReplacementRequest == null ? 0 : ajaxOutput.obj.ReplacementRequest + "");
+                     $('#deliverybadge').html("" + ajaxOutput.obj.DeliveryRequest == null ? 0 : ajaxOutput.obj.DeliveryRequest + "");
+                     $('#factorybadge').html("" + ajaxOutput.obj.FactoryService == null ? 0 : ajaxOutput.obj.FactoryService+ "");       
+
+
+         
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {                     
+                         //NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('#todobadge').html(0);
+
+                         $('#overduebadge').html(0);
+                         $('#pendingbadge').html(0);
+                         $('#pickupbadge').html(0);
+                         $('#replacementbadge').html(0);
+                         $('#deliverybadge').html(0);
+                         $('#factorybadge').html(0);       
+
+                     });
+                 }
+         
+             },
+             complete: function () {
+         
+             }
+         });
+    }
+
+</script>
+
+
+}
+
+
+
+
+

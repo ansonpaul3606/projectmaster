@@ -1,0 +1,264 @@
+﻿@model PerfectWebERP.Models.SalesReturnGSTReportModel.SalesReturnGSTReportListModel
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        @*<div class="col-xl-4 text-right">
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>*@
+
+    </div>
+    <div class="card-body ReportFilter">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control  perfectValidate_string rptfilters" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    <option value="20">Sales Return GST Reports</option>
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 Divbranch">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            @*if (branchList.BranchID == ViewBag.FK_Branch)
+                                                {
+                                                    <option value="@branchList.BranchID" selected>@branchList.Branch</option> }
+                                                else
+                                                {*@
+                                            <option value="@branchList.BranchID">@branchList.Branch</option>
+                                            //}
+
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 ">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Date Range</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div id="reportrange" name="datefilter" class="pull-left form-control" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                    <span></span> <b class="caret"></b>
+                                </div>
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 Divdepartment">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    <option value="0">Please Select</option>
+
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var departmentList in Model.DepartmentList)
+                                        {
+                                            @*if (departmentList.DepartmentID == ViewBag.FK_Department)
+                                                {
+                                                    <option value="@departmentList.DepartmentID" selected>@departmentList.DepartmentName</option> }
+                                                else
+                                                {*@
+                                            <option value="@departmentList.DepartmentID">@departmentList.DepartmentName</option>
+                                            //}
+
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="ButtonShow" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="GetReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+    <div id="divReportSection">
+
+
+    </div>
+
+</div>
+<script>
+    function ResetButton(ele) {
+        loadSalesReturnGSTReportAddForm();
+    }
+
+    var SRGSTReportstartdate;
+    var SRGSTReportenddate;
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            SRGSTReportstartdate = start.format('DD/MM/YYYY');
+            SRGSTReportenddate = end.format('DD/MM/YYYY');
+        }
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
+
+    function GetReport(ele) {
+        let $thisForm = $('[perfect-class="form"]');
+
+        var Report_Id = $('#ID_Report').val();
+        var BranchID = $('#BranchID').val();
+        var DepartmentID = $('#DepartmentID').val();
+        var Criteria = $thisForm.find('[name="Criteria"]').val();
+
+        if ($thisForm.valid()) {
+
+            $("#divReportSection").html("");
+
+            let InputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                "ReportMode": Report_Id,
+                "FromDate": SRGSTReportstartdate == null ? "01/01/2023" : SRGSTReportstartdate,
+                "ToDate": SRGSTReportenddate == null ? "01/01/2023" : SRGSTReportenddate,
+                "FK_Branch": BranchID,
+                "FK_Department": DepartmentID,
+                "TranSMode": SalesReturnGSTReportsTransMode,  
+
+            };
+            let pageUrl = '@Url.Action("GetSalesReturnGSTReport", "Report")';
+
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    var rptmode = $('select[name="ID_Report"] option:selected').val();
+                    console.log('ajaxOutput>>>>>>>>>>>>>>>>>>', ajaxOutput)
+                    if (ajaxOutput.IsProcess) {
+                        $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+                            $("#rptPdfPageSetup").val("Landscape");
+
+                        });
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': 'No Records Found' });
+                    }
+
+                }
+            });
+        }
+    }
+      function Getdepartmentdefault() {
+
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        //$thisForm.find('[name=BranchTypeID]').val(value.ID_BranchType).selectpicker('refresh');
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+                      
+                         let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+                     
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    $(document).ready(function () {
+
+        Getdepartmentdefault();
+    });
+</script>

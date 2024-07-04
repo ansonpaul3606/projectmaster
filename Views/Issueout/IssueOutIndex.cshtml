@@ -1,0 +1,465 @@
+﻿
+@{
+    ViewBag.Title = "IssueOutIndex";
+}
+
+
+
+<div class="container-fluid">
+
+    @Html.AntiForgeryToken()  @*//antiforgery token*@
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_Issueout_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+
+
+    <script type="text/javascript">
+        const LastIDSessionKey = 'IssueOutLastID';
+        var IssueOutTransMode = '';
+        var LastID_IssueOut;
+        
+        var IssueOutLastID;
+        const $formContainer = $('#jq_Issueout_formContainer');
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: viewdetails },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: deleteIssueOut
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "ISOutDate", "ModeName"],
+            hideColumn: [],
+            rowClickAction: viewdetails,
+            renameHeader: { "SlNo": "SL NO", "ISOutDate": "Date", "ModeName": "Issue Type" },
+            isDateType: ["ISOutDate"],
+        };
+
+        var validationMessage = {
+           
+            'ISOutDate': {
+                'required': 'Please Enter A Date',
+
+            },
+          
+            'DepartmentID': {
+                'required': 'Please select a Department',
+                'stringonly': 'Invalid Department selected',
+
+            },
+            'DepartmentName': {
+                'required': 'Please select a Department',
+                'stringonly': 'Invalid Department selected',
+
+            },
+           
+            'ISOutType': {
+                'required': 'Please select a Issue Mode',
+                'stringonly': 'Invalid Issue Mode selected',
+
+            },
+        }
+
+    $(document).ready(function () {
+    
+      
+    fn_IssueOut_initialload();
+    });
+
+        function fn_IssueOut_initialload() {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            IssueOutTransMode = "";
+         //   getSessionValue("TqsbxzxTL58WL2Jjd/Kxd3JoCEugPgIUQcQ+Lte0+vk=", function (result) {
+                IssueOutTransMode = '@ViewBag.TransMode';              
+               
+          
+            loadIssueoutList(this, fn_loadIssueOutAddForm); 
+           
+    }
+
+
+        function fn_loadIssueOutAddForm() {
+
+            $formContainer.load('@Url.Action("LoadIssueOutForm", "IssueOut")' + '?TransModes=' + IssueOutTransMode, function () {
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name=ISOutDate]').val(moment().format('YYYY-MM-DD'));
+                Getdepartmentdefaults();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'fn_IssueOut_initialload');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_IssueOut = result;
+                });
+               
+    
+    });
+
+        }
+
+        
+        function loadIssueoutList(ele,callback) {
+
+            debugger;
+        let $sidemenu = $sideMenuOptions.body;
+
+     
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+        $sideMenuOptions.title.find('h4').text('Issue Out List');
+          let pageUrl = '@Url.Action("GetIssueOutList", "IssueOut")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: IssueOutTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                          if (ajaxOutput.Process.IsProcess) {
+                             
+                              $sidemenu.find('.jq_sidemenu_title').text("IssueOut");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIssueoutList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: IssueOutTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              setSessionValue(LastIDSessionKey, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Issueout");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIssueoutList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, TransModes: IssueOutTransMode }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+       
+        function viewdetails() {
+            debugger;
+            let $thisUser = $(this).closest('tr');
+             let savedData = $thisUser.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+
+                    IssueOutID: savedData.IssueOutID,
+                    TransMode: IssueOutTransMode
+                };
+             console.log(inputData);
+            //dbcall
+                //$('#Servicemapping_formContainer').empty();
+                    $.ajax({
+                 url: '@Url.Action("GetIssueOutInfo", "IssueOut")',
+                type: "POST",
+                 // headers: { "token_key": "1234" },
+                 data: inputData,//<---- Input json : data passed to controller
+                dataType: "json",
+              contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                            console.log('out',ajaxOutput);
+                         ///success
+                            if (ajaxOutput.Process.IsProcess) {
+
+
+                                $('#jq_Issueout_formContainer').load("@Url.Action("LoadIssueOutForm", "IssueOut")", function () {
+
+
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    //let $container = $(ele).closest('[perfect-class="form"]');
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + moment(ajaxOutput.Data[0].ISOutDate).format('DD-MM-YYYY'))
+                                    console.log('Inside load');
+                                    $thisForm.data({ 'pData': ajaxOutput.Data[0]});
+                                    console.log('1', ajaxOutput.Data[0]);
+                                    
+                                    var TbodyHtml = '';
+                                    var productdata = ajaxOutput.Data[0].IssueOutDetails;
+                                    console.log('TABLE data-->', ajaxOutput.Data[0].IssueOutDetails);
+                                  
+                                    $('#ProductDetailstbody').empty();
+
+                                    if (ajaxOutput.Data[0].IssueOutDetails != null) {
+                                        $.each(ajaxOutput.Data[0].IssueOutDetails, function (i, value) {
+                                       
+                                            let val = 'issueout';
+
+                                            let $tbl = $thisForm.find('[perfect-tempTable="' + val + '"]');
+
+                                            $('#Producttable').css('display', 'block');
+                                            $('#TbtnUpdate').css('display', 'none');
+                                            $('#TbtnSave').css('display', 'block');
+                                            $('#stockavailable').show();
+                                       
+                                            
+
+                                     
+                                            RemoveEmptyRow('ProductDetailstbody');
+                                            debugger
+                                            var rowcount = document.getElementById('ProductDetailstbody').rows.length;
+                                          
+                                            rowcount = rowcount + 1;
+                                         
+                                            TbodyHtml += "<tr id=" + htmlEncode(rowcount) + ">";
+                                           
+                                            TbodyHtml += "<td &nbsp;&nbsp;&nbsp;&nbsp;style='text-align:center;'>" + value.SLNo + "</td>";
+                                            TbodyHtml += "<td style='display:none;'>" + value.ProductID + "</td>";
+                                            TbodyHtml += "<td style='text-align:left;'>" + value.Product + "</td>";
+                                            TbodyHtml += "<td style='text-align:left;'>" + value.Quantity + "</td>";
+                                            TbodyHtml += "<td style='display:none;'>" + value.FK_Stock + "</td>";
+                                            TbodyHtml += "<td style='display:none;'>" + value.CurrentQuantity + "</td>";
+
+                                            TbodyHtml += "<td style='text-align:center;'><div class='d-flex'><a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1' title='Edit' onclick='EditProductdetails(this);'> <i class='fa fa-pencil btnPerfectGridEdit'></i></a>";
+                                            TbodyHtml += "<a href='#' class='btn btnPerfectGrid shadow btn-xs sharp mr-1' title='Delete' onclick='RemoveProductdetails(this);'><i class='fa fa-trash btnPerfectGridDelete'><title>Delete</title></i></a>";
+                                            
+                                            TbodyHtml += "</tr>";
+                                            debugger
+                                        }); $('#ProductDetailstbody').append(TbodyHtml);
+                                    }
+                                    else {
+                                        TbodyHtml += "<tr><td style='text-align:center;' colspan='4'></td></tr>";
+                                    }
+
+
+                                    $thisForm.find('[name="ISOutDate"]').val(moment(ajaxOutput.Data[0].ISOutDate).format('YYYY-MM-DD')),
+                                 
+
+                                        $thisForm.find('[name=ISOutType]').val(ajaxOutput.Data[0].ISOutType).selectpicker('refresh'),
+
+                                        $thisForm.find('[name=ID_Mode]').val(ajaxOutput.Data[0].ID_Mode).selectpicker('refresh'),
+                                        $thisForm.find('[name=ModeName]').val(ajaxOutput.Data[0].ModeName),
+
+                                        $thisForm.find('[name=DepartmentID]').val(ajaxOutput.Data[0].DepartmentID).selectpicker('refresh'),
+                                        $thisForm.find('[name=DepartmentName]').val(ajaxOutput.Data[0].Department),
+                                        $thisForm.find('[name=BranchID]').val(ajaxOutput.Data[0].BranchID),
+                                        $thisForm.find('[name=ISOutRemarks]').val(ajaxOutput.Data[0].ISOutRemarks),
+                                      
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+                                    $thisForm.attr('perfect-onFormSuccess', 'fn_IssueOut_initialload');
+                                    $sideMenuOptions.close();
+
+                                });
+                            }
+                         
+                            
+                         
+                },
+
+
+            });
+
+        }
+
+
+
+       
+
+        function deleteIssueOut() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            console.log('Delete function', Saveddata)
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetIssueOutReasonList", "IssueOut")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  Issue Out with SlNo  :  " + Saveddata.SlNo + " " + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+                          res.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                                        IssueOutID: Saveddata.IssueOutID,
+
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteIssueOut", "IssueOut")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        </script>
+    }

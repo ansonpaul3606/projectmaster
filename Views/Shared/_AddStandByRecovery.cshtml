@@ -1,0 +1,921 @@
+﻿
+
+@model PerfectWebERP.Models.StandByRecoveryModel.DropdownList
+<style>
+    .btnPerfectDelete {
+        color: red;
+        border: none
+    }
+
+    .DeleteRow2 {
+    }
+
+    .tableFixHead {
+        overflow: auto;
+        height: 300px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+
+    /*.prdbtn{
+        display:none;
+    }*/
+   
+</style>
+
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        <span title="To View List" onclick="fn_showListView();"><svg id="Layer_1" class="layer" stroke="currentColor" data-name="Layer 1" height="20" width="20" viewBox="0 0 122.88 122.54"><title>To View List</title><path class="viewlst" d="M4.69,0H46.22a4.71,4.71,0,0,1,4.69,4.69V46a4.69,4.69,0,0,1-4.69,4.69H4.69a4.65,4.65,0,0,1-3.31-1.38l-.09-.09A4.67,4.67,0,0,1,0,46V4.69A4.71,4.71,0,0,1,4.69,0ZM89.44,61.94a26.56,26.56,0,0,1,10.18,2l.07,0a26.61,26.61,0,0,1,15.25,32.16,26.18,26.18,0,0,1-2.7,6.11l10.3,11.24a1.27,1.27,0,0,1-.07,1.8l-7.57,6.9a1.27,1.27,0,0,1-1.79-.07l-9.86-10.85a26.36,26.36,0,0,1-6.1,2.74,26.87,26.87,0,0,1-7.71,1.13,26.51,26.51,0,0,1-10.17-2l-.07,0A26.64,26.64,0,0,1,64.85,78.37l0-.07A26.6,26.6,0,0,1,89.44,61.94Zm15,11.59a21.38,21.38,0,0,0-6.89-4.61l-.06,0a21.22,21.22,0,0,0-23.07,4.64l-.07.07a21.25,21.25,0,0,0-4.54,6.83l0,.06a21.32,21.32,0,0,0-1.58,8.06,21.26,21.26,0,0,0,29.35,19.62,21.54,21.54,0,0,0,6.89-4.61l.07-.07a21.09,21.09,0,0,0,4.54-6.83l0-.06a21.35,21.35,0,0,0,0-16.17,21.34,21.34,0,0,0-4.62-6.9ZM4.69,63.2H46.22a4.71,4.71,0,0,1,4.69,4.7v41.34a4.68,4.68,0,0,1-4.69,4.69H4.69A4.69,4.69,0,0,1,0,109.24V67.9a4.71,4.71,0,0,1,4.69-4.7ZM68.78,0h41.53A4.71,4.71,0,0,1,115,4.69V46a4.71,4.71,0,0,1-4.69,4.69H68.78A4.71,4.71,0,0,1,64.09,46V4.69a4.69,4.69,0,0,1,1.37-3.31l.1-.09A4.67,4.67,0,0,1,68.78,0Z"></path></svg></span>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Stand By Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="StbyRecoveryDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Customer</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="CustomeName" perfect-class="formGroupControl" placeholder="" perfect-ctype="input" perfect-css="input" readonly>
+                                    <input type="hidden" class="form-control " name="FK_Customer" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input">
+                                    <div class="input-group-append">
+                                        <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this, 7, 'Customer List', [], ['ID_Customer', 'CustomeName', 'Address', 'MobileNo','State','GSTINNo'], StndbyTransMode)" criterea1="0" BindName="CustomeName" BindVal="FK_Customer" Function="2"></button>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <br /> <br />
+
+                <!--Table Sections-->
+                       <div class="row" id="id_StndBydGrid">
+                           <div class="col-md-8">
+                               <div class="card">
+                                   <div class="profile-personal-info" style="margin-bottom: -14px;">
+                                       <h4 class='text-primary'>StandBy Stock Details</h4>
+                                   </div>
+                                   <div class="card-body" style="padding: 0px">
+                                       <div perfect-class="ModuleContainer" id="stRtable" class="">
+                                           <div class="table-responsive tableFixHead">
+                                               <table class="table table-hover table-striped text-black">
+                                                   <thead class="thead-primary">
+                                                       <tr>
+                                                           <th style="display:none"></th>
+                                                           <th class="text-left" style="display:none">ActualProductID</th>
+                                                           <th class="text-left" style="display:none">StandByProductID</th>
+                                                           <th class="text-left">Standby Product</th>
+                                                           <th class="text-left">Actual Product</th>
+                                                           <th class="text-left">Reference Date</th>
+                                                           <th class="text-left">Reference No</th>
+                                                           <th class="text-right">StandBy Quantity</th>
+                                                           <th class="text-right">Actual Quantity</th>
+                                                           <th class="text-right" style="display:none">FK_Sales</th>
+                                                           <th class="text-left">Remarks</th>
+                                                           <th class="text-left">Action</th>
+                                                           <th style="display:none"></th>
+                                                           <th class="" style="display:none">ActualStockID</th>
+                                                           <th class="" style="display:none">FK_StandByStock</th>
+                                                       </tr>
+                                                   </thead>
+                                                   <tbody id="stReCTbody"></tbody>
+                                               </table>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                           <div class="col-md-4">
+                               <div class="card">
+                                   <div class="profile-personal-info" style="margin-bottom: -14px;">
+                                       <h4 class='text-primary'>Replaced Stock Details</h4>
+                                   </div>
+                                   <div class="card-body" style="padding: 0px">
+                                       <div perfect-class="ModuleContainer1" id="stR1table" class="">
+                                           <div class="table-responsive tableFixHead">
+                                               <table class="table table-hover table-striped text-black">
+                                                   <thead class="thead-primary">
+                                                       <tr>
+                                                           <th style="display:none"></th>
+                                                           <th class="text-left">Standby Product</th>
+                                                           <th class="text-right" style="display:none">FK_Product</th>
+                                                           <th class="text-left">Replaced Product</th>
+                                                           <th class="text-left" style="display:none">FK_StndByProduct</th>
+                                                           <th class="text-right">Replaced Quantity</th>
+                                                           <th class="" style="display:none"></th>
+                                                           <th></th>
+
+                                                       </tr>
+                                                   </thead>
+                                                   <tbody id="st1ReCTbody"></tbody>
+                                               </table>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                <input type="hidden" name="ID_ItemConversion" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                <!-- Modal-->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Replace Item</h5>
+                                <button type="button" class="close" data-dismiss="modal" onclick="fn_clearvalues(this)" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+
+                                <input type="hidden" id="modalFK_Product" name="modalFK_Product">
+                                <input type="hidden" id="modalProdName" name="modalProdName">
+                                <input type="hidden" id="modalCWPDSalQuantity" name="modalCWPDSalQuantity">
+                                <input type="hidden" id="UId" name="UId">
+                                <input type="hidden" id="id_ActProdt" name="id_ActProdt">
+
+                                <div class="row">
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">
+                                                <span perfect-class="formGroupLabel">Department</span>
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <input type="hidden" name="FK_Branch" value="@ViewBag.FK_Branch" />
+                                                <select class="form-control " name="FK_Department" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_deprtChng(this)">
+
+                                                    @if (!(Model.DepartmentList is null))
+                                                    {
+                                                        foreach (var Department in Model.DepartmentList)
+                                                        {
+                                                            <option value="@Department.DepartmentID">@Department.Department</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Replace Product&nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="StProName" id="StProNamess" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                                    <input type="hidden" name="FK_StndByProduct" id="id_StndByProduct" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="0" />
+                                                    <input type="hidden" name="Dt_FK_StndByProduct" id="Dt_FK_StndByProduct" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="0" />
+                                                    <input type="hidden" name="StockId" class="" id="StockId" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <input type="hidden" name="CrntQnty" id="id_CurrentStock1R" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <input type="hidden" name="Department" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                    <div class="input-group-append">
+                                                        <button id="addcountry-jq-searchButton3" name="prdbtn" class="btn btn-primary fa fa-search prdbtn" type="button" onclick="GetCmnPopUpSearchValAssign(this, 146, 'Product Details', [], ['StockId','Department','MRPs','SalePrice','CrntQnty'],StndbyTransMode)" BindName="StProName" BindVal="FK_StndByProduct" Criterea1="FK_Department" Criterea2="FK_Branch" perfect-css="button"></button>
+                                                    </div>
+
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-12">
+                                        <div class="form-group row" perfect-class="formGroup">
+                                            <label class="col-sm-4 col-form-label">Quantity &nbsp;<span class="text-danger">*</span></label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control text-right" name="StandByQuantity" id="id_StandByQuantity1" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" oninput="decimalpnt(this,'id_StandByQuantity1',4)" min="0" maxlength="13" disabled/>
+                                                </div>
+                                                <div class="text-danger temptableError"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary"  onclick="fn_SaveActualData(this)">Replace</button>
+                                <!-- Add any additional buttons or actions here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <!--Delivery Section-->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="accordion-nine" class="accordion accordion-active-header">
+                                    <div class="accordion__item">
+                                        <div class="accordion__header collapsed" data-toggle="collapse" data-target="#active-header_collapseOpeningstock">
+                                            <span class="accordion__header--icon"></span>
+                                            <span class="accordion__header--text">Delivery Request</span>
+                                            <span class="accordion__header--indicator"></span>
+                                        </div>
+                                        <div id="active-header_collapseOpeningstock" class="collapse accordion__body" data-parent="">
+                                            <div class="accordion__body--text">
+                                                <div class="col-sm-12" perfect-class="TempTableOpeningStock">
+                                                    <div class="row">
+                                                        <div class="col-sm-3">
+                                                            <div class="form-group row" perfect-class="formGroup">
+                                                                <label class="col-sm-4 col-form-label">
+                                                                    <span perfect-class="formGroupLabel">Delivery Date</span>
+                                                                    <span class="text-danger">*</span>
+                                                                </label>
+                                                                <div class="col-sm-8">
+                                                                    <input type="date" class="form-control perfectValidate_date" name="DeliveryDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="datechck(this)" />
+                                                                    <div class="invalid-feedback animated fadeInUp temptableErrors"></div>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <div class="form-group row" perfect-class="formGroup">
+                                                                <label class="col-sm-4 col-form-label">
+                                                                    <span perfect-class="formGroupLabel">Delivery Time</span>
+                                                                    @*<span class="text-danger">*</span>*@
+                                                                </label>
+                                                                <div class="col-sm-8">
+                                                                    <input type="time" class="form-control" placeholder="" id="PickTime" name="DeliveryTime" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <div class="form-group row" perfect-class="formGroup">
+                                                                <label class="col-sm-4 col-form-label">
+                                                                    <span perfect-class="formGroupLabel">Employee</span>
+                                                                    <span class="text-danger">*</span>
+                                                                </label>
+                                                                <div class="col-sm-8">
+                                                                    <div class="input-group">
+                                                                        <input type="text" class="form-control perfectValidate_string" name="Employee" perfect-class="formGroupControl" placeholder="" perfect-ctype="input" perfect-css="input" readonly>
+                                                                        <input type="hidden" class="form-control " name="FK_Employee" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input">
+                                                                        <div class="input-group-append">
+                                                                            <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,6,'Employee List',[])" BindName="Employee" BindVal="FK_Employee" Function="1"></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-sm-3">
+                                                            <div class="form-group row" perfect-class="formGroup">
+                                                                <label class="col-sm-4 col-form-label">
+                                                                    <span perfect-class="formGroupLabel">Vehicle  Details</span>
+                                                                </label>
+                                                                <div class="col-sm-8">
+                                                                    <div class="input-group">
+                                                                        <input type="text" class="form-control perfectValidate_string_nm" name="VehicleDet" id="VehicDet" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="150" />
+                                                                    </div>
+                                                                    <div class="text-danger temptableError"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Description</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string_nm" name="ProdRecNarration" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="500" />
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    @if (ViewBag.PagedAccessRights.UsrrlMsEdt)
+                    {
+                        <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="UpdateStandbyRecovery(this,'Update')"><i class="fa fa-refresh fa-spin  loaderClass"></i>Update</button>
+                    }
+                    @if (ViewBag.PagedAccessRights.UsrrlMsAdd)
+                    {
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="UpdateStandbyRecovery(this,'Add')"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    }
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+
+    (function () {
+
+        jQuery("select").selectpicker();
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        $('#VehicDet').attr('disabled', true);
+        $('#PickTime').attr('disabled', true);
+
+    })();
+
+    $(document).ready(function () {
+        initFunctions('form');
+
+        let $thisForm = $(this).find('[perfect-class="form"]');
+        var today = new Date();
+        var day = today.getDate() > 9 ? today.getDate() : "0" + today.getDate(); // format should be "DD" not "D" e.g 09
+        var month = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1);
+        var year = today.getFullYear();
+
+        $thisForm.find('[name="StbyRecoveryDate"]').attr('max', year + "-" + month + "-" + day);
+        $('[name="Employee"]').removeClass('perfectValidate_string');
+    });
+    function getfunctionAssign(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let RecDate = $thisForm.find('[name="StbyRecoveryDate"]').val();
+        if (RecDate != "") {
+            fn_StandByStockDetails();
+        }
+        else {
+            NotificationMessage({'type':'error','heading':'Error','message':'Please Select Stand By Date'})
+        }
+
+    }
+    function fn_StandByStockDetails() {
+        debugger
+        let $thisForm = $('[perfect-class="form"]');
+
+        var inputData = {
+            'FK_Customer': $thisForm.find('[name="FK_Customer"]').val(),
+            'StbyRecoveryDate': $thisForm.find('[name="StbyRecoveryDate"]').val()
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetStandbyStockData", "StandByRecovery")",
+            type: "POST",
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (data) {
+                debugger
+                if (data.Process.IsProcess) {
+                    debugger
+                    let ItemData = data.data;
+                    $("#stReCTbody tr").remove();
+                    $("#st1ReCTbody tr").remove();
+                    if (ItemData) {
+                        //document.getElementById('id_StndBydGrid').style.display = 'block';
+
+                        let $tbody = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+                        debugger
+                        let uniqueRowId = 1;
+                        var UID = '';
+                        $.each(ItemData, function (i, values) {
+                            debugger
+                            if (values.FK_Product != 0) {
+                                let rowCount = (i + 1);
+                                let $row = $('<tr/>', { id: rowCount, class: "trvalue  stby_rw_" + rowCount, "data-row-id": uniqueRowId  });
+                                uniqueRowId++;
+
+                                    $row.append($('<td>', { class: "ChkProd", style: 'display:none' }).html(
+                                    $('<label>').append(
+                                        $('<input />', {
+                                            type: 'checkbox',
+                                            name: 'ItemCheckPro',
+                                            'perfect-class': 'formCheckInput',
+                                            'perfect-ctype': "checkbox",
+                                        })
+                                    ).append('') // Replace '' with your desired label text
+                                        .on('change', function () {
+                                            //if (!$(this).is(':checked')) {
+
+                                            //    $('.Action_id').prop('disabled', true)
+                                            //}
+                                        })
+                                    ))
+                                        .append($('<td>', { class: "ActualProductID ", style: 'display:none' }).text(values.ActualProductID ))
+                                        .append($('<td>', { class: "FK_Product", style: 'display:none' }).text(values.StandByProductID   ))
+                                        .append($('<td>', { class: "ProdName" }).text(values.StandByProduct ))
+                                        .append($('<td>', { class: "ActualProduct " }).text(values.ActualProduct ))
+                                        .append($('<td>', { class: "CWPDSalesDate" }).text(values.SalBillDate ))
+                                    .append($('<td>', { class: "SalBillNo" }).text((values.SalBillNo)))
+                                    .append($('<td>', { class: "CWPDSalQuantity text-right" }).html(
+                                            $('<input/>', { type: 'text', class: 'form-control text-right', min: '0', maxlength: '13', max: '100', name: 'CWPDSalQuantity', id: 'insP', readonly: 'readonly' })
+                                            .val((values.StandByQuantity ).toFixed(3))
+                                    ))
+                                        .append($('<td>', { class: "CWPDSalActualQuantity text-right" }).text((values.SpdSalActualQuantity ).toFixed(3)))
+                                    .append($('<td>', { class: "FK_Sales", style: 'display:none' }).text(values.FK_Sales))
+                                    .append($('<td>', { class: "Remark" }).html(
+                                        $('<input/>', {
+                                            type: 'text',
+                                            class: 'form-control text-left',
+                                            maxlength: '500',
+                                            name: "Remark",
+                                            id: "Rmrkid",
+                                            oninput: "removeSpaces(this)",
+                                            // You can set an initial value for the remark here if needed
+                                            // value: 'Initial Remark Value'
+                                        })
+
+                                    ))
+                                    .append($('<td>', { class: "Action_id" }).html(
+                                        $('<button/>', {
+                                            type: 'button',
+                                            class: 'fa fa-retweet btn border-none btn text-primary border-none',
+                                            text: '',
+                                            'data-toggle': 'tooltip',
+                                            'data-placement': 'top',
+                                            'title': 'Replace',
+                                            //'style': 'wi: 1.5;'
+
+                                        })
+                                            .on('click', function () {
+                                                debugger
+                                                // Retrieve the unique row ID from the clicked row
+                                                var rowId = ($(this).closest('tr').data('row-id')) + 1;
+
+                                                var fkProduct = $(this).closest('tr').find('.FK_Product').text();
+                                                var prodName = $(this).closest('tr').find('.ProdName').text();
+                                                var ActCWPDSalQuantity = $(this).closest('tr').find('.CWPDSalQuantity input').val();
+                                                var ActualProductIDs = $(this).closest('tr').find('.ActualProductID').text();
+                                                var ActualProductnme = $(this).closest('tr').find('.ActualProduct').text();
+
+                                                // Store these values in the modal's input fields
+                                                $('#modalFK_Product').val(fkProduct);
+                                                $('#modalProdName').val(prodName);
+                                                $('#modalCWPDSalQuantity').val(ActCWPDSalQuantity);
+                                                $('#id_StandByQuantity1').val(ActCWPDSalQuantity);
+                                                $('#Dt_FK_StndByProduct').val(ActualProductIDs);
+                                                $('#id_ActProdt').val(ActualProductIDs);
+                                                //$('#StProNamess').val(ActualProductnme);
+
+                                                $('#UId').val(rowId);
+
+                                                $('#myModal').modal('show');
+                                            })
+                                            //.prop('disabled', true)
+
+
+                                    ))
+                                        .append($('<td>', { class: "UID", style: 'display:none' }).text(uniqueRowId))
+                                        .append($('<td>', { class: "ActIDStock", style: 'display:none' }).text(values.ActualStockID))
+                                        .append($('<td>', { class: "FK_StandByStock", style: 'display:none' }).text(values.FK_StandByStock))
+                               
+                                $tbody.append($row);
+                            }
+                            else {
+                                $("#stReCTbody tr").remove();
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Not Found' })
+                            }
+
+                        });
+
+
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                        StandByRecovery_initLoad();
+
+                    }
+                }
+                else {
+
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records Found.' })
+                    StandByRecovery_initLoad();
+                }
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                var errorResponse = JSON.parse(xhr.responseText);
+                var errorMessage = errorResponse.Process.Message;
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': errorMessage });
+            }
+        });
+
+    }
+    function removeSpaces(input) {
+        // Remove spaces at the beginning and end
+        input.value = input.value.replace(/^\s+/, '');
+        input.value = input.value.replace(/[|*;?<>:!#^~_`$="'{}&]/g, '');
+    }
+    function UpdateStandbyRecovery(ele, actiontype) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var ProRecTable = $('#stReCTbody tr.trvalue');
+        var ReplaceTable = $('#st1ReCTbody tr.trvalue1');
+        var StandbyRecoveryDetails = [];
+        var ReplaceProductDetails = [];
+        debugger
+
+        if (ProRecTable.length > 0) {
+
+            ProRecTable.each(function () {
+                 var originalDate = $(this).find(".CWPDSalesDate").text();
+                 var dateParts = originalDate.split("/");      // Split the date string by "/"
+                 var formattedDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];  // Rearrange the date parts in "yyyy-mm-dd" format
+
+                    var ArrItem = {
+                        StandByProductID: $(this).find(".FK_Product").text(),
+                        ActualProductID: $(this).find(".ActualProductID").text(),
+                        SalBillDate: formattedDate, // Use the formatted date here
+                        StProdName: $(this).find(".ProdName").text(),
+                        ActualProduct: $(this).find(".ActualProduct ").text(),
+                        SalBillNo: $(this).find(".SalBillNo").text(),
+                        CWPDSalQuantity: $(this).find(".CWPDSalQuantity input").val(),
+                        CWPDSalActualQuantity: $(this).find(".CWPDSalActualQuantity").text(),
+                        FK_Sales: $(this).find(".FK_Sales").text(),
+                        Remark: $(this).find('.Remark input').val(),
+                        UID: $(this).find('.UID').text(),
+                        ActIDStock: $(this).find('.ActIDStock').text(),
+                        FK_StandByStock: $(this).find('.FK_StandByStock').text(),
+                    };
+                    StandbyRecoveryDetails.push(ArrItem);
+            });
+
+        }
+
+
+        if (ReplaceTable.length > 0) {
+
+            ReplaceTable.each(function () {
+                    var ArrReplaceItem = {
+                        ActualProduct: $(this).find(".ActproName").text(),
+                        Fk_ActProduct: $(this).find(".ActFk_productID").text(),
+                        ReplaceProduct: $(this).find(".stproName").text(),
+                        FK_ReplaceProduct: $(this).find(".productID").text(),
+                        ReplaceQuantity: $(this).find(".standByQuantity").text(),
+                        UID: $(this).find('.uid1').text(),
+                        stockid: $(this).find('.stockid').text(),
+                    };
+                ReplaceProductDetails.push(ArrReplaceItem);
+            });
+
+        }
+
+        debugger
+
+        if ($thisForm.valid()) {
+
+            if (StandbyRecoveryDetails.length > 0) {
+                if (ReplaceProductDetails.length > 0) {
+                    if (getfunction(ele)) {
+                        if (datechck(ele)) {
+                            debugger
+                            var InputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                TransMode: StndbyTransMode,
+                                StbyRecoveryDate: $thisForm.find('[name="StbyRecoveryDate"]').val(),
+                                FK_Customer: $thisForm.find('[name="FK_Customer"]').val(),
+
+                                DeliveryDate: $thisForm.find('[name="DeliveryDate"]').val(),
+                                DeliveryTime: $thisForm.find('[name="DeliveryTime"]').val(),
+                                FK_Employee: $thisForm.find('[name="FK_Employee"]').val(),
+
+                                VehicleDet: $thisForm.find('[name="VehicleDet"]').val(),
+                                ProdRecNarration: $thisForm.find('[name="ProdRecNarration"]').val(),
+
+                                StandbyRecoveryDetails: StandbyRecoveryDetails,
+                                ReplaceProductDetails: ReplaceProductDetails,
+
+                                LastID: LastID_StandByRecovery
+                            }
+                            clearSessionValue(LastIDSessionKey);
+
+                            console.log('InputData', InputData);
+                            let _ActionUrl = "";
+                            if (actiontype == "Add") { _ActionUrl = "@Url.Action("AddStandbyRecoverydata", "StandByRecovery")"; } else { _ActionUrl = "@Url.Action("UpdateProductRecoverydata", "StandByRecovery")"; }
+
+                            $.ajax({
+                                url: (actiontype == "Add") ? "@Url.Action("AddStandbyRecoverydata", "StandByRecovery")" : "@Url.Action("UpdateProductRecoverydata", "StandByRecovery")",
+                                type: "POST",
+                                data: InputData,
+                                dataType: "json",
+                                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                success: function (ajaxOutput) {
+
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                        });
+                                        let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                                        if (onSuccess) {
+                                            window[onSuccess]();
+                                        }
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+
+                                    }
+                                },
+                                complete: function () {
+                                    $(ele).prop('disabled', false);
+                                }
+
+                            });
+                        }
+                    }
+                } else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Please add atleast one Replace stock data." });
+                }
+            }
+            else {
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Please Select Atleast One Data" });
+            }
+        }
+        else {
+           
+            //$('#active-header_collapseOpeningstock').addClass('collapse');
+            $('#active-header_collapseOpeningstock').addClass('show');
+        }
+
+    }
+    function ResetButton(ele) {
+        StandByRecovery_initLoad();
+    }
+    function datechck(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Pickupdt = $thisForm.find('[name="DeliveryDate"]').val();
+        let RecoDdt = $thisForm.find('[name="StbyRecoveryDate"]').val();
+
+        var Pickdt = new Date(Pickupdt);
+        Pickdt.setHours(0, 0, 0, 0)
+
+        var ProRecodt = new Date(RecoDdt);
+        ProRecodt.setHours(0, 0, 0, 0)
+
+        let errorClass6 = '.temptableErrors';
+        if (Pickdt >= ProRecodt) {
+
+            $thisForm.find('[name="DeliveryDate"]').closest('[perfect-class="formGroup"]').find(errorClass6).attr("style", "display:none");
+            $thisForm.find('[name="DeliveryDate"]').closest('[perfect-class="formGroup"]').find(errorClass6).text('');
+            isValid = true;
+            $('#VehicDet').attr('disabled', false);
+            $('#PickTime').attr('disabled', false);
+
+        }
+        else if (Pickdt <= ProRecodt) {
+
+            $thisForm.find('[name="DeliveryDate"]').closest('[perfect-class="formGroup"]').find(errorClass6).attr("style", "display:block");
+            $thisForm.find('[name="DeliveryDate"]').closest('[perfect-class="formGroup"]').find(errorClass6).text('Delivery Date should be greater than or equal to Stand By Date');
+             isValid = false;
+            return false;
+        }
+
+        if (Pickupdt != "") {
+            $('[name="Employee"]').addClass('perfectValidate_string');
+
+            let empl = parseFloat($('[name="FK_Employee"]').val()) || 0;
+            if (empl === 0) { return false; } else { return true; }
+
+        }
+        //else if (Pickupdt == "") {
+        //    return false;
+        //}
+        else {
+            $('[name="Employee"]').val("");
+            $('[name="FK_Employee"]').val(0);
+            $('#VehicDet').attr('disabled', true);
+            $('#PickTime').attr('disabled', true);
+            $thisForm.find('[name="VehicleDet"]').val("");
+            $thisForm.find('[name="DeliveryTime"]').val("");
+            $('[name="Employee"]').removeClass('perfectValidate_string');
+
+            return true;
+        }
+        //return true
+    }
+
+    function getfunction(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Pickupdt = $thisForm.find('[name="PickUpDate"]').val();
+        let emp = $thisForm.find('[name="FK_Employee"]').val();
+
+        if (emp != 0 && Pickupdt == "") {
+
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Select Delivery date' });
+            return false
+        }
+        else {
+            return true;
+        }
+
+    }
+
+
+    function decimalpnt(ele, id, range) {
+        //debugger
+        let input = $('#' + id);
+
+        ele.value = ele.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+        let t = ele.value;
+        ele.value = (t.indexOf(".") >= 0) ? (t.substr(0, t.indexOf(".")) + t.substr(t.indexOf("."), range)) : t;
+
+        $(document).on('keydown', '#' + id, function (event) {
+
+            if (ele.value.includes('.')) {
+
+            }
+            else if (ele.value === '.' && (event.key === '.' || event.keyCode === 190)) {
+                ele.value = '0.00'; // Change the value to '0.00' if only a dot is entered
+                // Prevent the dot from being entered in the input field
+            }
+            var key = event.keyCode || event.charCode;
+            if (key == 8 || key == 46) { }
+            else {
+                if (ele.value.indexOf('.') < 0 && ele.value.indexOf('.') !== 9 && ele.value.length > 8) {
+                    ele.value = ele.value + '.';
+                }
+            }
+
+        });
+
+    }
+
+    function fn_SaveActualData(ele) {
+        var RowNo = parseInt($('#UId').val()) - 1;
+        let sb_class = '.stby_rw_' + RowNo;
+
+       
+
+
+        debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var productID = parseFloat($('#myModal input[name="FK_StndByProduct"]').val());
+        var Dt_FK_StndByProduct = parseFloat($('#myModal input[name="Dt_FK_StndByProduct"]').val());
+        var standByQuantity = parseFloat($('#id_StandByQuantity1').val()) || 0;
+        var ActStandby = parseFloat($('#modalCWPDSalQuantity').val()) || 0;
+        var crStock = parseFloat($('#id_CurrentStock1R').val()) || 0;
+        var orgProduct = parseFloat($('#id_ActProdt').val()) || 0;
+
+        let errorClass = '.temptableError';
+       
+        isValid = true;
+
+        if (productID <= 0 || !productID) {
+            isValid = false;
+            $thisForm.find("[name='FK_StndByProduct']").closest('[perfect-class="formGroup"]').find(errorClass).text('Please Select Replace Product');
+        } else {
+            $thisForm.find("[name='FK_StndByProduct']").closest('[perfect-class="formGroup"]').find(errorClass).text('');
+        }
+    
+
+        let errorMessages = ''; 
+
+        if (standByQuantity <= 0) {
+            isValid = false;
+            errorMessages += 'Please Enter Replace Quantity greater than 1. ';
+        }
+        if (standByQuantity > ActStandby && standByQuantity !== 0) {
+            isValid = false;
+            errorMessages += 'Replace Quantity should be less than or equal to Stand by Quantity. ';
+        }
+        // Set the error messages in the error field
+        $thisForm.find("[name='StandByQuantity']").closest('[perfect-class="formGroup"]').find(errorClass).text(errorMessages);
+        if (productID > 0) {
+            if (standByQuantity > crStock) {
+                isValid = false;
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Insufficient stock!!' })
+            }
+        }
+       
+
+        if (productID > 0) {
+            if (productID != Dt_FK_StndByProduct) {
+                isValid = false;
+                NotificationMessage({ 'type': 'warning', 'heading': 'Warning', 'message': 'Actual Product and Replace Product are different. ' })
+            }
+        }
+        
+
+
+        let ArrStPro = [];
+        var ArrItem = {
+            proName: $('#myModal input[name="StProName"]').val(),
+            productID: $('#myModal input[name="FK_StndByProduct"]').val(),
+            standByQuantity: $('#id_StandByQuantity1').val(),
+            fkProduct: $('#modalFK_Product').val(),
+            prodNameActual: $('#modalProdName').val(),
+            UId: $('#UId').val(),
+            stockid: $('#StockId').val()
+        };
+
+        ArrStPro.push(ArrItem);
+        
+        if (isValid) {
+           
+            // Create a new row for the table
+            $.each(ArrStPro, function (i, values) {
+
+                var newRow = $('<tr>',  { class: "trvalue1" });
+                newRow.append($('<td>', { style: 'display:none' }).text(''));
+                newRow.append($('<td>', { class: "ActproName" }).text(values.prodNameActual));
+                newRow.append($('<td>', { class: "ActFk_productID", style: 'display:none' }).text(values.fkProduct));
+                newRow.append($('<td>', { class: "stproName" }).text(values.proName));
+                newRow.append($('<td>', { class: "productID", style: 'display:none' }).text(values.productID));
+                newRow.append($('<td>', { class: "standByQuantity text-right" }).text(parseFloat(values.standByQuantity).toFixed(3)));
+                newRow.append($('<td>', { class: "uid1", style: 'display:none' }).text(values.UId));
+                newRow.append($('<td>', { class: "stockid", style: 'display:none' }).text(values.stockid));
+                newRow.append($('<td>', { class: "DeleteRow" }).html(
+                    $('<button/>', {
+                        type: 'button',
+                        class: 'fa fa-trash btnPerfectDelete',
+                        text: ''
+                    }).on('click', function () {
+                        $(this).closest('tr').remove();
+
+                        $('#stReCTbody').find(sb_class).find('.Action_id').find('button').prop('disabled', false);
+                       
+                    })
+                ));
+
+
+                $('#st1ReCTbody').append(newRow);
+                $('#myModal').modal('hide');
+
+
+            });
+            clearvalues();
+            $('#stReCTbody').find(sb_class).find('.Action_id').find('button').prop('disabled', true);
+        }
+        else {
+           
+            $('#myModal').modal('show');
+        }
+      
+    }
+
+    function clearvalues() {
+        $('#myModal input[name="StProName"]').val('');
+        $('#myModal input[name="FK_StndByProduct"]').val(0);
+        $('#id_StandByQuantity1').val(0);
+    }
+
+    function fn_clearvalues(ele) {
+        debugger
+        $('#myModal input[name="StProName"]').val('');
+        $('#myModal input[name="FK_StndByProduct"]').val(0);
+        $('#id_StandByQuantity1').val(0);
+    }
+    function fn_deprtChng(ele){
+
+    }
+</script>

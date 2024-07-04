@@ -1,0 +1,441 @@
+﻿
+@{
+    ViewBag.Title = "Manufacturer";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Manufacturer-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#Manufacturer-form');
+
+        $(document).ready(function () {
+            ManufacturerInitialLoad();
+
+        });
+
+        var validationMessage = {
+            'Manufacturer': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'ShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+
+            'ModeID': {
+                'required': 'Please Select a Mode',
+                'stringonly': 'Special characters are not allowed in Mode'
+            },
+
+            'Mobile': {
+                
+                'anyphonenumber': 'Invalid mobile number',
+                'minlength': jQuery.validator.format('Mobile Number should be more than {0} Number'),
+                'maxlength': jQuery.validator.format('Mobile Number should be less than {0} Number')
+            },
+            'PMobile': {
+
+                'anyphonenumber': 'Invalid mobile number',
+                'minlength': jQuery.validator.format('Personal Mobile Number should be more than {0} Number'),
+                'maxlength': jQuery.validator.format('Personal Mobile Number should be less than {0} Number')
+            },
+
+            'Phone': {
+
+                'anyphonenumber': 'Invalid mobile number',
+                'minlength': jQuery.validator.format('Phone  Number should be more than {0} Number'),
+                'maxlength': jQuery.validator.format('Phone Number should be less than {0} Number')
+            },
+
+        };
+
+
+        function ManufacturerInitialLoad() {
+
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadManufacturerList(this); </text>
+              }
+          
+            loadManufacturerAddForm();
+
+        }
+
+
+           // Function to load Manufacturer ADD form
+        function loadManufacturerAddForm() {
+
+            $formContainer.load('@Url.Action("LoadManufacturerForm", "Manufacturer")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'ManufacturerInitialLoad');
+               // initFunctions($thisForm);
+
+            });
+
+        };
+
+
+
+        function loadManufacturerList(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Manufacturer List');
+          let pageUrl = '@Url.Action("GetManufacturerList", "Manufacturer")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Manufacturer', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Manufacturer");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadManufacturerList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Manufacturer");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadManufacturerList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+       
+
+//---------------------------------------------->
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editManufacturer },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteManufacturer },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ['SlNo','Manufacturer', 'ShortName', 'Email', 'Mobile'],
+            rowClickAction: editManufacturer,
+            renameHeader: { "SlNo": "SL NO","Manufacturer": "Name", "ShortName": "ShortName"}
+        };
+        function editManufacturer() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ManufacturerID: Saveddata.ManufacturerID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetManufacturerInfoByID", "Manufacturer")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+
+                        ////console.log("Return", ajaxOutput.Data[0]);
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetManufacturerInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadManufacturerForm", "Manufacturer")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Manufacturer)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                   // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                    console.log("Mode >", ajaxOutput.Data[0].Mode)
+                                    console.log("Country >", ajaxOutput.Data[0].Country)
+
+                                    $thisForm.find('[name="Manufacturer"]').val(ajaxOutput.Data[0].Manufacturer);
+                                    $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName);
+                                    $thisForm.find('[name="Description"]').val(ajaxOutput.Data[0].Description);
+                                    $thisForm.find('[name="Address"]').val(ajaxOutput.Data[0].Address);
+                                    $thisForm.find('[name="ModeID"]').val(ajaxOutput.Data[0].Mode).selectpicker('refresh');
+                                    $thisForm.find('[name="Country"]').val(ajaxOutput.Data[0].Country);
+                                    $thisForm.find('[name="States"]').val(ajaxOutput.Data[0].States);
+                                    $thisForm.find('[name="District"]').val(ajaxOutput.Data[0].District);
+                                    $thisForm.find('[name="Place"]').val(ajaxOutput.Data[0].Place);
+                                    $thisForm.find('[name="Post"]').val(ajaxOutput.Data[0].Post);
+                                    $thisForm.find('[name="Pin"]').val(ajaxOutput.Data[0].Pin);
+
+                                    $thisForm.find('[name="CountryID"]').val(ajaxOutput.Data[0].CountryID);
+                                    $thisForm.find('[name="StatesID"]').val(ajaxOutput.Data[0].StatesID);
+                                    $thisForm.find('[name="DistrictID"]').val(ajaxOutput.Data[0].DistrictID);
+                                    $thisForm.find('[name="PlaceID"]').val(ajaxOutput.Data[0].PlaceID);
+                                    $thisForm.find('[name="PostID"]').val(ajaxOutput.Data[0].PostID);
+                                    $thisForm.find('[name="PinID"]').val(ajaxOutput.Data[0].PinID);
+
+                                    $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder);
+                                    $thisForm.find('[name="PinCode"]').val(ajaxOutput.Data[0].Pin);
+                                    $thisForm.find('[name="Phone"]').val(ajaxOutput.Data[0].Phone);
+                                    $thisForm.find('[name="Mobile"]').val(ajaxOutput.Data[0].Mobile);
+                                    $thisForm.find('[name="PMobile"]').val(ajaxOutput.Data[0].PMobile);
+                                    $thisForm.find('[name="GSTIN"]').val(ajaxOutput.Data[0].GSTIN);
+                                    $thisForm.find('[name="Active"]').prop('checked', ajaxOutput.Data[0].Active);
+                                    $thisForm.find('[name="Email"]').val(ajaxOutput.Data[0].Email);
+
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'ManufacturerInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetManufacturerInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                },
+
+            });
+
+        }
+
+
+
+        function deleteManufacturer() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetManufacturerReasonList", "Manufacturer")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           //var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Manufacturer + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ManufacturerID: Saveddata['ManufacturerID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteManufacturerInfo", "Manufacturer")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        }
+
+    </script>
+
+
+
+}

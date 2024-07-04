@@ -1,0 +1,1191 @@
+﻿@model PerfectWebERP.Models.LocationTrackModel.LocationTrackerView
+@*<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAcZEUnYdA9LiBcrOfmLSz7E8xGH_UKQGY"></script>*@
+@*<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAcZEUnYdA9LiBcrOfmLSz7E8xGH_UKQGY"></script>*@
+@*&callback=initMap*@
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+<style>
+    #map {
+        height: 500px;
+        width:500px;
+    }
+    .icon-button{
+        
+    }
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+    .mt-perfect {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        /*background-color:antiquewhite;*/
+        height: 50vh;
+        border-color:black;
+    }
+    .btndiv{
+        /*background-color:aquamarine;*/
+        max-height:40px;
+        width:100%;
+        margin:3px 0px 3px;
+    }
+    /*.map-locationtracker{
+        display:none;
+    }*/
+    .dataTables_scrollHead{
+        color:aqua;
+    }
+    #LocationTable_wrapper > div > div.dataTables_scrollHead > div > table > thead{
+        display:none;
+    }
+    .custom-label-class{
+        color:red;
+        font:300;
+        background-color:antiquewhite;
+    }
+    #LocationTable > thead > tr > th {
+        border: 1px solid #ddd !important;
+    }
+        #LocationTable > thead > tr > th > div{
+            height:20px !important;
+        }
+        /*#LocationTable > thead > tr > th:nth-child(4){
+            width:100px;
+        }*/
+    #LocationTable thead th {
+        background-color: var(--perfect-primary);
+        color: #fff;
+    }
+    /*#LocationTable  tbody tr  td:nth-child(4){
+        width:50px !important;
+    }*/
+    svg {
+        cursor: pointer;
+    }
+</style>
+
+
+    @*//test code start *****@
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Employee Tracker@*<span class="badge light badge-success float-right" perfect-class="formTitle">REPORT</span>*@</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            @*<div class="dropdown div-export" id="exppdf" style="display:block">
+
+                    <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                        <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                    </div>
+                </div>*@
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @*@Html.AntiForgeryToken()*@
+                <div class="row">
+
+
+
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate perfectValidate_date" id="Date" data-id="Date-error" name="Date" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date">
+                                <div id="Date-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (@ViewBag.IsAdmin || @ViewBag.IsManger)
+                    {
+                        <div class="col-sm-6  divbranch">
+
+
+
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+
+                                </label>
+                                <div class="col-sm-8">
+                                    @if (@ViewBag.IsAdmin)
+                                    {
+                                        <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclears(this)">
+
+                                            <option value="0">All Branch</option>
+
+
+                                            @if (!(Model.BranchList is null))
+                                            {
+                                                foreach (var branchList in Model.BranchList)
+                                                {
+                                                    <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                                }
+
+                                            }
+
+                                        </select>
+                                    }
+                                    else
+                                    {
+
+                                        <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclears(this)" disabled>
+
+                                            <option value="0">All Branch</option>
+
+
+                                            @if (!(Model.BranchList is null))
+                                            {
+                                                foreach (var branchList in Model.BranchList)
+                                                {
+                                                    <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                                }
+
+                                            }
+
+                                        </select>
+
+
+                                    }
+
+                                </div>
+                            </div>
+
+                            
+
+
+
+                        </div>
+                    }
+
+
+                        @if (@ViewBag.IsAdmin || @ViewBag.IsManger)
+                        {
+                            <div class="col-sm-6 divdepartment">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span perfect-class="formGroupLabel">Department</span>
+
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control perfectValidate_string_nm" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearemployee(this)">
+
+                                            <option value="0">All Department</option>
+
+                                            @if (!(Model.DepartmentList is null))
+                                            {
+                                                foreach (var deprtmnt in Model.DepartmentList)
+                                                {
+                                                    <option value="@deprtmnt.DepartmentID">@deprtmnt.DepartmentName</option>
+                                                }
+
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (@ViewBag.IsAdmin || @ViewBag.IsManger)
+                        {
+                            <div class="col-sm-6 DivEmployeeName">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label">
+
+                                        <span perfect-class="formGroupLabel">Employee</span>
+
+                                    </label>
+
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control " name="Employee" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                            <input type="hidden" id="EmployeeID" name="EmployeeID" class="perfectValidate_numeric_nm" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                            <div class="input-group-append">
+                                                @*<button id="addemployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="getEmployeeDepartmentlist(this)" Criterea1="0" Criterea2="0" BindName="FromName" BindVal="FromNameID"></button>*@
+
+                                                <button id="employeefromid" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,151,'Employee List',['',''])" Criterea1="DepartmentID" Criterea2="BranchID" BindName="Employee" BindVal="EmployeeID" Criterea3="DesignationID" Function="1"></button>
+
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+
+
+                        @if (@ViewBag.IsAdmin || @ViewBag.IsManger)
+                        {
+
+                            <div class="col-sm-6">
+                                <div class="form-group row" perfect-class="formGroup">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span perfect-class="formGroupLabel">Designation</span>
+                                        @*<span class="text-danger">*</span>*@
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control " name="DesignationID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" perfect-selectButton="Add Designation" perfect-selectButtonAction="DesignationAdding">
+
+                                            <option value="">Please Select </option>
+
+                                            @if (!(Model.DesignationList is null))
+                                            {
+                                                foreach (var designationList in Model.DesignationList)
+                                                {
+                                                    <option value="@designationList.DesignationID">@designationList.Designation</option>
+                                                }
+
+                                            }
+
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+
+
+
+                        <div class="col-sm-6">
+                            <div class="card-footer text-right" perfect-class="formFooter">
+                                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getlocationtrackerdata(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+                            </div>
+                        </div>
+
+
+
+
+
+                    </div>
+
+
+            </div>
+            
+
+            @*<br />*@
+            
+
+            @*forTestin*@
+
+            @*<div class="table-responsive col-md-12 SearchLoadDiv" name="profile" id="profile"></div>*@
+
+        </form>
+
+
+
+        <div class="card mt-perfect" id="tableMap" style="display:none">
+            <div class="col-12 text-right btndiv">
+                <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="ChangToogle('list')" title="To Refresh"><i class="fa fa-list"></i></button>
+                <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="ChangToogle('map')" title="To Filter"><i class="fa fa-map-marker"></i></button>
+                @*<span class="icon-button"><i class="fa fa-list" aria-hidden="true"></i></span><span class="icon-button"><i class="fa fa-map-marker" aria-hidden="true"></i></span>*@
+            </div>
+
+            <div id="locationTrackTablediv" >
+                <table id="LocationTable" class="table table-striped dt-responsive nowrap" style="width:100%">
+                    @*<thead class="thead-primary">
+            <tr>
+                <th>Sl No</th>
+                <th>Employee Name</th>
+                <th>Location Name</th>
+              <th>EnteredDate</th>
+                <th>EnteredTime</th>
+                <th>bettery %</th>
+               <th>Department Name</th>
+                <th>Designation</th>
+                <th>Branch</th>
+                <th></th>
+            </tr>
+        </thead>*@
+
+                </table>
+            </div>
+
+
+
+            <div class="map-locationtracker" id="map" style="display:none; width:100%"></div>
+            @*<div class="map-locationtracker" id="mapRoute" style="display:none; width:100%">zdfsdfsf</div>*@
+        </div>
+
+
+    </div>
+
+    <div class="modal fade" id="modalFeedback" data-backdrop="static" data-keyboard="false" tabindex="1000">
+        <div class="modal-dialog modal-xl" role="dialog">
+            @*<div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title"><span id="headerFeedback"></span></h5>
+                        <button type="button" class="close" aria-label="Close" onclick="CloseFdModal()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                        <div class="row">
+                            <div class="col-sm-12" id="divmdlFeedback">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title Deliveryassign">Employee Details</h5>
+                        @*<h5 class="modal-title Editassigndel" style="display:none">Edit Assign</h5>*@
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>×</span>
+                        </button>
+                    </div>
+                    
+
+                    <div class="form-group row" id="TopDetails"> </div>
+
+
+
+                </div>
+
+        </div>
+
+
+    </div>
+    @*<button onclick="onAbc()">Submit</button>*@
+</div>
+    
+    @*<script>
+        (function () {
+            jQuery('select').selectpicker();
+        })();
+        var markers = @Html.Raw(ViewBag.Markers);
+        alert('test data');
+        console.log("markers", markers)
+        var mapOptions = {
+            center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
+            zoom: 8,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var infoWindow = new google.maps.InfoWindow();
+        var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+        //window.onload = function () {
+
+        //                    var mapOptions = {
+        //                        center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
+        //                        zoom: 8,
+        //                        mapTypeId: google.maps.MapTypeId.ROADMAP
+        //                    };
+        //                    var infoWindow = new google.maps.InfoWindow();
+        //                    var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+        //                    for (i = 0; i < markers.length; i++) {
+        //                        var data = markers[i]
+        //                        var myLatlng = new google.maps.LatLng(data.lat, data.lng);
+        //                        var marker = new google.maps.Marker({
+        //                            position: myLatlng,
+        //                            map: map,
+        //                            title: data.title
+        //                        });
+        //                        (function (marker, data) {
+        //                            google.maps.event.addListener(marker, "click", function (e) {
+        //                                infoWindow.setContent(data.description);
+        //                                infoWindow.open(map, marker);
+        //                            });
+        //                        })(marker, data);
+        //                    }
+        //                }
+
+        function ResetButton(ele) {
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            $thisForm.find('[name=MenuGoupName]').val("");
+                $thisForm.find('[name=ModuleName]').val("");
+            $thisForm.find('[name=MnuGrpVisible]').prop('checked', false);
+                $thisForm.find('[name=SortNo]').val("");
+            $thisForm.find('[name=GroupIcon]').val("");
+
+            menuGroupInitialLoad();
+        }
+
+
+
+
+
+
+
+            </script>*@
+    @*<div id="map"></div>
+
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAcZEUnYdA9LiBcrOfmLSz7E8xGH_UKQGY&callback=initMap" async defer></script>
+        <script>
+            function initMap() {
+                var mapOptions = {
+                    center: new google.maps.LatLng("75.8341724","11.2476357" ), // Set the initial center coordinates
+                    zoom: 10 // Set the initial zoom level
+                };
+                var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+            }
+        </script>*@
+
+
+
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+
+        <div id="map" style="width: 500px; height: 400px;"></div>
+        <script>
+            // Create the Leaflet map
+            var map = L.map('map').setView([51.505, -0.09], 13);
+
+            // Add the OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add markers for each user
+            var users = [
+                { name: 'User 1', lat: 51.5, lng: -0.09 },
+                { name: 'User 2', lat: 77.2090, lng: 28.6139 },
+                // Add more users as needed
+            ];
+
+            users.forEach(function (user) {
+                var marker = L.marker([user.lat, user.lng]).addTo(map);
+                marker.bindPopup(user.name); // Add a popup with user's name
+            });
+        </script>*@
+
+
+    <!-- prettier-ignore -->
+  
+
+
+
+    <script>
+        //let map;
+
+        //async function initMap() {
+        //    const { Map } = await google.maps.importLibrary("maps");
+        //    map = new Map(document.getElementById("map"), {
+        //        center: { lat: 28.6139, lng: 77.2090 },
+        //        zoom: 8,
+        //    });
+
+        //    var markers = [
+        //        {
+        //            position: { lat: 28.6139, lng: 77.2090 },
+        //            title: 'Employee 1'
+        //        },
+        //        {
+        //            position: { lat: 28.5355, lng: 77.3910 },
+        //            title: 'Employee 2'
+        //        },
+        //        // Add more markers as needed
+        //    ];
+
+        //    // Add markers to the map
+        //    markers.forEach(function (marker) {
+        //        new google.maps.Marker({
+        //            position: marker.position,
+        //            map: map,
+        //            title: marker.title
+        //        });
+        //    });
+
+        //}
+
+        ////var marker = new google.maps.Marker({
+        ////    position: { lat: 28.6139, lng: 77.2090 },
+        ////    map: map,
+        ////    title: 'Marker Title'
+        ////});
+
+        //initMap();
+
+    </script>
+    @*//script funtions*@
+    <script>
+
+
+         (function loadGoogleMaps() {
+        var scriptElement = document.createElement('script')
+        scriptElement.src = 'https://maps.googleapis.com/maps/api/js?key=' + '@Model.MapKey';
+        scriptElement.async = true;
+        scriptElement.defer = true;
+        scriptElement.onerror = handleError;
+        document.head.appendChild(scriptElement);
+    })();
+        function getfunction()
+        {
+
+        }
+
+        var searchDate;
+        function getlocationtrackerdata(ele) {
+            var markerArr = [];
+            debugger
+
+            var  $thisForm = $(ele).closest('[perfect-class="form"]');
+          //  debugger
+            //Getgetlocationroutedetails($thisForm);
+
+            //var table = $('#LocationTable').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+            //table.clear().draw();
+            //let table = $('#LocationTable').DataTable();
+            //table.destroy();
+            if ($thisForm.valid() && ValidateAddrepdetails() <= 0) {
+               
+
+            @*vfromdate = $thisForm.find('[name=FromDate]').val();
+
+
+
+            const dateObject = new Date(vfromdate);
+
+            // Extract the month, day, and year from the date object
+            const month = dateObject.getMonth() + 1;
+            const day = dateObject.getDate();
+            const year = dateObject.getFullYear();
+
+            // Create a new date string with the 'MM-DD-YYYY' format
+
+            vfromdate = `${day}/${month}/${year}`;
+
+            // Use the newDateString variable to display the date in the desired format
+
+
+
+
+            // Extract the month, day, and year from the date object
+            vtodate = $thisForm.find('[name=ToDate]').val();
+
+            const dateObjects = new Date(vtodate);
+            const months = dateObjects.getMonth() + 1;
+            const days = dateObjects.getDate();
+            const years = dateObjects.getFullYear();
+
+
+
+
+            vtodate = `${days}/${months}/${years}`;
+
+            var vBranchID = $thisForm.find('[name=BranchID]').val();
+            var vmodel = @Html.Raw(Json.Encode(Model));
+            if (vBranchID == "0") {
+                vBranch = "All"
+            } else {
+                if (vmodel.BranchList != null) {
+                    $.each(vmodel.BranchList, function (key, value) {
+                        if (value.BranchID == vBranchID) {
+                            vBranch = value.BranchName
+                        }
+                    });
+                }
+            }
+            console.log(vBranch, vfromdate, vtodate)
+            var dateval = true;
+            dateval = checkLimit(ele);
+            if (dateval) {*@
+
+                document.getElementById('tableMap').style.display = 'none';
+
+                var obj = {
+                    Date:  $thisForm.find('[name="Date"]').val(),
+                    FK_Department: Number($thisForm.find('[name="DepartmentID"]').val()) ,
+                    FK_Branch: Number( $thisForm.find('[name="BranchID"]').val()),
+                    FK_Employee: Number( $thisForm.find('[name="EmployeeID"]').val()),
+                    FK_Designation: Number( $thisForm.find('[name="DesignationID"]').val()),
+
+                }
+                searchDate = $thisForm.find('[name="Date"]').val();
+
+                debugger
+                $.ajax({
+                    url: "@Url.Action("Getgetlocationtrackerdetails", "LocationTrack")",
+                    type: "POST",
+                    data: obj,
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {
+
+                        console.log(ajaxOutput, "--inputdata--")
+                        document.getElementById('tableMap').style.display = 'block';
+                        if (ajaxOutput.Process.IsProcess) {
+                           
+                            document.querySelector('#tableMap').style.display = "block";
+                            document.querySelector('.btndiv').style.display = "block";
+                            if (ajaxOutput.Data.length > 0) document.querySelector('.mt-perfect').style.display = 'block';
+
+                            ajaxOutput.Data.forEach((item) => {
+                              
+                                markerArr.push({ LocLattitude: item.LocLattitude, LocLongitude : item.LocLongitude, Name: item.EmpFName });
+                               
+                            });
+
+                            debugger
+                            Loadmapmap(markerArr);
+                            //Load_Route([])
+                             // DrawLineinMap([]);
+
+                            
+                           // fn_fillLocationItem($thisForm, "Quotation", ajaxOutput.Data, tableOptionsQuotationItem);
+                            //check a new table
+                            //var $formDivContainer  = $thisForm.find('[name=profile]');
+                            //$formDivContainer.append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, Tableoption)))
+
+                            console.log(ajaxOutput.Data,'<<<<<ajaxOutput.Data>>>')
+
+                           // $('#LocationTable').DataTable.destroy();
+                            //let table = $('#LocationTable').DataTable();
+                           // table.destroy();
+                           console.log("enterd in is precess true");
+                            tableData = $('#LocationTable').DataTable({
+                                pagination: "bootstrap",
+                                filter: true,
+                                data: ajaxOutput.Data,
+                                destroy: true,
+                                paging: false,
+                                info: false,
+                                searching: false,
+                                "columns": [
+                                    { "title": "Sl No", "data": null},
+                                    { "title": "Employee Name","data": "EmpFName" },
+                                    {
+                                        "title":"Route",
+                                        "data": null,
+                                        
+                                        render: function (data, type, row) {
+                                            //return `<i class="fa fa-map-marker" onClick="onRoute(${data.FK_Employee})"></i>`;
+                                            return `<svg height="30px" width="30px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" onClick="onRoute(${data.FK_Employee})"
+	                                                     viewBox="0 0 512 512" xml:space="preserve">
+                                                    <path style="fill:#F0CE49;" d="M88.276,0C35.31,0,0,45.903,0,96.221c0,30.014,7.945,46.786,21.186,75.034
+	                                                    c26.483,58.262,67.09,120.938,67.09,120.938s40.607-62.676,67.09-120.938c13.241-29.131,21.186-45.021,21.186-75.034
+	                                                    C176.552,45.903,141.241,0,88.276,0"/>
+                                                    <path style="fill:#BF9A26;" d="M132.414,88.276c0-24.717-19.421-44.138-44.138-44.138S44.138,63.559,44.138,88.276
+	                                                    s19.421,44.138,44.138,44.138S132.414,112.993,132.414,88.276"/>
+                                                    <path style="fill:#43B05B;" d="M423.724,176.552c-52.966,0-88.276,45.903-88.276,96.221c0,30.014,7.945,46.786,21.186,75.035
+	                                                    c26.483,58.262,67.09,120.938,67.09,120.938s40.607-62.676,67.09-120.938C504.055,318.676,512,302.786,512,272.772
+	                                                    C512,222.455,476.69,176.552,423.724,176.552"/>
+                                                    <path style="fill:#248436;" d="M467.862,264.828c0-24.717-19.421-44.138-44.138-44.138c-24.717,0-44.138,19.421-44.138,44.138
+	                                                    c0,24.717,19.421,44.138,44.138,44.138C448.441,308.966,467.862,289.545,467.862,264.828"/>
+                                                    <g>
+	                                                    <path style="fill:#48A0DC;" d="M423.724,512h-8.828c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h8.828
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S429.021,512,423.724,512"/>
+	                                                    <path style="fill:#48A0DC;" d="M330.152,512h-16.772c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h16.772
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S335.448,512,330.152,512 M381.352,512h-16.772c-5.297,0-8.828-3.531-8.828-8.828
+		                                                    s3.531-8.828,8.828-8.828h16.772c5.297,0,8.828,3.531,8.828,8.828S385.766,512,381.352,512"/>
+	                                                    <path style="fill:#48A0DC;" d="M148.303,335.448h-16.772c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h16.772
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S152.717,335.448,148.303,335.448 M198.621,335.448h-16.772c-5.297,0-8.828-3.531-8.828-8.828
+		                                                    s3.531-8.828,8.828-8.828h16.772c5.297,0,8.828,3.531,8.828,8.828S203.917,335.448,198.621,335.448 M240.993,357.517
+		                                                    c-2.648,0-6.179-1.766-7.945-4.414c-2.648-3.531-5.297-7.062-8.828-10.593c-3.531-2.648-4.414-8.828-1.766-12.359
+		                                                    s8.828-4.414,12.359-1.766c5.297,4.414,9.71,9.71,13.241,15.007c2.648,4.414,0.883,9.71-3.531,12.359
+		                                                    C244.524,357.517,242.759,357.517,240.993,357.517 M238.345,405.186c-1.766,0-3.531-0.883-5.297-1.766
+		                                                    c-3.531-2.648-4.414-8.828-1.766-12.359c2.648-3.531,4.414-7.945,5.297-12.359s6.179-7.945,10.593-6.179
+		                                                    c4.414,0.883,7.945,6.179,6.179,10.593c-1.766,6.179-4.414,12.359-8.828,18.538C244.524,404.303,240.993,405.186,238.345,405.186
+		                                                     M109.462,423.724H92.69c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h16.772c5.297,0,8.828,3.531,8.828,8.828
+		                                                    S114.759,423.724,109.462,423.724 M159.779,423.724h-16.772c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h16.772
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S165.076,423.724,159.779,423.724 M203.034,423.724h-8.828c-5.297,0-8.828-3.531-8.828-8.828
+		                                                    s3.531-8.828,8.828-8.828h8.828c1.766,0,4.414,0,6.179-0.883c5.297-0.883,9.71,2.648,10.593,7.062
+		                                                    c0.883,4.414-2.648,9.71-7.062,10.593C209.214,423.724,205.683,423.724,203.034,423.724 M42.372,425.49
+		                                                    c-3.531,0-7.945-2.648-8.828-7.062c-0.883-4.414,1.766-9.71,6.179-10.593c4.414-0.883,8.828-1.766,13.241-1.766h6.179
+		                                                    c5.297,0,8.828,3.531,8.828,8.828s-3.531,8.828-8.828,8.828h-6.179c-2.648,0-6.179,0-8.828,0.883
+		                                                    C43.255,424.607,42.372,425.49,42.372,425.49 M9.71,459.917c-0.883,0-0.883,0-1.766,0c-4.414-0.883-7.945-5.297-7.062-9.71
+		                                                    c0.883-7.062,3.531-13.241,7.062-18.538c2.648-4.414,7.945-5.297,12.359-2.648c4.414,2.648,5.297,7.945,2.648,12.359
+		                                                    c-2.648,3.531-4.414,7.945-4.414,12.359C17.655,457.269,14.124,459.917,9.71,459.917 M28.248,504.055
+		                                                    c-1.766,0-3.531-0.883-5.297-1.766c-5.297-3.531-10.593-7.945-14.124-14.124c-2.648-4.414-1.766-9.71,2.648-12.359
+		                                                    s9.71-1.766,12.359,2.648s5.297,7.062,8.828,9.71c4.414,2.648,5.297,7.945,2.648,12.359
+		                                                    C33.545,503.172,30.897,504.055,28.248,504.055 M76.8,512H60.028c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828H76.8
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S82.097,512,76.8,512 M128,512h-16.772c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828
+		                                                    H128c5.297,0,8.828,3.531,8.828,8.828S132.414,512,128,512 M178.317,512h-16.772c-5.297,0-8.828-3.531-8.828-8.828
+		                                                    s3.531-8.828,8.828-8.828h16.772c5.297,0,8.828,3.531,8.828,8.828S183.614,512,178.317,512 M229.517,512h-17.655
+		                                                    c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h17.655c5.297,0,8.828,3.531,8.828,8.828S233.931,512,229.517,512
+		                                                     M279.835,512h-16.772c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h16.772c5.297,0,8.828,3.531,8.828,8.828
+		                                                    S285.131,512,279.835,512"/>
+	                                                    <path style="fill:#48A0DC;" d="M97.103,335.448h-8.828c-5.297,0-8.828-3.531-8.828-8.828s3.531-8.828,8.828-8.828h8.828
+		                                                    c5.297,0,8.828,3.531,8.828,8.828S102.4,335.448,97.103,335.448"/>
+                                                    </g>
+                                                    </svg>`;
+                                        }
+                                    },
+                                    { "title": "Location Name", "data": "LocLocationName","width": "25px"  },
+                                    //{ "title": "EnteredDate","data": "EnteredDate" },
+                                    { "title": "EnteredTime","data": "EnteredTime" },
+                                    { "title": "Bettery %", "data": "ChargePercentage" },
+                                    //{ "title": "Department Name", "data": "DeptName" },
+                                    { "title": "Designation", "data": "DesName" },
+                                    { "title": "Branch", "data": "BranchName" },
+                                   
+                                    { "title": "Employee ID", "data": "FK_Employee" },
+
+                                ],
+                                scrollY: 500,
+                                scrollX: true,
+                                scrollCollapse: true,
+                                paging: false,
+                                fixedHeader: {
+                                    header: true,
+                                    footer: true
+                                },
+                                //"order": [[2, "asc"]],
+                                "columnDefs": [
+                                    { "orderable": false, "targets": [0, 1, 3, 4, 5, 6,7] },
+                                    { "visible": false, "targets": [8] }
+                                ],
+                                //drawCallback: function (settings) {
+                                //    var api = this.api();
+                                //    var rows = api.rows({ page: 'current' }).nodes();
+                                //    var last = null;
+                                //    //console.log(api, rows);
+                                //    api.column(2, { page: 'current' }).data().each(function (group, i) {
+
+                                //        if (last !== group) {
+                                //            $(rows).eq(i).before(
+                                //                '<tr class="group"><td colspan="10" style="BACKGROUND-COLOR:rgb(237, 208, 0);font-weight:700;color:#006232;">' + group + '</td></tr>'
+                                //            );
+                                //            last = group;
+                                //        }
+                                //    });
+                                //},
+                                "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                    $("td:first", nRow).html(iDisplayIndex + 1);
+                                   // return nRow;
+
+                                    let cell = `<span style="margin-left: 10px; " onClick="onModelDetails(${aData.FK_Employee})">  ${aData.EmpFName } </span>`;
+
+                                    $('td:eq(1)', nRow).html(cell);
+
+                                },
+                                createdRow: function (row, data, type) {
+
+                                },
+                                "footerCallback": function (row, data, start, end, display) {
+                                    var api = this.api(), data;
+
+                                },
+
+
+                            });
+                            ////let x = document.getElementById("exppdf");
+                            ////x.style.display = "block";
+                        } else {
+                            console.log("enterd in else conditionssss...");
+                            document.querySelector('#tableMap').style.display = "block";
+                            document.querySelector('.btndiv').style.display = "none";
+
+                            //document.getElementById("exppdf").style.display = "none";
+                            //exportfile_toogle = false;
+                            //$('#divPayRollAttendanceList').show();
+                            //$('#divPayRollLeaveList').hide();
+                            //$('#divPayRollAdvanceList').hide();
+                            tableData = $('#LocationTable').DataTable({
+                                pagination: "bootstrap",
+                                filter: true,
+                                data: [],
+                                destroy: true,
+                                paging: false,
+                                info: false,
+                                searching: false,
+                                "columns": [
+                                    { "title": "Sl No", "data": null},
+                                    { "title": "Employee Name", "data": "EmpFName" },
+                                    {
+                                        "title": "Route",
+                                        "data": null,
+                                        
+                                        render: function (data, type, row) {
+                                            return `<i class="fa fa-map-marker" onClick="onRoute(${data.FK_Employee})"></i>`;
+                                        }
+                                    },
+                                    { "title": "Location Name", "data": "LocLocationName" },
+                                    //{ "title": "EnteredDate","data": "EnteredDate" },
+                                    { "title": "EnteredTime", "data": "EnteredTime" },
+                                    { "title": "Bettery %", "data": "ChargePercentage" },
+                                    //{ "title": "Department Name", "data": "DeptName" },
+                                    { "title": "Designation", "data": "DesName" },
+                                    { "title": "Branch", "data": "BranchName" },
+
+                                    { "title": "Employee ID", "data": "FK_Employee" },
+
+
+                                ],
+                                "language": {
+                                    "emptyTable": "No data available"
+                                },
+                                scrollY: 500,
+                                scrollX: true,
+                                scrollCollapse: true,
+                                paging: false,
+                                fixedHeader: {
+                                    header: true,
+                                    footer: true
+                                },
+                                //"order": [[2, "asc"]],
+                                "columnDefs": [
+                                    { "orderable": false, "targets": [0, 1, 3, 4, 5, 6 ] },
+                                    { "visible": false, "targets": [8] }
+                                ],
+
+                                createdRow: function (row, data, type) {
+
+                                },
+                                "footerCallback": function (row, data, start, end, display) {
+                                    var api = this.api(), data;
+
+                                },
+
+
+                            });
+
+
+                        }
+
+
+
+                    },
+                    error: function () {
+                        //document.getElementById('tableMap').style.display = 'none';
+                    },
+                    complete: function () {
+                        console.log("complated ***********", markerArr)
+                        $('#LocationTable').find('thead').addClass('thead-primary')
+                    }
+                });
+
+            //}
+            //else {
+            //    NotificationMessage({
+            //        'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than  From Date'
+            //    });
+
+            //}
+
+
+       // }
+
+            }
+
+            else {
+
+                document.querySelector('#tableMap').style.display = "none";
+
+                    //NotificationMessage({
+                    //    'type': 'error', 'heading': 'Error', 'message': 'To Date should be greater than  From Date'
+                    //});
+                }
+
+
+
+        }
+         function Getgetlocationroutedetails($thisForm,id) {
+           
+
+            debugger
+            var Arr = [];
+            var obj = {
+                   
+                Date: searchDate,
+                    FK_Employee: id,
+            }
+
+
+            $.ajax({
+                url: "@Url.Action("GetgetlocationRoutedetails", "LocationTrack")",
+                type: "POST",
+                data: obj,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    console.log(ajaxOutput, "--inputdata--")
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+
+                        Arr = ajaxOutput.Data;
+                       // Load_Route(Arr);
+                        DrawLineinMap(Arr);
+                    
+                    } else {
+                    
+                        ////
+
+                    }
+
+
+
+                },
+                complete: function () {
+                    console.log("complated", markerArr)
+                }
+            });
+        }
+
+        function ResetButton(ele) {
+            loadlocationTrackAddForm()
+        }
+        function ValidateAddrepdetails() {
+            var Error = 0;
+            let $inp;
+            $inp = $(".ActionDate");
+            let is_empty;
+            $inp.each((i, el) => {
+                if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                    is_empty = false;
+                }
+                else {
+                    if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                        is_empty = true;
+                    }
+                    else {
+
+
+                        is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                    }
+
+                }
+
+                let ErrorID = $(el).attr('data-id');
+
+                if (ErrorID != undefined) {
+                    if (is_empty) {
+
+                        $('#' + ErrorID).css('display', 'block');
+                        Error++;
+
+                    }
+                    else if (!is_empty) {
+                        $('#' + ErrorID).css('display', 'none');
+
+                    }
+                    el.classList.toggle("is-empty", is_empty);
+                }
+            });
+
+            return Error;
+        }
+        function ChangToogle(param) {
+            if (param === "map") {
+                document.querySelector('#locationTrackTablediv').style.display = 'none';
+                Loadmapmap(null);
+                document.querySelector('#map').style.display = 'block';
+            } else {
+                document.querySelector('#map').style.display = 'none';
+                document.querySelector('#locationTrackTablediv').style.display = 'block';
+            }
+        }
+
+        var mapLocationArray=[]
+        
+        function Loadmapmap(arr) {
+            debugger
+            if (!arr) {
+                arr = mapLocationArray;
+            } else {
+            
+                mapLocationArray = arr;
+            }
+            var map;
+            var markers = [];
+
+            async function initMap() {
+
+                let zoomposition = Object.assign({}, arr[0]);
+                zoomposition.lat = zoomposition.LocLattitude;
+                zoomposition.lng = zoomposition.LocLongitude;
+                delete zoomposition.LocLattitude;
+                delete zoomposition.LocLongitude;
+                delete zoomposition.Name;
+
+                const { Map } = await google.maps.importLibrary("maps");
+                map = new Map(document.getElementById("map"), {
+                    //center: { lat: 28.6139, lng: 77.2090 },
+                    center: zoomposition,
+                    zoom: 10,
+                });
+
+
+                arr.forEach((item) => {
+                    markers.push({
+                        position: { lat: item.LocLattitude, lng: item.LocLongitude },
+                        title: item.Name,
+                        label: {
+                            text: item.Name,
+                            className: 'custom-label-class',
+                            style: {
+                                color: 'red',
+                                fontSize: '16px',
+                                fontWeight: 'bold'
+                            }
+                        }
+
+                    })
+                })
+
+                console.log(markers)
+               
+                // Add markers to the map
+                markers.forEach(function (marker) {
+                    new google.maps.Marker({
+                        position: marker.position,
+                        map: map,
+                        title: marker.title,
+                        icon:'http://www.google.com/intl/en_us/mapfiles/ms/micons/green-dot.png',
+                        label: {
+                            text: marker.title,
+                            className: marker.label && marker.label.className ? marker.label.className : '',
+                            style: marker.label.style
+                        }
+                    });
+                });
+
+            }
+
+            initMap();
+        }
+
+
+        function fn_fillLocationItem(ele, tkey, data, tableOptionsTempOut) {
+           // debugger
+
+           // console.log(data,"--data--->>>")
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            //$thisForm = ele;
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+                let pData = {};
+                debugger
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                 //$tblcontainer.each(function () {
+
+                    debugger
+                    let $this = $(ele);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                        else if ($this.is('input')) {
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            if (inputType == 'checkbox') {
+                                pData[nameAttr] = valOne[nameAttr];
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+                            }
+                            else if (inputType == 'hidden') {
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                            else if (inputType == 'date') {
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+                        }
+                    }
+                });
+                insertData.push(pData);
+            });
+
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+
+
+        }
+
+
+
+        
+
+       
+        function DrawLineinMap(arr) {
+
+            debugger
+            
+           async function initMap() {
+                const { Map } = await google.maps.importLibrary("maps");
+
+               const map = new Map(document.getElementById("map"), {
+                    zoom: 11,
+                    center: { lat: arr[0].LocLattitude, lng: arr[0].LocLongitude },
+                    mapTypeId: "terrain",
+                });
+               let coedinatess = [];
+               arr.forEach((item) => {
+                   coedinatess.push({ lat: item.LocLattitude, lng: item.LocLongitude })
+               })
+               
+                const flightPath = new google.maps.Polyline({
+                    path: coedinatess,
+                    geodesic: true,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                });
+
+               flightPath.setMap(map);
+
+              
+
+            };
+
+            initMap();
+        }
+
+
+        async function onRoute(data) {
+
+            var $thisForm = $('[perfect-class="form"]');
+            await Getgetlocationroutedetails($thisForm, data);
+
+            document.getElementById('locationTrackTablediv').style.display = "none ";
+            document.querySelector('#map').style.display = 'block';
+          
+        }
+       
+        function handleError() {
+            console.log("error on script")
+        };
+        
+
+    </script>

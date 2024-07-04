@@ -1,0 +1,516 @@
+﻿
+@model PerfectWebERP.Models.GSTReportModel.GSTReportView
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+</style>
+
+
+<div class="card ">
+    <div class="card-header">
+        <h4 class="card-title col-12">GST Reports</h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+
+            <div class="">
+               
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <input type="hidden" id="Companyname" name="Companyname" class="form-control" value="@Model.Companyname" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                <select class="form-control Action ActionDate" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" onchange="bindReportField(this)" perfect-ctype="select" perfect-css="select" onchange="">
+                                    <option value="0">Please select</option>
+                                    <option value="1">Purchase GST</option>
+                                    <option value="2">Sales GST</option>
+                                    <option value="3">Purchase Return GST</option>
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 ">
+
+                    </div>
+                    <div class="col-sm-6 DivFromDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="FromDate" data-id="FromDate-error" name="FromDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div id="FromDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select From Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivToDate">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="ToDate" data-id="ToDate-error" name="ToDate" perfect-class="formGroupControl" max="2050-01-01" perfect-ctype="date" perfect-css="date" onchange="checkLimit(this)">
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                <div id="ToDate-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select To Date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="onchangeBranchclears(this)">
+
+                                    <option value="">Please Select</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            <option value="@branchList.BranchID">@branchList.BranchName</option>
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivDepartment">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="DepartmentID" name="DepartmentID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearemployee(this)">
+
+                                    <option value="">Please Select</option>
+
+                                    @if (!(Model.DepartmentList is null))
+                                    {
+                                        foreach (var deprtmnt in Model.DepartmentList)
+                                        {
+                                            <option value="@deprtmnt.DepartmentID">@deprtmnt.DepartmentName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivSupplier">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label"><span perfect-class="formGroupLabel">Supplier</span></label>
+                            <div class="input-group col-sm-8">
+                                <input type="hidden" name="SupplierID" id="SupplierID" class="form-control" perfect-ctype="hidden" />
+                                <input type="text" class="form-control " name="SupplierName" id="SuppNameID"  perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,20,'Supplier List',[],['SupplierID','SupplierName'])" Criterea1="0" Criterea2="0" BindName="SupplierName" BindVal="SupplierID"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivCustomer">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label"><span perfect-class="formGroupLabel">Customer</span></label>
+                            <div class="input-group col-sm-8">
+                                <input type="hidden" name="CustomerID" id="CustomerID" class="form-control" perfect-ctype="hidden" />
+                                <input type="text" class="form-control " name="CustomerName" id="CusNameID"   perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,7,'Customer List',[],['ID_Customer','CustomerNo'])" Criterea1="0" Criterea2="0" BindName="CustomerName" BindVal="CustomerID"></button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivTaxType">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">TaxType</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_string_nm" id="TaxTypeID" name="TaxTypeName" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearemployee(this)">
+
+                                    <option value="">Please Select</option>
+
+                                    @if (!(Model.TaxTypeList is null))
+                                    {
+                                        foreach (var taxType in Model.TaxTypeList)
+                                        {
+                                            <option value="@taxType.TaxTypeID">@taxType.TaxTypeName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Mode</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control " name="ModeID" id="ModeID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    @if (!(Model.ModeList is null))
+                                    {
+                                        foreach (var Mode in Model.ModeList)
+                                        {
+                                            <option value="@Mode.Mode">@Mode.ModeName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control perfectValidate_numeric" id="Reporttype" name="Reporttype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="getgstreport(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+<script>
+    (function () {
+     
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+        Getdepartmentdefault(this);
+        //showandhidefield(this);
+    });
+     function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                         let user = '@ViewBag.Admin';
+                     
+                       
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+            return false;
+        }
+        else {
+
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+  function getgstreport(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+ 
+       
+
+      if (ValidateAddrepdetails($('#ID_Report').val()) <= 0 ) {
+  
+          var datval = true;
+          debugger
+          if (($('#ID_Report').val() == 1) || ($('#ID_Report').val() == 2) || ($('#ID_Report').val() == 3)) {
+              datval = checkLimit(ele);
+              console.log('date val',datval);
+            }
+          
+            if (datval) {
+
+                debugger
+                var Report_Id = $('#ID_Report').val();
+                var Fromdate = $('#FromDate').val() == null ? null : $('#FromDate').val();
+
+                var Todate = $('#ToDate').val();
+                
+                var Branch = $('#BranchID').val();
+                var Branchname = $('#BranchID :selected').text();
+
+                var SupplierID = $('#SupplierID').val();
+                let SupplierName = $thisForm.find('[name="SupplierName"]').val();
+
+                var CustomerID = $('#CustomerID').val();
+                var CustomerName = $thisForm.find('[name="CustomerName"]').val();
+
+                var Mode = $('#ModeID').val();
+                var ModeName = $('#ModeID :selected').text();
+
+                var Department = $('#DepartmentID').val();
+                var Departmentname = $('#DepartmentID :selected').text();
+
+                var TaxTypeID = $('#TaxTypeID').val();
+                var TaxType = $('#TaxTypeID :selected').text();
+
+                var Reportformat = $('#Reporttype').val();
+                var Company = $thisForm.find('[name="Companyname"]').val();
+               debugger
+              
+                console.log('', $thisForm.find('[name="Companyname"]').val());
+
+                var Url = ('@Url.Action("GetGSTReport", "Report")?ReportMode=' + Report_Id +
+                    '&FromDate=' + Fromdate +
+                    '&ToDate=' + Todate +
+                    '&FK_Branch=' + Branch +
+                    '&CompName=' + Company +
+                    '&Branchname=' + Branchname +
+                    '&SupplierID=' + SupplierID +
+                    '&SuppName=' + SupplierName +
+                    '&CustomerID=' + CustomerID +
+                    '&CusName=' + CustomerName +
+                    '&ModeID=' + Mode +
+                    '&ModeName=' + ModeName +
+                    '&TaxTypeID=' + TaxTypeID +
+                    '&TaxTypename=' + TaxType +
+                    '&FK_Department=' + Department +
+                    '&Departmentname=' + Departmentname +
+                    '&Rptype=' + Reportformat 
+
+
+                );
+
+                console.log('url', Url);
+                popitup(Url);
+            }
+
+        }
+    }
+
+    function popitup(url) {
+        newwindow = window.open(url, 'name', 'height=1000,width=1000');
+        if (window.focus) { newwindow.focus() }
+        return false;
+    }
+    function fireDownload(url) {
+        window.location.assign(url);
+    }
+
+    function ResetButton(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let pData = $thisForm.data('pData');
+
+        if (pData) {
+
+
+
+            $thisForm.find('[name=ID_Report]').val(pData.ID_Report).selectpicker('refresh'),
+                $thisForm.find('[name=FromDate]').val(pData.FromDate),
+                $thisForm.find('[name=ToDate]').val(pData.ToDate),
+                $thisForm.find('[name=TaxTypeName]').val(pData.TaxTypeName).selectpicker('refresh'),
+                $thisForm.find('[name=BranchID]').val(pData.BranchID).selectpicker('refresh'),
+                $thisForm.find('[name=DepartmentID]').val(pData.DepartmentID).selectpicker('refresh')          
+               
+        }
+        else {
+
+
+            $thisForm.find('[name=ID_Report]').val(0).selectpicker('refresh'),
+                $thisForm.find('[name=TaxTypeName]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=BranchID]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=FromDate]').val(""),
+                $thisForm.find('[name=ToDate]').val(""),
+                $thisForm.find('[name=DepartmentID]').val("").selectpicker('refresh'),
+            $thisForm.find('[name=Criteria]').val("").selectpicker('refresh'),
+                $thisForm.find('[name=ModeID]').val("").selectpicker('refresh'),
+            $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD')),
+            $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD')),
+            $('#CustomerID').val(''),
+            $thisForm.find('[name="CustomerName"]').val(""),
+            $('#SupplierID').val(''),
+            $('#SuppNameID').val('')
+
+
+        }
+    }
+
+    function bindReportField(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($("#ID_Report").val() == 1 || ($("#ID_Report").val() == 3)){
+            $('.DivSupplier').show();
+            $('.DivCustomer').hide();
+            $('#CustomerID').val(''),
+            $thisForm.find('[name="CustomerName"]').val("")
+
+        }
+        if ($("#ID_Report").val() == 2)  {
+            $('.DivSupplier').hide();
+            $('.DivCustomer').show();
+            $thisForm.find('[name=DepartmentID]').val("").selectpicker('refresh');
+            $('#SupplierID').val(''),
+            $('#SuppNameID').val('')
+        }     
+    }
+
+
+    function ValidateAddrepdetails(Rptval) {
+
+        var Error = 0;
+        let $inp;
+        //$inp = $(".ActionDate");
+        debugger
+        if (Rptval > 0 ) { $inp = $(".ActionDate"); }
+
+        else { $inp = $(".Action"); }
+
+
+        let is_empty;
+
+        $inp.each((i, el) => {
+
+
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+
+
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+
+</script>
+   

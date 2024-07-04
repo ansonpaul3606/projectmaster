@@ -1,0 +1,523 @@
+﻿
+@{
+    ViewBag.Title = "ReportSetting";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="ReportSetting-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts
+{
+    <script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+   
+    <script type="text/javascript">
+
+        const $formContainer = $('#ReportSetting-form');
+
+        $(document).ready(function () {
+            rptInitialLoad();
+
+        });
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       
+               @if (ViewBag.PagedAccessRights.UsrrlStView) {
+        <text> { displayName: "View", action: Fn_editReprtSetting },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlStDel)
+             {
+                 <text> { displayName: "Delete", action: fn_deleteRptSetting },</text>
+
+              }
+                    
+                    
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SLNO", "FrmtName", "RpName", "SbName"],
+            hideColumn: [],
+           rowClickAction: Fn_editReprtSetting,
+            //serialNo: true,
+            renameHeader: { "SLNO": "SL NO", "FrmtName": "Format Name", "RpName": "Name", "SbName": "Short Name" }
+        };
+
+        var validationMessage = {
+            'RpName': {
+                'required': 'Please Enter Report Name',
+
+
+            },
+            'FrmtID': {
+                'required': 'Please Select Format Name',
+                'digits': 'Invalid Service Selected'
+            },
+            'SbName':
+            {
+                'required': 'Please Enter Short Name',
+
+            }
+
+
+        };
+
+
+        function rptInitialLoad() {
+              @if (ViewBag.PagedAccessRights.UsrrlStView)
+              {
+                 <text>  fn_pgIndex_loadReportSetting();</text>
+              }
+           
+            fn_loadAddLoadFormReportSetting();
+        }
+
+           // Fucntion to load ProductWise ADD form
+        function fn_loadAddLoadFormReportSetting()
+        {
+
+            $formContainer.load('@Url.Action("LoadFormReportSetting", "ReportSetting")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+               $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'rptInitialLoad');
+            });
+
+        };
+
+            //list ReportSetting
+
+        function fn_pgIndex_loadReportSetting1() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Report Settings ');
+
+            let pageUrl = '@Url.Action("GetReportList", "ReportSetting")';
+
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('ReportSettig', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Report Settings");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+        function returnajaxPagination1(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    return { pageSize: info.length, pageIndex: info.page }
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": true,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+        function fn_pgIndex_loadReportSetting(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Report Settings List');
+          let pageUrl = '@Url.Action("GetReportList", "ReportSetting")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('ReportSetting', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("ReportSetting");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_pgIndex_loadReportSetting(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                //  "lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                    if (ajaxOutput.Process.Status = "NoData") {
+                        $sidemenu.find('.jq_sidemenu_title').text("ReportSetting");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_pgIndex_loadReportSetting(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+      
+        //view details
+
+        function Fn_editReprtSetting()
+        {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.find('[name="FldId"]').val('').selectpicker('refresh');
+            let $thisRow = $(this).closest('tr');
+            let saveddata = $thisRow.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_ReportSettings: saveddata.ID_ReportSettings
+            };
+
+            $.ajax({
+                url: "@Url.Action("GetReportSettinginfo", "ReportSetting")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    console.log("Report Data >",ajaxOutput.ReportDetails.Data[0]);
+                    $formContainer.load('@Url.Action("LoadFormReportSetting", "ReportSetting")', function () {
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        if (ajaxOutput.ReportDetails.Process.IsProcess) {
+                            initFunctions($thisForm);
+                          
+                            $thisForm.data({ pData: ajaxOutput.ReportDetails.Data[0] });
+                            $thisForm.find('[name="ID_ReportSettings"]').val(ajaxOutput.ReportDetails.Data[0].ID_ReportSettings);                         
+                            $thisForm.find('[name="RpName"]').val(ajaxOutput.ReportDetails.Data[0].RpName);
+                            $thisForm.find('[name="SbName"]').val(ajaxOutput.ReportDetails.Data[0].SbName);
+                            $thisForm.find('[name="SortOrd"]').val(ajaxOutput.ReportDetails.Data[0].SortOrd);
+                            $thisForm.find('[name="FrmtID"]').val(ajaxOutput.ReportDetails.Data[0].FrmtID).selectpicker('refresh');
+                            $thisForm.find('[name="MasterID"]').val(ajaxOutput.ReportDetails.Data[0].MasterID).selectpicker('refresh');
+                            $thisForm.find('[name="SortArea"]').val(ajaxOutput.ReportDetails.Data[0].SortArea);
+                            if ($thisForm.find('[name=FrmtID]').val() == 1)
+                            {
+                                document.getElementById("Masternm").style.display = '';
+                            }
+                            let frmtID = $thisForm.find('[name="FrmtID"]').val(ajaxOutput.ReportDetails.Data[0].FrmtID);
+                            let $menuDropdown = $thisForm.find('[name=MasterID]');
+                            let masterid = ajaxOutput.ReportDetails.Data[0].MasterID;
+                          
+                            $.ajax({
+                              
+                                url: "@Url.Action("getMstrList", "ReportSetting")",
+                                type: "POST",
+                                data: frmtID,
+                                dataType: "json",
+                                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                                success: function (ajaxOutput)
+                                {
+                                 console.log(ajaxOutput)
+                                 
+                                 $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+
+                                    if (ajaxOutput.Process.IsProcess)
+                                    {
+                
+                                        $.each(ajaxOutput.Data, function (key, value) {
+                                            $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                                            $menuDropdown.val(masterid).selectpicker('refresh');                                                                                     
+                                            document.getElementById("Masternm").style.display = '';
+                                            
+                                        });
+                                      
+                                
+                                                                       
+                                    }
+                                    else
+                                    {
+                                     
+                                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                 //toastr.warning(value, "Error");
+                                             NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': value });
+                                             });
+                                    }
+                                }
+                                 
+
+                         });
+                          
+                          
+                        }
+                        if (ajaxOutput.ReportSettingsDetailsType.Process.IsProcess) {
+                            $thisForm.data({ pData: ajaxOutput.ReportSettingsDetailsType });
+                            $('#ReportDetbody').empty();
+                            $('#ReportDetbody').append(CreateReprtDetailsTable(ajaxOutput.ReportSettingsDetailsType));
+
+                        }
+
+                         $sideMenuOptions.close();//<---  Close side menu
+                        $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+                     
+                    });
+
+                }
+            });
+        };
+
+    
+        function CreateReprtDetailsTable(data)
+        {
+            let $container = $(this).closest('[perfect-class="form"]');    
+            var ProductData = data.Data;
+            var TbodyHtml = '';
+            if (ProductData.length > 0) {
+                $('#RptTbl').show();
+                $.each(ProductData, function (i, value) {
+                  
+                    TbodyHtml += "<tr>";
+                    TbodyHtml += "<td>" + value.SLNO + "</td>";
+                    TbodyHtml += "<td style='display:none;'>" + value.FK_ReportFields + "</td>";
+                    TbodyHtml += "<td>" + value.ReportField + "</td>";
+                    TbodyHtml += "<td>" + value.AliasName + "</td>";
+                    TbodyHtml += "<td><div class='d-flex'><a href='#' class='btn btn-danger shadow btn-xs sharp mr-1'onclick='Removereptdetails(this);'><i class='fa fa-trash'></i></a></div></td>";
+                    TbodyHtml += "</tr>";
+                   
+                   // let $option = '<option value="' + value.AliasName + '">' + value.AliasName + '</option>'
+                   // $container.find('[name=SortFldID]').append($('<option/>', { "value": value.AliasName }).text(value.AliasName)).selectpicker('refresh')
+                   //// $container.find('[name=SortFldID]').append($option).selectpicker('refresh');
+
+                });
+            }
+            else {
+                TbodyHtml += "<tr><td style='text-align:center;' colspan='5'></td></tr>";
+            }
+
+            return TbodyHtml;
+
+        }
+
+         function fn_deleteRptSetting() {
+             let $row = $(this).closest('tr');
+             let Saveddata = $row.data('pData');
+
+             $('.dataTable tr').removeClass("SelectForDelete");
+             $(this).closest('tr').addClass('SelectForDelete');
+
+             console.log('Delete function', Saveddata)
+             //get reason list-
+               $.ajax({
+                   url: "@Url.Action("GetReptSettingdelReasonList", "ReportSetting")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.RpName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                                                    
+                           confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_ReportSettings: Saveddata['ID_ReportSettings'],
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteReptSettInfo", "ReportSetting")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                                });
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+                        }
+                        else {
+                        }
+                   }
+               });
+        };
+    </script>
+}
+

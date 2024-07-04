@@ -1,0 +1,569 @@
+﻿@{
+ ViewBag.page = "CustomerSample";
+    ViewBag.Title = "CustomerSample";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken();
+    <div class="row">
+        <div class="col-lg-12" id="jq_customerIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+<script type="text/javascript">
+
+    //--- Form
+    const $formContainer = $('#jq_customerIndex_formContainer');
+    //--- Common table settings for this page
+    var tableOptions = {
+        dropdown: {
+            buttons: [
+                @if (true) {
+        <text>{displayName: "View", action: fn_customerIndex_loadCustomerUpdateForm },</text>
+    }
+
+    { type: "divider" },
+    {
+        displayName: "Delete", action: fn_customerIndex_deleteCustomer
+    }
+                ],
+    class: "btn btn-success light sharp"
+            },
+    //textButton: {
+    //    buttons: [
+    //        { text: "normal",class:" btn-info", action: '' },
+    //        { text: "outline", class: " btn-outline-primary", action: () => { alert("clicked"); } },
+    //        { text: "rounded ", class: " btn-rounded btn-success", action: () => { alert("clicked"); } },
+    //        { text: "transparent ", class: "tp-btn-light btn-warning ", action: () => { alert("clicked"); } },
+    //    ]
+    //},
+    // onlyShowColumn: ["CustomerName", 'CustomerMobile', 'CustomerEmail'],
+    hideColumn: [],
+        //  isDateType: [],
+        rowClickAction: fn_customerIndex_loadCustomerUpdateForm,
+            serialNo: true,
+                tHeadClass: "thead-primary",
+          //  renameHeader: { "CustomerName": "Name","CustomerEmail":"Email"}
+        };
+
+
+    var validationMessage = {
+        'BranchID': {
+            'required': 'Please select a branch',
+            'digits': 'Invalid Branch selected'
+        },
+        'CustomerTypeID': {
+            'required': 'Please select a Customer Type',
+            'digits': 'Invalid Customer Type selected'
+        },
+        'CustomerNumber': {
+            'required': 'Enter customer number',
+            'digits': 'Customer number should be digits'
+        },
+        'LeadGenerateID': {
+            'required': 'Please enter Lead no.',
+            'digits': 'Lead number should be digits'
+        },
+        'CustomerName': {
+            'required': 'Please enter customer name',
+            'maxlength': jQuery.validator.format('Customer name should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in customer name'
+        },
+        'CustomerAddress1': {
+            'required': 'Please enter Address 1',
+            'maxlength': jQuery.validator.format('Address 1 should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in Address 1'
+        },
+        'CustomerAddress2': {
+            'maxlength': jQuery.validator.format('Address 2 should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in Address 2'
+        },
+        'CustomerLocation': {
+            'required': 'Please select a Customer Location',
+            'digits': 'Invalid Customer Location selected'
+        },
+        'CountryID': {
+            'required': 'Please select a Country',
+            'digits': 'Invalid Country selected'
+        },
+        'StateID': {
+            'required': 'Please select a State',
+            'digits': 'Invalid State selected'
+        },
+        'DistrictID': {
+            'required': 'Please select a District',
+            'digits': 'Invalid District selected'
+        },
+        'PostID': {
+            'required': 'Please select a Post',
+            'digits': 'Invalid Post selected'
+        },
+        'CustomerMobile': {
+            'required': 'Please enter customer mobile',
+            'anyphonenumber': 'Invalid mobile number',
+            'minlength': jQuery.validator.format('Customer mobile should be more than {0} characters'),
+            'maxlength': jQuery.validator.format('Customer mobile should be less than {0} characters')
+        },
+        'CustomerPhone': {
+            'required': 'Please enter customer phone',
+            'anyphonenumber': 'Invalid phone number',
+            'minlength': jQuery.validator.format('Customer phone should be more than {0} characters'),
+            'maxlength': jQuery.validator.format('Customer phone should be less than {0} characters')
+        },
+        'CustomerEmail': {
+            'required': 'Please enter customer email',
+            'email': 'Invalid customer email'
+        },
+        'CustomerWebsite': {
+            'required': 'Please enter customer website',
+            'url': 'Invalid customer website (eg: https://www.example.com)'
+        },
+        'CustomerGSTINNo': {
+            'required': 'Please enter customer GSTIN No.',
+            'digits': 'Invalid customer GSTIN No',
+            'minlength': jQuery.validator.format('Customer GSTIN No. should be {0} characters'),
+            'maxlength': jQuery.validator.format('Customer GSTIN No. should be {0} characters'),
+        },
+        'CustomerCanvasMode': {
+            'required': 'Please select a Customer Canvas Mode',
+            'digits': 'Invalid Customer Canvas Mode selected'
+        },
+        'CustomerCanvasBy': {
+            'required': 'Please select Customer Canvased By',
+            'digits': 'Invalid Customer Canvas'
+        },
+        'CategoryID': {
+            'required': 'Please select a Category',
+            'digits': 'Invalid Category Mode selected'
+        },
+        'CustomerContactPerson': {
+            'required': 'Please enter Customer Contact Person name',
+            'maxlength': jQuery.validator.format('Contact Person name should be less than {0} characters'),
+            'stringonly': 'Special characters are not allowed in Contact Person name'
+        },
+        'CustomerContactMobile': {
+            'required': 'Please enter Customer Contact Mobile',
+            'anyphonenumber': 'Invalid Contact Person Phone',
+            'minlength': jQuery.validator.format('Contact Person Phone should be more than {0} characters'),
+            'maxlength': jQuery.validator.format('Contact Person Phone should be less than {0} characters')
+        },
+        'CustomerContactEmail': {
+            'required': 'Please enter Contact Person Email ',
+            'email': 'Invalid Contact Person Email '
+        }
+    };
+
+    // Initial load functions
+    $(document).ready(function () {
+        fn_customerIndex_initialLoad()
+
+
+
+    });
+
+    function fn_customerIndex_initialLoad() {
+        // fn_customerIndex_loadCustomer();
+        fn_customerIndex_loadCustomerAddForm();
+        // fn_load_someData({start:0,page:0,length:2})
+        fn_load_someData()
+
+    }
+//------------------------------
+    function fn_load_someData() {
+        let page_length = 15;
+        $.ajax({
+
+            url: "@Url.Action("GetSampleListIndex", "Home")",
+            type: "POST",
+            data: { pageSize: page_length, pageIndex: 0 },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                $sideMenuOptions.title.find('h4').text("Customer List");
+                //var info = $sideMenuOptions.body.find('table').DataTable().page.info();
+                // console.log('inside datapp:', info)
+                let table = $sideMenuOptions.body.find('table').DataTable()
+                table.destroy();
+                $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions))
+                $sideMenuOptions.body.find('table').dataTable({
+                    "serverSide": true,//no change
+                    "processing": true,//-- process text when clicked
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                    "searching": false,//--no change
+                    "ordering": false,//--sorting
+                    "deferLoading": dtajaxOutput.totalrecord,//<----to total number of record from db
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,//<----starting record
+                    "pageLength": dtajaxOutput.pageSize,//<----page size
+                    "recordsFiltered": dtajaxOutput.pageSize,//<---page size
+
+                    //"recordsFiltered":10,
+                    // "ajax": returnajax({ apiurl: '@Url.Action("GetSampleListIndex", "Home")', pageLength: page_length }, tableOptions)
+                    "ajax": returnajax2({ apiurl: '@Url.Action("GetSampleListIndex", "Home")', pageSize: dtajaxOutput.pageSize }, tableOptions, $sideMenuOptions.body.find('table'))
+                });
+            }
+        })
+
+    }
+
+
+    function returnajax2(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { length: ajaxInfo.pageSize, page: info.page }
+                return { pageSize: info.length, pageIndex: info.page }
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25,50,100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajax2(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    //----------------------
+
+    function returnajax(ajaxInfo, tableOptions) {
+        //{ apiurl, pageLength }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "POST",
+            data: function () {
+                var info = $sideMenuOptions.body.find('table').DataTable().page.info();
+                console.log(info)
+                return { length: ajaxInfo.pageLength, page: info.page }
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                $sideMenuOptions.body.find('table').dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthChange": false,
+                    "searching": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.page * dtajaxOutput.length,
+                    "pageLength": dtajaxOutput.length,
+                    "recordsFiltered": dtajaxOutput.length,
+                    "ajax": returnajax(ajaxInfo, tableOptions)
+                })
+
+            },
+
+        }
+    }
+
+    // Fucntion to load CustomerList
+    function fn_customerIndex_loadCustomer() {
+        let inputdata = { length: 2, page: 0 }
+        $.ajax({
+            url: "@Url.Action("GetSampleListIndex", "Home")",
+            type: "POST",
+            data: inputdata,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    // console.log('Customer :', data);
+                    $sideMenuOptions.title.find('h4').text("Customer List");
+                    $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                    //$sideMenuOptions.body.find('table').dataTable({
+                    //    paging: true
+                    //    , "recordsTotal": 1000
+
+                    //    //,"iTotalRecords": 300
+                    //    //, "iTotalDisplayRecords": 300
+                    //   // ,"deferRender": true
+                    //    //'deferloading': 1000
+                    //    //,"lengthChange": false
+                    //   // ,"lengthMenu": [20]
+                    //    // ,"pageLength": 15
+                    //    //,"bPaginate": true
+                    //    //,"iDisplaylength": 20
+                    //    //"iTotalRecords": 70
+                    //    //,"deferLoading": [57, 100]
+                    //});
+                    $sideMenuOptions.body.find('table').dataTable({
+                        "serverSide": true,
+                        // "deferLoading": 100,
+                        "recordsTotal": 1000,
+                        "displayStart": inputdata.page * inputdata.length,
+                            @* "ajax": {
+                        url: "@Url.Action("GetSampleListIndex", "Home")",
+                            type: "POST",
+                                data: function () {
+                                    var info = $sideMenuOptions.body.find('table').DataTable().page.info();
+                                    console.log('inside data:', info)
+                                    return { length: 2, page: info.page }
+                                },
+                        dataType: "json",
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                success: function (dtajaxOutput) {
+
+
+                                    // console.log(dtajaxOutput)
+                                    // let table = $sideMenuOptions.body.find('table').DataTable();
+                                    // table.destroy();
+                                    // $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions));
+                                    // //var dt = $("#table").DataTable();
+                                    // table.ajax.reload(null, false)
+                                    // //$sideMenuOptions.body.html(pft_table_newTableRows($sideMenuOptions.body.find('table'),dtajaxOutput.Data, tableOptions))
+                                    // //table.draw();
+                                    //// $sideMenuOptions.body.html(pft_table_addMultipleTableRows($sideMenuOptions.body.find('table'), dtajaxOutput.Data, tableOptions))
+
+                                },
+
+                    }*@
+
+                    "ajax": fn_load_someData()
+
+                });
+
+        @* $sideMenuOptions.body.find('table').DataTable({
+            "serverSide": true,
+            "ajax": "@Url.Action("GetCustomerList", "Home")",
+            "deferLoading": [57, 100],
+            "search": {
+                "search": "my_filter"
+            }
+        }) *@
+                    }
+                    else {
+        $.each(ajaxOutput.Process.Message, function (key, value) {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+        });
+    }
+
+                },
+    complete: function () {
+
+    }
+            });
+
+
+
+        };
+    // Fucntion to load Customer ADD form
+    function fn_customerIndex_loadCustomerAddForm() {
+
+        $formContainer.load('@Url.Action("LoadCustomerForm", "Home")', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            // ... Custom validation message
+            $thisForm.validate({
+                // ...
+                messages: validationMessage
+                // ...
+            });
+            // ... Custom validation message
+            $thisForm.attr('perfect-onFormSuccess', 'fn_customerIndex_initialLoad');
+
+            initFunctions($thisForm);
+        });
+
+    };
+    // Function to load customer Update from
+    function fn_customerIndex_loadCustomerUpdateForm() {
+
+        let $thisRow = $(this).closest('tr');
+        let saveddata = $thisRow.data('pData');
+
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            CustomerID: saveddata.CustomerID
+        };
+
+        $.ajax({
+            url: "@Url.Action("GetCustomerInfo", "Home")",
+            type: "POST",
+            // headers: { "token_key": "1234" },
+            data: inputData,
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //process is success
+                    $formContainer.load('@Url.Action("LoadCustomerForm", "Home")', function () {
+
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+                        // initFunctions($thisForm);
+                        //console.log('sss', $thisForm)
+                        //console.log('sss', ajaxOutput)
+
+                        $thisForm.validate({ messages: validationMessage });
+
+                        $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                        // Fill fields
+                        $thisForm.find('[name="BranchID"]').val(ajaxOutput.Data[0]['BranchID']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerTypeID"]').val(ajaxOutput.Data[0]['CustomerTypeID']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerNumber"]').val(ajaxOutput.Data[0]['CustomerNumber']);
+                        $thisForm.find('[name="LeadGenerateID"]').val(ajaxOutput.Data[0]['LeadGenerateID']);
+                        $thisForm.find('[name="CustomerName"]').val(ajaxOutput.Data[0]['CustomerName']);
+                        $thisForm.find('[name="CustomerAddress1"]').val(ajaxOutput.Data[0]['CustomerAddress1']);
+                        $thisForm.find('[name="CustomerAddress2"]').val(ajaxOutput.Data[0]['CustomerAddress2']);
+                        $thisForm.find('[name="CustomerLocation"]').val(ajaxOutput.Data[0]['CustomerLocation']).selectpicker('refresh');
+                        $thisForm.find('[name="CountryID"]').val(ajaxOutput.Data[0]['CountryID']).selectpicker('refresh');
+                        $thisForm.find('[name="StateID"]').val(ajaxOutput.Data[0]['StateID']).selectpicker('refresh');
+                        $thisForm.find('[name="DistrictID"]').val(ajaxOutput.Data[0]['DistrictID']).selectpicker('refresh');
+                        $thisForm.find('[name="PostID"]').val(ajaxOutput.Data[0]['PostID']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerMobile"]').val(ajaxOutput.Data[0]['CustomerMobile']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerPhone"]').val(ajaxOutput.Data[0]['CustomerPhone']);
+                        $thisForm.find('[name="CustomerEmail"]').val(ajaxOutput.Data[0]['CustomerEmail']);
+                        $thisForm.find('[name="CustomerWebsite"]').val(ajaxOutput.Data[0]['CustomerWebsite']);
+                        $thisForm.find('[name="CustomerGSTINNo"]').val(ajaxOutput.Data[0]['CustomerGSTINNo']);
+                        $thisForm.find('[name="CustomerCanvasMode"]').val(ajaxOutput.Data[0]['CustomerCanvasMode']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerCanvasBy"]').val(ajaxOutput.Data[0]['CustomerCanvasBy']).selectpicker('refresh');
+                        $thisForm.find('[name="CategoryID"]').val(ajaxOutput.Data[0]['CategoryID']).selectpicker('refresh');
+                        $thisForm.find('[name="CustomerContactPerson"]').val(ajaxOutput.Data[0]['CustomerContactPerson']);
+                        $thisForm.find('[name="CustomerContactMobile"]').val(ajaxOutput.Data[0]['CustomerContactMobile']);
+                        $thisForm.find('[name="CustomerContactEmail"]').val(ajaxOutput.Data[0]['CustomerContactEmail']);
+
+                        // stuff to do after filling data
+                        $sideMenuOptions.close();//<---  Close side menu
+                        $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add cunsomer button
+                        $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update cunsomer button
+
+                        $thisForm.attr('perfect-onFormSuccess', 'fn_customerIndex_initialLoad');
+
+                    });
+                }
+                else {
+                    //Error occured
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            }
+        });
+    };
+
+    // Function to delete customer
+    function fn_customerIndex_deleteCustomer() {
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+
+
+        console.log('Delete function', Saveddata)
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        //get reason list-
+
+        $.ajax({
+            url: "@Url.Action("GetCustomerReasonList", "Home")",
+            type: "GET",
+            // data: inputReason,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+                if (ajaxReasonOutput.Process.IsProcess) {
+
+                    console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                    let confirmationDialogBoxOption = { body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                    var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                    confirmBoxObj.then(function (selectedOption) {
+                        if (selectedOption) {
+                            console.log('customerIndex> delete function:', selectedOption)
+
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                CustomerID: Saveddata['CustomerID'],
+                                ReasonID: selectedOption
+                            };
+                            $.ajax({
+                                url: "@Url.Action("DeleteCustomer", "Home")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                success: function (ajaxOutput) {
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        let table = $row.closest('table').DataTable()
+                                        table.row($row).remove().draw();
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                                        });
+
+                                        //removing a data
+                                        $('.dataTable tr').removeClass("SelectForDelete");
+
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+
+
+                }
+                else {
+
+
+
+                }
+            }
+
+        });
+
+
+
+
+    };
+
+</script>
+
+
+
+}

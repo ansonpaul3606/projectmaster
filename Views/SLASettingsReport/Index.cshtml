@@ -1,0 +1,70 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="slaReport-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+
+    <script type="text/javascript">
+
+        RPTusername = '@ViewBag.Username';
+        var SLAReportTransMode = '';
+        const $formContainer = $('#slaReport-form');
+        $(document).ready(function () {
+
+            SLAReport_initLoad();
+        });
+        function SLAReport_initLoad() {
+
+            SLAReportTransMode = '@ViewBag.TransMode';
+            LoadAddSLAReport();
+        }
+
+        function fn_showFiltersearchs() {
+            let $thisform = $('[perfect-class="form"]');
+            $thisform.closest('.ReportFilter').find('.filter').toggleClass('d-none');
+           
+            //$thisform.find('[name="FK_CustomerCategory"]').val('').selectpicker('refresh');
+            //$thisform.find('[name="FK_Complaint"]').val('').selectpicker('refresh');
+            //$thisform.find('[name="FK_Category"]').val(0).selectpicker('refresh');
+            //$thisform.find('[name="ProductName"]').val('');
+            //$thisform.find('[name="FK_Product"]').val(0);
+
+         
+            //$thisform.find('[name="CategoryID"]').val('').selectpicker('refresh');
+            //$thisform.find('[name="Criteria"]').val('').selectpicker('refresh');
+        };
+
+
+        function LoadAddSLAReport() {
+
+            $formContainer.load('@Url.Action("LoadSLAReport", "SLASettingsReport")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                //fn_showFiltersearchs();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="AsOnDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'SLAReport_initLoad');
+            });
+        }
+
+        var validationMessage = {
+
+            'AsOnDate': {
+                'required':'Please select As On Date.'
+            }
+        }
+
+    </script>
+
+}
+

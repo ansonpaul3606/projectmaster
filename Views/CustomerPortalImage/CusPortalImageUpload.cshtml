@@ -1,0 +1,288 @@
+﻿
+@{
+    ViewBag.Title = "CusPortalImageUpload";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="customerportalimageupload-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        const $formContainer = $('#customerportalimageupload-form');
+
+        $(document).ready(function () {
+            ImageUploadInitialLoad();
+        });
+
+        function ImageUploadInitialLoad() {
+
+            loadImageUploadAddForm();
+            loadUploadList(this);
+        }
+
+        function loadImageUploadAddForm() {
+            
+            $formContainer.load('@Url.Action("LoadCusPortalImageUplaod", "CustomerPortalImage")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'ImageUploadInitialLoad');
+            });
+        }
+
+        var validationMessage = {
+            'ImageName': {
+                'required': 'Please Enter a Image Name',
+            },
+            'ImageSubTitle': {
+                'required': 'Please Enter a Image Subtitle',
+            },
+            'ImageMode': {
+                'required': 'Please Select a Mode',
+            },
+        }
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                 @if (ViewBag.PagedAccessRights.UsrrlSecurUser)
+                  {
+                    <text>{ displayName: "View", action: EditImageDeatils }, </text>//
+                    //{ displayName: "Go to", action: "" },
+                  }
+                    @*{ type: "divider" },
+                    @if (ViewBag.PagedAccessRights.UsrrlSecurUser)
+                            {
+                                <text>{ displayName: "Delete", action: deleteUsers }</text>
+                            }*@
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "CusportalTitle", "CusportalSubTitle", "PortalActive", "PortalMode"],
+            hideColumn: [],
+            rowClickAction: EditImageDeatils,
+            //serialNo: true,
+            renameHeader: { "SlNo": "Sl No", "CusportalTitle": "Image Name", "CusportalSubTitle": "Image Subtitle", "PortalActive": "Active", "PortalMode": "Mode" }
+        }
+
+        function loadUploadList(ele) {
+            let $sidemenu = $sideMenuOptions.body;
+
+            // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+
+            if (SearchName == undefined) {
+                SearchName = "";
+            }               
+
+            $sideMenuOptions.title.find('h4').text('Customer Portal Image Upload List');
+            let pageUrl = '@Url.Action("GetImagesList", "CustomerPortalImage")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        //$sidemenu.find('.jq_sidemenu_title').text('@ViewBag.PageTitle'+'List');
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName + '" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUploadList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            //$sidemenu.find('.jq_sidemenu_title').text('@ViewBag.PageTitle'+'List');
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" value="' + SearchName + '" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadUploadList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [0],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+        }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function EditImageDeatils() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_CusPortalSlider: Saveddata.FK_CusPortalSlider
+            };
+
+            $.ajax({
+                url: '@Url.Action("GetImageInfoByID", "CustomerPortalImage")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+                    //console.log("Return", ajaxOutput.Imagedata.Data[0]);
+                    if (ajaxOutput.ImageInfo.Process.IsProcess) {
+
+                        $sideMenuOptions.close();
+
+                        $formContainer.load('@Url.Action("LoadCusPortalImageUplaod", "CustomerPortalImage")?mtd=@ViewBag.mtd', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            $thisForm.validate({ messages: validationMessage });
+
+                            $thisForm.data({ pData: ajaxOutput.ImageInfo.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                            $thisForm.attr('perfect-onFormSuccess', 'ImageUploadInitialLoad');
+
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none')
+
+                            $thisForm.find('[name="ID_CusPortalSlider"]').val(ajaxOutput.ImageInfo.Data[0].FK_CusPortalSlider);
+                            $thisForm.find('[name="ImageName"]').val(ajaxOutput.ImageInfo.Data[0].CusportalTitle);
+                            $thisForm.find('[name="ImageSubTitle"]').val(ajaxOutput.ImageInfo.Data[0].CusportalSubTitle);
+                            $thisForm.find('[name="ImageActive"]').prop('checked', ajaxOutput.ImageInfo.Data[0].CusportalActive);
+                            $thisForm.find('[name="EffectFrom"]').val(moment(ajaxOutput.ImageInfo.Data[0].CusportalEffectFrom).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="EffectTo"]').val(moment(ajaxOutput.ImageInfo.Data[0].CusportalEffectTo).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="Redirectvalue"]').val(ajaxOutput.ImageInfo.Data[0].CusportalRedirectTo);
+                            $thisForm.find('[name="ImageMode"]').val(ajaxOutput.ImageInfo.Data[0].CusportalMode).selectpicker('refresh');
+                            $("#files").attr("disabled", "disabled");
+
+                            //if (ajaxOutput.Imagedata.Process.IsProcess) {
+                                
+                            //    if (ajaxOutput.Imagedata != null) {
+
+                            //        let fileInput = $thisForm.find('[name="files[]"]')[0];
+                                    
+                            //        const newFile = base64toFile(ajaxOutput.Imagedata.Data[0].ImageData, ajaxOutput.ImageInfo.Data[0].CusportalTitle);
+                            //        fileInput.files = [newFile];
+                            //    }
+
+                            //}
+
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+
+            });
+
+        }
+
+
+        // Function to convert base64 to a File
+        function base64toFile(base64Data, fileName) {
+            const byteCharacters = atob(base64Data.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+
+            const byteArray = new Uint8Array(byteNumbers);
+            const file = new File([byteArray], fileName, { type: 'application/octet-stream' });
+
+            return file;
+        }
+
+    </script>
+    }
+
+
+

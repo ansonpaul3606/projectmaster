@@ -1,0 +1,657 @@
+﻿
+@model PerfectWebERP.Models.ExportImportModel.FormateView
+
+
+<style>
+    form .error {
+        color: #FF6746;
+        font-size: 80%;
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    .tableFixHead {
+        overflow: auto;
+        height: 600px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+
+    input[type=file]::file-selector-button {
+        margin-right: 20px;
+        border: none;
+        background: #2AA2AD;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: #fff;
+        cursor: pointer;
+        transition: background .2s ease-in-out;
+    }
+
+        input[type=file]::file-selector-button:hover {
+            background: #0a757e;
+        }
+    .loader-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7); /* semi-transparent white background */
+        z-index: 1000; /* adjust z-index as needed */
+        justify-content: center;
+        align-items: center;
+        color:darkcyan;
+    }
+
+    .loader {
+        width: 150px;
+        height: 100px;
+    }
+
+
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title col-12">@ViewBag.PageTitle </h4>
+    </div>
+
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+
+                <div class="row">
+                    @Html.AntiForgeryToken()
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Action</span>
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_string " name="ExType" id="id_extype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_changeType(this)">
+                                        <option value="">Please Select</option>
+                                        <option value="2">Import</option>
+
+                                    </select>
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Form</span>
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control perfectValidate_string " name="ExForm" id="id_exform" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="fn_dwnlodxl(this.value)">
+                                        @if (System.Configuration.ConfigurationManager.AppSettings["Lead"] == "1")
+                                        {
+                                            <option value="">Please Select</option>
+                                            <option value="2">Lead</option>
+                                            <option value="4">Product</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="">Please Select</option>
+                                            <option value="1">Sales</option>
+                                            <option value="2">Lead</option>
+                                            <option value="3">Service/Complaint</option>
+                                            <option value="4">Product</option>
+                                        }
+
+                                    </select>
+
+                                </div>
+                                <div class="text-danger temptableError"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-1" id="iddwnlod">
+                        <div class="col-sm-12">
+                            <button type="button" class="btn btn-outline-primary" title="Download Template" onclick="fn_filetype_dwnlod(this)">
+                                <i class="fa fa-download"></i>
+                            </button>
+                        </div>
+                    </div>&nbsp;
+                    <div class="col-md-4 col-sm-12" id="Typeid">
+                        <div class="form-group row">
+                            <div class="col-sm-12 col-md-6">
+                                <input type="file" name="file" id="file" accept=".xls, .xlsx" class="form-control-file" />
+                                <span id="fileimport" class="error"></span>
+                            </div>
+                            <div class="col-sm-6 col-md-4 mt-3 mt-md-0">
+                                <button type="button" class="btn btn-primary btn-block" id="importButton" onclick="fn_upload_excel(this.form)">Import Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    
+                <div class="row" id="tblhide">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body" style="padding:0px">
+                                <div class="table-responsive-sm tableFixHead">
+                                    <div class="table table-hover table-responsive-sm table-striped" id="cstatusTable" perfect-tempTable="cstatus" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>               
+                </div>
+     
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button type="button" class="btn btn-primary" perfect-css="button" id="proceedxl" onclick="updateexcel(this.form)" name="savedata"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                    &nbsp;&nbsp;<button type="button" class="btn btn-light" perfect-css="button" onclick="Reset()" name="reset">Clear</button>
+                    <div id="loader" class="loader-container">
+                        <img src="~/Assets/images/output-onlinegif.gif" alt="Loading..." class="loader">
+                    </div>
+
+                </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+
+    (function () {
+        jQuery("select").selectpicker();
+
+    });
+
+    $(document).ready(function () {
+        $('#Typeid').hide();
+        $('#iddwnlod').hide();
+        $('#proceedxl').hide();
+        $('#tblhide').hide();
+        initFunctions('form');
+
+    });
+    var itemdata;
+
+function fn_upload_excel(ele) {
+
+    debugger
+    let $thisForm = $(ele);
+    var files = $("#file").get(0).files;
+    var isValid = true;
+    let typeVal = parseFloat($('[name="ExForm"]').val());
+
+    if (files.length === 0) {
+        document.getElementById("fileimport").style.display = "block";
+        document.getElementById('fileimport').innerHTML = "Please select an Excel file to upload.";
+
+        setTimeout(() => {
+            document.getElementById('fileimport').style.display = 'none';
+        }, 4000);
+
+        isValid = false;
+    }
+
+    var file = $('input[name="file"]')[0].files[0];
+    if (!file) {
+        isValid = false;
+    } else {
+        var ext = file.name.split(".").pop();
+        if (ext !== "xls" && ext !== "xlsx") {
+            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Only Excel files can be uploaded." });
+            isValid = false;
+        }
+    }
+    if (!$thisForm.valid()) {
+
+        isValid = false;
+    }
+
+    if (isValid) {
+        showLoader();
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('ExType', typeVal)
+
+        
+
+        $.ajax({
+            url: "@Url.Action("ImportedFile", "ExportOrImport")",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                hideLoader();
+                debugger
+                $('#id_exform').attr("disabled", true);
+                $('#id_extype').attr("disabled", true);
+                if (data.Process.IsProcess == false) {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Success', 'message': data.Process.Message })
+                    //NotificationMessage({ 'type': 'error', 'heading': 'Success', 'message': "The Entered data not in correct format." })
+                }
+
+                var table = document.querySelector("#cstatusTable > table");
+                if (table) table.remove();
+                var itemlength = data.fileData.length;
+                if (itemlength > 0) {
+
+                    itemdata = data.fileData;
+                    let TypeVal = data.ExType;
+
+                    if (data.fileData) {
+                        $('#tblhide').show();
+                        ComDetailsTable_FillExcel(ele, 'cstatus', data.fileData, TypeVal);
+                    }
+
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Success', 'message': data.Process.Message })
+                    }
+                }
+                else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Success', 'message': "Please fill all the mandatory fields." })
+                }
+              
+            },
+
+            error: function (xhr, textStatus, errorThrown) {
+                var errorResponse = JSON.parse(xhr.responseText);
+                var errorMessage = errorResponse.Process.Message;
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': errorMessage });
+            }
+
+
+        });
+    }
+
+}
+
+
+    function Reset() {
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+        $('#Typeid').hide();
+        fn_importexport_initialLoad();
+    }
+
+    function fn_changeType(ele) {
+        $thisForm = $(ele).closest('[perfect-class="form"]');
+        if (ele.value == 2) {
+            $('#Typeid').show();
+        } else {
+            $('#Typeid').hide();
+            $thisForm.find('[name="ExForm"]').val("").selectpicker('refresh');
+        }
+    }
+    function fn_dwnlodxl(ele) {
+
+        if (ele == "" || 0) {
+            $('#iddwnlod').hide();
+        }
+        else {
+            $('#iddwnlod').show();
+
+        }
+    }
+
+    function fn_filetype_dwnlod(ele) {
+        debugger
+        $thisForm = $(ele).closest('[perfect-class="form"]');
+        let type = $thisForm.find('[name="ExForm"]').val();
+      
+        switch (type) {
+            case '1':
+                ele = "Sales.xlsx" || "Sales.xls";
+                break;
+            case '2':
+                ele = "LeadGenerate.xlsx" || "LeadGenerate.xls";
+                break;
+            case '3':
+                ele = "ComplaintList.xlsx" || "ComplaintList.xls";
+                //ele = "LeadGenerate.xlsx" || "LeadGenerate.xls";
+                break;
+            case '4':
+                ele = "ItemMaster.xlsx" || "ItemMaster.xls"
+            default:
+                // Handle other cases here if needed
+                break;
+        }
+        // Set the File URL.
+       
+        if (ele == "" || undefined) {
+        }
+        var url = "../Format/" + ele;
+        $.ajax({
+            url: url,
+            cache: false,
+            xhr: function () {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 2) {
+                        if (xhr.status == 200) {
+                            xhr.responseType = "blob";
+                        } else {
+                            xhr.responseType = "text";
+                        }
+                    }
+                };
+                return xhr;
+            },
+            success: function (data) {
+                console.log('data', data)
+                // Check if the response contains an error message
+                if (typeof data === "string" && data.toLowerCase().indexOf("error") !== -1) {
+                    NotificationMessage("error", "File Not Available", "The requested file is not available on the server.");
+                    return;
+                }
+                // Convert the Byte Data to BLOB object.
+                var blob = new Blob([data], { type: "application/octetstream" });
+
+                // Check the Browser type and download the File.
+                var isIE = false || !!document.documentMode;
+                if (isIE) {
+                    window.navigator.msSaveBlob(blob, ele);
+                } else {
+                    var url = window.URL || window.webkitURL;
+                    var link = url.createObjectURL(blob);
+                    var a = $("<a />");
+                    a.attr("download", ele);
+                    a.attr("href", link);
+                    $("body").append(a);
+                    a[0].click();
+                    $("body").remove(a);
+                }
+            },
+            error: function (xhr, status, error) {
+                //NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Failed to retrieve the file. Please try again later." });
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "The requested file is not available on the server." });
+
+            }
+        });
+    }
+
+
+    // Function to show Toastr notifications
+    //function showNotification(type, heading, message) {
+    //    toastr.options = {
+    //        positionClass: 'toast-top-center',
+    //        timeOut: 4000, // 3 seconds
+    //        progressBar: true,
+    //    };
+
+    //    toastr[type](message, heading);
+
+    //   //eg:  //showNotification("error", "Error", "Failed to retrieve the file. Please try again later.");
+    //}
+
+
+    var TypeForm;
+    function ComDetailsTable_FillExcel(ele, tkey, data, TypeVal) {
+        debugger
+        let $thisForm = $(ele);
+        TypeForm = TypeVal;
+
+        var Saleheaders = ['SalBillDate', 'SalBillNo', 'CustomerName', 'MobileNo', 'DelAddress1', 'DelAddress2', 'Area', 'Post', 'District', 'State', 'Country', 'Product', 'SpdSalQuantity', 'MRPs', 'SalePrice', 'SalDiscount', 'SalRoundoff'];
+        var LeadHead = ['EnquiryDate', 'CollectedBy','CustomerName', 'ContactNo', 'Category', 'ProductOrProject', 'Priority', 'EnquiryNote', 'Action', 'FollowUpThrough', 'FollowUpDate', 'AssignedTo', 'LeadSource', 'LeadFrom', 'WhatsAppNo', 'CompanyOrContactPerson', 'ContactEmail', 'HouseName', 'Place', 'Country', 'State', 'District', 'Area', 'Post', 'ProductQuantity', 'MRP', 'OfferPrice', 'Floor'];
+        var ServiceHead = ['RegisterDate', 'RegisterTime', 'Customer', 'MobileNo', 'Category', 'Product', 'Type', 'ComplaintOrService', 'Priority', 'Description', 'ContactNo', 'HouseName', 'Place', 'Post', 'Area', 'District', 'Landmark', 'RequestedDateFrom', 'RequestedDateTo', 'RequestedTimeFrom', 'RequestedTimeTo', 'ComplaintMedia'];
+        var ProductHead = ['Department', 'Category', 'SubCategory', 'Product', 'ProductDescription', 'Manufacture', 'HSNCode', 'Unit', 'AltUnit', 'QRCode', 'BarCode', 'TaxPercentage', 'MRP', 'SalePrice', 'PurRate','OpeningQty']
+        
+        let headers;
+
+        let tableOptionsTemp;
+        switch (TypeVal) {
+            case 1:
+                tableOptionsTemp = tableOptionsTempOut;
+                headers = Saleheaders;
+                break;
+            case 2:
+                tableOptionsTemp = tableOptionsLeadOut;
+                headers = LeadHead;
+                break;
+            case 3:
+                tableOptionsTemp = tableOptionsServiceOut;
+                headers = ServiceHead;
+                break;
+            case 4:
+                tableOptionsTemp = tableOptionProductOut;
+                headers = ProductHead;
+                break;
+            default:
+                break;
+
+        }
+
+        //let tableOptionsTemp = tableOptionsTempOut;
+        let insertData = []
+        let tableKey = tkey;
+
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+
+
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        $.each(data, function (keyOne, valOne) {
+
+            let pData = {};
+
+            pData[indexname] = keyOne + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+
+
+            //$thisForm.find($tblcontainer).each(function () {
+            headers.forEach((data,i) => {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+                pData[data] = valOne[data];
+
+            });
+
+            insertData.push(pData);
+
+        });
+
+        $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+        //$('#proceedxl').css('display', 'block');
+        $('#proceedxl').show();
+    }
+    var tableOptionsTempOut = {
+
+        iconButton: {
+            buttons: [
+
+            ]
+        },
+
+
+        onlyShowColumn: ['SalBillDate','SalBillNo', 'CustomerName', 'MobileNo', 'DelAddress1', 'DelAddress2', 'Area', 'Post', 'District', 'State', 'Country', 'Product', 'SpdSalQuantity', 'MRPs', 'SalePrice', 'SalDiscount', 'SalRoundoff'],
+        hideColumn: [],
+        serialNo: true,
+        renameHeader: { "SalBillDate": "Bill Date", "SalBillNo": "Bill Number", "CustomerName": "Customer Name", "MobileNo": "Mobile No", "DelAddress1": "Delivery Address", "DelAddress2": "Place", "SalePrice": "Sale Price1R", "MRPs":"MRP1R", "SpdSalQuantity": "Quantity1R", "SalDiscount": " Discount1R", "SalRoundoff":"Roundoff1R"},
+        rowAttribute: [],
+        isCheckType: [],
+        isDateType: ["SalBillDate"]
+    };
+
+    var tableOptionsLeadOut = {
+
+        iconButton: {
+            buttons: [
+
+            ]
+        },
+        																											
+        onlyShowColumn: ['EnquiryDate', 'CollectedBy','CustomerName', 'ContactNo', 'Category', 'ProductOrProject', 'Priority', 'EnquiryNote', 'Action', 'FollowUpThrough', 'FollowUpDate', 'AssignedTo', 'LeadSource', 'LeadFrom', 'WhatsAppNo', 'CompanyOrContactPerson', 'ContactEmail', 'HouseName', 'Place', 'Country', 'State', 'District', 'Area', 'Post', 'ProductQuantity', 'MRP', 'OfferPrice','Floor'],
+        hideColumn: [],
+        serialNo: true,
+        renameHeader: { 'EnquiryDate': 'Enquiry Date', 'CollectedBy':'CollectedBy' ,'CustomerName': 'Customer Name', 'ContactNo': 'Contact No', 'Category': 'Category', 'ProductOrProject': 'Product/ Project', 'Priority': 'Priority', 'EnquiryNote': 'Enquiry Note', 'Action': 'Action', 'FollowUpThrough': 'FollowUp Through', 'FollowUpDate': 'FollowUp Date', 'AssignedTo': 'Assigned To', 'LeadSource': 'Lead Source', 'LeadFrom': 'Lead From', 'WhatsAppNo': 'WhatsApp No', 'CompanyOrContactPerson': 'Company/ ContactPerson', 'ContactEmail': 'Email', 'HouseName': 'House Name', 'Place': 'Place', 'Country': 'Country', 'State': 'State', 'District': 'District', 'Area': 'Area', 'Post': 'Post', 'ProductQuantity': 'Quantity1R', 'MRP': 'MRP1R', 'OfferPrice': 'Price1R', 'Floor':'Floor'},
+        rowAttribute: [],
+        isCheckType: [],
+        isDateType: ["EnquiryDate","FollowUpDate"]
+    };
+
+    var tableOptionsServiceOut = {
+
+        iconButton: {
+            buttons: [
+
+            ]
+        },
+
+        onlyShowColumn: ['RegisterDate', 'RegisterTime', 'Customer', 'MobileNo', 'Category', 'Product', 'Type', 'ComplaintOrService', 'Priority', 'Description', 'ContactNo', 'HouseName', 'Place', 'Post', 'Area', 'District', 'Landmark', 'RequestedDateFrom', 'RequestedDateTo', 'RequestedTimeFrom', 'RequestedTimeTo', 'ComplaintMedia'],
+        hideColumn: [],
+        serialNo: true,
+        renameHeader: { 'RegisterDate': 'Register Date', 'RegisterTime': 'Register Time', 'ComplaintOrService': 'Complaint/Service', 'HouseName': 'House Name', 'RequestedDateFrom': 'Requested Date From', 'RequestedDateTo':'Requested Date To' },
+        rowAttribute: [],
+        isCheckType: [],
+        isDateType: ["RegisterDate"]
+    };
+
+    var tableOptionProductOut = {
+        iconButton: {
+            buttons: [
+
+            ]
+        },
+
+        onlyShowColumn: ['Department', 'Category', 'SubCategory', 'Product', 'ProductDescription', 'Manufacture', 'HSNCode', 'Unit', 'AltUnit', 'QRCode', 'BarCode', 'TaxPercentage', 'MRP', 'SalePrice', 'PurRate','OpeningQty'],
+        hideColumn: [],
+        serialNo: true,
+        renameHeader: { 'SubCategory': 'Sub Category', 'ProductDescription': 'Product Description', 'HSNCode': 'HSN Code', 'AltUnit': 'Alt Unit', 'TaxPercentage': 'Tax Group', 'SalePrice': 'Sale Price1R', 'PurRate': 'Pur Rate1R', 'OpeningQty':'Opening Qty1R'},
+        rowAttribute: [],
+        isCheckType: [],
+        isDateType: []
+    }
+
+function updateexcel(ele) {
+
+
+    let $thisForm = $(ele);
+    let isValid = true;
+
+    if (!$thisForm.valid()) {
+        isValid = false;
+    }
+
+    var inputData = '';
+
+    if (TypeForm == 1) {
+        inputData = {
+            dataitem: itemdata,
+            leadDatas: '',
+            serviceData: '',
+            productData: '',
+            TypeForm: TypeForm
+        };
+    } else if (TypeForm == 2) {
+        inputData = {
+            dataitem: '',
+            leadDatas: itemdata,
+            serviceData: '',
+            productData: '',
+            TypeForm: TypeForm
+        };
+    }
+    else if (TypeForm == 3) {
+        inputData = {
+            dataitem: '',
+            leadDatas: '',
+            serviceData: itemdata,
+            productData:'',
+            TypeForm: TypeForm
+        };
+    }
+    else {
+         inputData = {
+            dataitem: '',
+            leadDatas: '',
+             serviceData: '',
+             productData: itemdata,
+            TypeForm: TypeForm
+         };
+    }
+
+    if (isValid) {
+        // Show loader here
+        showLoader();
+
+        $.ajax({
+            url: "@Url.Action("SaveExcelData", "ExportOrImport")",
+            type: "POST",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (data) {
+                // Hide loader on success
+                hideLoader();
+
+              
+                if (data.Process.IsProcess) {
+                    $.each(data.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': "File uploaded successfully" });
+                    });
+
+                    $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                    $thisForm.find('[perfect-ctype="input"]').val('');
+
+                    let onSuccess = $thisForm.attr('perfect-onFormSuccess');
+                    if (onSuccess) {
+                        fn_importexport_initialLoad();
+                    }
+                } else {
+                    NotificationMessage({ 'type': 'error', 'heading': 'Success', 'message': data.Process.Message });
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Hide loader on error
+                hideLoader();
+
+                var errorResponse = JSON.parse(xhr.responseText);
+                var errorMessage = errorResponse.Process.Message;
+                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': errorMessage });
+            }
+        });
+    }
+}
+
+    function showLoader() {
+        // Show loader by setting display property to 'flex'
+        document.getElementById('loader').style.display = 'flex';
+    }
+
+    function hideLoader() {
+        // Hide loader by setting display property to 'none'
+        document.getElementById('loader').style.display = 'none';
+    }
+
+
+
+</script>

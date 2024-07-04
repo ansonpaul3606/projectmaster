@@ -1,0 +1,337 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="serviceType-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+    
+    <script>
+
+        const $formContainer = $('#serviceType-form');
+
+        $(document).ready(function () {
+            ServicetypeInitialLoad();
+        });
+
+        function ServicetypeInitialLoad() {
+
+      
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadServiceTypeList(this); </text>
+              }
+            loadServiceTypeAddForm();
+    
+
+        }
+
+        var validationMessage = {
+            'EqServiceName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+            'EqServiceShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+            'Mode': {
+                'required' : 'Please Select Mode'
+            }
+        }
+
+        function loadServiceTypeAddForm() {
+
+            $formContainer.load('@Url.Action("LoadFormServiceType", "EquipmentServiceType")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'ServicetypeInitialLoad');
+            });
+
+        };
+
+        function loadServiceTypeList(ele) {
+
+         let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GHc", SearchName)
+
+            $sideMenuOptions.title.find('h4').text('Equipment Service Type List');
+            let pageUrl = "@Url.Action("GetServiceTypeList", "EquipmentServiceType")";
+                $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajxOut) {
+
+                    if (ajxOut.Process.IsProcess) {
+                        console.log('supType', ajxOut);
+
+                        $sidemenu.find('jq_sidemenu_title').text("ServiceType");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadServiceTypeList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajxOut.Data, tableOptions)))
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajxOut.totalrecord,
+                            "displayStart": ajxOut.pageIndex * ajxOut.pageSize,
+                            "pageLength": ajxOut.pageSize,
+                            "recordsFiltered": ajxOut.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajxOut.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+
+
+                    } else {
+                        if (ajxOut.Process.Status = "NoData") {
+
+                            $sidemenu.find('.jq_sidemenu_title').text("SupplierType");
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadServiceTypeList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajxOut.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajxOut.totalrecord,
+                                "displayStart": ajxOut.pageIndex * ajxOut.pageSize,
+                                "pageLength": ajxOut.pageSize,
+                                "recordsFiltered": ajxOut.pageSize,
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajxOut.pageSize }, tableOptions, $table)
+                            });
+                        }
+
+                          else {
+                             $.each(ajxOut.Process.Message, function (key, value) {
+                        // toastr.warning(value, "Error");
+                              NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                              });
+                        }
+                    }
+                   
+
+                },
+                complete: function () {
+
+                }
+            });
+        }
+
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+         var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                 @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                 {
+                    <text> { displayName: "View", action: editEqServiceType },
+                    </text>
+                  }
+
+                    { type: "divider" },
+                @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                  {
+                    <text> { displayName: "Delete", action: deleteEqserviceType },</text>
+                  }
+
+
+                ],
+                class: "btn btn-success light sharp"
+             },
+             onlyShowColumn: ["SlNo", 'EqServiceName', 'EqServiceShortName'],
+            hideColumn: [],
+             rowClickAction: editEqServiceType,
+             renameHeader: { "SlNo": "SL No", 'EqServiceName': 'Service Name', 'EqServiceShortName': 'Service Short Name' },
+            //serialNo: true,
+        };
+
+
+        function editEqServiceType() {
+
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+            let savedData = $thisUser.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputGetData = { FK_EquipmentServiceType: savedData.ID_EquipmentServiceType };
+            $('#serviceType-form').empty();
+            $.ajax({
+                url: '@Url.Action("GetServiceTypeInfo", "EquipmentServiceType")',
+                type: "POST",
+                data: JSON.stringify(inputGetData),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    debugger;
+                    console.log('ajxout', ajaxOutput);
+                    $('#serviceType-form').load("@Url.Action("LoadFormServiceType", "EquipmentServiceType")", function () {
+                        debugger
+
+                        $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].EqServiceName)
+                        console.log('Inside load');
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        $thisForm.data({ 'pData': ajaxOutput.Data[0] });
+
+                        $thisForm.find('[name=EqServiceName]').val(ajaxOutput.Data[0].EqServiceName),
+                        $thisForm.find('[name=EqServiceShortName]').val(ajaxOutput.Data[0].EqServiceShortName),
+                            $thisForm.find('[name=SortOrder]').val(ajaxOutput.Data[0].SortOrder),
+                            $thisForm.find('[name=EqServiceDescription]').val(ajaxOutput.Data[0].EqServiceDescription),
+                            $thisForm.find('[name=Mode]').val(ajaxOutput.Data[0].Mode).selectpicker('refresh'),
+                            $thisForm.find('[name=ID_EquipmentServiceType]').val(ajaxOutput.Data[0].ID_EquipmentServiceType),
+
+                        //show update button
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                        $thisForm.attr('perfect-onFormSuccess', 'LoadFormSupplierType');
+
+                        $sideMenuOptions.close();
+
+                    });
+                },
+
+
+            });
+        }
+
+        function deleteEqserviceType() {
+
+            let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetServiceTypeReasonList", "EquipmentServiceType")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    debugger;
+                    console.log('ajre', ajaxReasonOutput)
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                        debugger;
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.EqServiceName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    FK_EquipmentServiceType: Saveddata.ID_EquipmentServiceType,
+                                    ReasonID: ret
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteServiceType", "EquipmentServiceType")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                              
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();  
+                                                loadServiceTypeAddForm();
+                                            });
+                                            
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+        }
+
+    </script>
+    
+    
+    }

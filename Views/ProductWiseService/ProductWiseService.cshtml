@@ -1,0 +1,591 @@
+﻿
+@{
+    ViewBag.Title = "ProductWiseService";
+}
+
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="ProductWise-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        const $formContainer = $('#ProductWise-form');
+
+        $(document).ready(function () {
+           // $("input[id='Id']").val(1000);
+
+
+            prdwiseInitialLoad();
+
+        });
+
+        var validationMessage = {
+           
+            'ServiceID': {
+                'required': 'Please Select Service',
+                'digits': 'Invalid Service Selected'
+            },
+            'CategoryID': {
+                'required': 'Please Select Category',
+                'digits': 'Invalid Category Selected'
+            },
+            'ID_Mode': {       
+                'required': 'Please Select Period Type',
+                'digits': 'Invalid Period Type Selected'
+            },
+            'EffectDate': {
+                'required': 'Please Enter Effect Date'
+            },
+            'PeriodFrom': {
+                'digits': 'Please enter a Number'
+            },
+            'PeriodTo': {
+                'digits': 'Please enter a Number'
+            },
+            'ServiceCost': {
+                'required': 'Please Enter Service Cost',
+                'digits': 'Invalid Service Cost Selected'
+            }
+
+                   
+        };
+
+
+        function prdwiseInitialLoad() {
+          
+            fn_prdwiseIndex_loadAddPrdWise();
+              @if (ViewBag.PagedAccessRights.UsrrlStView)
+         {
+           <text>  fn_prdwiseIndex_loadprdwiselst(this);</text>
+         }
+
+        }
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+                
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editProductWiseService },</text>
+                   }
+
+
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteProductWiseService },</text>
+                    }
+
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Product", "ServiceList","EffectDate","Category"],
+            hideColumn: [],
+            rowClickAction: editProductWiseService,
+
+            isDateType: ["EffectDate"],
+            //serialNo: true,
+            renameHeader: { "SlNo": "SL NO", "ServiceList": "Service", "EffectDate":"Effect Date"}
+        };
+
+           // Fucntion to load ProductWise ADD form
+        function fn_prdwiseIndex_loadAddPrdWise() {
+
+            $formContainer.load('@Url.Action("LoadFormProductWise", "ProductWiseService")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.attr('perfect-onFormSuccess', 'prdwiseInitialLoad');
+            });
+
+        };
+
+       //list ProductWise
+        function fn_prdwiseIndex_loadprdwiselst(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Product Wise Service List');
+          let pageUrl = '@Url.Action("GetProductWiseList", "ProductWiseService")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('productwiseservice', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("productwiseservice");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_prdwiseIndex_loadprdwiselst(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("productwiseservice");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_prdwiseIndex_loadprdwiselst(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+        function fn_prdwiseIndex_loadprdwiselst1() {
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Product Wise Service List ');
+
+            let pageUrl = '@Url.Action("GetProductWiseList", "ProductWiseService")';
+
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0 },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('ProductWiseService', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Product Wise Service");
+
+                              $sidemenu.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": true,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              if (ajaxOutput.Process.Status = "NoData") { }
+                              else {
+                                  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                  });
+                              }
+                          }
+
+                      },
+                      complete: function () {
+
+                      }
+                  });
+          }
+        function returnajaxPagination1(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                  //  console.log('tableid', tableid)
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    return { pageSize: info.length, pageIndex: info.page }
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": true,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+       
+          // Function to delete ProductWiseService
+
+        function deleteProductWiseService()
+        {
+            let $row = $(this).closest('tr');
+
+
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+                console.log("Saved data", Saveddata);
+                $.ajax({
+                    url: "@Url.Action("GetPrdWiseDeleteReasonList", "ProductWiseService")",
+                    type: "GET",
+                    // data: inputReason,
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxReasonOutput) {
+                        if (ajaxReasonOutput.Process.IsProcess) {
+
+                            console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+
+                            //delete code
+
+                            let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Product + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                            var res = ConfirmDialog(confirmationDialogBoxOption);
+
+
+
+                            res.then(function (ret) {
+                                if (ret) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_ProductWiseServices: Saveddata['ID_ProductWiseServices'],
+                                        ReasonID: ret
+                                    };
+
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeletePrdWiselist", "ProductWiseService")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                        success: function (ajaxOutput) {
+
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+
+                                        }
+                                    });
+
+
+                                }
+                                else {
+
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+                            //-----delete code
+
+                        }
+                    }
+                    });
+
+        }
+
+        var tableOptionsTempOutFill = {
+            iconButton: {
+                buttons: [
+                    
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                   // $thisNode.val(savedData[pf_name]).selectpicker();
+                                   $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                      icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+
+
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: {},
+            rowAttribute: [],
+            isCheckType: []
+        };
+
+  function editProductWiseService() {
+
+            let $thisUser = $(this).closest('tr');
+            console.log($thisUser.data());
+      let savedData = $thisUser.data('pData');
+
+      $('.dataTable tr').removeClass("SelectForDelete");
+      $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('reference data', savedData);
+
+      let inputData = {
+         
+          FK_ProductWiseServices: savedData.ID_ProductWiseServices,
+        
+
+      };
+      //$('#LoadProductwise').empty();
+      console.log('input data', savedData.ID_ProductWiseServices)
+                    $.ajax({
+                 url: '@Url.Action("GetProductWiseServiceInfo", "ProductWiseService")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                type: "POST",
+                        // headers: { "token_key": "1234" },
+                        data: JSON.stringify(inputData),//<---- Input json : data passed to controller
+                dataType: "json",
+                 contentType: "application/json",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                        if (ajaxOutput.Process.IsProcess) {
+
+                            console.log('>_ Inside GetProductWise', ajaxOutput)
+
+                            $sideMenuOptions.close();
+
+                            $('#ProductWise-form').load("@Url.Action("LoadFormProductWise", "ProductWiseService")", function () {
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.data({ 'pData': ajaxOutput.Data[0] });
+
+                            //$(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].Product)
+                            //console.log('Inside load');
+
+                            //let $thisForm = $(this).find('[perfect-class="form"]');
+
+                            //$thisForm.validate({ messages: validationMessage });
+
+                            //$thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                ComDetailsTable_Fill($thisForm, 'cstatus', ajaxOutput.Data[0].SubproductServiceDetails, tableOptionsTempOutFill)
+                          
+
+                                $thisForm.find('[name=PrdID]').val(ajaxOutput.Data[0].PrdID),
+                                $thisForm.find('[name=Product]').val(ajaxOutput.Data[0].Product),
+                               
+                                $thisForm.find('[name="CategoryID"]').val(ajaxOutput.Data[0].CategoryID).selectpicker('refresh'),
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.Data[0].EffectDate).format('YYYY-MM-DD')),
+                                $thisForm.find('[name="TaxGroupID"]').val(ajaxOutput.Data[0]['TaxGroupID']).selectpicker('refresh');
+                                $thisForm.find('[name="TaxGroupName"]').val(ajaxOutput.Data[0]['TaxGroupName']);
+                                $thisForm.find('[name="IncludeTax"]').prop('checked', ajaxOutput.Data[0]['IncludeTax']);
+                                   
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').removeClass('d-none');
+                            $thisForm.attr('perfect-onFormSuccess', 'prdwiseInitialLoad');
+                            $sideMenuOptions.close();
+
+                         
+
+                     });
+                 }
+                 //else {
+                 //    console.log('>_ Inside GetproductInfo :false')
+
+                 //    $.each(ajaxOutput.Process.Message, function (key, value) {
+                 //        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                 //    });
+                 //}
+             },
+
+         });
+
+     }
+
+    </script>
+    }
+

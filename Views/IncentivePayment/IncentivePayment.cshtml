@@ -1,0 +1,398 @@
+﻿
+@{
+    ViewBag.Title = "IncentivePayment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="form-group row" perfect-class="formGroup">
+                <div class="col-xl-4"> </div>
+
+                <div class="col-xl-4"> </div>
+            </div>
+        </div>
+        <div class="col-lg-12" id="jq_IncentivePaymentIndex_formContainer">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+        const $formContainer = $('#jq_IncentivePaymentIndex_formContainer');
+        var Admin = '@ViewBag.Admin';
+        var Branch = '@ViewBag.FK_Branch';
+        var IncentivePaymentTransMode = '';
+        $(document).ready(function () {
+            fn_IncentivePaymentIndex_initialLoad();
+
+        });
+        function fn_IncentivePaymentIndex_initialLoad() {
+            IncentivePaymentTransMode = '@ViewBag.TransMode';
+            fn_loadIncentivePaymentAddForm();
+            fn_IncentivePaymentListIndex(this);
+        }
+
+        function fn_loadIncentivePaymentAddForm() {
+            $formContainer.load('@Url.Action("LoadFormIncentivePayment", "IncentivePayment")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="IPDate"]').val(moment().format('YYYY-MM-DD'));
+                // ... Custom validation message
+               $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("IPDate")[0].setAttribute('max', today);
+                $thisForm.attr('perfect-onFormSuccess', 'fn_IncentivePaymentIndex_initialLoad');
+            });
+        }
+
+        var validationMessage = {
+            'EmployeeID': {
+                'required': 'Please Select Employee',
+            },
+            'IPDate': {
+                'required': 'Please Select Payment Date',
+                'max': jQuery.validator.format('Future Date will not Allowed')
+            },
+            'IPAmount': {
+                'required': 'Net Payable Amount Should be greater than 0',                
+            },
+        }
+
+        function fn_IncentivePaymentListIndex(ele) {
+            let $sidemenu = $sideMenuOptions.body;
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            serchpdfname = SearchName;
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitle');
+            let pageUrl = '@Url.Action("GetIncentivePaymentList", "IncentivePayment")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransModes: IncentivePaymentTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        
+                        console.log('Purchase List', ajaxOutput);
+                        $sidemenu.find('.jq_sidemenu_title').text("Purchase Return List");
+
+
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_IncentivePaymentListIndex(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: IncentivePaymentTransMode }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            $sidemenu.find('.jq_sidemenu_title').text("Customer Service Registrations");
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_IncentivePaymentListIndex(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [0],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransModes: IncentivePaymentTransMode }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+        }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page, TransModes: ajaxInfo.TransModes };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+                    { displayName: "View", action: fn_fillIncentivePaymentDetails },
+                    { type: "divider" },
+                    {
+                        displayName: "Delete", action: deleteIncentivePayment
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "IPDate", "Department", "Employee","IPAmount"],
+            serialNo: false,
+            hideColumn: ["IPGroupID", "ID_IncentivePayment", "FK_Employee","FK_Department"],
+            rowClickAction: fn_fillIncentivePaymentDetails,
+            renameHeader: { "IPDate": "Payment Date", "IPAmount": "Net Payable1R"},
+            isDateType: ["IPDate"],
+            //  rowClickAction: () => { alert("clicked row") }
+        };
+
+        function fn_fillIncentivePaymentDetails() {
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+           
+            debugger
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                IPGroupID: Saveddata.IPGroupID,
+                TransMode: IncentivePaymentTransMode,
+            };
+            console.log("inputData>>>>>", inputData);
+            $.ajax({
+                url: '@Url.Action("GetIncentivePaymentInfo", "IncentivePayment")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Maindata.Process.IsProcess) {
+                        $formContainer.load('@Url.Action("LoadFormIncentivePayment", "IncentivePayment")?mtd=@ViewBag.mtd', function () {
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $sideMenuOptions.close();
+                            debugger
+                            $thisForm.find('[name="IPDate"]').val(moment(ajaxOutput.Maindata.Data[0]['IPDate']).format('YYYY-MM-DD'));
+                            $thisForm.find('[name="ID_IncentivePayment"]').val(ajaxOutput.Maindata.Data[0]['ID_IncentivePayment']);
+                            $thisForm.find('[name="IPGroupID"]').val(ajaxOutput.Maindata.Data[0]['IPGroupID']);
+                            $thisForm.find('[name="FK_Branch"]').val(ajaxOutput.Maindata.Data[0]['FK_Branch']).selectpicker('refresh');
+                            Branch = ajaxOutput.Maindata.Data[0]['FK_Branch'] == 0 ? "" : ajaxOutput.Maindata.Data[0]['FK_Branch'];
+                            $thisForm.find('[name="FK_Department"]').val(ajaxOutput.Maindata.Data[0]['FK_Department']).selectpicker('refresh');
+                            $thisForm.find('[name="EmployeeID"]').val(ajaxOutput.Maindata.Data[0]['FK_Employee']);
+                            $thisForm.find('[name="Employee"]').val(ajaxOutput.Maindata.Data[0]['Employee']);
+                            $thisForm.find('[name="IPAmount"]').val(ajaxOutput.Maindata.Data[0]['IPAmount']);
+                            
+                           
+                            $thisForm.find('button[name=add]').addClass('d-none');
+                            $thisForm.find('button[name=update]').addClass('d-none');
+                            var CheckListHTML = '';
+
+
+                            $thisForm.data({ pData: Saveddata });
+
+                            if (ajaxOutput.Detaildata.Process.IsProcess) {
+                                var CheckListHTML = '';
+                                $('#INCHead').show();
+                                $('#INCDetailstbody').empty();
+                                $('#INCtable').show();                                
+                                if (ajaxOutput.Detaildata.Data.length > 0) {
+
+                                    $.each(ajaxOutput.Detaildata.Data, function (i, value) {
+                                        let $CheckListHTML = $('<tr/>');
+                                        $CheckListHTML.append("<td class='SlNo' style='text-align: center'>" + value.SlNo + "</td>");
+                                        $CheckListHTML.append("<td class='IncentiveType' style='text-align: center'>" + value.IncentiveType + "</td>");
+                                        $CheckListHTML.append("<td class='FK_IncentiveType' Style='Display:none'>" + value.FK_IncentiveType + "</td>");
+                                        $CheckListHTML.append("<td class='LastProcessedDate' style='text-align: center'>" + value.LastProcessedDate + "</td>");
+                                        $CheckListHTML.append("<td class='BalancePayable' style='text-align: right'>" + parseFloat(value.BalancePayable).toFixed(2) + "</td>");
+                                        $CheckListHTML.append("<td class='PayableAmount' style='text-align: right'><input type='text'  class='form-control text-right' perfect-class='formGroupControl' name='PayableAmt' id='PayableAmt'  onkeypress='return isNumberKey(event)'  value='" + parseFloat(value.PayableAmount).toFixed(2) + "' maxlength='12' /></td></td>");
+                                        $CheckListHTML.append("<td class='CurrentBalance' style='text-align: right'>" + parseFloat(value.CurrentBalance).toFixed(2) + "</td>");
+                                        $CheckListHTML.append("<td class='PayableAmountOld' Style='Display:none'>" + parseFloat(value.PayableAmount).toFixed(2) + "</td>");
+                                        $CheckListHTML.append("<td class='CurrentBalanceOld' Style='Display:none'>" + parseFloat(value.CurrentBalance).toFixed(2) + "</td>");
+                                        $("#INCDetailstbody").append($CheckListHTML);
+                                    });
+                                }
+                                else {
+                                    CheckListHTML += "<div class='form-group col-md-6'>";
+                                    CheckListHTML += "<div class='form-check mb-2'>";
+                                    CheckListHTML += "<input type='checkbox' class='form-check-input' >"
+                                    CheckListHTML += "<label class='form-check-label' style='text-align:center;' for='check1'><b>No Payment Details Found.</b></label>";
+                                    CheckListHTML += "</div></div>"
+                                    $("#INCDetailstbody").html(CheckListHTML)
+                                }
+
+                            }
+                            if (ajaxOutput.paymentdetail) {
+                                fillTable($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                            }
+                                let netamt = $thisForm.find('[name="IPAmount"]').val() == "" ? 0 : $thisForm.find('[name="IPAmount"]').val();
+                            let billamt = 0;
+                            let bilamt = 0;
+                            if ($thisForm.find('[name=BalAmt]').text() == '') {
+                                bilamt = 0;
+                            }
+                            else {
+                                bilamt = netamt;
+                            }
+
+                            $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+
+                                billamt += parseFloat($(ele).find('.PAmount').text());
+
+                            });
+
+                            bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+                            $thisForm.find('[name=BalAmt]').text((0).toFixed(2));
+                        });
+                    }
+
+
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                },
+            });
+        }
+
+
+        function deleteIncentivePayment(ele) {
+            let $row;
+            let Saveddata;
+            let CustomertrasactionID;
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            $row = $(this).closest('tr');
+            Saveddata = $row.data('pData');
+            IPGroupID = Saveddata.IPGroupID;
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log("Saved data", Saveddata);
+            $.ajax({
+                url: "@Url.Action("GetDeleteReasonList", "IncentivePayment")",
+                type: "GET",
+                // data: inputReason,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                        console.log('Inside res ajax', ajaxReasonOutput.Data)
+                        //confirmation
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to Delete this Incentive Payment ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    IPGroupID: Saveddata.IPGroupID,
+                                    ReasonID: ret,
+                                    TransMode: IncentivePaymentTransMode,
+                                };
+                                $.ajax({
+                                    url: "@Url.Action("DeleteIncentivePayment", "IncentivePayment")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                        $formContainer.load('@Url.Action("LoadFormIncentivePayment", "IncentivePayment")?mtd=@ViewBag.mtd', function () {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                    fn_IncentivePaymentListIndex();
+                                                    //$thisForm.find('[name="IPDate"]').val(moment().format('YYYY-MM-DD'));
+                                                });
+                                                //removing a data
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                fn_loadIncentivePaymentAddForm();
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+    </script>
+}

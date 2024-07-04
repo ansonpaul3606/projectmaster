@@ -1,0 +1,720 @@
+﻿
+
+@model PerfectWebERP.Models.GraphSettingsModel.Graphlist
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    #R_DTable > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+</style>
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Graph Settings</h4>
+        </div>
+        <div class="col-xl-7 text-right">
+        </div>
+        <div class="col-xl-1 text-right">
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell(this)">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="card-body Customer_rp">
+
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onformsuccess="AccountsReportInitialLoad" novalidate="novalidate">
+            <div class="CustomerReportfilters">
+                <div class="">
+                    @*@Html.AntiForgeryToken()*@
+                    <div class="row">
+
+                    
+                        <div class="col-sm-6 divBranch">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Branch</span>
+									<span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string" id="BranchID" name="BranchID" perfect-selectButton="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                        <option value="">Please Select</option>
+
+                                        @if (!(Model.BranchList is null))
+                                        {
+                                            foreach (var branchList in Model.BranchList)
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>
+                                            }
+
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                      
+						   <div class="col-sm-6 ">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Date Range</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div id="reportrange" name="datefilter" class="pull-left form-control" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                    <span></span> <b class="caret"></b>
+                                </div>
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+						  <div class="col-sm-6 DivModule">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Module</span>
+									<span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string" name="FK_Module" id="FK_Module" perfect-class="formGroupControl" onchange="GetSubModule(this);" placeholder="Select Module" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please select</option>
+                                        @if (!(Model.ModuleList is null))
+                                        {
+                                            foreach (var moduleList in Model.ModuleList)
+                                            {
+                                                <option value="@moduleList.ID_Mode">@moduleList.ModeName</option>
+                                            }
+
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+						      <div class="col-sm-6 DivModule">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Sub Module</span>
+									<span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control perfectValidate_string" name="ID_SubMode" id="ID_SubMode" perfect-class="formGroupControl" onchange="BindGraphtype(this);" placeholder="Select Module" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please select</option>
+                                       
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+                            <div class="col-sm-6 DivGraphType">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Graph Type</span>
+									<span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-8">
+                                    @*<select class="form-control perfectValidate_string" name="FK_GraphType" id="FK_GraphType" perfect-class="formGroupControl" placeholder="Select Catogory" perfect-ctype="select" perfect-css="select">
+
+            <option value="">Please select</option>
+            <option value="1">Bar</option>
+            <option value="2">Pie</option>
+            <option value="3">Horizontal Bar</option>
+            <option value="4">Funnel</option>
+        </select>*@
+                                    <select class="form-control perfectValidate_string" name="FK_GraphType" id="FK_GraphType" perfect-class="formGroupControl"  placeholder="Select Graph Type" perfect-ctype="select" perfect-css="select">
+
+                                        <option value="">Please select</option>
+
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+				
+                    </div>
+				
+
+                </div>
+                <div class="card-footer text-right" perfect-class="formFooter">
+                    <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="ShowGraph(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                    <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+                </div>
+			<div id="sampleDiv"><p>sample</P></div>
+            </div>
+
+
+          
+
+            <br />
+			 
+        </form>
+
+    </div>
+
+
+</div>
+
+
+<script>
+    head = [];
+    var ptableData;
+    var item = [];
+    var groupby = "";
+
+    var product;
+    var stages = "";
+    var status = "";
+    var grpby = "";
+    var jabNo = "";
+    var AsDate = "";
+    var Material = "";
+    var Data
+    var comCategory;
+    var reportdetaildata;
+    var ptableData2 = {};
+    var GraphData;
+    function checkLimit(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date')
+            return false;
+        }
+        else {
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+    }
+    function bindReportField(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+        $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+       
+    }
+    function BindGraphtype(ele) {
+         
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let SubModule = $thisForm.find('[name=ID_SubMode]').val();
+        let $placeDropdown = $thisForm.find('[name=FK_GraphType]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+           
+            $.ajax({
+                url: "@Url.Action("GetGraphType", "GraphSettings")",
+                type: "POST",
+                data: JSON.stringify({ ID_SubModule: SubModule }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(ajaxOutput){
+				 console.log(ajaxOutput);
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.FK_GraphType }).text(value.GraphName)).selectpicker('refresh')
+                        });
+
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                    }
+                }
+
+            });
+
+
+        
+        
+    }
+
+    function changeGraphType(ele) {
+        debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var Cdata = GraphData;
+        console.log(Cdata, 'ChatData');
+       // alert($thisForm.find('[name="FK_GraphType"]').val());
+        var SubID = $thisForm.find('[name="ID_SubMode"]').val();
+        var chartType = Cdata.filter(c => c.ChartID == $('[name="ID_SubMode"]').val());
+        console.log(chartType, 'chartType');
+       // var chartTypeTwo = ChartData.filter(c => c.ChartID === 2);
+        // ChartData.filter(c => c.ChartID === $thisForm.find('[name="ID_SubMode"]').val());
+       
+        if ($('[name="FK_GraphType"]').val() == 1) {
+
+            if (chartType.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartType, function (key, value) {
+
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+
+                    if (value.ShowYInhndreds) {
+
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+        }
+        else if ($('[name="FK_GraphType"]').val() == 2) {
+            let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, legends = [];
+            $.each(chartType, function (key, value) {
+                _chartName = value.ChartName;
+                _data.push(value.ySecondValues);
+                legends.push(value.xValues + "(" + (value.ySecondValues) + "%)");
+               
+                _labels.push(value.xValues);
+                _Color.push(value.ySecondColor);
+                _chartModalName = value.ChartModalName;
+            });
+            console.log(_data, '_data');
+            console.log(legends, 'legends');
+            setPssPieChart(_data, _labels, _Color, _chartName, "%", legends);
+            setPssPieChart(_data, _labels, _Color, _chartModalName, "%", legends);
+        }
+        else if ($('[name="FK_GraphType"]').val() == 3) {
+            let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, legends = [];
+            $.each(chartType, function (key, value) {
+                _chartName = value.ChartName;
+                _data.push(value.yValues);
+                _labels.push(value.xValues);
+                _XAxis = value.XAxis;
+                _YAxis = value.YAxis;
+                _Color.push(value.yColor);
+                _chartModalName = value.ChartModalName;
+            });
+            setPssHorizontalBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+            setPssHorizontalBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+        }
+        else if ($('[name="FK_GraphType"]').val() == 4) {
+            let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, legends = [];
+            $.each(chartType, function (key, value) {
+
+
+                _chartName = value.ChartName;
+                _data.push({ title: value.xValues, value: value.yValues });
+                _Color.push(value.yColor);
+                _chartModalName = value.ChartModalName;
+            });
+            setPssFunnelChart(_data, _Color, _chartName);
+            setPssFunnelChart(_data, _Color, _chartModalName);
+        }
+        else if ($('[name="FK_GraphType"]').val() == 5) {
+        
+            if (chartType.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartType, function (key, value) {
+
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+
+                    if (value.ShowYInhndreds) {
+
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssLineChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssLineChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+
+            
+        }
+        else if ($('[name="FK_GraphType"]').val() == 6) {
+
+            if (chartType.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartType, function (key, value) {
+
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+
+                    if (value.ShowYInhndreds) {
+
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssLineChart1(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssLineChart1(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+
+
+        }
+    }
+
+	  var ShortReportstartdate;
+    var ShortReportenddate;
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            ShortReportstartdate = start.format('DD/MM/YYYY');
+            ShortReportenddate = end.format('DD/MM/YYYY');
+        }
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
+
+    function ShowGraph(els) {
+        debugger
+	 let $thisForm = $(els).closest('[perfect-class="form"]');
+	if ($thisForm.valid()) {
+       
+     
+		  let columnCount = 0;
+                let inputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                 
+
+                    FK_Branch: $('select[name="BranchID"] option:selected').val(),
+					FK_Module: $('select[name="FK_Module"] option:selected').val(),
+					FK_SubModule: $('select[name="ID_SubMode"] option:selected').val(),
+                    FromDate: ShortReportstartdate == null ? "01/01/2023" : ShortReportstartdate,
+					ToDate: ShortReportenddate == null ? "01/01/2023" : ShortReportenddate,
+					FK_GraphType:$('select[name="FK_GraphType"] option:selected').val(),
+                };
+				  let pageUrl = '@Url.Action("GetGraphData", "GraphSettings")';
+                $.ajax({
+                    url: pageUrl,
+                    type: "POST",
+                    data: inputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+					    var DashboardChart = ajaxOutput.DashboardChart
+					     var sampleDiv = document.getElementById('sampleDiv');
+					    sampleDiv.innerHTML = DashboardChart;
+                        GraphData = ajaxOutput.Data;
+		
+                    },
+                     complete: function () {
+                         changeGraphType(this);
+                    }
+
+                     });
+		
+		}
+		}
+	  function GetSubModule(ele) {
+		debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+             let Module = $thisForm.find('[name=FK_Module]').val();
+            let $placeDropdown = $thisForm.find('[name=ID_SubMode]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+           
+            $.ajax({
+                url: "@Url.Action("GetSubModule", "GraphSettings")",
+                type: "POST",
+                data: JSON.stringify({ ID_Mode: Module }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function(ajaxOutput){
+				 console.log(ajaxOutput);
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                        });
+
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                    }
+                }
+
+            });
+
+
+    }
+    
+		  
+
+</script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script>
+
+
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+    function ResetButton(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.validate().resetForm();
+        fn_Authorization_initialLoad();
+
+    }
+
+</script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+@*<script>
+            $(document).ready(function () {
+
+               
+            });
+           
+
+            (function () {
+                //jQuery('form').validate();//<-----  Validate/initialize our form on page load
+                jQuery('select').selectpicker();
+            })();
+             function getreport(ele)
+            {
+                 let $thisForm = $(ele).closest('[perfect-class="form"]');  
+                  
+            }
+       
+            function ResetButton(ele) {
+                let $thisForm = $(ele).closest('[perfect-class="form"]');
+                let pData = $thisForm.data('pData');
+
+                if (pData)
+                {
+
+                        $thisForm.find('[name="Employee"]').val(pData.Employee),
+                        $thisForm.find('[name="Employee_ID"]').val(pData.Employee_ID)
+                        $thisForm.find('[name=FromDate]').val(pData.FromDate),
+                        $thisForm.find('[name=ToDate]').val(pData.ToDate),
+                        $thisForm.find('[name=Status]').val(pData.Status).selectpicker('refresh'),
+                       // $thisForm.find('[name=Rptype]').val(pData.Rptype).selectpicker('refresh'),
+                        $thisForm.find('[name=RpFieldptype]').val(pData.RpFieldptype).selectpicker('refresh'),
+                        $thisForm.find('[name=ID_Report]').val(pData.ID_Report).selectpicker('refresh'),
+                        $thisForm.find('[name=ID_Product]').val(pData.ID_Product),
+                        $thisForm.find('[name=ProductName]').val(pData.ProductName),
+                        $thisForm.find('[name=Area_ID]').val(pData.Area_ID),
+                        $thisForm.find('[name=Area]').val(pData.Area),
+                        $thisForm.find('[name=BranchID]').val(pData.BranchID).selectpicker('refresh'),
+                        $thisForm.find('[name=FK_Priority]').val(pData.FK_Priority).selectpicker('refresh'),
+                        $thisForm.find('[name=Collectedby]').val(pData.Employee_ID),
+                        $thisForm.find('[name=Collectedby_ID]').val(pData.Employee_ID),
+                        $thisForm.find('[name=FK_Category]').val(pData.FK_Category).selectpicker('refresh'),
+                        $thisForm.find('[name=Criteria]').val(pData.Criteria).selectpicker('refresh')
+
+
+                }
+                else
+                {
+
+                        $thisForm.find('[name=LgCollectedBy]').val(""),
+                        $thisForm.find('[name=FromDate]').val(""),
+                        $thisForm.find('[name=ToDate]').val(""),
+                        $thisForm.find('[name=Status]').val(""),
+                      //  $thisForm.find('[name=Rptype]').val("").selectpicker('refresh'),
+                        $thisForm.find('[name=RpFieldptype]').val("").selectpicker('refresh'),
+                        $thisForm.find('[name=ID_Report]').val("").selectpicker('refresh'),
+                        $thisForm.find('[name=ID_Product]').val(""),
+                        $thisForm.find('[name=ProductName]').val(""),
+                        $thisForm.find('[name=BranchID]').val("").selectpicker('refresh'),
+                        $thisForm.find('[name=FK_Priority]').val("").selectpicker('refresh'),
+                        $thisForm.find('[name="Employee_ID"]').val(""),
+                        $thisForm.find('[name="Employee"]').val(""),
+                        $thisForm.find('[name=Collectedby]').val(""),
+                        $thisForm.find('[name=Collectedby_ID]').val(""),
+                        $thisForm.find('[name=FK_Category]').val("").selectpicker('refresh')
+                        $thisForm.find('[name=Area_ID]').val(""),
+                        $thisForm.find('[name=Area]').val(""),
+                        $thisForm.find('[name=Criteria]').val("").selectpicker('refresh')
+
+
+
+
+                }
+
+                bindReportField();
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate().resetForm();
+            }
+            $(document).ready(function () {
+
+
+                bindReportField();
+            });
+
+          
+
+           
+            function checkLimit(ele) {
+                let $thisForm = $(ele).closest('[perfect-clasgets="form"]');
+                //invalid-feedback
+                let Fromdate =  moment($thisForm.find('[name="FromDate"]').val(), "mm/dd/yyyy");
+                let Todate =  moment($thisForm.find('[name="ToDate"]').val(), "mm/dd/yyyy");
+                //   alert(upperlimit);
+                //  alert(lowerlimit);
+                if (Todate < Fromdate) {
+                    // alert(1);
+                    console.log('inside limit check if')
+                    $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup "]').find('.limit-check').text('From Date should be less than To Date')
+                }
+                else {
+                    // alert(2);
+                    console.log('inside limit check else')
+                    $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup "]').find('.limit-check').text('')
+                }
+				  alert('2');
+
+            }
+    </script>*@

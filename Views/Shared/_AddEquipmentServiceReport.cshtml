@@ -1,0 +1,592 @@
+﻿
+@model PerfectWebERP.Models.EquipmentServiceReportModel.ServiceReportView
+
+
+
+<style>
+
+    .tableFixHead {
+        overflow: auto;
+        height: 550px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Equipment Service</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="ServicereportInitialLoadAddForm()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body " style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">From Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">To Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Vehicle No</span>
+
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="ID_Name" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="ID_FIELD" class="" perfect-class="formGroupControl" perfect-ctype="hidden" value="" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="addeequipmentservice-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this, 95, 'Vehicle Number', [], ['ID_FIELD', 'ID_Name','FK_Master','Vehicle'], EQSTransMode)" BindName="ID_Name" BindVal="ID_FIELD"></button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                   
+
+                        <div class="col-sm-4">
+                            <input type="hidden" name="ID_EquipmentService" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel">Mode</span>
+
+
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <select class="form-control " name="FK_Mode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="showtypelist(this)">
+                                            <option value="0">All</option>
+                                            <option value="1">Maintenance</option>
+                                            <option value="2">Incidence</option>
+
+                                        </select>
+
+                                    </div>
+                                    <div class="text-danger temptableError"></div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-4 col-form-label">
+                                    <span perfect-class="formGroupLabel"> Type</span>
+
+                                </label>
+                                <div class="col-sm-8">
+
+                                    <select class="form-control " name="FK_Transaction" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                        <option value="">Please Select </option>
+
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                    <div class="card-footer text-right" perfect-class="formFooter">
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                        <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                    </div>
+                </div>
+
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+
+
+
+
+
+            @*<div class="row" id="vllog">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div perfect-class="EqserviceContainer" id="ideqservice" class="">
+                                    <div class="table-responsive tableFixHead">
+                                        <table id="EqSerList" class="table table-hover table-striped text-black">
+                                            <thead class="thead-primary">
+                                                <tr>
+
+                                                    <th>Vehicle</th>
+                                                    <th>Maintenance/Incidence</th>
+                                                    <th>StartsDate</th>
+                                                    <th>End Date</th>
+                                                    <th>Total Amount</th>
+                                                    <th>Tax Amount</th>
+                                                    <th>Net Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eqServiceTbody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+
+            <div class="table-responsive tableFixHead">
+                <table id="EqSerList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Vehicle</th>
+                            <th>Maintenance/Incidence</th>
+                            <th>StartsDate</th>
+                            <th>End Date</th>
+                            <th>Total Amount</th>
+                            <th>Tax Amount</th>
+                            <th>Net Amount</th>
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+
+@*<script src="~/Assets/Datatables/jquery.dataTables.min.js"></script>
+<script src="~/Assets/Datatables/dataTables.buttons.min.js"></script>
+<script src="~/Assets/Datatables/pdfmake.min.js"></script>
+<script src="~/Assets/Datatables/vfs_fonts.js"></script>
+<script src="~/Assets/Datatables/buttons.html5.min.js"></script>
+<script src="~/Assets/Datatables/jszip.min.js"></script>
+<link href="~/Assets/Datatables/buttons.dataTables.min.css" rel="stylesheet" />*@
+
+
+<script>
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+
+
+
+
+  
+    function showtypelist(ele) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let $actionDropdown = $thisForm.find('[name="FK_Transaction"]');
+            $actionDropdown.empty();
+            $actionDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+            let FK_Mode = $thisForm.find('[name=FK_Mode]').val();
+
+
+              let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                  FK_Mode: FK_Mode
+        }
+
+        $.ajax({
+            url: "@Url.Action("GetALType", "EquipmentServiceReport")",
+            type: "POST",
+            dataType: "json",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput) {
+                    $.each(ajaxOutput, function (key, value) {
+                        $actionDropdown.append($('<option/>', { value: value.FK_Transaction }).text(value.ModeName)).selectpicker('refresh');
+                    });
+                    if ($actionDropdown.attr('perfect-onloadSelect')) {
+                        $actionDropdown.val($actionDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                        $actionDropdown.removeAttr('perfect-onloadSelect')
+                    }
+                }
+            }
+        });
+    }
+
+    function datenchecklogdate(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            //console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date');
+            return false;
+        }
+        else {
+
+            //console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+    }
+
+
+    function ResetButton(ele) {
+        ServiceinitialLoad();
+    }
+    var itemdata = 0;
+    var tableData;
+
+    function geteqReport(ele) {
+
+
+
+        let $tbody;
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+      //  $("#EqSerList tr").remove();
+
+
+
+        if ($thisForm.valid()) {
+
+            var table = $('#EqSerList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+            table.clear().draw();
+
+            if (datenchecklogdate(ele)) {
+
+                var obj = {
+                    TransMode: EQSTransMode,
+                    FromDate: $thisForm.find('[name="FromDate"]').val(),
+                    ToDate: $thisForm.find('[name="ToDate"]').val(),
+                    FK_Type: $thisForm.find('[name="ID_FIELD"]').val(),
+                    FK_Mode: $thisForm.find('[name="FK_Mode"]').val(),
+                    FK_Transaction: $thisForm.find('[name="FK_Transaction"]').val(),
+
+
+                }
+
+                $.ajax({
+                    url: "@Url.Action("GetEqServiceReportList", "EquipmentServiceReport")",
+                    type: "POST",
+                    data: JSON.stringify(obj),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (dataOut) {
+
+
+                        itemdata = dataOut.data.Data;
+                        if (itemdata == null || itemdata == "") {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "none";
+
+
+
+                            } else {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                            }
+                       // $("#EqSerList").empty();
+
+                        if (dataOut.data.Process.IsProcess) {
+
+                             
+
+
+                            if (itemdata != null) {
+                               
+
+                                 tableData = $('#EqSerList').DataTable({
+
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: dataOut.data.Data,
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                    "columns": [
+                                        { "data": null },
+                                        { "data": "Vehicle" },
+                                        { "data": "MaintenanceIncidence" },
+                                        { "data": "StartsOn" },
+                                        { "data": "EndsOn" },
+                                        { "data": "TotalAmount", className: "text-center"},
+                                        { "data": "TaxAmount", className: "text-center" },
+                                        { "data": "NetAmount", className: "text-center" },
+
+                                    ],
+                                      //scrollY: 550,
+                                      //scrollX: true,
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+                                        //footer: true
+                                    },
+                                    //"order": [[7, "asc"]],
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 2, 3, 4, 5, 6, 7] }
+
+                                        //{ "visible": false, "targets": 0 }
+                                    ],
+
+
+                                    "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                        $("td:first", nRow).html(iDisplayIndex + 1);
+                                        return nRow;
+                                    },
+
+
+                                });
+                               
+                            }
+                            else {
+                               
+
+                                //$('#EqSerList').dataTable({ searching: false, paging: false, ordering: false, info: false });
+
+                            }
+
+                        }
+                        else {
+                            
+                        }
+
+
+                    },
+                    complete: function () {
+                    }
+                });
+                fn_showFilter();
+            } else {
+                $(ele).prop('disabled', false);
+                NotificationMessage({ 'type': 'error', 'heading': 'Warning', 'message': 'To Date should be greater than  From Date '})
+            }
+        }
+    }
+
+
+
+
+ function generatePdf(ele) {
+
+        var cdata;
+        var head;
+        var body;
+        var collen;
+        var vfromdate;
+        var vtodate;
+
+        //test start
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+
+
+
+                 head = [['Sl No', 'Vehicle', 'Maintenance/Incidence', 'Start Date', 'End Date', 'TotalAmount', 'TaxAmount', 'NetAmount']];
+                     body = [];
+                     collen=":"
+                     vfromdate;
+                     vtodate;
+                     vfromdate = $thisForm.find('[name="FromDate"]').val();
+                    const dateObject = new Date(vfromdate);
+
+                    // Extract the month, day, and year from the date object
+                    const month = dateObject.getMonth() + 1;
+                    const day = dateObject.getDate();
+                    const year = dateObject.getFullYear();
+
+                    // Create a new date string with the 'MM-DD-YYYY' format
+
+                    vfromdate = `${day}/${month}/${year}`;
+
+                    // Use the newDateString variable to display the date in the desired format
+                    // Extract the month, day, and year from the date object
+
+                    vtodate = $thisForm.find('[name=ToDate]').val();
+
+                    const dateObjects = new Date(vtodate);
+                    const months = dateObjects.getMonth() + 1;
+                    const days = dateObjects.getDate();
+                    const years = dateObjects.getFullYear();
+
+
+
+
+                    vtodate = `${days}/${months}/${years}`;
+
+                    var upperhead = {
+
+                        columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //margin: { top: 10, bottom:0 },
+
+                        body: [
+                            [
+                                "From Date  :   " + vfromdate + "           To Date :   " + vtodate ]
+
+
+
+                        ],
+
+                    };
+
+
+                // var aralenth = itemdata.length;
+                 //var c = itemdata.slice(0, (aralenth - 1));
+                 var bod = itemdata;
+
+                 var ptableData = {
+                     columns: [
+                         { title: "Vehicle", dataKey: "Vehicle" },
+                         { title: "Maintenance Incidence", dataKey: "MaintenanceIncidence" },
+                         { title: "Strats Date", dataKey: "StartsOn" },
+                         { title: "End Date", dataKey: "EndsOn" },
+                         { title: "Total Amount", dataKey: "TotalAmount" },
+                         { title: "Tax Amount", dataKey: "TaxAmount" },
+                         { title: "Net Amount", dataKey: "NetAmount" },
+
+                     ],
+                     rows: bod
+
+                 };
+
+
+
+                     exportPdf('Equipment Service Report', head, cdata, upperhead, '', ptableData, '', 'Report', 'a4');
+
+
+
+                }
+         });
+
+    }
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+
+
+
+
+</script>
+

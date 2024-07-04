@@ -1,0 +1,1114 @@
+﻿
+
+@{
+    ViewBag.Title = "GraphSettings";
+}
+
+
+
+<script src="~/Scripts/funnel/amcharts.js"></script>
+<script src="~/Scripts/funnel/funnel.js"></script>
+<script src="~/Scripts/pssChart.js"></script>
+<link href="~/Assets/css/DashboardTable.css" rel="stylesheet" />
+<style id="compiled-css" type="text/css">
+    .easychart {
+        position: relative;
+        text-align: center;
+    }
+</style>
+<style>
+    .morris-hover {
+        position: absolute;
+        z-index: 1000;
+    }
+
+    .amcharts-funnel-tick {
+        stroke-dasharray: 5;
+    }
+
+    .amcharts-chart-div svg + a {
+        display: none !important;
+    }
+
+    .gridChart {
+        max-height: 500px;
+        /*height: 500px;*/
+        overflow-y: auto;
+    }
+
+    #PanelChart20 th {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="GraphSettings-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript">
+    $(document).ready(function () {
+	 
+		fn_GraphSettings_initialLoad(this)
+	//fn_createChart();
+    });
+
+	 const $formContainer = $('#GraphSettings-form');
+
+	  function fn_GraphSettings_initialLoad() {
+	         
+            LoadGraphSettingsForm();
+        }
+		   function LoadGraphSettingsForm() {
+		  
+            $formContainer.load('@Url.Action("LoadGraphSettingsForm", "GraphSettings")', function () {
+			
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $('.DivCriteria').hide();
+                $('.DivCriteriaProdLead').hide();
+
+
+            });
+        }
+		  var validationMessage = {
+            'BranchID': {
+                'required': 'Please Select  Branch',
+                
+            },
+			 'FK_Module': {
+                'required': 'Please Select Module ',
+                
+            },
+			'ID_SubMode': {
+                'required': 'Please Select SubModule',
+                
+            },
+			'FK_GraphType': {
+                'required': 'Please Select Graph Type',
+                
+            },
+			
+           
+            
+
+        };
+        function fn_createChart() {
+            var ChartData = @Html.Raw(Json.Encode(Model.ChartData));
+            //#region Lead
+			console.log(ChartData,"hjghj");
+            var chartTypeTwo = ChartData.filter(c => c.ChartID === 2);
+            var chartTypeThree = ChartData.filter(c => c.ChartID === 3);
+            var chartTypeFour = ChartData.filter(c => c.ChartID === 4);
+            var chartTypeFive = ChartData.filter(c => c.ChartID === 5);
+            var chartTypeSix = ChartData.filter(c => c.ChartID === 6);
+            var chartTypeSeven = ChartData.filter(c => c.ChartID === 7);
+            var chartTypeEight = ChartData.filter(c => c.ChartID === 8);
+            var chartTypeNine = ChartData.filter(c => c.ChartID === 9);
+			alert(chartTypeFive)
+            if (chartTypeTwo.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                       
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+                        
+                    }
+                   
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeThree.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _chartModalName , legends=[];
+                $.each(chartTypeThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    _data.push(value.ySecondValues);
+                     legends.push(value.xValues + "(" + value.ySecondValues + "%)");
+
+                    _labels.push(value.xValues );
+                    _Color.push(value.ySecondColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssPieChart(_data, _labels, _Color, _chartName, "%", legends);
+                setPssPieChart(_data, _labels, _Color, _chartModalName, "%", legends);
+            }
+            if (chartTypeFour.length > 0) {
+                let _data = [], _Color = [], _chartName, _chartModalName;
+                $.each(chartTypeFour, function (key, value) {
+
+
+                    _chartName = value.ChartName;
+                    _data.push({ title: value.xValues, value: value.yValues });
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssFunnelChart(_data, _Color, _chartName);
+                setPssFunnelChart(_data, _Color, _chartModalName);
+            }
+            if (chartTypeFive.length > 0) {
+			 alert('dfgfdg23')
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeFive, function (key, value) {
+                    _chartName = value.ChartName;
+                   alert(_chartName);
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    } if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _XAxis = value.XAxis;
+                    _YAxis =  value.YAxis;
+
+                   
+                    _Color.push(value.yColor);
+                  
+                         
+                        _chartModalName = value.ChartModalName;
+                     
+                });
+                console.log(_data,"dada");
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeSix.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, _XAxis, _YAxis;
+                $.each(chartTypeSix, function (key, value) {
+                    _chartName = value.ChartName;
+                    _data.push(value.yValues);
+                    _labels.push(value.xValues);
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssHorizontalBarChart(_data, _labels, _Color, _chartName,_XAxis, _YAxis);
+                setPssHorizontalBarChart(_data, _labels, _Color, _chartModalName,_XAxis, _YAxis);
+            }
+            if (chartTypeSeven.length > 0) {
+                let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName,_color1 = '#FFC933' , _color2 = '#B2FF33', _XAxis2="p", _YAxis="o";
+                $.each(chartTypeSeven, function (key, value) {
+                    _chartName = value.ChartName;
+                   
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds ){
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+
+                    //_labels.push(value.xValues);
+                   
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor;
+                    _XAxis2 = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+                setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Expense', 'Gain'], [_color1, _color2], _XAxis2, _YAxis);
+                setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Expense', 'Gain'], [_color1, _color2], _XAxis2, _YAxis);
+            }
+            if (chartTypeEight.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, _XAxis, _YAxis;;
+                $.each(chartTypeEight, function (key, value) {
+                    _chartName = value.ChartName;
+                    _data.push(value.yValues);
+                    _labels.push(value.xValues);
+                    _Color.push(value.yColor);
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssHorizontalBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssHorizontalBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeNine.length > 0) {
+                //let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                //$.each(chartTypeNine, function (key, value) {
+                //    _chartName = value.ChartName;
+                    
+                //    if (value.ShowY3Inhndreds) {
+                       
+                //        _data.push(value.yThirdValues / value.DevideYAmnt);
+                //    } else {
+                //        _data.push(value.yThirdValues);
+
+                //    }
+                //    if (value.ShowXInhndreds) {
+                //        _labels.push(value.xValues / value.DevideXAmnt);
+                //    } else {
+                //        _labels.push(value.xValues);
+
+                //    }
+                    
+                //    if (value.ShowY2Inhndreds) {
+                      
+                //        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                //    } else {
+                //        _data2.push(value.ySecondValues);
+
+                //    }
+                //    _chartModalName = value.ChartModalName;
+                //    _color1 = value.ySecondColor;
+                //    _color2 = value.yThirdColor;
+                //    _XAxis = value.XAxis;
+                //    _YAxis = value.YAxis;
+                //});
+                let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                $.each(chartTypeNine, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+
+
+
+                setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Target', 'Actual'], [_color1, _color2], _XAxis, _YAxis);
+                setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Target', 'Actual'], [_color1, _color2], _XAxis, _YAxis);
+            }
+            //#endregion Lead
+
+
+
+           //#region Project
+            var chartTypeCRMOne = ChartData.filter(c => c.ChartID === 17);
+            var chartTypeCRMTwo = ChartData.filter(c => c.ChartID === 18);
+            var chartTypeCRMThree = ChartData.filter(c => c.ChartID === 19);
+            var chartTypeCRMFour = ChartData.filter(c => c.ChartID === 20);
+            var chartTypeCRMFive = ChartData.filter(c => c.ChartID === 21);
+            var chartTypeCRMSix = ChartData.filter(c => c.ChartID === 22);
+            if (chartTypeCRMOne.length > 0) {
+                let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                $.each(chartTypeCRMOne, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+                setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Actual Period', 'Current Period'], [_color1, _color2], _XAxis, _YAxis);
+                setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Actual Period', 'Current Period'], [_color1, _color2], _XAxis, _YAxis);
+            }
+            if (chartTypeCRMTwo.length > 0) {
+                let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                $.each(chartTypeCRMTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor; _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+                setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Project Amount', 'Expense'], [_color1, _color2], _XAxis, _YAxis);
+                setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Project Amount', 'Expense'], [_color1, _color2], _XAxis, _YAxis);
+            }
+            if (chartTypeCRMThree.length > 0) {
+
+                let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                $.each(chartTypeCRMThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor; _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+                setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Allocated', 'Usage'], [_color1, _color2], _XAxis, _YAxis);
+                setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Allocated', 'Usage'], [_color1, _color2], _XAxis, _YAxis);
+            }
+            //if (chartTypeCRMFour.length > 0) {
+            //    let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName
+
+            //    $.each(chartTypeCRMFive, function (key, value) {
+            //        _chartName = value.ChartName;
+            //        _XAxis = value.XAxis;
+            //        _YAxis = value.YAxis;
+            //        _data.push(value.yValues);
+            //        _labels.push(value.xValues);
+            //        _Color.push(value.yColor);
+            //        _chartModalName = value.ChartModalName;
+            //    });
+
+            //}
+            if (chartTypeCRMFive.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMFive, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    } if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMSix.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMSix, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+
+
+
+           //endregion
+
+		    //#region Inventory
+            var chartTypeCRMOne = ChartData.filter(c => c.ChartID === 23);
+            var chartTypeCRMTwo = ChartData.filter(c => c.ChartID === 24);
+            var chartTypeCRMThree = ChartData.filter(c => c.ChartID === 25);
+            var chartTypeCRMFour = ChartData.filter(c => c.ChartID === 26);
+            var chartTypeCRMFive = ChartData.filter(c => c.ChartID === 27);
+            var chartTypeCRMSix = ChartData.filter(c => c.ChartID === 28);
+			 var chartTypeCRMSeven = ChartData.filter(c => c.ChartID === 29);
+            if (chartTypeCRMOne.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMOne, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMTwo.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+
+         if (chartTypeCRMThree.length > 0) {
+             let _data = [], _labels = [], _data2 = [], _chartName, _chartModalName, _color1 = '#92A679', _color2 = '#0BB52D', _XAxis, _YAxis;
+                $.each(chartTypeCRMThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds || value.ShowY2Inhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+
+                    if (value.ShowY2Inhndreds || value.ShowYInhndreds) {
+                        _data2.push(value.ySecondValues / value.DevideYAmnt);
+                    } else {
+                        _data2.push(value.ySecondValues);
+
+                    }
+                    _chartModalName = value.ChartModalName;
+                    _color1 = value.ySecondColor;
+                    _color2 = value.yThirdColor;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                });
+             setPssCompareBarChart(_data, _labels, _data2, _chartName, ['Current', 'Previous'], [_color1, _color2], _XAxis, _YAxis);
+             setPssCompareBarChart(_data, _labels, _data2, _chartModalName, ['Current', 'Previous'], [_color1, _color2], _XAxis, _YAxis);
+            }
+			 if (chartTypeCRMFour.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMFour, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMFive.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMFive, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMSix.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMSix, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues / value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / value.DevideAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMSeven.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMSeven, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+
+
+
+           //endregion
+		   //#region Accounts
+            var chartTypeCRMOne = ChartData.filter(c => c.ChartID === 30);
+            var chartTypeCRMTwo = ChartData.filter(c => c.ChartID === 31);
+            var chartTypeCRMThree = ChartData.filter(c => c.ChartID === 32);
+            var chartTypeCRMFour = ChartData.filter(c => c.ChartID === 33);
+			 var chartTypeCRMfive = ChartData.filter(c => c.ChartID === 12);
+            if (chartTypeCRMOne.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMOne, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis; 
+                    if (value.ShowYInhndreds||value.ShowY2Inhndreds) {
+                       
+                        
+                        _data.push(value.yValues/value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMTwo.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMThree.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / DevidXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMFour.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMFour, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMfive.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMfive, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			//endregion
+			 //#region Prodcutiom
+            var chartTypeCRMOne = ChartData.filter(c => c.ChartID === 34);
+            var chartTypeCRMTwo = ChartData.filter(c => c.ChartID === 35);
+            var chartTypeCRMThree = ChartData.filter(c => c.ChartID === 36);
+			 var chartTypeCRMfive = ChartData.filter(c => c.ChartID === 13);
+            if (chartTypeCRMOne.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMOne, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis; 
+                    if (value.ShowYInhndreds||value.ShowY2Inhndreds) {
+                       
+                        
+                        _data.push(value.yValues/value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMTwo.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			  if (chartTypeCRMThree.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues / DevidXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			
+			  if (chartTypeCRMfive.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMfive, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+			//endregion
+
+
+            //#region CRM
+            var chartTypeCRMOne = ChartData.filter(c => c.ChartID === 10);
+            var chartTypeCRMTwo = ChartData.filter(c => c.ChartID === 11);
+            var chartTypeCRMThree = ChartData.filter(c => c.ChartID === 12);
+            var chartTypeCRMFour = ChartData.filter(c => c.ChartID === 13);
+            var chartTypeCRMFive = ChartData.filter(c => c.ChartID === 14);
+            var chartTypeCRMSix = ChartData.filter(c => c.ChartID === 15);
+            var chartTypeCRMSeven = ChartData.filter(c => c.ChartID === 16);
+            if (chartTypeCRMOne.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMOne, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMTwo.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMTwo, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMThree.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMThree, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMFour.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _chartModalName, legends=[];
+                $.each(chartTypeCRMFour, function (key, value) {
+                    _chartName = value.ChartName;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.ySecondColor);
+                    _chartModalName = value.ChartModalName;
+                    legends.push(value.xValues + "(" + value.ySecondValues + "%)");
+
+                });
+                setPssPieChart(_data, _labels, _Color, _chartName, "%",legends);
+                setPssPieChart(_data, _labels, _Color, _chartModalName, "%",legends);
+            }
+            if (chartTypeCRMFive.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMFive, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMSix.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMSix, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+            if (chartTypeCRMSeven.length > 0) {
+                let _data = [], _labels = [], _Color = [], _chartName, _XAxis, _YAxis, _chartModalName;
+                $.each(chartTypeCRMSeven, function (key, value) {
+                    _chartName = value.ChartName;
+                    _XAxis = value.XAxis;
+                    _YAxis = value.YAxis;
+                    if (value.ShowYInhndreds) {
+                        _data.push(value.yValues /value.DevideYAmnt);
+                    } else {
+                        _data.push(value.yValues);
+                    }
+                    if (value.ShowXInhndreds) {
+                        _labels.push(value.xValues /value.DevideXAmnt);
+                    } else {
+                        _labels.push(value.xValues);
+
+                    }
+                    _Color.push(value.yColor);
+                    _chartModalName = value.ChartModalName;
+                });
+
+                setPssBarChart(_data, _labels, _Color, _chartName, _XAxis, _YAxis);
+                setPssBarChart(_data, _labels, _Color, _chartModalName, _XAxis, _YAxis);
+            }
+        //#endregion CRM
+        }
+
+        $(".chartClose").click(function () {
+            $(`#${$(this).attr("chartid")}`).hide();
+        });
+
+        $(".cht").click(function () {
+            $(`#${$(this).attr("modalid")}`).modal('show');
+        });
+
+    </script>
+}
+
+
+
+

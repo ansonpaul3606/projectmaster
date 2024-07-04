@@ -1,0 +1,320 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="departmentInchrg-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+
+
+    <script type="text/javascript">
+
+        var DepInTransMode = '';
+        const $formContainer = $('#departmentInchrg-form');
+        $(document).ready(function () {
+
+            DepartmntIncharge_initLoad();
+        });
+
+        function DepartmntIncharge_initLoad() {
+            DepInTransMode = '@ViewBag.TransMode';
+            LoadDeptInchrge();
+            LoadDeptInchList(this);
+        }
+
+        var validationMessage = {
+
+            'EffectDate': {
+                'required': 'Please select Effect Date',
+            },
+            'FK_Branch': {
+                'required': 'Please select Branch'
+            },
+            'FK_Department': {
+                'required': 'Please select Department'
+            },
+            'FK_Incharge': {
+                'required': 'Please select In charge'
+            }
+        }
+
+        function LoadDeptInchrge() {
+
+             $formContainer.load('@Url.Action("LoadDepartmentIncharge", "DepartmentIncharge")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                 $thisForm.validate({ messages: validationMessage });
+                 $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD'));
+                 $thisForm.attr('perfect-onFormSuccess', 'DepartmntIncharge_initLoad'); 
+             });
+
+        }
+
+            var tableOptions = {
+                dropdown: {
+                    buttons: [
+
+                           @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                                   {
+
+                                    <text>   { displayName: "View", action: fn_DI_UpdateForm }, </text>
+                                  }
+
+                      { type: "divider" },
+
+                        @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                             {
+                                   <text> { displayName: "Delete", action: fn_delete_DI},</text>
+                            }
+
+
+                    ],
+
+                    class: "btn btn-success light sharp"
+                },
+
+                onlyShowColumn: ["SlNo", "EffectDate","Employee","Branch","Department"],
+                hideColumn: [],
+                rowClickAction: fn_DI_UpdateForm,
+                renameHeader: { "SlNo": "SL No", "EffectDate": "Effect Date", "Employee":"Incharge"},
+                isDateType: ['EffectDate'],
+
+            };
+
+        function LoadDeptInchList(ele) {
+
+         let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            //console.log("GHc", SearchName)
+            if (SearchName == undefined) {
+               SearchName = '';
+            }
+
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+            let pageUrl = "@Url.Action("GetDepInchargeList", "DepartmentIncharge")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: DepInTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                   
+                    if (ajaxOutput.Process.IsProcess) {
+                       // debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadDeptInchList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                   
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: DepInTransMode }, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadDeptInchList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: DepInTransMode }, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+
+            }
+        });
+
+    }
+
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+             
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+        function fn_delete_DI() {
+
+       let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+        console.log(Saveddata,'sa')
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetDIReasonList", "DepartmentIncharge")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                      
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    FK_DepartmentIncharge: Saveddata.ID_DepartmentIncharge,
+                                    ReasonID: ret,
+                                    TransMode: DepInTransMode
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteDepartmentIncharge", "DepartmentIncharge")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();
+                                                LoadDeptInchrge();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function fn_DI_UpdateForm() {
+            debugger
+            let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            console.log('savedData', savedData);
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $formContainer.load('@Url.Action("LoadDepartmentIncharge", "DepartmentIncharge")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.find('[name="EffectDate"]').val(moment(savedData.EffectDate).format('YYYY-MM-DD'));
+                $thisForm.find('[name="ID_DepartmentIncharge"]').val(savedData.ID_DepartmentIncharge);
+                $thisForm.find('[name="FK_Department"]').val(savedData.FK_Department);
+                $thisForm.find('[name="FK_Branch"]').val(savedData.FK_Branch);
+                $thisForm.find('[name="FK_Incharge"]').val(savedData.FK_Incharge);
+                $thisForm.find('[name="EmployeeName"]').val(savedData.Employee);
+                $thisForm.find('[name="Remarks"]').val(savedData.Remarks);
+                $thisForm.find('[name="ID_DepartmentIncharge"]').val(savedData.ID_DepartmentIncharge);
+
+                $thisForm.find('button[name=add]').addClass('d-none');
+                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                $sideMenuOptions.close();
+            });
+           
+        }
+
+    </script>
+}

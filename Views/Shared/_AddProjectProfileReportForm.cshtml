@@ -1,0 +1,1957 @@
+﻿@model PerfectWebERP.Models.ProjectProfileReportModel.ProfileList
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 50%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: white;
+        color: #e94560;
+    }
+
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .tableFixHead {
+        overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+        height: 250px; /* gives an initial height of 200px to the table */
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+
+    th {
+        background: var(--perfect-primary);
+        color: #fff;
+    }
+
+    #R_DTable_wrapper > div > div.dataTables_scrollHead > div > table > thead > tr {
+        background-color: var(--perfect-primary);
+        color: #fff;
+    }
+    /*#R_DTable_wrapper > div > div.dataTables_scrollHead > div > table > thead {
+        display: none;
+    }*/
+
+    .custom-label-class {
+        color: red;
+        font: 300;
+        background-color: antiquewhite;
+    }
+
+    #R_DTable > thead > tr > th {
+        border: 1px solid #ddd !important;
+    }
+
+        #R_DTable > thead > tr > th > div {
+            height: 20px !important;
+        }
+
+    #R_DTable_wrapper > div > div.dataTables_scrollHead {
+        display: none;
+    }
+
+    #R_DTable > tbody > tr > td {
+        border: 1px solid #ddd !important;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    .Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    #R_DTable > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+
+
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf(this)">PDF</a>
+                    @*<a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>*@
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+
+                                <span perfect-class="formGroupLabel">Project </span>
+                                <span id="lblProjectReq" class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="hidden" class="form-control" name="IncludeTax" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="hidden" disabled />
+                                    <input type="hidden" class="form-control" name="FK_TaxGroup" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="hidden" disabled />
+                                    <input type="hidden" class="form-control" name="ID_ProjectBilling" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="hidden" disabled />
+                                    <input type="text" class="form-control perfectValidate_string" id="ProjectName" name="ProjectName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_Project" class="form-control perfectValidate_string" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+                                    <input type="hidden" name="FK_User" id="FK_User" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="" />
+
+                                    <div class="input-group-append divbtnProject">
+
+                                        <button id="addaccountsubhead-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="GetCmnPopUpSearchValAssign(this, 158, 'Project Details',[],['ProjectDate'])" BindName="ProjectName" BindVal="FK_Project" Criterea1="BranchID" Criterea2="FK_User" perfect-css="button"></button>
+                                    </div>
+
+                                    <div id="FK_Project-error" class="text-danger temptableError"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Report Format</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="Rptype" name="Rptype" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="1" selected>PDF</option>
+                                    <option value="2">Excel</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="Getprojectreportdetail(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+
+
+
+
+
+            <div class="tb1">
+                <table class="table table-responsive-md" id="Accountdetailsids">
+                    <thead class="thead btn-primary" id="ReturnHead">
+                        <tr></tr>
+                    <tbody id="Accountdetails">
+                        <tr id="0">
+                            <td style="text-align:center;" colspan="9">No Records..</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div id="TeamDeID" style="font-weight:bold ;display:none">
+                <h4>Team  Details<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead igf" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridtransactionDetails" id="Gridtransactiontableid">
+                    <table class="table table-responsive-lg" id="Gridtransactiondetailsid">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Team Name</th>
+                                <th scope="col" style="text-align:left">Department</th>
+                                <th scope="col" style="text-align:left">Employee</th>
+                                <th scope="col" style="text-align:left">Employee Role</th>
+                            </tr>
+
+
+
+                        <tbody id="Gridtransactiondetailsbody">
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="StageDeID" style="font-weight:bold ;display:none">
+                <h4>Stage  Details<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead Stg" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridStageDetails" id="GridStageDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridStageDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Stage Name</th>
+                                <th scope="col" style="text-align:left">Team</th>
+                                <th scope="col" style="text-align:left">Start Date</th>
+                                <th scope="col" style="text-align:center">Duration</th>
+                                <th scope="col" style="text-align:center">End Date</th>
+                                <th scope="col" style="text-align:center">Work Percentage</th>
+                                <th scope="col" style="text-align:center">Current Status</th>
+
+                            </tr>
+
+
+
+                        <tbody id="GridStagedetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+
+            <div id="matAlloDetID" style="font-weight:bold ;display:none">
+                <h4>Material Allocation<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="">
+                <div class="tableFixHead Mat" style="display:none">
+                    <div class="table-responsive-lg" perfect-tempTable="GridmatAllocationDetails" id="GridMatAlloctionDetailsTableID">
+
+
+
+                        <table class="table table-responsive-lg " id="GridMatAllDetailsID">
+                            <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                                <tr>
+                                    <th scope="col" style="text-align:center">Sl.No</th>
+                                    <th scope="col" style="text-align:left">Date</th>
+                                    <th scope="col" style="text-align:left">Item Name</th>
+                                    <th scope="col" style="text-align:center">Quantity</th>
+                                    <th scope="col" style="text-align:center">Unit</th>
+                                    <th scope="col" style="text-align:center">Rate</th>
+                                    <th scope="col" style="text-align:center">Amount</th>
+
+
+                                </tr>
+
+
+
+                            <tbody id="GridMatAllocationdetailsbody">
+
+                                <tr id="0">
+                                    <td style="text-align:center;" colspan="9">No Records..</td>
+                                </tr>
+
+                            </tbody>
+
+
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="matUsageID" style="font-weight:bold ;display:none">
+                <h4>Material Usage<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead MatUsage" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridmatusageDetails" id="GridmatusageDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridMatusageDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Item Name</th>
+                                <th scope="col" style="text-align:center">Quantity</th>
+                                <th scope="col" style="text-align:center">Unit</th>
+                                <th scope="col" style="text-align:center">Rate</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="Gridmatusagedetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="matwastageID" style="font-weight:bold ;display:none">
+                <h4>Material Wastage<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead Matwastage" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridmatwastageDetails" id="GridmatwastageDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridmatwastageDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Item Name</th>
+                                <th scope="col" style="text-align:center">Quantity</th>
+                                <th scope="col" style="text-align:center">Unit</th>
+                                <th scope="col" style="text-align:center">Rate</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="Gridmatwastagedetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="matDamageID" style="font-weight:bold ;display:none">
+                <h4>Material Damage<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead MatDamage" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridmatdamageDetails" id="GridmatdamageDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridmatdamageDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Item Name</th>
+                                <th scope="col" style="text-align:center">Quantity</th>
+                                <th scope="col" style="text-align:center">Unit</th>
+                                <th scope="col" style="text-align:center">Rate</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="Gridmatdamagedetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="ExtraWorkId" style="font-weight:bold ;display:none">
+                <h4>Extra Work<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead Extrawork" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridExtraworkDetails" id="GridExtraworkDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridExtraworkDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Work Type</th>
+                                <th scope="col" style="text-align:left">Stage</th>
+                                <th scope="col" style="text-align:center">Sub Contractor</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+                                <th scope="col" style="text-align:center">Remarks</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="GridExtraworkdetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="PjTransationID" style="font-weight:bold ;display:none">
+                <h4>Project Transaction<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead ProjectTransaction" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridPjTransactionDetails" id="GridPjTransactionDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridPjTransactionDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Expense</th>
+                                <th scope="col" style="text-align:left">Stage</th>
+                                <th scope="col" style="text-align:center">Debit</th>
+                                <th scope="col" style="text-align:center">Credit</th>
+                                <th scope="col" style="text-align:center">Remarks</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="GridPjTransactiondetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="ResourceID" style="font-weight:bold ;display:none">
+                <h4>Resource Details<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead Resource" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridResourceDetails" id="GridResourceDetailsTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridResourceDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Resource Type</th>
+                                <th scope="col" style="text-align:left">Stage</th>
+                                <th scope="col" style="text-align:center">Quantity</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+
+
+
+                            </tr>
+
+
+
+                        <tbody id="GridResourcedetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+            <div id="PjBillingID" style="font-weight:bold ;display:none">
+                <h4>Project Billing<span perfect-class="formTitle"></span></h4>
+            </div>
+            <div class="tableFixHead ProjectBilling" style="display:none">
+                <div class="table-responsive-lg" perfect-tempTable="GridPjbillingDetails" id="GridPjbillingTableID">
+
+
+
+                    <table class="table table-responsive-lg" id="GridPjbillingDetailsID">
+                        <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                            <tr>
+                                <th scope="col" style="text-align:center">Sl.No</th>
+                                <th scope="col" style="text-align:left">Date</th>
+                                <th scope="col" style="text-align:left">Bill Mode</th>
+                                <th scope="col" style="text-align:left">Amount</th>
+                                <th scope="col" style="text-align:center">Tax</th>
+                                <th scope="col" style="text-align:center">Other Charges</th>
+                                <th scope="col" style="text-align:center">Amount</th>
+
+
+                            </tr>
+
+
+
+                        <tbody id="GridPjbillingdetailsbody">
+
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="9">No Records..</td>
+                            </tr>
+
+                        </tbody>
+
+
+
+                    </table>
+                </div>
+            </div>
+
+            <div class="tb2" style="display:none">
+                <div class="col-md-5">
+                    <table class="table table-responsive-md table-bordered " id="PjDetailsids">
+                        <thead class="thead btn-primary" id="ReturnHead">
+                            <tr></tr>
+                        <tbody id="Pjdetails">
+                            <tr id="0">
+                                <td style="text-align:center;" colspan="2">No Records..</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+
+        </form>
+    </div>
+
+
+</div>
+<script>
+    var Data;
+    var ProjectDetailsData, TeamDetailsData, StageDetailsData, MatAllocationDetData, MatUsageDetData,
+    MatWastageDetData, MatDamageDetData, ExtraWorkDetData, projectTranactionDetData, ResourceDetData,
+    ProjectbiilingData, ProjectDescrption;
+
+    (function () {
+        jQuery('select').selectpicker();
+    })();
+    $(document).ready(function () {
+
+
+    });
+
+
+
+
+    function ResetButton(ele) {
+        AccountsReportInitialLoad()
+    }
+    function checkLimit(ele) {
+       // alert('checkLimit')
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+            console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than From Date')
+            return false;
+        }
+        else {
+            console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+    }
+
+
+
+    var GetAccountdetaildata;
+
+    var reportdetaildata;
+    function Getprojectreportdetail(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        debugger
+
+        let table = $('#LocationTable').DataTable();
+        table.destroy();
+        if ($thisForm.valid()) {
+
+                var dateval = true;
+                if (dateval) {
+
+                    var obj = {
+                                FromDate: $thisForm.find('[name=FromDate]').val(),
+                                ToDate: $thisForm.find('[name=ToDate]').val(),
+                                AccountHead: $thisForm.find('[name="AccountHead"]').val(),
+                                FK_Project: $thisForm.find('[name="FK_Project"]').val(),
+                                ReportMode: $('#ID_Report').val(),
+                    }
+
+
+                    $.ajax({
+                        url: "@Url.Action("Getprojectreportdetail", "ProjectProfileReport")",
+                        type: "GET",
+                        data: obj,
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (ajaxOutput) {
+                           // TeamDetailsData = ajaxOutput.TeamDetails.Data;
+
+
+                            document.querySelector('#exppdf').style.display = 'block';
+                            var CheckListHTML1 = '';
+                            if (ajaxOutput.ProjectDetails.Process.IsProcess) {
+
+                                if (ajaxOutput.ProjectDetails.Data.length > 0) {
+                                    reportdetaildata = ajaxOutput.ProjectDetails.Data;
+                                    ProjectDetailsData = ajaxOutput.ProjectDetails.Data;
+                                }
+
+                                if (ajaxOutput.ProjectDetails.Data.length > 0) {
+                                    console.log('out123:', ajaxOutput.ProjectDetails.Data)
+                                    $.each(ajaxOutput.ProjectDetails.Data, function (i, value) {
+
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style='text-align:left;paddingright:20px'>" + "Project Name" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_Branch_td' style='text-align:left;font-weight:bold'>" + value.ProjectName + "</td>";
+                                        CheckListHTML1 += "<th  style=text-align:left;>" + "Project Amount" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_opening_td' style='text-align:left;font-weight:bold'>" + value.ProjectAmount + "</td>";
+                                        CheckListHTML1 += "<th  style=text-align:left;>" + "Branch Name" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_opening_td' style='text-align:left;font-weight:bold'>" + value.Branch + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Created Date" + "</td>";
+                                        CheckListHTML1 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.CreatedDate + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Final Amount" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_mobile_td' style='text-align:left;font-weight:bold'>" + value.FinalAmount + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Lead No" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_mobile_td' style='text-align:left;font-weight:bold'>" + value.LeadNo + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Project No" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.ProjectNo + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Start Date" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.StartDate + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Customer Name" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.CustomerName + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Short Name" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.ShortName + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Duration" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.Duration + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Contact No" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.ContactNo + "</td>";
+                                        CheckListHTML1 += "</tr>";
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Category " + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.Category + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Due Date" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.DueDate + "</td>";
+                                        CheckListHTML1 += "<th style=text-align:left;>" + "Address" + "</th>";
+                                        CheckListHTML1 += "<td  Class='jq_accountsubhead_td' style='text-align:left;font-weight:bold'>" + value.Address + "</td>";
+                                        CheckListHTML1 += "</tr>";
+
+
+                                    });
+
+                                    $("#Accountdetails").html(CheckListHTML1)
+                                    document.querySelector('.tb1').style.display = 'block';
+
+                                    // getTeamDetails(ele);
+
+                                }
+                                else {
+
+                                    $("#Accountdetails").html(CheckListHTML1)
+                                    document.querySelector('.tb1').style.display = 'none';
+
+
+                                }
+
+                            }
+                            else {
+
+                                $("#Accountdetails").html(CheckListHTML1)
+                               // document.querySelector('.tb1').style.display = 'block';
+
+                            }
+                            if (ajaxOutput.TeamDetails.Process.IsProcess) {
+
+                               // reportdetaildata = ajaxOutput.Data;
+                                Data = ajaxOutput.TeamDetails.Data;
+                                var CheckListHTML2 = '';
+                              //  TeamDetailsData = ajaxOutput.TeamDetails.Data;
+                               // Data = ajaxOutput.TeamDetails.Data;
+                                if (ajaxOutput.TeamDetails.Data.length > 0) {
+
+                                  //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.TeamDetails.Data, function (i, value) {
+
+                                        CheckListHTML2 += "<tr>";
+                                        CheckListHTML2 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML2 += "<td  Class='jq_TeamName_td' style='text-align:center width:20px'>" + value.TeamName + "</td>";
+
+                                        CheckListHTML2 += "<td Class='jq_Department_td' style='text-align:center width:20px'>" + value.Department + "</td>";
+                                        CheckListHTML2 += "<td class='jq_employee_td' style='text-align:center width:20px'>" + value.Employee + "</td>";
+
+
+
+                                        CheckListHTML2 += "<td class='jq_emprole_td' style='text-align:left;'>" + value.EmployeeRole + "</td>";
+
+                                        CheckListHTML2 += "</tr>";
+
+                                    });
+
+                                    $("#Gridtransactiondetailsbody").html(CheckListHTML2)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    $('#TeamDeID').show();
+                                    $('#Gridtransactiontableid').show();
+                                    // getTeamDetails(ele);
+
+                                }
+                                else {
+                                    //else ajaxOutput.Data.length
+                                   // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                       // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                  //  });
+
+                                }
+
+                            }
+                            if (ajaxOutput.StageDetails.Process.IsProcess) {
+                                StageDetailsData = ajaxOutput.StageDetails.Data;
+                                // reportdetaildata = ajaxOutput.Data;
+
+                                var CheckListHTML3 = '';
+
+                                if (ajaxOutput.StageDetails.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.StageDetails.Data, function (i, value) {
+
+                                        CheckListHTML3 += "<tr>";
+                                        CheckListHTML3 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML3 += "<td  Class='jq_StageName_td' style='text-align:center width:20px'>" + value.StageName + "</td>";
+                                        CheckListHTML3 += "<td class='jq_StartDate_td' style='text-align:center width:20px'>" + value.TeamName + "</td>";
+
+                                        CheckListHTML3 += "<td class='jq_StartDate_td' style='text-align:center width:20px'>" + value.StartDate + "</td>";
+                                        CheckListHTML3 += "<td class='jq_Duration_td' style='text-align:center;'>" + value.Duration + "</td>";
+                                        CheckListHTML3 += "<td class='jq_EndDate_td' style='text-align:center;'>" + value.EndDate + "</td>";
+                                        CheckListHTML3 += "<td Class='jq_WorkPercentage_td' style='text-align:center'>" + value.WorkPercentage + "</td>";
+                                        CheckListHTML3 += "<td class='jq_CurrentStatus_td' style='text-align:center;'>" + value.CurrentStatus + "</td>";
+
+                                        CheckListHTML3 += "</tr>";
+
+                                    });
+
+                                    $("#GridStagedetailsbody").html(CheckListHTML3)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    $('#GridStageDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+                                else {
+                                    //else ajaxOutput.Data.length
+                                  //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        //NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                   // });
+
+                                }
+
+                            }
+                            if (ajaxOutput.MaterAllocation.Process.IsProcess) {
+
+                                MatAllocationDetData = ajaxOutput.MaterAllocation.Data;
+                                console.log(ajaxOutput.MaterAllocation.Data,'Mat')
+                                var CheckListHTML4 = '';
+
+                                if (ajaxOutput.MaterAllocation.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterAllocation.Data, function (i, value) {
+
+                                        CheckListHTML4 += "<tr>";
+                                        CheckListHTML4 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML4 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML4 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.ItemName + "</td>";
+                                        CheckListHTML4 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Quantity + "</td>";
+                                        CheckListHTML4 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Unit + "</td>";
+                                        CheckListHTML4 += "<td Class='jq_Rate_td' style='text-align:center'>" + value.Rate + "</td>";
+                                        CheckListHTML4 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Amount + "</td>";
+
+                                        CheckListHTML4 += "</tr>";
+
+                                    });
+
+                                    $("#GridMatAllocationdetailsbody").html(CheckListHTML4)
+                                       document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridMatAlloctionDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                  //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    //});
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                   // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               /// });
+                            };
+                            if (ajaxOutput.MaterUsage.Process.IsProcess) {
+
+                                // reportdetaildata = ajaxOutput.Data;
+                                MatUsageDetData = ajaxOutput.MaterUsage.Data;
+                                console.log(ajaxOutput.MaterUsage.Data, 'MaterUsage')
+                                var CheckListHTML5 = '';
+
+                                if (ajaxOutput.MaterUsage.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterUsage.Data, function (i, value) {
+
+                                        CheckListHTML5 += "<tr>";
+                                        CheckListHTML5 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML5 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML5 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.ItemName + "</td>";
+                                        CheckListHTML5 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Quantity + "</td>";
+                                        CheckListHTML5 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Unit + "</td>";
+                                        CheckListHTML5 += "<td Class='jq_Rate_td' style='text-align:center'>" + value.Rate + "</td>";
+                                        CheckListHTML5 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Amount + "</td>";
+
+                                        CheckListHTML5 += "</tr>";
+
+                                    });
+
+                                    $("#Gridmatusagedetailsbody").html(CheckListHTML5)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridmatusageDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matUsageID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                              //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                  //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               // });
+                            };
+                            if (ajaxOutput.MaterWastage.Process.IsProcess) {
+
+                                MatWastageDetData = ajaxOutput.MaterWastage.Data;
+                                console.log(ajaxOutput.MaterWastage.Data, 'MaterWastage')
+                                var CheckListHTML6 = '';
+
+                                if (ajaxOutput.MaterWastage.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterWastage.Data, function (i, value) {
+
+                                        CheckListHTML6 += "<tr>";
+                                        CheckListHTML6 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML6 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML6 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.ItemName + "</td>";
+                                        CheckListHTML6 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Quantity + "</td>";
+                                        CheckListHTML6 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Unit + "</td>";
+                                        CheckListHTML6 += "<td Class='jq_Rate_td' style='text-align:center'>" + value.Rate + "</td>";
+                                        CheckListHTML6 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Amount + "</td>";
+
+                                        CheckListHTML6 += "</tr>";
+
+                                    });
+
+                                    $("#Gridmatwastagedetailsbody").html(CheckListHTML6)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridmatwastageDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                              //  $.each(ajaxOutput.MaterWastage.Process.Message, function (key, value) {
+                                    //NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                //});
+                            };
+                            if (ajaxOutput.MaterDamage.Process.IsProcess) {
+
+                                MatDamageDetData = ajaxOutput.MaterDamage.Data;
+                                console.log(ajaxOutput.MaterDamage.Data, 'MaterDamage')
+                                var CheckListHTML7 = '';
+
+                                if (ajaxOutput.MaterDamage.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterDamage.Data, function (i, value) {
+
+                                        CheckListHTML7 += "<tr>";
+                                        CheckListHTML7 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML7 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML7 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.ItemName + "</td>";
+                                        CheckListHTML7 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Quantity + "</td>";
+                                        CheckListHTML7 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Unit + "</td>";
+                                        CheckListHTML7 += "<td Class='jq_Rate_td' style='text-align:center '>" + value.Rate + "</td>";
+                                        CheckListHTML7 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Amount + "</td>";
+
+                                        CheckListHTML7 += "</tr>";
+
+                                    });
+
+                                    $("#Gridmatdamagedetailsbody").html(CheckListHTML7)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridmatdamageDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.MaterDamage.Process.Message, function (key, value) {
+                                 //   NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               // });
+                            };
+                            if (ajaxOutput.MaterExtraWork.Process.IsProcess) {
+
+                                ExtraWorkDetData = ajaxOutput.MaterExtraWork.Data;
+                                console.log(ajaxOutput.MaterExtraWork.Data, 'MaterExtraWork')
+                                var CheckListHTML8 = '';
+
+                                if (ajaxOutput.MaterExtraWork.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterExtraWork.Data, function (i, value) {
+
+                                        CheckListHTML8 += "<tr>";
+                                        CheckListHTML8 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML8 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML8 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.WorkType + "</td>";
+                                        CheckListHTML8 += "<td class='jq_quantity_td' style='text-align:left;'>" + value.Stage + "</td>";
+                                        CheckListHTML8 += "<td class='jq_unit_td' style='text-align:left;'>" + value.SubContractor + "</td>";
+                                        CheckListHTML8 += "<td Class='jq_Rate_td' style='text-align:center'>" + value.Amount + "</td>";
+                                        CheckListHTML8 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Remarks + "</td>";
+
+                                        CheckListHTML8 += "</tr>";
+
+                                    });
+
+                                    $("#GridExtraworkdetailsbody").html(CheckListHTML8)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridExtraworkDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.MaterExtraWork.Process.Message, function (key, value) {
+                                   // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               // });
+                            };
+                            if (ajaxOutput.MaterProjectT.Process.IsProcess) {
+
+                                projectTranactionDetData = ajaxOutput.MaterProjectT.Data;
+                                console.log(ajaxOutput.MaterProjectT.Data, 'MaterProjectT')
+                                var CheckListHTML9 = '';
+
+                                if (ajaxOutput.MaterProjectT.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.MaterProjectT.Data, function (i, value) {
+
+                                        CheckListHTML9 += "<tr>";
+                                        CheckListHTML9 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML9 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML9 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.Expense + "</td>";
+                                        CheckListHTML9 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.Stage + "</td>";
+                                        CheckListHTML9 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Debit + "</td>";
+                                        CheckListHTML9 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Credit + "</td>";
+
+                                        CheckListHTML9 += "<td class='jq_amt_td' style='text-align:center;'>" + value.Remarks + "</td>";
+
+                                        CheckListHTML9 += "</tr>";
+
+                                    });
+
+                                    $("#GridPjTransactiondetailsbody").html(CheckListHTML9)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridPjTransactionDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                    });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                   // NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               // });
+                            };
+                            if (ajaxOutput.ResorceDet.Process.IsProcess) {
+
+                                ResourceDetData = ajaxOutput.ResorceDet.Data;
+                                console.log(ajaxOutput.ResorceDet.Data, 'ResorceDet')
+                                var CheckListHTML10 = '';
+
+                                if (ajaxOutput.ResorceDet.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.ResorceDet.Data, function (i, value) {
+
+                                        CheckListHTML10 += "<tr>";
+                                        CheckListHTML10 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML10 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML10 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.ResourceType + "</td>";
+                                        CheckListHTML10 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.Stage + "</td>";
+                                        CheckListHTML10 += "<td class='jq_quantity_td' style='text-align:center;'>" + value.Quantity + "</td>";
+                                        CheckListHTML10 += "<td class='jq_unit_td' style='text-align:center;'>" + value.Amount + "</td>";
+
+
+
+                                        CheckListHTML10 += "</tr>";
+
+                                    });
+
+                                    $("#GridResourcedetailsbody").html(CheckListHTML10)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+
+                                    $('#GridResourceDetailsTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                  //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                   //     NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                   // });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                  //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                               // });
+                            };
+                            if (ajaxOutput.projectBilling.Process.IsProcess) {
+
+                                ProjectbiilingData = ajaxOutput.projectBilling.Data;
+                                console.log(ajaxOutput.projectBilling.Data, 'projectBilling')
+                                var CheckListHTML11 = '';
+
+                                if (ajaxOutput.projectBilling.Data.length > 0) {
+
+                                    //  $('#Accountdetails').show();
+                                    $.each(ajaxOutput.projectBilling.Data, function (i, value) {
+
+                                        CheckListHTML11 += "<tr>";
+                                        CheckListHTML11 += "<td  Class='jq_slno_td' style='text-align:center'>" + value.SlNo + "</td>";
+                                        CheckListHTML11 += "<td  Class='jq_Date_td' style='text-align:center width:20px'>" + value.Date + "</td>";
+
+
+                                        CheckListHTML11 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.BillMode + "</td>";
+                                        CheckListHTML11 += "<td class='jq_ItemName_td' style='text-align:center width:20px'>" + value.Amount + "</td>";
+                                        CheckListHTML11 += "<td class='jq_quantity_td' style='text-align:left;'>" + value.Tax + "</td>";
+                                        CheckListHTML11 += "<td class='jq_unit_td' style='text-align:center;'>" + value.OtherCharges + "</td>";
+                                        CheckListHTML11 += "<td class='jq_unit_td' style='text-align:center;'>" + value.NetAmount + "</td>";
+
+
+                                        CheckListHTML11 += "</tr>";
+
+                                    });
+
+                                    $("#GridPjbillingdetailsbody").html(CheckListHTML11)
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.Stg').style.display = "block";
+                                    document.querySelector('.Mat').style.display = "block";
+                                    document.querySelector('.MatUsage').style.display = "block";
+                                    document.querySelector('.MatDamage').style.display = "block";
+                                    document.querySelector('.Matwastage').style.display = "block";
+                                    document.querySelector('.Extrawork').style.display = "block";
+                                    document.querySelector('.ProjectTransaction').style.display = "block";
+                                    document.querySelector('.Resource').style.display = "block";
+                                    document.querySelector('.ProjectBilling').style.display = "block";
+                                    $('#GridPjbillingTableID').show();
+                                    $('#StageDeID').show();
+                                    $('#TeamDeID').show();
+                                    $('#matAlloDetID').show();
+                                    $('#matUsageID').show();
+                                    $('#matwastageID').show();
+                                    $('#matDamageID').show();
+                                    $('#ExtraWorkId').show();
+                                    $('#PjTransationID').show();
+                                    $('#ResourceID').show();
+                                    $('#PjBillingID').show();
+                                    // getTeamDetails(ele);
+
+                                }
+
+                                else {
+                                    //else ajaxOutput.Data.length
+                                  //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                   // });
+
+                                }
+
+                            }
+                            else {
+                                /// else condition ajaxOutput.Process.IsProcess
+                               // $.each(ajaxOutput.Process.Message, function (key, value) {
+                                  //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                //});
+                            };
+                            if (ajaxOutput.Details.Process.IsProcess) {
+
+                                reportdetaildata = ajaxOutput.ProjectDetails.Data;
+                                ProjectDetailsData = ajaxOutput.ProjectDetails.Data;
+                                ProjectDescrption = ajaxOutput.Details.Data;
+                                var CheckListHTML13 = '';
+
+                                if (ajaxOutput.Details.Data.length > 0) {
+
+                                    $('#Pjdetails').show();
+                                    $.each(ajaxOutput.Details.Data, function (i, value) {
+
+
+
+
+
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style='text-align:left;paddingright:20px'>" + "Completed Percentage " + "</th>";
+                                        CheckListHTML13 += "<td  Class='jq_Branch_td' style='text-align:left;font-weight:bold'>" + value.CompletedPercentage + "</td>";
+
+
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style=text-align:left;>" + "Amount Due" + "</td>";
+                                        CheckListHTML13 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.AmountDue + "</td>";
+
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style=text-align:left;>" + "Total Expense" + "</td>";
+                                        CheckListHTML13 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.TotalExpense + "</td>";
+
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style=text-align:left;>" + "Total Income" + "</td>";
+                                        CheckListHTML13 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.TotalIncome + "</td>";
+
+                                        CheckListHTML13 += "</tr>";
+
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style=text-align:left;>" + value.ProfitLossLabel1 + "</td>";
+                                        CheckListHTML13 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.ProfitLossAmount + "</td>";
+
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "</tr>";
+                                        CheckListHTML13 += "<tr>";
+                                        CheckListHTML13 += "<th style=text-align:left;>" + value.ProfitLossLabel2 + "</td>";
+                                        CheckListHTML13 += "<td  Class='jq_accounthead_td' style='text-align:left;font-weight:bold'>" + value.ProfitLossAPer + "</td>";
+
+                                        CheckListHTML13 += "</tr>";
+
+
+                                    });
+
+                                    $("#Pjdetails").html(CheckListHTML13)
+                                    document.querySelector('.tb2').style.display = 'block';
+
+                                    // getTeamDetails(ele);
+
+                                }
+                                else {
+                                    //else ajaxOutput.Data.length
+                                  //  $.each(ajaxOutput.Process.Message, function (key, value) {
+                                      //  NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'No Records...' });
+                                   // });
+
+                                }
+
+                            }
+                           // }
+                        },
+
+                    });
+
+                }
+                else {
+
+
+
+
+                }
+
+
+
+        }
+        else {
+
+
+        }
+
+
+    }
+
+
+
+
+     function generatePdf(ele) {
+        var cdata;
+
+        var _ReportName = $("#ID_Report option:selected").text();
+        let $container = $(ele).closest('[perfect-class="form"]');
+        const obj = {
+            "Project Name": $('input[name="ProjectName"]').val()
+        };
+        const obj2 = {
+
+            "From": $('input[name="FromDate"]').val(),
+            "To": $('input[name="ToDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+       // var str2 = `Report : ${_ReportName} Report`;
+        var num = 0;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0) {
+
+                if (num === 0) {
+                    str = "Filter By : ";
+                }
+
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        //for (var i in obj2) {
+        //    if (obj2[i] != "" && obj2[i] != undefined) {
+
+        //        str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+        //    }
+
+        //};
+
+        //if (obj2['From'] && obj2['To']) {
+        //    //debugger
+        //    str2 = str2 + ` ,For the Period  ${changeDateFormat(obj2['From'])} - ${changeDateFormat(obj2['To'])}`;
+        //}
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 1: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+                     str2    +
+                    '\n' + str
+                ],
+            ],
+
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black',
+                rowHeight: 1 // Adjust the row height value to reduce the space between rows
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.2; // Adjust the line height value to your preference
+            }
+
+
+
+        };
+
+        ///Test
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+                 var head = [];
+                 var head1 = [];
+                 var ptableData = {};
+                 var ptableData1 = {};
+                 debugger;
+
+                     console.log('todoList', Data)
+                     head = ["Sl.No", "Team Name", "Department", "Employee", "Employee Role"];
+                     ptableData = {
+                         columns: [
+
+                             { title: "Team Name", dataKey: "TeamName" },
+                             { title: "Department", dataKey: "Department" },
+                             { title: "Employee", dataKey: "Employee" },
+                             { title: "Employee Role", dataKey: "EmployeeRole" },
+
+                         ],
+                         rows: Data
+
+                     };
+                     head1 = ["Sl.No", "Stage Name ", "Team", "Start Date", "Duration", "End Date", "Work percentage", "Current Status"];
+                     ptableData1 = {
+                         columns: [
+
+                             { title: "Stage Name", dataKey: "StageName" },
+                             { title: "Team", dataKey: "TeamName" },
+                             { title: "Start Date", dataKey: "StartDate" },
+                             { title: "Duration", dataKey: "Duration" },
+                             { title: "End Date", dataKey: "EndDate" },
+                             { title: "Work Percentage", dataKey: "WorkPercentage" },
+                             { title: "Current Status", dataKey: "CurrentStatus" },
+
+
+
+                         ],
+                         rows: StageDetailsData
+
+                 };
+                 head2 = ["Sl .No", "Date", "Item Name", "Quantity", "Unit", "Rate", "Amount",];
+                 ptableData2 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Item Name", dataKey: "ItemName" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "Unit", dataKey: "Unit" },
+                         { title: "Rate", dataKey: "Rate" },
+                         { title: "Amount", dataKey: "Amount" },
+
+
+
+
+                     ],
+                     rows: MatAllocationDetData
+
+                 };
+                 console.log(StageDetailsData, 'Data5656')
+                 head3 = ["Sl .No", "Date", "Item Name", "Quantity", "Unit", "Rate", "Amount",];
+                 ptableData3 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Item Name", dataKey: "ItemName" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "Unit", dataKey: "Unit" },
+                         { title: "Rate", dataKey: "Rate" },
+                         { title: "Amount", dataKey: "Amount" },
+
+
+
+
+                     ],
+                     rows: MatUsageDetData
+
+                 };
+                 head4 = ["Sl .No", "Date", "Item Name", "Quantity", "Unit", "Rate", "Amount",];
+                 ptableData4 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Item Name", dataKey: "ItemName" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "Unit", dataKey: "Unit" },
+                         { title: "Rate", dataKey: "Rate" },
+                         { title: "Amount", dataKey: "Amount" },
+
+
+
+
+                     ],
+                     rows: MatWastageDetData
+
+                 };
+                 head5 = ["Sl .No", "Date", "Item Name", "Quantity", "Unit", "Rate", "Amount",];
+                 ptableData5 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Item Name", dataKey: "ItemName" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "Unit", dataKey: "Unit" },
+                         { title: "Rate", dataKey: "Rate" },
+                         { title: "Amount", dataKey: "Amount" },
+
+
+
+
+                     ],
+                     rows: MatDamageDetData
+
+                 };
+
+                 head6 = ["Sl .No", "Date", "Work Type", "Stage", "Sub Contractor", "Amount", "Remarks",];
+                 ptableData6 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Work Type", dataKey: "WorkType" },
+                         { title: "Stage", dataKey: "Stage" },
+                         { title: "Sub Contractor", dataKey: "SubContractor" },
+                         { title: "Amount", dataKey: "Amount" },
+                         { title: "Remarks", dataKey: "Remarks" },
+
+
+
+
+                     ],
+                     rows: ExtraWorkDetData
+
+                 };
+
+                 head7 = ["Sl .No", "Date", "Expense", "Stage", "Debit", "Credit", "Remarks",];
+                 ptableData7 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Expense", dataKey: "Expense" },
+                         { title: "Stage", dataKey: "Stage" },
+                         { title: "Debit", dataKey: "Debit" },
+                         { title: "Credit", dataKey: "Credit" },
+                         { title: "Remarks", dataKey: "Remarks" },
+
+
+
+
+                     ],
+                     rows: projectTranactionDetData
+
+                 };
+
+                 head8 = ["Sl .No", "Date", "Resource Type", "Stage", "Quantity","Amount" ];
+                 ptableData8 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "ResourceType", dataKey: "ResourceType" },
+                         { title: "Stage", dataKey: "Stage" },
+                         { title: "Quantity", dataKey: "Quantity" },
+                         { title: "Amount", dataKey: "" },
+
+
+
+
+
+                     ],
+                     rows: ResourceDetData
+
+                 };
+                 head9 = ["Sl .No", "Date", "Bill Mode", "Amount", "Tax", "Other Charges", "Amount"];
+                 ptableData9 = {
+                     columns: [
+
+                         { title: "Date", dataKey: "Date" },
+                         { title: "Bill Mode", dataKey: "BillMode" },
+                         { title: "Amount", dataKey: "Amount" },
+                         { title: "Tax", dataKey: "Tax" },
+                         { title: "Other Charges", dataKey: "OtherCharges" },
+                         { title: "Amount", dataKey: "Amount" },
+
+
+
+
+
+                     ],
+                     rows: ProjectbiilingData
+
+                 };
+
+                     const obj = {
+
+                                startY: 5,
+                         head: [['Project Details', '', '','','','']],
+                         body: [
+
+                                    ['Project Name', reportdetaildata[0].ProjectName == "" ? "" : reportdetaildata[0].ProjectName, 'Project Amount', reportdetaildata[0].ProjectAmount == "" ? "0" : reportdetaildata[0].ProjectAmount, 'Branch Name', reportdetaildata[0].BranchName == "" ? "" : reportdetaildata[0].BranchName],
+                                    ['Created Date', reportdetaildata[0].CreatedDate == "" ? "" : reportdetaildata[0].CreatedDate, 'Final Amount', reportdetaildata[0].FinalAmount == "" ? "0" : reportdetaildata[0].FinalAmount, 'Lead No', reportdetaildata[0].LeadNo == "" ? "" : reportdetaildata[0].LeadNo],
+                             ['Short Name', reportdetaildata[0].ShortName == "" ? "" : reportdetaildata[0].ShortName, 'Duration', reportdetaildata[0].Duration == "" ? "" : reportdetaildata[0].Duration, 'Contact No', reportdetaildata[0].ContactNo == "" ? "" : reportdetaildata[0].ContactNo],
+                             ['Category', reportdetaildata[0].Category == "" ? "" : reportdetaildata[0].Category, ' Due Date', reportdetaildata[0].DueDate == "" ? "" : reportdetaildata[0].DueDate, 'Address', reportdetaildata[0].Address == "" ? "" : reportdetaildata[0].Address]
+
+                                 ],
+                                theme: 'striped',
+                                styles: {
+                                    //lineWidth: 0.2,
+                                    //lineColor: 0,
+                                    fontSize: 8
+                                },
+                                 headerStyles: {
+                                     fillColor: '#2aa2ad', // Set the fill color of the header
+                                     textColor: '#FFFFFF' // Set the text color of the header
+                                 },
+                                showHead: 'everyPage',
+                                rowPageBreak: 'avoid',
+                                pageBreak: 'auto',
+                                margin: { top: 30, bottom: 40 }
+                          }
+                     const descriptionobj = {
+
+                         startY: 5,
+                         head: [['', '', '', '']],
+                         body: [
+                             ['Completed Percentage', ProjectDescrption[0].CompletedPercentage == "" ? "0" : ProjectDescrption[0].CompletedPercentage, 'Amount Due', ProjectDescrption[0].AmountDue],
+                             ['Total Expense', ProjectDescrption[0].TotalExpense == "" ? "0" : ProjectDescrption[0].TotalExpense, 'Total Income', ProjectDescrption[0].TotalIncome == "" ? "0" : ProjectDescrption[0].TotalIncome],
+                             [ProjectDescrption[0].ProfitLossLabel1, ProjectDescrption[0].ProfitLossAmount, ProjectDescrption[0].ProfitLossLabel2, ProjectDescrption[0].ProfitLossAPer]
+
+
+                         ],
+                         theme: 'striped',
+                         styles: {
+                             //lineWidth: 0.2,
+                             //lineColor: 0,
+                             fontSize: 8
+                         },
+                         headerStyles: {
+                             fillColor: '#2aa2ad', // Set the fill color of the header
+                             textColor: '#FFFFFF' // Set the text color of the header
+                         },
+                         showHead: 'everyPage',
+                         rowPageBreak: 'avoid',
+                         pageBreak: 'auto',
+                         margin: { top: 30, bottom: 40 }
+                 }
+                 //const logiobj = {
+                 //    inAllPages: true, //by default = false, just in the last page
+                 //    src: "/CompanyLogoImg/company_1 / Company Logo.png",
+                 //    type: "png",
+                 //    // type: 'PNG', //optional, when src= data:uri (nodejs case)
+                 //    width: 53.33,
+                 //    height: 26.66,
+                 //    margin: {
+                 //        top: 0,
+                 //        left: 0
+                 //    }
+                 //}
+                     const inputdata = {
+                         ptitle: "Project Profile",
+                         phead: [head],
+                         phead1: [head1],
+                         phead2: [head2],
+                         phead3: [head3],
+                         phead4: [head4],
+                         phead5: [head5],
+                         phead6: [head6],
+                         phead7: [head7],
+                         phead8: [head8],
+                         phead9: [head9],
+                         cdata,
+                         upperhead,
+                         ptableData,
+                         ptableData1,
+                         ptableData2,
+                         ptableData3,
+                         ptableData4,
+                         ptableData5,
+                         ptableData6,
+                         ptableData7,
+                         ptableData8,
+                         ptableData9,
+                         ptableDataArray: [ptableData, ptableData1, ptableData2, ptableData3, ptableData4, ptableData5, ptableData6, ptableData7, ptableData8, ptableData9],
+                         filename: 'Project Profile' + $('input[name="FK_Project"]').val(),
+                         pageSize: "a4",
+                         PageOrientation: "l",
+                         uppertable: obj,
+                         footerdata: descriptionobj
+
+
+                     }
+                     console.log(inputdata, 'inputdata')
+                     exportPdfMultiple(inputdata);
+
+
+                }
+         });
+    }
+
+
+
+
+    function changeDateFormat(date) {
+        /*var date = '2023-06-05';*/
+
+        // Split the date into year, month, and day components
+        var dateComponents = date.split('-');
+
+        // Rearrange the components to form the desired format
+        var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+        console.log(formattedDate); // Output: 05/06/23
+        return formattedDate;
+    }
+
+
+
+
+
+</script>
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="//cdn.rawgit.com/ashl1/datatables-rowsgroup/v1.0.0/dataTables.rowsGroup.js"></script>
+
+
+

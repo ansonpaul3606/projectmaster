@@ -1,0 +1,92 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Delivery-form">
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#Delivery-form');
+        //var MaterialTransMode = '';
+
+         $(document).ready(function () {
+
+            fn_DeliveryRepo_initialLoad();
+
+
+         });
+
+        function fn_showFilter() {
+            let $thisForm = $('[perfect-class="form"]');
+            $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+           
+        }
+        function fn_DeliveryRepo_initialLoad() {
+            @*MaterialTransMode ='@ViewBag.TransMode';*@
+            LoadAddDeliveryRepo();
+
+        }
+        var validationMessage = {
+            //'datefilter': {
+            //    'required': 'Please Select Target Date'
+            //},          
+            'FK_Mode': {
+                'required': 'Please select Report name'
+            },
+            'FromDate': {
+                'required': 'Please select From Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+
+            },
+            'ToDate': {
+                'required': 'Please select To Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+            },
+            'ToDate': {
+                'required': 'Please select As on date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+            },
+           
+
+        }
+
+        function LoadAddDeliveryRepo() {
+
+            @*$formContainer.load('@Url.Action("LoadMaterialRequestRepo", "MaterialRequestReports")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {*@
+            $formContainer.load('@Url.Action("LoadDeliverylistRepo", "Deliverylist")?mtd=@ViewBag.mtd' , function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $("#divDeliveryList1").hide();
+                $("#divDeliveryList").hide();
+                $("#divDeliveryList2").hide();
+                $("#divUpcomingDeliveryList").hide();
+                $("#divNotDeliveryList").hide();
+
+                $('.DivToDate').hide();
+                $('.Divfromdate').show();
+                $('.DivProduct').hide();
+                $('.DivDistrict').hide();
+                $('.DivState').hide();
+                $('.DivStatus').hide();
+                
+              //  $thisForm.find('[name="datefilter"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+               // $thisForm.closest('.jq_leadgeneration_body').find('.leadformSesction').toggleClass('d-none');
+                $thisForm.attr('perfect-onFormSuccess', 'fn_DeliveryRepo_initialLoad');
+
+            });
+        }
+    </script>
+}

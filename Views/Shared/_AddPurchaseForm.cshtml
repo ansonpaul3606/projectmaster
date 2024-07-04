@@ -1,0 +1,2214 @@
+﻿@*---------------------------------------------------------------------
+    Created By	: Aiswarya
+    Created On	: 31/01/2022
+    Purpose		: Purchase
+    -------------------------------------------------------------------------
+    Modification
+    On			By					OMID/Remarks
+    -------------------------------------------------------------------------
+    -------------------------------------------------------------------------*@
+
+@model PerfectWebERP.Models.PurchaseModel.DropDownListModel
+<style type="text/css">
+
+    .media > span {
+        height: 85px;
+        width: 85px;
+        border-radius: 30px;
+        padding: 10px 12px;
+        font-size: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #464a53;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+        <h4 class="card-title col-12">Purchase<span class="badge light badge-success float-right" perfect-class="formTitle">ADD</span></h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-sm-4" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Mode</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="ProductID" />
+                                <select class="form-control perfectValidate_string" name="TransMode" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" onchange="fn_bindropdown(this)" perfect-css="select">
+                                    @*<option value="">Please Select </option>*@
+
+
+                                    @if (!(Model.ModuleTypeList is null))
+                                    {
+                                        foreach (var Module in Model.ModuleTypeList)
+                                        {
+                                            <option value="@Module.Mode">@Module.ModuleName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="BranchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="BranchID" class="perfectValidate_numeric" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search jq_branchchange_btn" type="button" perfect-css="button" onclick="BindBranch(this)"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Department</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="DepartmentName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="DepartmentID" class="perfectValidate_numeric" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search jq_Deptchange_btn " type="button" perfect-css="button" onclick="BindDepartment(this)"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Supplier</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="SupplierName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="SupplierID" class="perfectValidate_numeric" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        @*<button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="BindSupplier(this)"></button>*@
+                                        <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,20,'Supplier Details',[])" Criterea1="0" Criterea2="0" BindName="SupplierName" BindVal="SupplierID"></button>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Invoice No</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control perfectValidate_numeric " placeholder="" name="InvoiceNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Invoice Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="InvoiceDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <div class="col-sm-8">
+                                <div class="input-group">
+
+                                    <input type="hidden" name="PurchaseOrderID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-external-linkt" type="button" perfect-css="button" onclick="BindDepartment(this)"><i class="fa fa-external-link"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="accordion-nine" class="accordion accordion-active-header">
+                                    <div class="accordion__item">
+                                        <div class="accordion__header collapsed" data-toggle="collapse" data-target="#active-header_collapsefive">
+                                            <span class="accordion__header--icon"></span>
+                                            <span class="accordion__header--text">Purchase Details</span>
+                                            <span class="accordion__header--indicator"></span>
+                                        </div>
+                                        <div id="active-header_collapsefive" class="collapse accordion__body" data-parent="#accordion-nine">
+                                            <div class="accordion__body--text">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Product</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control " perfect-tempTable-Purchase="Product Name" name="ProName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                    <input type="hidden" name="FK_Product" />
+                                                                    <input type="hidden" name="ProductID" perfect-tempTable-Purchase="ProductID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                                    <input type="hidden" name="NoOfUnits" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                                                    <div class="input-group-append">
+                                                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="showItemModal(this)"></button>
+                                                                        <div class="modal fade" perfect-class="formGroupModal">
+                                                                            <div class="modal-dialog modal-xl" role="document">
+                                                                                <div class="modal-content  rounded-0">
+                                                                                    <div class="modal-header border-0">
+                                                                                        <h5 class="modal-title">Search Product</h5>
+                                                                                        <button type="button" class="close" data-dismiss="modal">
+                                                                                            <span>&times;</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        <div class="form-row">
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"> Name</span>
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="text" class="form-control" placeholder="" name="Name" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-3">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-1 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"></span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        @*<img src="~/Assets/images/search1.svg" />*@
+                                                                                                        <button type="button" class="btn btn-rounded btn-primary" perfect-css="button" data-toggle="tooltip" data-placement="top" data-original-title="Serach Product By Name" onclick="searchbtn2(this)" name="reset"><span class="btn-icon-left text-primary"><i class="fa fa-search"></i></span>Search</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-6" style="display:none">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">Supplier</span>
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="hidden" name="SupplierID" />
+                                                                                                        <select class="form-control" name="Supplier" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" onchange="fn_bindropdown(this)" perfect-css="select">
+                                                                                                            <option value="">Please Select </option>
+                                                                                                            @if (!(Model.SupplierView is null))
+                                                                                                            {
+                                                                                                                foreach (var Supplier in Model.SupplierView)
+                                                                                                                {
+                                                                                                                    <option value="@Supplier.SupplierID">@Supplier.SupplierName</option>
+                                                                                                                }
+
+                                                                                                            }
+
+
+                                                                                                        </select>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-6" style="display:none">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">Manufacture</span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="hidden" name="ManufactureID" />
+                                                                                                        <select class="form-control" name="Manu" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                                                                            <option value="">Please Select </option>
+
+                                                                                                        </select>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                        </div>
+                                                                                        <div class="col-md-12 mt-3" perfect-class="formGroupModalTable">
+
+
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <span class="temptableError"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Unit</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <select class="form-control" perfect-tempTable-Purchase="Unit" onchange="fn_selectUnit(this),CalcActualQuantity(this)" name="UnitID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                                                    <option value="">Please Select </option>
+                                                                    @*<option value="1">Test</option>*@
+                                                                    @if (!(Model.UnitList is null))
+                                                                    {
+                                                                        foreach (var unit in Model.UnitList)
+                                                                        {
+                                                                            <option value="@unit.ID_Unit">@unit.UnitName</option>
+                                                                        }
+                                                                    }
+
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Barcode</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control" perfect-tempTable-Purchase="PpdBarCode" name="PpdBarCode" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">QR Code</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control" perfect-tempTable-Purchase="PpdQRCode" name="PpdQRCode" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Quantity </span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control text-right" perfect-tempTable-Purchase="Quantity" placeholder="" onchange="BindNetAmount(this),CalcActualQuantity(this)" name="PpdQuantity" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+
+                                                                    <div class="input-group-append">
+                                                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-plus" type="button" perfect-css="button" onclick="ShowQuantityDetails(this)"></button>
+                                                                        <div class="modal fade" perfect-class="formGroupModalQuantity" id="formGroupModalQuantity">
+                                                                            <div class="modal-dialog modal-xl" role="document">
+                                                                                <div class="modal-content  rounded-0">
+                                                                                    <div class="modal-header border-0">
+                                                                                        <h5 class="modal-title">Search modal</h5>
+                                                                                        <button type="button" class="close" data-dismiss="modal">
+                                                                                            <span>&times;</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        <div class="form-row">
+                                                                                            <div class="col-sm-6">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"> Shortage</span>
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="text" class="form-control text-right" perfect-tempTable-Purchase="PpdShortage" name="PpdShortage" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-6">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"> Free</span>
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="text" class="form-control text-right" perfect-tempTable-Purchase="PpdFreeQuantity" name="PpdFreeQuantity" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-6">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"> less Quantity</span>
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="text" class="form-control text-right" perfect-tempTable-Purchase="Ppdless" name="Ppdless" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-6">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"></span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <button type="button" class="btn btn-primary mr-3" perfect-css="button" onclick="BindQuantityDetails(this)" name="reset">Add</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="col-md-12 mt-3" perfect-class="formGroupModalQuantitybody">
+
+
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <span class="temptableError"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Act.Qty</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdActualQuantity" name="PpdActualQuantity" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Pur.Rate</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control text-right" perfect-tempTable-Purchase="Pur.Rate" name="PpdRate" onchange="BindNetAmount(this)" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                <span class="temptableError"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Net.Pur</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdRate" onchange="CalculateRate(this)" name="NetPurchase" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Tax </span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control text-right" perfect-tempTable-Purchase="TaxAmount" placeholder="" name="TaxAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+
+                                                                    <div class="input-group-append">
+                                                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="ShowTax(this)"></button>
+                                                                        <div class="modal fade" perfect-class="formGroupModalTax" id="formGroupModalTax">
+                                                                            <div class="modal-dialog" role="document">
+                                                                                <div class="modal-content  rounded-0">
+                                                                                    <div class="modal-header border-0">
+                                                                                        <h5 class="modal-title">Tax Details</h5>
+                                                                                        <button type="button" class="close" data-dismiss="modal">
+                                                                                            <span>&times;</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    @*<div class="table-responsive" style="max-height: 100%; height: 80%; overflow: auto;">*@
+                                                                                    <table id="zero_config" class="table mb-0  table-striped  text-black">
+                                                                                        <thead class="bg-primary text-white">
+                                                                                            <tr>
+                                                                                                <th class="t-head">SlNo</th>
+                                                                                                <th class="t-head" style="Display:none">FK_TaxType</th>
+                                                                                                <th class="t-head">TaxType</th>
+                                                                                                <th class="t-head">Percentage</th>
+                                                                                                <th class="t-head">Amount</th>
+
+
+
+
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody class="modal-body" id="formGroupModalTaxbody"></tbody>
+                                                                                        <tfoot>
+                                                                                        </tfoot>
+                                                                                    </table>
+                                                                                    @*</div>*@
+                                                                                    @*<div class="modal-body" id="formGroupModalTaxbody">
+                                                                                        </div>*@
+                                                                                    <div class="modal-footer">
+                                                                                        @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+                                                                                        <button type="button" class="btn btn-danger light" data-dismiss="modal" onclick="BindTaxAmount(this)">Ok</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">MRP</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control text-right" perfect-tempTable-Purchase="MRP" name="MRP" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                <span class="temptableError"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Sal.Price</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control text-right" perfect-tempTable-Purchase="SalPrice" name="SalPrice" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                <span class="temptableError"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Others</span>
+                                                                @*<span class="text-danger">*</span>*@
+                                                            </label>
+                                                            <div class="col-sm-2">
+                                                                <div class="input-group">
+
+
+                                                                    <div class="input-group-append">
+                                                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="ShowDiscDetails(this)"></button>
+                                                                        <div class="modal fade" perfect-class="formGroupModalDisc">
+                                                                            <div class="modal-dialog modal-xl" role="document">
+                                                                                <div class="modal-content  rounded-0">
+                                                                                    <div class="modal-header border-0">
+                                                                                        <h5 class="modal-title">Search modal</h5>
+                                                                                        <button type="button" class="close" data-dismiss="modal">
+                                                                                            <span>&times;</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="modal-body">
+                                                                                        <div class="form-row">
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">Dis%</span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdDisper" name="PpdDisper" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">Discount Amount</span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdDiscount" name="PpdDiscount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">Prof%</span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdProPer" name="PpdProPer" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel">ProAmnt</span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <input type="number" class="form-control text-right" perfect-tempTable-Purchase="PpdProAmnt" name="PpdProAmnt" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-sm-4">
+                                                                                                <div class="form-group row" perfect-class="formGroup">
+                                                                                                    <label class="col-sm-4 col-form-label">
+                                                                                                        <span perfect-class="formGroupLabel"></span>
+
+                                                                                                    </label>
+                                                                                                    <div class="col-sm-8">
+                                                                                                        <button type="button" class="btn btn-primary mr-3" perfect-css="button" onclick="BindQuantityDetails(this)" name="reset">Add</button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="col-md-12 mt-3" perfect-class="formGroupModalDiscbody">
+
+
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+                                                            <div class="col-sm-3">
+                                                                @*<button type="button" class="btn btn-rounded  btn-primary">
+            <span class="btn-icon-left text-primary">
+                <i class="fa fa-plus color-info"></i>
+            </span>Add
+        </button>*@
+                                                                <div class="input-group-append">
+                                                                    <button type="button" class="btn btn-primary" onclick="AddPurchaseDetails(this,'Purchase',['ProductID'],['Unit','TaxAmount','UnitID','PpdBarCode','PpdQRCode','PpdShortage','Ppdless','PpdFreeQuantity','PpdDisper','PpdDiscount','PpdProPer','PpdProAmnt'])" data-placement="top" data-html="true" title="Add Product Details"><img src="~/Assets/images/enter.svg" /></button>
+                                                                    @*<button type="button" class="btn btn-primary fa fa-level-down pr-3" perfect-css="button" onclick="AddPurchaseDetails(this,'Purchase',['ProductID'],['Unit','TaxAmount','UnitID','PpdBarCode','PpdQRCode','PpdShortage','Ppdless','PpdFreeQuantity','PpdDisper','PpdDiscount','PpdProPer','PpdProAmnt'])" name="reset"></button>*@
+                                                                </div>
+                                                            </div>
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                                <hr />
+                                                <div class="row">
+
+
+                                                    @*<div class="media ai-icon">
+            <span class=" bgl-danger text-danger">
+
+                <i class="fa fa-plus-circle "></i>
+                <!-- <svg id="icon-revenue" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg> -->
+            </span>
+        </div>*@
+
+
+
+                                                    <div class="col-sm-3" style="Display:none">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel">Sub Product</span>
+
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <input type="number" class="form-control" placeholder="" name="ProdMaxLevel" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group row" perfect-class="formGroup">
+                                                            <label class="col-sm-4 col-form-label">
+                                                                <span perfect-class="formGroupLabel"></span>
+
+                                                            </label>
+                                                            <div class="col-sm-12">
+                                                                <input type="hidden" name="customerIndex" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="hidden" perfect-tempTable-Purchase="Sl No" value="" />
+
+                                                                <div class="table-responsive" perfect-tempTable="Purchase" perfect-tempTable-lastindex="0" perfect-tempTable-action="0"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+
+                                                </div>
+
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Bill Total</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" name="BillTotal" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel text-right">Discount</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" placeholder="" name="Discount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Other Charge</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control text-right" name="OtherCharge" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-plus" type="button" perfect-css="button" onclick="ShowOtherCharges(this)"></button>
+                                        <div class="modal fade" perfect-class="formGroupModalOtherCharge" id="formGroupModalOtherCharge">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content  rounded-0">
+                                                    <div class="modal-header border-0">
+                                                        <h5 class="modal-title">Other Charge Details</h5>
+                                                        <button type="button" class="close" data-dismiss="modal">
+                                                            <span>&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    @*<div class="table-responsive" style="max-height: 100%; height: 80%; overflow: auto;">*@
+                                                    <table id="zero_configOthercharge" class="table mb-0  table-striped  text-black">
+                                                        <thead class="bg-primary text-white">
+                                                            <tr>
+                                                                <th class="t-head">SlNo</th>
+                                                                <th class="t-head" style="display:none">ID_OtherChargeType</th>
+                                                                <th class="t-head">Type</th>
+                                                                <th class="t-head">Trans Type</th>
+                                                                <th class="t-head">Amount</th>
+
+
+
+
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="modal-body" id="formGroupModalOtherChargebody"></tbody>
+                                                        <tfoot>
+                                                        </tfoot>
+                                                    </table>
+                                                    @*</div>*@
+                                                    @*<div class="modal-body" id="formGroupModalTaxbody">
+                                                        </div>*@
+                                                    <div class="modal-footer">
+                                                        @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+                                                        <button type="button" class="btn btn-danger light" data-dismiss="modal" onclick="BindOtherChargeAmount(this)">Ok</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Round Off</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" placeholder="" name="RoundOff" onchange="RoundOffCalcTotal(this);" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Net Amount</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" placeholder="" name="NetAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                <label class="col-sm-4 col-form-label" id="lbAmountWords">
+                                    <span perfect-class="formGroupLabel"></span>
+
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Payable Amount</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control text-right" placeholder="" name="PayableAmount" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="" type="button" class="btn btn-primary mr-3 addcompany-jq-addnewuserUpdate d-none" name="update" perfect-css="button" onclick="fn_PurchaseForm_update(this)"><i class="fa fa-refresh fa-spin loaderClass"></i>Update</button>
+                <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="fn_PurchaseForm_add(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Save</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this)" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+
+    //on load functions
+    $(document).ready(function () {
+        initFunctions('form');
+
+    });
+
+    // Function to Add Purchase
+    function fn_PurchaseForm_add(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        console.log("is valid", $thisForm.valid());
+        //if ($thisForm.valid())
+        if (true)
+        {
+
+            //disable button to avoid multiple clicks
+            $(ele).prop('disabled', true);
+
+           // let $modal = $(ele).closest('.modal');
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let $modal = $thisForm.find('#zero_config');
+
+            let tax = [];
+            $modal.find('tbody').find('tr').each(function () {
+                alert($thisForm.find('[name=ProductID]').val());
+                let taxinfo = {};
+                taxinfo['ProductID'] = $thisForm.find('[name=ProductID]').val();
+                taxinfo['FK_TaxType'] = $(this).find('.jq_taxType_td').text();
+                taxinfo['TaxTyName'] = $(this).find('.jq_taxTypeName_td').text();
+                taxinfo['TaxPercentage'] = $(this).find('.jq_taxPer_td').text();
+                taxinfo['TaxAmount'] = $(this).find('.jq_taxamount_td').find('input').val();
+                console.log('taxinfo',taxinfo);
+
+                tax.push(taxinfo);
+
+            });
+            let $modal2 = $thisForm.find('#zero_configOthercharge');
+
+            let OtherCharge = [];
+            $modal2.find('tbody').find('tr').each(function () {
+
+                let OtChargeinfo = {};
+                OtChargeinfo['ID_OtherChargeType'] = $(this).find('.jq_ID_OtherChargeType_td').text();
+
+                OtChargeinfo['OctyTransType'] = $(this).find('.jq_TransType_td').find('select').val();
+                OtChargeinfo['OctyName'] = $(this).find('.jq_Type_td').text();
+                OtChargeinfo['OctyAmount'] = $(this).find('.jq_OtherChagAmnt_td').find('input').val();
+                console.log('OtChargeinfo', OtChargeinfo);
+
+                OtherCharge.push(OtChargeinfo);
+
+            });
+            console.log('tax-',tax)
+
+            let savedData = [];
+            $thisForm.find('[perfect-tempTable="Purchase"]').find('tbody').find('tr').each(function () {
+                savedData.push($(this).data('pData'));
+            })
+            //let IncProData = [];
+            //$thisForm.find('[perfect-ProductType="ProductType"]').find('tbody').find('tr').each(function () {
+            //    IncProData.push($(this).data('pData'));
+            //})
+            console.log('save', savedData)
+            console.log('saveTa', tax)
+
+            let inputData = {
+
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                'PurchaseID': 0,
+                'TransMode': $thisForm.find('[name="TransMode"]').val(),
+                'BranchID': $thisForm.find('[name="BranchID"]').val(),
+                'DepartmentID': $thisForm.find('[name="DepartmentID"]').val(),
+                'SupplierID': $thisForm.find('[name="SupplierID"]').val(),
+                'InvoiceNo': $thisForm.find('[name="InvoiceNo"]').val(),
+                'InvoiceDate': $thisForm.find('[name="InvoiceDate"]').val(),
+                'BillTotal': $thisForm.find('[name="BillTotal"]').val(),
+                'Discount': $thisForm.find('[name="Discount"]').val(),
+                'OtherCharge': $thisForm.find('[name="OtherCharge"]').val(),
+                'RoundOff': $thisForm.find('[name="RoundOff"]').val(),
+                'NetAmount': $thisForm.find('[name="NetAmount"]').val(),
+                'PayableAmount': $thisForm.find('[name="PayableAmount"]').val(),
+                'FK_ProductID': $thisForm.find('[name="ProductID"]').val(),
+                'PurchaseDetails': savedData,
+                'TaxDetails': tax,
+                'OtherChgDetails': OtherCharge,
+            };
+            console.log('save56', savedData)
+               $.ajax({
+                 url: "@Url.Action("AddNewPurchase", "Purchase")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                 success: function (ajaxOutput) {
+
+                     if (ajaxOutput.Process.IsProcess) {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                         });
+
+                         $thisForm.find('[perfect-ctype="select"]').val('').selectpicker('refresh');
+                         $thisForm.find('[perfect-ctype="input"]').val('');
+                         $thisForm.find('[perfect-ctype="date"]').val('');
+
+                         // Get the value set in form's perfect-onFormSuccess attribute
+                         let onSuccess = $thisForm.attr('perfect-onFormSuccess')
+
+                         if (onSuccess) {
+                             window[onSuccess]();
+                         }
+                     }
+                     else {
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+
+            });
+        }
+    }
+
+
+    // Function to Update Purchase
+    function fn_PurchaseForm_update(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        //if ($thisForm.valid()) {
+
+        //}
+        let savedPData = $thisForm.data('pData');
+        console.log('saveUp4545', savedPData)
+        let TempdData = [];
+        $thisForm.find('[perfect-tempTable="Purchase"]').find('tbody').find('tr').each(function () {
+            TempdData.push($(this).data('pData'));
+        })
+        $(ele).prop('disabled', true);
+         let inputData = {
+
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                 'PurchaseID': $thisForm.find('[name="PurchaseID"]').val(),
+                'Mode': $thisForm.find('[name="Mode"]').val(),
+             'BranchID': $thisForm.find('[name="BranchID"]').val(),
+             'DepartmentID': $thisForm.find('[name="DepartmentID"]').val(),
+             'SupplierID': $thisForm.find('[name="SupplierID"]').val(),
+             'InvoiceNo': $thisForm.find('[name="InvoiceNo"]').val(),
+             'InvoiceDate': $thisForm.find('[name="InvoiceDate"]').val(),
+             'BillTotal': $thisForm.find('[name="BillTotal"]').val(),
+             'Discount': $thisForm.find('[name="Discount"]').val(),
+             'OtherCharge': $thisForm.find('[name="OtherCharge"]').val(),
+             'RoundOff': $thisForm.find('[name="RoundOff"]').val(),
+             'PayableAmount': $thisForm.find('[name="PayableAmount"]').val(),
+             'PurchaseDetails': TempdData,
+            };
+
+            $.ajax({
+                 url: "@Url.Action("UpdatePurchase", "Purchase")",
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                 success: function (ajaxOutput) {
+
+                     if (ajaxOutput.Process.IsProcess) {
+
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+                         });
+
+                         // Get the value set in form's perfect-onFormSuccess attribute
+                         let onSuccess = $thisForm.attr('perfect-onFormSuccess');
+
+                         if (onSuccess) {
+                             window[onSuccess]();
+                         }
+                     }
+                     else {
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+
+            });
+
+    }
+       function BindSupplier(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+               //console.log("Input data",inputData)
+
+                $.ajax({
+                 url: '@Url.Action("GetSupplierList", "Purchase")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                    type: "GET",
+
+
+                dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                       // console.log("Data", data);
+
+                        if (ajaxOutput.Process.IsProcess) {
+                            var countryModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['SupplierID'],settings: {size: 'modal-lg'} });
+                            countryModel.then(function (ret) {
+                                if (ret) {
+                                    console.log('>_ Search button > list click', ret);
+                                    $thisForm.find('[name=SupplierID]').val(ret.SupplierID);
+                                    $thisForm.find('[name=SupplierName]').val(ret.SupplierName);
+
+
+                                }
+                                else {
+                                    console.log(ret);
+                                }
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+
+
+
+
+                },
+
+
+            });
+
+
+    }
+    function BindDepartment(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+               //console.log("Input data",inputData)
+
+                $.ajax({
+                 url: '@Url.Action("GetDepartmentList", "Purchase")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                    type: "GET",
+
+
+                dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                       // console.log("Data", data);
+
+                        if (ajaxOutput.Process.IsProcess) {
+                            //var countryModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['DepartmentID'] });
+                            //countryModel.then(function (ret) {
+                            //    if (ret) {
+                            //        console.log('>_ Search button > list click', ret);
+                            //        $thisForm.find('[name=DepartmentID]').val(ret.DepartmentID);
+                            //        $thisForm.find('[name=DepartmentName]').val(ret.DepartmentName);
+
+                            //    }
+                            //    else {
+                            //        console.log(ret);
+                            //    }
+                            //});
+                            $thisForm.find('[name=DepartmentID]').val(ajaxOutput.Data[0].DepartmentID);
+                            $thisForm.find('[name=DepartmentName]').val(ajaxOutput.Data[0].DepartmentName);
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+
+
+
+
+                },
+
+
+            });
+
+
+    }
+    function BindBranch(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+               //console.log("Input data",inputData)
+
+                $.ajax({
+                 url: '@Url.Action("GetBranchList", "Purchase")',//<----- Controller URL : url path in our controller eq: /Home/InsertSampleData or http://localhost:64212/Home/InsertSampleData
+                    type: "GET",
+
+
+                dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+                       // console.log("Data", data);
+
+                        if (ajaxOutput.Process.IsProcess) {
+                           // var countryModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['BranchID'], settings:{size:"modal-lg"} });
+                            //var countryModel = ({ data: ajaxOutput.Data, hideColumn: ['BranchID'], settings: { size: "modal-lg" } });
+                            //countryModel.then(function (ret) {
+                            //    if (ret) {
+                            //        console.log('>_ Search button > list click', ret);
+                            //        $thisForm.find('[name=BranchID]').val(ret.BranchID);
+                            //        $thisForm.find('[name=BranchName]').val(ret.BranchName);
+
+
+                            //    }
+                            //    else {
+                            //        console.log(ret);
+                            //    }
+                            //});
+
+                            $thisForm.find('[name=BranchID]').val(ajaxOutput.Data[0].BranchID);
+                            $thisForm.find('[name=BranchName]').val(ajaxOutput.Data[0].BranchName);
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+
+
+
+
+                },
+
+
+            });
+
+
+    }
+    function showItemModal(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        $thisForm.find('[name=Name]').val($thisForm.find('[name="ProName"]').val())
+        //ProName
+        $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]').modal('show');
+
+        searchbtn2(ele);
+        //trigger search
+       // $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]')
+    }
+    function searchbtn2(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let searchValue = {
+            Name: $thisForm.find('[name=Name]').val(),
+            TransMode: $thisForm.find('[name=TransMode]').val()
+        };
+        console.log('searchValue:', searchValue)
+        let $model = $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]');
+        $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModal"]').modal('show');
+          $.ajax({
+            url: '@Url.Action("GetProductList", "Product")',
+            type: "POST",
+
+             // data: JSON.stringify(searchValue),
+              data:  searchValue,
+            dataType: "json",
+              contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success: function (successData) {
+                console.log('> Search button click success', successData);
+
+                if (successData.Process.IsProcess) {
+                    var sss = createSelectListWithSearch({
+                        data: successData.Data, element: $model, onlyShowColumn: ["ProdName", "ProdShortName"],
+                        renameHeader: { ProdName: "Name", ProdShortName: "ShortName" }
+                    });
+                    sss.then(function (ret) {
+                        if (ret) {
+                            console.log('>_ Search button > list click', ret);
+                            $thisForm.find('[name=ProductID]').val(ret.ProductID);
+                            $thisForm.find('[name=ProName]').focus().val(ret.ProdName);
+                            $thisForm.find('[name=UnitID]').focus().val((ret.UnitID.length == 0) ? '' : ret.UnitID).selectpicker('refresh');
+                            $thisForm.find('[name=NoOfUnits]').focus().val(ret.NoOfUnits);
+
+                        }
+                        else {
+                            console.log(ret);
+                        }
+                    });
+
+                      }
+                      else {
+                          $.each(successData.Process.Message, function (key, value) {
+                              //toastr.warning(value, "Error");
+                              NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                          });
+                      }
+
+
+
+
+                  },
+                  complete: function () {
+
+                      //a.find('.dataTables_wrapper').css('width', '100%');
+                  }
+              });
+    }
+
+    function AddPurchaseDetails(ele, tkey, uniq = [],remov=[]) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let tableKey = tkey;
+        let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+        let insertData = {};
+        let tableOptionsTemp = tableOptionsTempOut;
+
+        let unique = (uniq) ? uniq : [];
+        let notValidate = (remov) ? remov : [];
+
+        let isValid = true;
+        let errorClass = '.temptableError';
+
+        //make index
+
+        let lastIndex = ($tblcontainer.attr('perfect-tempTable-lastindex')) ? parseInt($tblcontainer.attr('perfect-tempTable-lastindex')) : 0;
+        let thisactionIndex = ($tblcontainer.attr('perfect-tempTable-action')) ? parseInt($tblcontainer.attr('perfect-tempTable-action')) : 0;
+        let indexname = tkey + 'index';
+        tableOptionsTemp.rowAttribute.push(indexname);
+        tableOptionsTemp.hideColumn.push(indexname);
+        let updateCond = '';
+        let isNew = true;
+        if (thisactionIndex > 0) {
+            //means update
+            insertData[indexname] = thisactionIndex;
+            updateCond = '[' + indexname + '="' + thisactionIndex + '"]';
+            isNew = false;
+        }
+        else {
+            //insert
+            insertData[indexname] = lastIndex + 1;
+            $tblcontainer.attr('perfect-tempTable-lastindex', lastIndex + 1);
+            isNew = true;
+        }
+
+
+
+
+
+
+
+
+        //empty field vaidation
+        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+            let $this = $(this);
+            let headerName = $this.attr('perfect-tempTable-' + tableKey);
+            let nameAttr = $this.attr('name');
+            let $errorElement = $this.closest('[perfect-class="formGroup"]').find(errorClass);
+            if (!notValidate.includes(headerName)) {
+                if ($this.is('select')) {
+                    if ($this.val().length > 0) {
+                        //something selected
+                        $errorElement.text('');
+                    }
+                    else {
+                        //noting selected
+                        isValid = false;
+                        $errorElement.text('Please enter ' + headerName);
+                        //console.log('reee' + headerName)
+                    }
+                }
+                else if ($this.is('input')) {
+
+                    let inputType = $this.attr('type').toLocaleLowerCase();
+
+                    if (inputType == 'checkbox') {
+
+                        //if need any not checked validation do it here
+                    }
+                    else if (inputType == 'hidden') {
+
+                        //if need any not checked validation do it here
+                    }
+                    else {
+                        if ($this.val().length > 0) {
+                            //something selected
+                            $errorElement.text('');
+                        }
+                        else {
+                            //noting selected
+                            isValid = false;
+                            $errorElement.text('Please enter ' + headerName);
+
+                        }
+                    }
+                }
+        }
+        });
+
+
+
+
+        if (unique.length > 0) {
+            //getting previous data
+            let prevData = [];
+            $tblcontainer.find('table > tbody').find('tr').each(function () {
+                if (isNew) {
+                    prevData.push($(this).data('pData'));
+                }
+                else {
+                    if (parseInt($(this).attr(indexname)) != thisactionIndex) {
+                        prevData.push($(this).data('pData'));
+                    }
+
+                }
+
+            })
+            // console.log('previous data', prevData);
+
+            unique.forEach(function (key, i) {
+
+                console.log('unid -> key:' + key + "| index :" + i);
+                let $thisEle = $thisForm.find('[perfect-tempTable-' + tableKey + '="' + key + '"]');
+                let headerEleName = $thisEle.attr('perfect-tempTable-' + tableKey);
+                let atname = $thisEle.attr('name');
+                let cvalue;
+
+                //console.log('len')
+                if ($thisEle.length != 0) {
+                    let $errorElement = $thisEle.closest('[perfect-class="formGroup"]').find(errorClass);
+                    let errmessage = headerEleName + " Already exits"
+
+                    //getting current value in cval
+                    if ($thisEle.is('select')) {
+                        cvalue = $thisEle.val();
+                    }
+                    else if ($thisEle.is('input')) {
+
+                        let inputEleType = $thisEle.attr('type').toLocaleLowerCase();
+
+                        if (inputEleType == 'checkbox') { cvalue = $thisEle.is(':checked'); }
+                        else if (inputEleType == 'hidden') { cvalue = $thisEle.val(); }
+                        else { cvalue = $thisEle.val(); }
+                    }
+                    else { cvalue = $thisEle.val(); }
+
+                    // console.log('cvalue ->' + cvalue);
+
+                    //searching in previous data
+                    if (prevData.find(a => a[atname] == cvalue)) {
+                        // console.log('Search =>' + cvalue + '| attr :' + atname)
+                        $errorElement.text(errmessage);
+                        isValid = false;
+                    }
+                }
+            });
+
+        }
+
+
+        if (isValid) {
+            CalculateTotal(ele);
+            RoundOffCalc(ele);
+            // this section make table column data
+            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                let $this = $(this);
+                let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                let nameAttr = $this.attr('name');
+
+
+                if ($this.is('select')) {
+
+                    tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                    tableOptionsTemp.hideColumn.push(nameAttr)
+                    //displat text of select
+                    insertData[nameAttr + '_d'] = $this.children(":selected").text();
+                    insertData[nameAttr] = $this.val();
+
+
+                    //clear field
+                    $this.val('').selectpicker('refresh');
+                }
+                else if ($this.is('input')) {
+
+                    let inputType = $this.attr('type').toLocaleLowerCase();
+
+                    if (inputType == 'checkbox') {
+
+                        insertData[nameAttr] = $this.is(':checked');
+
+                        //clear field
+                        $this.prop('checked', false);
+
+                    }
+                    else if (inputType == 'hidden') {
+
+                        tableOptionsTemp.hideColumn.push(nameAttr)
+                        insertData[nameAttr] = $this.val();
+
+                        //clear field
+                        $this.val('');
+                    }
+                    else {
+                        insertData[nameAttr] = $this.val();
+
+                        //clear field
+                        $this.val('');
+                    }
+                }
+                else {
+                    insertData[nameAttr] = $this.val();
+
+                    //clear field
+                    $this.val('');
+                }
+
+
+
+
+            });
+
+            if (isNew) {
+                //this section nake table.table row
+                if ($tblcontainer.find('table').length == 0) {
+                    $tblcontainer.append(pft_table_createtable([insertData], tableOptionsTemp));
+                    $tblcontainer.find('table').dataTable({ paging: false, ordering: false });
+                }
+                else {
+                    let table = $tblcontainer.find('table').DataTable()
+                    table.destroy()
+                    pft_table_addTableRow($tblcontainer.find('table'), insertData, tableOptionsTemp);
+
+
+                    $tblcontainer.find('table').dataTable({ paging: false });
+                    //   $tblcontainer.DataTable().draw();
+                    //  table.ajax.reload();
+                }
+            }
+            else {
+                let table = $tblcontainer.find('table').DataTable()
+                table.destroy()
+                pft_table_replaceTableRow($tblcontainer.find('table'), updateCond, insertData, tableOptionsTemp);
+
+
+                $tblcontainer.find('table').dataTable({ paging: false ,ordering: false });
+            }
+
+            // resetting the edit value
+            $tblcontainer.attr('perfect-tempTable-action', 0);
+        }
+    }
+    var tableOptionsTempOut = {
+        iconButton: {
+            buttons: [
+                {
+                    icon: "fa fa-trash",
+                    action: function () {
+                        let $thistbl = $(this).closest('table');
+                        let table = $thistbl.DataTable();
+                        table.destroy();
+                        if ($(this).closest('tbody').find('tr').length > 1) {
+                            $(this).closest('tr').remove();
+                            pft_table_slreset($thistbl);
+                            $thistbl.dataTable({ paging: false,  ordering: false });
+                        }
+                        else {
+                            $thistbl.remove();
+                        }
+
+                    }
+                },
+                {
+                    icon: "fa fa-pencil",
+                    action: function () {
+                        let savedData = $(this).closest('tr').data('pData')
+
+                        let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                        let tableKey = $tablecontainer.attr('perfect-tempTable');
+                        let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                        //index attribute name in table row
+                        let indexname = tableKey + 'index';
+                        //index number in table row
+                        let rindex = $(this).closest('tr').attr(indexname);
+                        $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                        console.log('Editclick', savedData);
+                        //filling data in available inputs
+                        $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                            let $thisNode = $(this);
+                            let pf_name = $thisNode.attr('name');
+                            if ($thisNode.is('select')) {
+
+                                $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                            }
+                            else if ($thisNode.is('input')) {
+
+                                if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                    $thisNode.prop('checked', savedData[pf_name]);
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+                            }
+                            else {
+                                $thisNode.val(savedData[pf_name]);
+                            }
+
+
+                        });
+
+
+
+                    }
+                },
+            ]
+        },
+        onlyShowColumn: [],
+        hideColumn: ["UnitID", "PpdShortage", "Ppdless", "PpdDisper", "PpdDiscount", "PpdProPer", "PpdProAmnt", "PpdFreeQuantity"],
+        serialNo: true,
+        renameHeader: {
+            PpdQuantity: "Quantity", PpdRate: "Pur Rate", PpdActualQuantity: "Act Qty", PpdBarCode: "BarCode", PpdQRCode: "QR Code", ProName: "Name",UnitID: "Unit",
+            PpdActualQuantity: "Act Qty", PpdDisper: "Dis%", PpdDiscount: "Discount", PpdProPer: "Prof%", PpdProAmnt: "Pro Amnt", PpdFreeQuantity: "Free"},
+        rowAttribute: []
+
+    };
+    function CalculateTotal(ele) {
+       // alert('l');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let NetPurchase = $thisForm.find('[name=NetPurchase]').val() == "" ? "0" : $thisForm.find('[name=NetPurchase]').val();
+        let TaxAmnt = $thisForm.find('[name=TaxAmount]').val() == "" ? "0" : $thisForm.find('[name=TaxAmount]').val();
+        let BillTotal = (parseFloat(NetPurchase) + parseFloat(TaxAmnt));
+       alert(NetPurchase); alert(TaxAmnt); alert(BillTotal);
+        $thisForm.find('[name=BillTotal]').val(BillTotal);
+        let Othercharg = $thisForm.find('[name=OtherCharge]').val() == "" ? "0" : $thisForm.find('[name=OtherCharge]').val();
+        $thisForm.find('[name=NetAmount]').val(parseFloat(BillTotal) + parseFloat(Othercharg));
+        let Tt = $thisForm.find('[name=NetAmount]').val();
+        var amtWords = amtInWords(Tt);
+        alert(amtWords);
+        $("#lbAmountWords").text(amtWords);
+    }
+    function RoundOffCalc(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var RoundOff = $thisForm.find('[name=RoundOff]').val() == "" ? "0" : $thisForm.find('[name=RoundOff]').val();
+        var totalAmount = $thisForm.find('[name=NetAmount]').val() == "" ? "0" : $thisForm.find('[name=NetAmount]').val();
+        var BillTotal = $thisForm.find('[name=BillTotal]').val() == "" ? "0" : $thisForm.find('[name=BillTotal]').val();
+        var OtherCharges = $thisForm.find('[name=OtherCharge]').val() == "" ? "0" : $thisForm.find('[name=OtherCharge]').val();
+        var total = parseFloat(OtherCharges) + parseFloat(BillTotal)
+        var BilltotalAmount = $thisForm.find('[name=NetAmount]').val() == "" ? "0" : $thisForm.find('[name=NetAmount]').val();
+        var fracpart = (((total < 1.0) ? total : (total % Math.floor(total))) * 100).toFixed(2);
+        if (parseFloat(fracpart) >= 50) {
+            var Balancefract = (parseFloat(100) - parseFloat(fracpart)) / parseFloat(100);
+
+            var totalnetRoundamount = parseFloat(total) + parseFloat(Balancefract);
+            var balfract = parseFloat(fracpart / 100).toFixed(2);
+
+            $thisForm.find('[name=NetAmount]').val(totalnetRoundamount.toFixed(2));
+            $thisForm.find('[name=RoundOff]').val(Balancefract);
+
+
+        }
+        else if (fracpart < 50) {
+
+            var Balancefract = (parseFloat(100) - parseFloat(fracpart)) / parseFloat(100);
+
+
+            var totalnetRoundamount = parseFloat(total) - parseFloat(fracpart / 100);
+            var balfract = parseFloat(fracpart / 100).toFixed(2);
+
+            $thisForm.find('[name=NetAmount]').val(totalnetRoundamount.toFixed(2));
+            $thisForm.find('[name=RoundOff]').val(-balfract);
+
+
+        }
+    }
+
+    function ShowQuantityDetails(ele) {
+
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name="PpdQuantity"]').val().length >0) {
+            let searchValue = {
+                Name: $thisForm.find('[name=PpdShortage]').val()
+            };
+
+            let $model = $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModalQuantity"]');
+            $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModalQuantity"]').modal('show');
+
+            $(ele).closest('[perfect-class="formGroup"]').find('.temptableError').text('');
+        }
+        else {
+
+            $(ele).closest('[perfect-class="formGroup"]').find('.temptableError').text('Please enter Quantity');
+        }
+
+
+    }
+    function ShowTax(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let taxinfo = [];
+        if ($thisForm.data('pDataTax')) {
+            if ($thisForm.data('pDataTax').length > 0) {
+                taxinfo = $thisForm.data('pDataTax');
+            }
+            else {
+                taxinfo.push($thisForm.data('pDataTax'));
+            }
+
+            let sum = 0;
+            console.log('has tax info', taxinfo)
+            var CheckListHTML = '';
+            $.each(taxinfo, function (i, value) {
+                sum = sum + parseFloat(value.TaxAmount);
+                CheckListHTML += "<tr>";
+                CheckListHTML += "<td>" + value.SlNo + "</td>";
+                CheckListHTML += "<td Class='jq_ProductID_td' Style='Display:none'>" + value.ProductID + "</td>";
+                CheckListHTML += "<td class='jq_taxType_td' Style='Display:none'>" + value.FK_TaxType + "</td>";
+                CheckListHTML += "<td class='jq_taxTypeName_td'>" + value.TaxtyName + "</td>";
+                CheckListHTML += "<td class='jq_taxPer_td'>" + value.TaxPercentage + "</td>";
+                CheckListHTML += "<td class='jq_taxamount_td' ><input type='number'  value='" + value.TaxAmount + "' /></td>";
+
+                CheckListHTML += "</tr>";
+            })
+
+             $("#formGroupModalTaxbody").html(CheckListHTML)
+                         $('#formGroupModalTax').modal('show');
+        }
+        else {
+            BindTaxDetails("1", 'formGroupModalTax', ele)
+        }
+
+
+
+
+    }
+      function BindTaxDetails(Mode, ModalID, ele) {
+          let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        var InputData =
+        {
+
+
+            FK_Product: $thisForm.find('[name=ProductID]').val(),
+            Quantity: $thisForm.find('[name=PpdQuantity]').val(),
+            PurRate: $thisForm.find('[name=PpdRate]').val(),
+
+            }
+
+        $.ajax({
+            url: "@Url.Action("GetTaxAmount","Purchase")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                     if (ajaxOutput.Process.IsProcess) {
+                         var CheckListHTML = '';
+                         let sum = 0;
+                         if (ajaxOutput.Data.length > 0) {
+
+
+                             $.each(ajaxOutput.Data, function (i, value) {
+                                 sum = sum + parseFloat(value.TaxAmount);
+
+                                 CheckListHTML += "<tr>";
+                                 CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                 CheckListHTML += "<td Class='jq_ProductID_td' Style='Display:none'>" + value.ProductID + "</td>";
+                                 CheckListHTML += "<td class='jq_taxType_td' Style='Display:none'>" + value.FK_TaxType + "</td>";
+                                 CheckListHTML += "<td class='jq_taxTypeName_td'>" + value.TaxTyName + "</td>";
+                                 CheckListHTML += "<td class='jq_taxPer_td'>" + value.TaxPercentage + "</td>";
+                                 CheckListHTML += "<td class='jq_taxamount_td' ><input type='number'  value='" + value.TaxAmount + "' /></td>";
+                                 //CheckListHTML += "<div class='form-group col-md-12'>";
+                                 //CheckListHTML += "<div class='form-check mb-2'>";
+                                 //CheckListHTML += "<label class='form-check-label' for='check1'> " + value.TaxTyName + "</label>";
+                                 //CheckListHTML += "<label class='form-check-label' for='check1'> " + value.TaxPercentage + "</label>";
+                                 //CheckListHTML += "</div></div>"
+                                 CheckListHTML += "</tr>";
+                             })
+                         }
+                         else {
+                             CheckListHTML += "<div class='form-group col-md-6'>";
+                             CheckListHTML += "<div class='form-check mb-2'>";
+                             CheckListHTML += "<input type='checkbox' class='form-check-input' >"
+                             CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                             CheckListHTML += "</div></div>"
+                         }
+                         //let $model = createSearchModalDOM();
+                         //$model.modal.find('.modal-body').append(CheckListHTML);
+                         //$model.show
+
+                         $("#formGroupModalTaxbody").html(CheckListHTML)
+                         $('#formGroupModalTax').modal('show');
+                         $thisForm.find('[name=TaxAmount]').val(sum);
+                     }
+                     else {
+                         $.each(ajaxOutput.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                }
+            });
+    }
+
+    function BindTaxAmount(ele) {
+        console.log('inside binddatat fn')
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let sum = 0;
+        $modal.find('table tbody').find('tr').each(function () {
+            sum = sum + parseFloat($(this).find('.jq_taxamount_td').find('input').val());
+
+        });
+
+        $thisForm.find('[name=TaxAmount]').val(sum);
+    }
+    function BindQuantityDetails(ele) {
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Free = $thisForm.find('[name=PpdFreeQuantity]').val() == "" ? "0" : $thisForm.find('[name=PpdFreeQuantity]').val();
+        let Shortage = $thisForm.find('[name=PpdShortage]').val() == "" ? "0" : $thisForm.find('[name=PpdShortage]').val();
+        let less = $thisForm.find('[name=Ppdless]').val() == "" ? "0" : $thisForm.find('[name=Ppdless]').val();
+        let Qty = $thisForm.find('[name=PpdQuantity]').val() == "" ? "0" : $thisForm.find('[name=PpdQuantity]').val();
+        let sumActQty = (parseFloat(Qty) + parseFloat(Free) - parseFloat(less));
+
+        $thisForm.find('[name=PpdActualQuantity]').val(sumActQty - less);
+
+        $('#formGroupModalQuantity').modal('hide');
+
+    }
+    function BindNetAmount(ele) {
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Qty = $thisForm.find('[name=PpdQuantity]').val();
+        let PurRate = $thisForm.find('[name=PpdRate]').val()
+        let NetAmount = Qty * PurRate
+        $thisForm.find('[name=NetPurchase]').val(NetAmount);
+    }
+    function CalculateRate(ele) {
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let PurRate = $thisForm.find('[name=PpdRate]').val() == "" ? "0" : $thisForm.find('[name=PpdRate]').val();
+        let Qty = $thisForm.find('[name=PpdQuantity]').val() == "" ? "0" : $thisForm.find('[name=PpdQuantity]').val();
+        let NetPur = $thisForm.find('[name=NetPurchase]').val() == "" ? "0" : $thisForm.find('[name=NetPurchase]').val();
+        $thisForm.find('[name=PpdQuantity]').val(NetPur / PurRate);
+        $thisForm.find('[name=PpdRate]').val(NetPur / Qty);
+    }
+    function CalcActualQuantity(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let qty = $thisForm.find('[name=PpdQuantity]').val() == "" ? "0" : $thisForm.find('[name=PpdQuantity]').val();
+        let nounit = $thisForm.find('[name=NoOfUnits]').val() == "" ? "0" : $thisForm.find('[name=NoOfUnits]').val();
+        let ActQty = parseFloat(nounit) * parseFloat(qty);
+        alert(nounit); alert(qty);
+        $thisForm.find('[name=PpdActualQuantity]').val(ActQty.toFixed(3));
+
+
+    }
+    function ShowOtherCharges(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let Othrinfo = [];
+        if ($thisForm.data('pOthrChgData')) {
+            if ($thisForm.data('pOthrChgData').length > 0) {
+
+                Othrinfo = $thisForm.data('pOthrChgData');
+            }
+            else {
+                Othrinfo.push($thisForm.data('pOthrChgData'));
+            }
+
+            let sum = 0;
+            console.log('has tax info', Othrinfo)
+            var CheckListHTML = '';
+            $.each(Othrinfo, function (i, value) {
+                sum = sum + parseFloat(value.OctyAmount);
+                let options = ''
+                options += '<option value=' + value.TransTypeID + '>' + value.TransType + '</option>'
+               let $dropdown = '<select class="form-control" >' + options + '</select>';
+                CheckListHTML += "<tr>";
+                CheckListHTML += "<td>" + value.SlNo + "</td>";
+                CheckListHTML += "<td Class='jq_ID_OtherChargeType_td' Style='Display:none'>" + value.ID_OtherChargeType + "</td>";
+                CheckListHTML += "<td Class='jq_Type_td'>" + value.OctyName + "</td>";
+                CheckListHTML += "<td class='jq_TransType_td'>" + $dropdown + "</td>";
+                CheckListHTML += "<td class='jq_OtherChagAmnt_td' ><input type='number'  value='" + value.OctyAmount + "' /></td>";
+
+                CheckListHTML += "</tr>";
+            })
+
+            $("#formGroupModalOtherChargebody").html(CheckListHTML)
+            $('#formGroupModalOtherCharge').modal('show');
+        }
+        else {
+            BindChargeDetails("1", 'formGroupModalOtherCharge', ele)
+        }
+
+    }
+    function BindChargeDetails(Mode, ModalID, ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        var InputData =
+        {
+
+
+
+            TransMode:'PU',
+
+            }
+
+        $.ajax({
+            url: "@Url.Action("GetOtherCharges","Purchase")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.OtherCharges.Process.IsProcess) {
+                         var CheckListHTML = '';
+                         let sum = 0;
+                         if (ajaxOutput.OtherCharges.Data.length > 0) {
+                             //---
+                             let options =''
+                             $.each(ajaxOutput.Transtypelist.Data, function (i, value) {
+                                 options += '<option value=' + value.TransTypeID + '>' + value.TransType+'</option>'
+                             });
+                            //---
+                             $.each(ajaxOutput.OtherCharges.Data, function (i, value) {
+                                 console.log('Transtypelist',ajaxOutput.Transtypelist.Data)
+
+                                 let $dropdown = '<select class="form-control" >' + options + '</select>';
+
+                                 sum = sum + parseFloat(value.OctyAmount);
+                                 CheckListHTML += "<tr>";
+                                 CheckListHTML += "<td>" + value.SlNo + "</td>";
+                                 CheckListHTML += "<td Class='jq_ID_OtherChargeType_td' Style='Display:none'>" + value.ID_OtherChargeType + "</td>";
+                                 CheckListHTML += "<td Class='jq_Type_td'>" + value.OctyName + "</td>";
+                               CheckListHTML += "<td class='jq_TransType_td'>" + $dropdown + "</td>";
+                                 CheckListHTML += "<td class='jq_OtherChagAmnt_td' ><input type='number'  value='" + value.OctyAmount + "' /></td>";
+
+                                 CheckListHTML += "</tr>";
+                             })
+                         }
+                         else {
+                             CheckListHTML += "<div class='form-group col-md-6'>";
+                             CheckListHTML += "<div class='form-check mb-2'>";
+                             CheckListHTML += "<label class='form-check-label' for='check1'>No Records...</label>";
+                             CheckListHTML += "</div></div>"
+                         }
+                         //let $model = createSearchModalDOM();
+                         //$model.modal.find('.modal-body').append(CheckListHTML);
+                         //$model.show
+
+                         $("#formGroupModalOtherChargebody").html(CheckListHTML)
+                         $('#formGroupModalOtherCharge').modal('show');
+                        // $thisForm.find('[name=TaxAmount]').val(sum);
+                     }
+                     else {
+                    $.each(ajaxOutput.OtherCharges.Process.Message, function (key, value) {
+                             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         });
+                     }
+                },
+                complete: function () {
+                    $(ele).prop('disabled', false);
+                    $('select').selectpicker('refresh');
+                }
+            });
+    }
+    function BindOtherChargeAmount(ele) {
+        console.log('inside binddatat fn')
+        let $modal = $(ele).closest('.modal');
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let sum = 0;
+        $modal.find('table tbody').find('tr').each(function () {
+            let value = parseFloat($(this).find('.jq_OtherChagAmnt_td').find('input').val())
+            if (parseInt($(this).find('.jq_TransType_td').find('select').val()) == 0) {
+                value = value * 0;
+            }
+            else if (parseInt($(this).find('.jq_TransType_td').find('select').val()) == 1) {
+                value = value * -1;
+            }
+            else {
+                value = value * 1;
+            }
+            sum = sum + value;
+
+        });
+
+        $thisForm.find('[name=OtherCharge]').val(sum);
+
+        //alert('hj');
+        //let BillTotal = $thisForm.find('[name="BillTotal"]').val() == "" ? "0" : $thisForm.find('[name="BillTotal"]').val();
+        //let Othercharg = $thisForm.find('[name=OtherCharge]').val() == "" ? "0" : $thisForm.find('[name=OtherCharge]').val();
+        //alert(BillTotal); alert(Othercharg);
+        //$thisForm.find('[name=NetAmount]').val(parseFloat(BillTotal) + parseFloat(Othercharg));
+
+        RoundOffCalc(ele);
+
+    }
+    function ShowDiscDetails(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+        let $model = $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModalDisc"]');
+        $(ele).closest('[perfect-class="formGroup"]').find('[perfect-class="formGroupModalDisc"]').modal('show');
+
+    }
+      function fn_selectUnit(ele) {
+         let UnitID = $(ele).val();
+
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         let Mode =$thisForm.find('[name=Mode]').val();
+
+
+         $.ajax({
+                 url: "@Url.Action("GetUnitList", "Purchase")",
+                type: "POST",
+
+             data: JSON.stringify({ UnitID: UnitID, Mode: Mode}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+                 if (ajaxOutput.Process.IsProcess) {
+                     alert(ajaxOutput.Data[0].NoOfUnit);
+
+                     $thisForm.find('[name=NoOfUnits]').val(ajaxOutput.Data[0].NoOfUnit);
+
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+    function RoundOffCalcTotal(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        var RoundOff = $thisForm.find('[name=RoundOff]').val() == "" ? "0" : $thisForm.find('[name=RoundOff]').val();
+        var BillTotal = $thisForm.find('[name=name="BillTotal"]').val() == "" ? "0" : $thisForm.find('[name=name="BillTotal"]').val();
+        var Discount = $thisForm.find('[name=name="name="Discount""]').val() == "" ? "0" : $thisForm.find('[name=name="name="Discount""]').val();
+        var totalAmount = $thisForm.find('[name=NetAmount]').val() == "" ? "0" : $thisForm.find('[name=NetAmount]').val();
+        var Total = parseFloat(BillTotal) + parseFloat(RoundOff) - parseFloat(Discount);
+        $thisForm.find('[name=NetAmount]').val(Total.toFixed(2))
+        alert(Total);
+        var amtWords = amtInWords(Total);
+        alert(amtWords);
+        $("#lbAmountWords").text(amtWords);
+
+
+    }
+    function amtInWords(amount) {
+
+        var decAmount = amount;
+        var sUnits = new Array(20);
+        var sTens = new Array(8);
+        var sHundreds = new Array(6);
+        var sAmount;
+        var i, iLenAmount, iDecPart, iIntegerPart;
+
+        sUnits[1] = '';
+        sUnits[2] = 'One';
+        sUnits[3] = 'Two';
+        sUnits[4] = 'Three';
+        sUnits[5] = 'Four';
+        sUnits[6] = 'Five';
+        sUnits[7] = 'Six';
+        sUnits[8] = 'Seven';
+        sUnits[9] = 'Eight';
+        sUnits[10] = 'Nine';
+        sUnits[11] = 'Ten';
+        sUnits[12] = 'Eleven';
+        sUnits[13] = 'Twelve';
+        sUnits[14] = 'Thirteen';
+        sUnits[15] = 'Fourteen';
+        sUnits[16] = 'Fifteen';
+        sUnits[17] = 'Sixteen';
+        sUnits[18] = 'Seventeen';
+        sUnits[19] = 'Eighteen';
+        sUnits[20] = 'Ninteen';
+        sTens[1] = 'Twenty';
+        sTens[2] = 'Thirty';
+        sTens[3] = 'Forty';
+        sTens[4] = 'Fifty';
+        sTens[5] = 'Sixty';
+        sTens[6] = 'Seventy';
+        sTens[7] = 'Eighty';
+        sTens[8] = 'Ninety';
+        sHundreds[1] = 'Hundred';
+        sHundreds[2] = 'Thousand';
+        sHundreds[3] = 'Lakh';
+        sHundreds[4] = 'Crore';
+        if (decAmount == 10000000000000) {
+            decAmount = 9999999999999.99;
+        }
+        if (decAmount == 0) {
+            return "";
+        }
+
+        iDecPart = (decAmount - Math.round(decAmount)) * 100;
+        iDecPart = Math.round(iDecPart);
+
+        //Because Math.round results .50,.52,.53.......98,.99 in negative values
+
+        if (iDecPart < 0) {
+            iDecPart = 100 + iDecPart;
+        }
+
+        if (iDecPart == 0) {
+            decAmount = decAmount;
+        }
+        else {
+            decAmount = Math.round(decAmount - (iDecPart / 100));
+        }
+
+        iLenAmount = ((String)(decAmount)).length;
+
+        if (iLenAmount == 1) {
+            var index = parseInt(decAmount) + 1;
+            sAmount = sUnits[index];
+        }
+        else {
+            for (i = iLenAmount; i > 0; i--) {
+                if (i == 13 || i == 12) {
+                    iIntegerPart = parseInt(decAmount / 100000000000);
+                    decAmount = parseInt(decAmount % 100000000000);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        if (iIntegerPart < 20) {
+                            sAmount = sUnits[iIntegerPart + 1] + " " + sHundreds[6] + " ";
+                        }
+                        else {
+                            sAmount = sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[6] + " "
+                        }
+                    }
+                }
+                else if (i == 11 || i == 10) {
+                    iIntegerPart = parseInt(decAmount / 1000000000);
+                    decAmount = parseInt(decAmount % 1000000000);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        if (iIntegerPart < 20) {
+                            if (sAmount == null) {
+                                sAmount = sUnits[iIntegerPart + 1] + " " + sHundreds[5] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sUnits[iIntegerPart + 1] + " " + sHundreds[5] + " ";
+                            }
+                        }
+                        else {
+                            if (sAmount == null) {
+                                sAmount = sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[5] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[5] + " ";
+                            }
+                        }
+                    }
+                }
+                else if (i == 9 || i == 8) {
+                    iIntegerPart = parseInt(decAmount / 10000000);
+                    decAmount = parseInt(decAmount % 10000000);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        if (iIntegerPart < 20) {
+                            if (sAmount == null) {
+                                sAmount = sUnits[iIntegerPart + 1] + " " + sHundreds[4] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sUnits[iIntegerPart + 1] + " " + sHundreds[4] + " ";
+                            }
+                        }
+                        else {
+                            if (sAmount == null) {
+                                sAmount = sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[4] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[4] + " ";
+                            }
+                        }
+                    }
+                }
+                else if (i == 7 || i == 6) {
+                    iIntegerPart = parseInt(decAmount / 100000);
+                    decAmount = (decAmount % 100000);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        if (iIntegerPart < 20) {
+                            if (sAmount == null) {
+                                sAmount = sUnits[iIntegerPart + 1] + " " + sHundreds[3] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sUnits[iIntegerPart + 1] + " " + sHundreds[3] + " ";
+                            }
+                        }
+                        else {
+                            if (sAmount == null) {
+                                sAmount = sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[3] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[3] + " ";
+                            }
+                        }
+                    }
+                }
+                else if (i == 5 || i == 4) {
+                    iIntegerPart = parseInt(decAmount / 1000);
+                    decAmount = (decAmount % 1000);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        if (iIntegerPart < 20) {
+                            if (sAmount == null) {
+                                sAmount = sUnits[iIntegerPart + 1] + " " + sHundreds[2] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sUnits[iIntegerPart + 1] + " " + sHundreds[2] + " ";
+                            }
+                        }
+                        else {
+                            if (sAmount == null) {
+                                sAmount = sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[2] + " ";
+                            }
+                            else {
+                                sAmount = sAmount + " " + sTens[parseInt(iIntegerPart / 10) - 1] + " " + sUnits[(iIntegerPart - parseInt(iIntegerPart / 10) * 10) + 1] + " " + sHundreds[2] + " ";
+                            }
+                        }
+                    }
+                }
+                else if (i == 3) {
+                    iIntegerPart = parseInt(decAmount / 100);
+                    decAmount = (decAmount % 100);
+                    if (iIntegerPart == 0) {
+                        sAmount = sAmount;
+                    }
+                    else {
+                        var index;
+                        index = parseInt(iIntegerPart) + 1;
+                        if (sAmount == null) {
+                            sAmount = sUnits[index] + " " + sHundreds[1] + " ";
+                        }
+                        else {
+                            sAmount = sAmount + " " + sUnits[index] + " " + sHundreds[1] + " ";
+                        }
+                    }
+                }
+                else if (i == 2) {
+                    decAmount = parseInt(eval(decAmount));
+                    if (decAmount < 20) {
+                        var index = parseInt(decAmount) + 1;
+                        if (sAmount == null) {
+                            sAmount = sUnits[index];
+                        }
+                        else {
+                            sAmount = sAmount + " " + sUnits[index];
+                        }
+                    }
+                    else {
+                        var a = parseInt(((decAmount / 10) - 1));
+                        var b = (decAmount % 10) + 1;
+                        if (sAmount == null) {
+                            sAmount = sTens[a] + " " + sUnits[b];
+                        }
+                        else {
+                            sAmount = sAmount + " " + sTens[a] + " " + sUnits[b];
+                        }
+                    }
+                }
+            }
+        }
+        if (iDecPart == 0) {
+            sAmount = "Rs. " + sAmount;
+        }
+        else if (sAmount == "") {
+            sAmount = "Paise ";
+        }
+        else {
+            sAmount = "Rs. " + sAmount + " And Paise";
+        }
+
+        if (iDecPart < 20) {
+            sAmount = sAmount + " " + sUnits[iDecPart + 1] + " ";
+        }
+        else {
+            var fi = parseInt(((iDecPart / 10) - 1));
+            var fii = parseInt((iDecPart % 10)) + 1;
+            sAmount = sAmount + " " + sTens[fi] + " " + sUnits[fii] + " ";
+        }
+
+        sAmount = sAmount + "Only";
+
+        return sAmount;
+
+    }
+
+</script>

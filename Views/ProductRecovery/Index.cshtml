@@ -1,0 +1,427 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="ProductRecovery-form">
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#ProductRecovery-form');
+
+        var ProRecoTransMode = '';
+        const LastIDSessionKey = 'ProductRecoveryLastID';
+        var LastID_ProductRecovery;
+        $(document).ready(function () {
+
+            ProductRecovery_initLoad();
+        });
+
+        function ProductRecovery_initLoad() {
+            ProRecoTransMode = '@ViewBag.TransMode';
+          
+            LoadAddProductRecovery(this, LoadAddProductRecovery);
+        }
+
+        function LoadAddProductRecovery() {
+            $formContainer.load('@Url.Action("LoadProductRecovery", "ProductRecovery")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="ProdRecoveryDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'ProductRecovery_initLoad');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_ProductRecovery = result;
+                });
+            });
+        }
+        validationMessage = {
+            'CustomeName': {
+                'required': 'Please Select Customer'
+            },
+            'ProdRecoveryDate': {
+                'required': 'Please Select Recovery Date'
+            },
+            'Employee': {
+                'required': 'Please Select Employee'
+            }
+        }
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyView)
+                        {
+
+                                <text>   { displayName: "View", action: fn_ProductRecovery_UpdateForm }, </text>
+                        }
+
+                      { type: "divider" },
+
+                       @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+                        {
+                               <text> { displayName: "Delete", action: fn_delete_ProRecovery},</text>
+                        }
+
+
+                ],
+
+                class: "btn btn-success light sharp"
+                },
+
+            onlyShowColumn: ["SlNo", "ProdRecoveryDate", "CusName","ProdRecNarration"],
+            hideColumn: [],
+            rowClickAction: fn_ProductRecovery_UpdateForm,
+            renameHeader: { "SlNo": "SL No", "ProdRecoveryDate": "Recovery Date", "CusName": "Customer Name","ProdRecNarration":"Description"},
+            isDateType: ['ProdRecoveryDate'],
+
+        };
+
+        function LoadProductRecoveryList(ele,callback) {
+
+        let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            
+        if (SearchName == undefined) {
+            SearchName = '';
+        }
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+            let pageUrl = "@Url.Action("GetProductRecoveryList", "ProductRecovery")";
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ProRecoTransMode},
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                   
+                    if (ajaxOutput.Process.IsProcess) {
+                       // debugger
+                              //console.log('Sa', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Log List");
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadProductRecoveryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                   
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProRecoTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                    else {
+
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                  setSessionValue(LastIDSessionKey,0);
+                                  $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"></div></div></div>')
+
+                                  $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="LoadProductRecoveryList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                                let $table = $sidemenu.find('table');
+                                $table.dataTable({
+                                    "serverSide": true,//no change
+                                    "processing": true,//-- process text when clicked
+                                   // "lengthChange": false,
+                                     "lengthMenu": [],//---drop down page size
+                                    "searching": false,//--no change
+                                    "ordering": false,//--sorting
+                                    "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                    "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                    "pageLength": ajaxOutput.pageSize,//<----page size
+                                    "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                    "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProRecoTransMode}, tableOptions, $table)
+                                });
+                            }
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                }
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+
+    }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+             
+
+                let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+        function fn_ProductRecovery_UpdateForm() {
+
+         let $thisUser = $(this).closest('tr');
+            let savedData = $thisUser.data('pData');
+            console.log('savedData', savedData);
+         $('.dataTable tr').removeClass("SelectForDelete");
+         $(this).closest('tr').addClass('SelectForDelete');
+
+         $formContainer.load('@Url.Action("LoadProductRecovery", "ProductRecovery")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            $thisForm.validate({ messages: validationMessage });
+
+             $thisForm.find('[name="FK_Customer"]').val(savedData.FK_Customer).selectpicker('refresh');
+             $thisForm.find('[name="CustomeName"]').val(savedData.CusName);
+             $thisForm.find('[name="FK_Employee"]').val(savedData.FK_Employee);
+             $thisForm.find('[name="Employee"]').val(savedData.Employee);
+
+             $thisForm.find('[name="PickUpDate"]').val(moment(savedData.PickUpDate).format('YYYY-MM-DD'));
+             $thisForm.find('[name="ProdRecoveryDate"]').val(moment(savedData.ProdRecoveryDate).format('YYYY-MM-DD'));
+             $thisForm.find('[name="PickUpTime"]').val(savedData.PickUpTime);
+             $thisForm.find('[name="VehicleDet"]').val(savedData.VehicleDet);
+             $thisForm.find('[name="ProdRecNarration"]').val(savedData.ProdRecNarration);
+
+
+           let inputData = {
+               ProdGroupID: savedData.ProdGroupID,
+               TransMode: ProRecoTransMode
+           };
+         
+               $.ajax({
+                 url: '@Url.Action("GetProductRecoveryInfoByID", "ProductRecovery")',
+                 type: "POST",
+                 data: inputData,
+                 dataType: "json",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxOutput) {
+                       if (ajaxOutput != null) {
+                          
+                           if (ajaxOutput.datares.Process.IsProcess) {
+                              
+                               fn_fill_ProdGrid($thisForm, ajaxOutput.datares.Data, savedData);
+                           }
+                         
+                           $thisForm.find('button[name=add]').addClass('d-none');
+                          // $thisForm.find('button[name=update]').removeClass('d-none');
+                           $thisForm.attr('perfect-onFormSuccess', 'ItemConversion_initLoad');
+                           //}
+
+                       }
+                       else {
+                           $.each(ajaxOutput.lgdata.Process.Message, function (key, value) {
+                               NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                           });
+                       }
+                 },
+
+               }); $sideMenuOptions.close();
+         });
+        }
+
+
+        function fn_delete_ProRecovery() {
+
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+    
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetProRecoReasonList", "ProductRecovery")",
+                type: "GET",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxReasonOutput) {
+
+                    if (ajaxReasonOutput.Process.IsProcess) {
+                      
+
+                        let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                        var res = ConfirmDialog(confirmationDialogBoxOption);
+                        res.then(function (ret) {
+                            if (ret) {
+
+                                let inputData = {
+                                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                    ProdGroupID: Saveddata.ProdGroupID,
+                                    ReasonID: ret,
+                                    TransMode: ProRecoTransMode
+                                };
+
+                                $.ajax({
+                                    url: "@Url.Action("DeleteProdData", "ProductRecovery")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                    success: function (data) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        if (data.Process.IsProcess) {
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+
+
+                                                $sideMenuOptions.close();
+                                                // window.location.reload();
+                                                LoadAddProductRecovery();
+                                            });
+
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+                                        }
+                                        else {
+                                            $.each(data.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+                        });
+                    }
+                }
+
+            });
+
+        }
+
+        function fn_fill_ProdGrid(ele, data, savedData) {
+            debugger
+            let $thisForm = $('[perfect-class="form"]');
+
+            if (data) {
+                document.getElementById('id_ProdGrid').style.display = 'block';
+
+                let $tbody = $thisForm.find('[perfect-class="ModuleContainer"]').find('tbody');
+                
+                $.each(data, function (i, values) {
+
+                    if (values.FK_Product != 0) {
+                        let rowCount = (i + 1);
+                        let $row = $('<tr/>', { id: rowCount, class: "trvalue" });
+
+                        $row.append($('<td>', { class: "ChkProd" }).html(
+                            $('<label>').append(
+                                $('<input />', {
+                                    type: 'checkbox',
+                                    name: 'ItemCheckPro',
+                                    'perfect-class': 'formCheckInput',
+                                    'perfect-ctype': "checkbox",
+                                    checked: 'checked' // Add the checked attribute here
+                                })
+                            ).append('') // Replace '' with your desired label text
+                                .on('change', function () {
+
+                                })
+                        ))
+
+                            .append($('<td>', { class: "FK_CustomerWiseEMI", style: 'display:none' }).text(values.FK_CustomerWiseEMI))
+                            .append($('<td>', { class: "BillDate" }).text(values.BillDate))
+                            .append($('<td>', { class: "Product" }).text(values.Product))
+                            .append($('<td>', { class: "EMINo" }).text(values.EMINo))
+                            .append($('<td>', { class: "Amount text-right" }).text((values.Amount).toFixed(2)))
+                            .append($('<td>', { class: "Fine text-right" }).text((values.Fine).toFixed(2)))
+                            .append($('<td>', { class: "Balance text-right" }).text((values.Balance).toFixed(2)))
+                            .append($('<td>', { class: "FK_Sales", style: 'display:none' }).text(values.FK_Sales))
+                            .append($('<td>', { class: "FK_Product", style: 'display:none' }).text(values.FK_Product))
+                            .append($('<td>', { class: "Remark" }).html(
+                                $('<input/>', {
+                                    type: 'text',
+                                    class: 'form-control text-left',
+                                    maxlength: '500',
+                                    name: "ProdRecProductRemarks",
+                                    id: "Rmrkid",
+                                    // You can set an initial value for the remark here if needed
+                                    // value: 'Initial Remark Value'
+                                }).val(values.ProdRecProductRemarks),
+
+                            ))
+
+
+
+                        $tbody.append($row);
+                    }
+                    else {
+                        $("#ProReCTbody tr").remove();
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Not Found' })
+                    }
+
+                });
+
+
+           }
+            
+        }
+        
+
+    </script>
+}
+	
+

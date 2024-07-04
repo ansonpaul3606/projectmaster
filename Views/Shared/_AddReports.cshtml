@@ -1,0 +1,301 @@
+﻿
+
+@model System.Data.DataTable
+@{
+    string ColumnName = "", Allignment = ""; string[] Column; long slNo = 0;
+}
+<link href="~/assets/Tabulator/css/tabulator.min.css" rel="stylesheet" />
+
+<style>
+    tbody tr td:nth-child(1):before {
+        display: none;
+    }
+
+    .Customtable {
+        /*border: 1px solid black;*/
+        /*border-collapse: collapse;*/
+        padding: 0px;
+        width: 100%;
+    }
+
+        .Customtable th {
+            padding: 10px;
+            /*border: 1px solid black;*/
+        }
+
+        .Customtable td {
+            padding: 10px;
+            /*border: 1px solid black;*/
+            text-align: left;           
+        }      
+
+        .Customtable tr:nth-child(even) {
+            background-color: white;
+        }
+
+        .Customtable tr:nth-child(odd) {
+            background-color: #eee;
+        }
+
+    .tabulator-header .rightAlgn {
+        text-align: right !important;
+    }
+
+    .tabulator-table {
+        width: 100%;
+        /*max-width: 100%;*/
+    }
+
+    .rightAlgn {
+        text-align: right !important;
+    }
+
+    .tabulator-tableHolder {
+        height: 100% !important;
+    }
+
+    .tabulator .tabulator-header .tabulator-col {
+        background-color: #2aa2ad !important;
+    }
+
+    .tabulator .tabulator-header {
+        color: #fff !important;
+    }
+
+    .tabulator-table {
+        max-height: 500px;
+        overflow: auto;
+    }
+
+    table tbody tr td:first-child::before {
+        content: counter(rowNumber);
+        min-width: 1em;
+        margin-right: 0.5em;
+    }
+
+    #zero_config {
+        /*width: 1500px;*/
+    }
+</style>
+
+@Html.AntiForgeryToken()
+@if (Model != null)
+{
+    if (Model.Rows.Count > 0)
+    {
+        <div class="row">
+            <div class="col-sm-9" style="display:flex">
+                <div class="col-sm-3" @*style="display:none"*@>
+                    <select class="form-control " id="rptPdfPageSetup" name="rptPdfPageSetup" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                        @if (@Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "1LFLMRPT" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "5LFLMRPT" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "2LFLMRPT" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "4LFLMRPT" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "80LFLMRPT" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "2INSL" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "17INSL" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "18INSL" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "3INSLHO" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "11PRJC" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "4INSL" || @Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "10LFLMRPT")
+                        {
+                            <option value="a3">A3</option>
+                            }
+                            else
+                            {
+                            <option value="A4">A4</option>
+                            <option value="Portrait">Portrait</option>
+                            <option value="Landscape">Landscape</option>
+                            }
+                    </select>
+                </div> <div class="col-sm-6">
+                    <button type="button" id="download-pdf" @*style="display:none"*@>
+                        <i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:30px;color: #d92222;"></i>
+                    </button>
+                    @*@if (@Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() != "13PRJC")
+                        {*@
+                    <button type="button" id="download-xlsx" @*style="display:none"*@>
+                        <i class="fa fa-file-excel-o" aria-hidden="true" style="font-size:30px;color: #1f8e26;"></i>
+                    </button>
+                    @* }
+                        <button type="button" id="download-csv">
+                                <img src="~/assets/Tabulator/Image/csv.png" style="vertical-align: bottom;"/>
+
+                        </button>*@
+                </div>
+            </div>
+        </div>
+    }
+}
+        <div id="customers" @*style="display:none"*@>
+            @if (@Model != null)
+            {
+                if (@Model.Rows.Count > 0)
+                {
+                   
+                <input type="hidden" id="cmmnRpt_Type" value="@Model.Rows[0]["hdn_cmmnRpt_Type"].ToString()" />
+                if (@Model.Columns.Contains("hdn_Groupby"))
+                {
+                    <input type="hidden" id="cmmnRpt_grp" value="@Model.Rows[0]["hdn_Groupby"].ToString()" />
+                }
+                else
+                {
+                    <input type="hidden" id="cmmnRpt_grp" value="" />
+                }
+                <div class="col-sm-12 tables-container" style="display:flex;height:500px;overflow-y:auto" id="tables-container">
+                    <table id="zero_config" class="Customtable ">
+                        <thead>
+                            @*<tr style="background-color:#1a3960;color:white;">*@
+                            <tr>
+
+                                @for (int j = 0; j < Model.Columns.Count; j++)
+                                {
+                                    if (@Model.Columns[j].ColumnName == "Product" && @Model.Rows[0]["hdn_ComCategory"].ToString() == "2")
+                                    {
+                                        Model.Columns[j].ColumnName = "Destination";
+                                    }
+                                    <th style="@Allignment">@Model.Columns[j].ColumnName.Trim()</th>
+                                }
+
+                            </tr>
+                        </thead>
+
+                        <tbody id="myTableBody">
+                            @for (int i = 0; i < Model.Rows.Count; i++)
+                            {
+                                if (@Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "13PRJC")
+                                {
+                                    if (Model.Rows[i]["hdn_Mode"].ToString() == "Income")
+                                    {
+                                        <tr class="tr-shadow" style="font-weight:bold">
+
+                                            @for (int k = 0; k < Model.Columns.Count; k++)
+                                            {
+                                                <td style="@Allignment">@Model.Rows[i][k].ToString()</td>
+                                            }
+
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr class="tr-shadow" style="font-weight:bold">
+
+                                        @for (int k = 0; k < Model.Columns.Count; k++)
+                                        {
+                                            <td style="@Allignment">@Model.Rows[i][k].ToString()</td>
+                                        }
+
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+                       
+
+						<tfoot id="custom-footer">
+    @if ((@Model.Columns.Contains("hdn_Profit"))||(@Model.Columns.Contains("hdn_ProfitPercentage")))
+    {
+        <tr>
+            <td id="total-Profit">@Model.Rows[0]["hdn_Profit"].ToString()</td>
+			
+        </tr>
+		 <tr>
+            <td id="total-ProfitPercentage">@Model.Rows[0]["hdn_ProfitPercentage"].ToString()</td>
+			
+        </tr>
+    }
+	
+  
+</tfoot>
+
+
+
+
+                    </table>
+                    @*below code is only for Project Profitability Report*@
+                    @if (@Model.Rows[0]["hdn_cmmnRpt_Type"].ToString() == "13PRJC")
+                    {
+                        <table id="zero_config2" class="Customtable">
+                            <thead>
+                                <tr @*style="background-color:#1a3960;color:white;"*@>
+
+                                    @for (int j = 0; j < Model.Columns.Count; j++)
+                                    {
+                                        if (@Model.Columns[j].ColumnName == "Income")
+                                        {
+                                            <th style="@Allignment">Expense</th>
+                                        }
+                                        else
+                                        {
+                                            <th style="@Allignment">@Model.Columns[j].ColumnName</th>
+                                        }
+                                    }
+
+                                </tr>
+                            </thead>
+
+                            <tbody id="myTableBody">
+                                @for (int i = 0; i < Model.Rows.Count; i++)
+                                {
+                                    if (Model.Rows[i]["hdn_Mode"].ToString() == "Expense")
+                                    {
+                                        <tr class="tr-shadow" style="font-weight:bold">
+
+                                            @for (int k = 0; k < Model.Columns.Count; k++)
+                                            {
+
+
+
+
+                                                <td style="@Allignment">@Model.Rows[i][k].ToString()</td>
+
+
+
+                                            }
+
+                                        </tr>
+                                    }
+                                }
+
+                            </tbody>
+												<tfoot id="custom-footer">
+    @if ((@Model.Columns.Contains("hdn_Loss"))||(@Model.Columns.Contains("hdn_LossPercentage")))
+    {
+        <tr>
+            <td id="total-Profit">@Model.Rows[0]["hdn_Loss"].ToString()</td>
+			
+        </tr>
+		 <tr>
+            <td id="total-ProfitPercentage">@Model.Rows[0]["hdn_LossPercentage"].ToString()</td>
+			
+        </tr>
+    }
+	
+  
+</tfoot>
+                           
+                        </table>
+                    }
+                </div>
+            }
+
+        }
+        </div>
+@if (@Model != null)
+{
+    if (@Model.Rows.Count == 0)
+    {
+        <div class="row">
+
+            <div class="col-sm-12" style="text-align:center">
+                <span style="font-size:14px;">No Records....</span>
+            </div>
+        </div>
+    }
+}
+<script src="@Url.Content("~/Assets/js/jquery-2.1.4.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/tabulator.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.umd.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.plugin.autotable.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/CommontabReport.js")"></script>
+<script src="@Url.Content("~/Scripts/exportFile.js")"></script>
+<script src="@Url.Content("~/Scripts/xlsx.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/html2canvas.js")"></script>
+<script>
+    CompanyName = '@ViewBag.CompanyName';
+    urlCmpny = '@Url.Action("GetCompanyDetails", "Home")';
+</script>
+

@@ -1,0 +1,727 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12" id="EquipmentService-form">
+        </div>
+    </div>
+</div>
+@section scripts{
+<script type="text/javascript">
+        const $formContainer = $('#EquipmentService-form');
+    const LastIDSessionKey = 'EquipmentServiceLastID';
+    var LastID_EquipmentService;
+
+        var EquipmentTransMode;
+        $(document).ready(function () {
+               EquipmentTransMode = "";
+            EquipmentTransMode = '@ViewBag.TransMode';
+            EquipmentServiceInitialLoad();
+
+
+        });
+
+
+        var validationMessage = {
+            'TransDate': {
+                'required': 'Please Enter Trans Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date')
+            },
+
+            'BookingDate': {
+                'required': 'Please Enter Booking Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            'SerServiceDate': {
+                'required': 'Please Enter Service Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date')
+            },
+            'FK_Mode': {
+                'required': 'Please Select Mode',
+                'digits': 'Invalid Mode selected'
+            },
+            'FK_Transaction': {
+                'required': 'Please Select Type',
+                'digits': 'Invalid Type selected'
+            },
+            'ID_Names': {
+                'required': 'Please select Import From',
+                'digits': 'Invalid Type selected'
+
+
+            },
+
+        };
+        function EquipmentServiceInitialLoad() {
+               @*HeadNme = '@ViewBag.headlog';*@
+
+            loadEquipmentServiceListAddForm();
+            @if (ViewBag.PagedAccessRights.UsrrlMsView)
+             {
+                <text>loadEquipmentServiceList(this, loadEquipmentServiceListAddForm);  </text>
+             }
+        }
+        function loadEquipmentServiceListAddForm() {
+
+            $formContainer.load('@Url.Action("LoadEquipmentService", "EquipmentService")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="BookingDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="SerServiceDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.validate({ messages: validationMessage });
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("TransDate")[0].setAttribute('min', today);
+
+                //document.getElementsByName("BookingDate")[0].setAttribute('min', today);
+                //document.getElementsByName("ToDate")[0].setAttribute('min', today);
+
+                $thisForm.attr('perfect-onFormSuccess', 'EquipmentServiceInitialLoad');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_EquipmentService = result;
+                });
+
+
+            });
+        }
+
+
+        function loadEquipmentServiceList(ele,callback) {
+            debugger
+
+        let $sidemenu = $sideMenuOptions.body;
+
+
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        //console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetEquipmentServiceList", "EquipmentService")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: EquipmentTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    debugger
+                          if (ajaxOutput.Process.IsProcess) {
+                              //console.log('ProductRateSettings', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("EquipmentService");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadEquipmentServiceList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: EquipmentTransMode}, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("EquipmentService");
+                                  setSessionValue(LastIDSessionKey,0);
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadEquipmentServiceList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: EquipmentTransMode}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+                if (callback) {
+
+
+                    callback();
+                }
+            }
+        });
+        }
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page, TransMode: ajaxInfo.TransMode };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+            var tableOptions = {
+            dropdown: {
+                buttons: [
+                  @if (ViewBag.PagedAccessRights.UsrrlStView)
+                   {
+                     <text> { displayName: "View", action: editEquipmentService },</text>
+                   }
+                    { type: "divider" },
+                   @if (ViewBag.PagedAccessRights.UsrrlStDel)
+                    {
+                     <text>{ displayName: "Delete", action: deleteEquipmentService },</text>
+                    }
+                ],
+                class: "btn btn-success light sharp"
+                 },
+                onlyShowColumn: ["SlNo", "Mode", "TransactionName", "Name"],
+                hideColumn: [],
+                rowClickAction: editEquipmentService,
+                renameHeader: { "Mode": "Mode ", "TransactionName": "Type", "Name": "@ViewBag.headlog"}
+
+    };
+
+
+
+        function editEquipmentService()
+        {
+            debugger
+            let $thisMenu = $(this).closest('tr');
+            let savedData = $thisMenu.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData =
+            {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                FK_EquipmentService: savedData.ID_EquipmentService,
+                TransMode: EquipmentTransMode
+            };
+
+                $.ajax({
+                 url: '@Url.Action("GetEquipmentServiceInfo", "EquipmentService")',
+                type: "POST",
+                 data: inputData,
+                dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    success: function (ajaxOutput) {
+                        if (ajaxOutput) {
+                            debugger
+                            $formContainer.load('@Url.Action("LoadEquipmentService", "EquipmentService")?mtd=@ViewBag.mtd' + '&TransMode=@ViewBag.TransMode', function ()
+                            {
+
+                                $(this).find('[perfect-class=formTitle]').text('update')
+                                let $thisForm = $(this).find('[perfect-class="form"]');
+                                $thisForm.validate({ messages: validationMessage });
+                               // $thisForm.data({ pData: ajaxOutput.Data[0] });
+                                console.log('ajaxOutput', ajaxOutput);
+
+                                $thisForm.find('[name=ID_EquipmentService]').val(ajaxOutput.mptableInfo.Data[0].ID_EquipmentService);
+                                $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].TransDate).format('YYYY-MM-DD'));
+
+                                $thisForm.find('[name=FK_Mode]').val(ajaxOutput.mptableInfo.Data[0].FK_Mode).selectpicker('refresh');
+
+                                $thisForm.find('[name="FK_Mode"]').trigger('change');
+                                $thisForm.find('[name="FK_Transaction"]').attr('perfect-onloadSelect', ajaxOutput.mptableInfo.Data[0].FK_Transaction);
+                                $thisForm.find('[name=TransactionName]').val(ajaxOutput.mptableInfo.Data[0].TransactionName);
+
+                                $thisForm.find('[name=ID_Names]').val(ajaxOutput.mptableInfo.Data[0].ID_Names).selectpicker('refresh');
+                                $thisForm.find('[name=Mode]').val(ajaxOutput.mptableInfo.Data[0].Mode);
+
+                                $thisForm.find('[name=FK_Master]').val(ajaxOutput.mptableInfo.Data[0].FK_Master);
+                                $thisForm.find('[name=VehicleNo]').val(ajaxOutput.mptableInfo.Data[0].Name);
+
+                                $thisForm.find('[name="BookingDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].FromDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="SerServiceDate"]').val(moment(ajaxOutput.mptableInfo.Data[0].ToDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="SerServiceTime"]').val(moment(ajaxOutput.mptableInfo.Data[0].ToTime).format('YYYY-MM-DD'));
+
+
+                                $thisForm.find('[name=FromTime]').val(ajaxOutput.mptableInfo.Data[0].FromTime);
+                                $thisForm.find('[name=ToTime]').val(ajaxOutput.mptableInfo.Data[0].ToTime);
+
+                                $thisForm.find('[name=AMCService]').prop('checked', ajaxOutput.mptableInfo.Data[0].AMCService);
+
+                                $thisForm.find('[name=WarrentyService]').prop('checked', ajaxOutput.mptableInfo.Data[0].WarrentyService);
+
+                                $thisForm.find('[name=FK_ServiceBooking]').val(ajaxOutput.mptableInfo.Data[0].FK_ServiceBooking);
+
+                                $thisForm.find('[name=BookingNo]').val(ajaxOutput.mptableInfo.Data[0].BookingNo);
+
+                                $thisForm.find('[name="OtherCharge"]').val(Number(ajaxOutput.mptableInfo.Data[0].OtherCharge).toFixed(2));
+
+                                $thisForm.find('[name=DiscountAmount]').val(Number(ajaxOutput.mptableInfo.Data[0].DiscountAmount).toFixed(2));
+                                $thisForm.find('[name=SubTotalAmount]').val(Number(ajaxOutput.mptableInfo.Data[0].SubTotalAmount).toFixed(2));
+                                $thisForm.find('[name=NetAmount]').val(Number(ajaxOutput.mptableInfo.Data[0].NetAmount).toFixed(2));
+                                $thisForm.find('[name=TaxAmount]').val(Number(ajaxOutput.mptableInfo.Data[0].TaxAmount).toFixed(2));
+
+                                $thisForm.find('[name=IncludeTax]').prop('checked', ajaxOutput.mptableInfo.Data[0].IncludeTax);
+                                if (ajaxOutput.paymentdetail) {
+
+                                    fillTableSales($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut);
+                                }
+
+                                ComDetailsTable_Fill($thisForm, 'ServiceDT', ajaxOutput.mptableInfo.Data[0].EquipmentServiceDetails, tableOptionsTempOutFill);
+
+                                if (ajaxOutput.Taxselect) {
+                                    debugger
+
+                                    console.log('tax')
+                                    let taxinfos = ajaxOutput.Taxselect.Data;
+                                    console.log('ajaxOutput.Taxselect.Data', ajaxOutput.Taxselect.Data);
+                                    tax1 = [];
+                                    Taxlist = Taxlist.concat(taxinfos);
+                                    edit = 1;
+                                    //$thisForm.data({ pDataTax: tax1 });
+
+                                }
+                                let netamt = $thisForm.find('[name="NetAmount"]').val() == "" ? 0 : $thisForm.find('[name="NetAmount"]').val();
+
+                                let billamt = 0;
+                                let bilamt = 0;
+                                if ($thisForm.find('[name=BalAmt]').text() == '') {
+                                    bilamt = 0;
+                                }
+                                else {
+                                    bilamt = netamt;
+                                }
+
+                                $('#Paymentdethead').find('tbody tr').each(function (index, ele) {
+
+                                    billamt += parseFloat($(ele).find('.PAmount').text());
+
+                                });
+
+                                bilamt = parseFloat(bilamt) - parseFloat(billamt);
+
+                                $thisForm.find('[name=BalAmt]').text((0).toFixed(2));
+
+                                ShowOtherCharges(this, 1)
+                                if (ajaxOutput.OtherCharge) {
+                                    debugger
+                                    let othechg = ajaxOutput.OtherCharge.Data;
+                                    console.log('AJAX OTHER CHG OUTTPUT>', ajaxOutput.OtherCharge.Data);
+                                    othrchargelst = [];
+                                    othrchargelst = othrchargelst.concat(othechg);
+                                    console.log('OTH INFOT>', othrchargelst);
+                                    $thisForm.data({ prtothchgData: othrchargelst });
+                                }
+                                //Image 
+                                $thisForm.data({ pImage: ajaxOutput.Imageselect.Data });
+                                PssfupDocsList = ajaxOutput.Imageselect.Data;
+                                //image End
+                                $sideMenuOptions.close();
+                                $thisForm.attr('perfect-onFormSuccess', 'EquipmentServiceInitialLoad');
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+                     });
+                 }
+                 else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                         NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                         $('.dataTable tr').removeClass("SelectForDelete");
+                     });
+                 }
+             },
+
+            });
+
+        }
+
+        var tableOptionsTempOutFill = {
+            iconButton: {
+                buttons: [
+
+                    {
+                        icon: "fa fa-pencil btnPerfectGridEdit",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    // $thisNode.val(savedData[pf_name]).selectpicker();
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+                                }
+                                else if ($thisNode.is('input')) {
+
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else {
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-trash btnPerfectGridDelete",
+                        action: function () {
+
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+
+
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                            CalculateTotal($tablecontainer, 1);
+                            CalculateNetAmount(this, 1);
+                        }
+                    },
+                ]
+            },
+            onlyShowColumn: [],
+            hideColumn: [],
+            serialNo: true,
+            renameHeader: {},
+            rowAttribute: [],
+            isCheckType: []
+        };
+                function deleteEquipmentService()
+        {
+            $sideMenuOptions.close();
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            debugger
+               $.ajax({
+                   url: "@Url.Action("GetEquipmentServiceDeleteReasonList", "EquipmentService")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.Name + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ID_EquipmentService: Saveddata.ID_EquipmentService,
+                                        ReasonID: selectedOption
+                                    };
+
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteEquipmentService", "EquipmentService")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                EquipmentServiceInitialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+    };
+
+    function ComDetailsTable_Fill(ele, tkey, data, tableOptionsTempOut) {
+
+        console.log('daata',data)
+            let $thisForm = $(ele)
+
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    console.log('name', valOne[nameAttr])
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+
+                            let selectText = ($this.val().length == 1) ? '' : $this.find('[value="' + valOne[nameAttr] + '"]').text();
+
+                            pData[nameAttr + '_d'] = selectText;
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+                            console.log('selectText', $this.find('[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log('inputType', inputType)
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+
+                                console.log('checkbox', nameAttr)
+
+
+                            }
+                            else if (inputType == 'hidden') {
+
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+
+                            else if (inputType == 'date') {
+
+
+                                pData[nameAttr] = moment(valOne[nameAttr]).format('DD-MM-YYYY');
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+                console.log('insertdata', insertData)
+
+                //----
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+
+        }
+
+    function fillTableSales(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTempfill = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+            let indexname = tkey + 'index';
+            tableOptionsTempfill.rowAttribute.push(indexname);
+            tableOptionsTempfill.hideColumn.push(indexname);
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    //console.log('tfhyrtname', nameAttr)
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            // tableOptionsTempfill.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTempfill.hideColumn.push(nameAttr);
+                            //displat text of select
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log(inputType)
+
+
+                            if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+
+
+                //----
+
+            });
+            $tblcontainer.empty();
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+
+        }
+</script>
+
+
+
+    }

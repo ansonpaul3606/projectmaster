@@ -1,0 +1,712 @@
+﻿
+
+
+@model PerfectWebERP.Models.ReportVehicleNoAssignModel.VehicleNoassignreportview
+
+
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    /*#ProductionReportList thead th {
+        text-transform: unset;
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }*/
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_VehiclelistRepo_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdf" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdf()">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body" style="min-height:250px">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                  
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As on Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+
+
+                                <input type="date" id="AsonDate" class="form-control perfectValidate_date" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date"onchange="edatecheck(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" hidden>
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Vehicle</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-7">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="VehicleName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                    <input type="hidden" id="BranchID" name="BranchID" value="@ViewBag.BranchID" />
+                                    <input type="hidden" name="VehicleID" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="addvehicle-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this,116,'Vehicle List',['','Vehicle'],'@ViewBag.TransMode')" Criterea1="BranchID" Criterea2="0" BindName="VehicleName" BindVal="VehicleID" Function="1"></button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-sm-12 card-footer text-right" perfect-class="formFooter">
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                        <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="">
+                <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+            </div>
+
+
+            <div id="divVehicleList">
+                <table id="VehicleList" class="table table-hover table-striped text-black" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Sl No</th>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Vehicle</th>
+                            <th>Fuel Type</th>
+                        </tr>
+                    </thead>
+
+                </table>
+
+
+            </div>
+            
+
+
+
+        </form>
+    </div>
+</div>
+
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+
+<script>
+
+
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+    function getfunction() {
+        let $thisForm = $('[perfect-class="form"]');
+        if ($thisForm.find('[name="VehicleID"]').val() > 0 || $thisForm.find('[name="VehicleID"]').val() != "") {
+            $thisForm.find('[name="VehicleName"]').attr("readonly", true);
+        }
+        else {
+            $thisForm.find('[name="VehicleName"]').attr("readonly", false);
+        }
+    }
+
+
+      
+   
+
+        
+
+
+    function ResetButton(ele) {
+        fn_VehiclelistRepo_initialLoad();
+    }
+    var itemdata = 0;
+    var tableData;
+
+        function geteqReport(ele) {
+
+            let $tbody;
+            debugger
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let isvalid = true;
+           
+            let AsonDate = $thisForm.find('[name="AsonDate"]').val();
+            AsonDate = new Date(AsonDate);
+            AsonDate.setHours(0, 0, 0, 0)
+
+
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+
+            if (AsonDate < today) {
+                $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').attr("style", "display:block")
+                $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Todays Date And Future Date only Allowed')
+                return false;
+
+            }
+            else {
+           
+          
+                if ($thisForm.valid()) {
+
+                    var table = $('#VehicleList').DataTable({ searching: false, destroy: true, paging: false, ordering: false, info: false });
+                    table.clear().draw();
+
+
+
+                    debugger
+
+                    var obj = {
+                        "AsonDate": $thisForm.find('[name="AsonDate"]').val(),
+
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("GetVehicleNoassignModelList", "ReportVehicleNoAssign")",
+                        type: "POST",
+                        data: JSON.stringify(obj),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (dataOut) {
+
+                            console.log('dataOut', dataOut)
+                            //dataOut.datares.Data.forEach((i) => {
+
+                            //    var a = i.AssignedDate.split('T')[0];
+
+                            //    i['AssignedDate'] = changeDateFormat(a);
+                            //});
+                            itemdata = dataOut.datares.Data; console.log('itemdata', itemdata);
+                            if (itemdata == null || itemdata == "") {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "none";
+
+                            } else {
+
+                                let x = document.getElementById("exppdf");
+                                x.style.display = "block";
+                            }
+
+
+
+                            if (dataOut.datares.Process.IsProcess) {
+                                if (itemdata != null) {
+
+
+                                    $("#divVehicleList").show();
+                                    tableData = $('#VehicleList').DataTable({
+                                        pagination: "bootstrap",
+                                        filter: true,
+                                        data: dataOut.datares.Data,
+                                        destroy: true,
+                                        paging: false,
+                                        info: false,
+                                        searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Category" },
+                                            { "data": "Brand" },
+                                            { "data": "Vehicle" },
+                                            { "data": "FuelType" },
+
+                                        ],
+
+                                        scrollCollapse: true,
+                                        paging: false,
+                                        fixedHeader: {
+                                            header: true,
+
+                                        },
+
+                                        "columnDefs": [
+                                            { "orderable": false, "targets": [0, 1, 2, 3, 4] }
+
+                                            //{ "visible": false, "targets": 0 }
+                                        ],
+
+                                        "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                            $("td:first", nRow).html(iDisplayIndex + 1);
+                                            //$('td:eq(1)', nRow).html('');
+                                            return nRow;
+
+
+                                        },
+
+                                    });
+                                }
+
+
+                                else {
+                                    $("#divVehicleList").show();
+                               
+                                    tableData = $('#VehicleList').DataTable({
+                                    pagination: "bootstrap",
+                                    filter: true,
+                                    data: dataOut.datares.Data,
+                                    destroy: true,
+                                    paging: false,
+                                    info: false,
+                                    searching: false,
+                                        "columns": [
+                                            { "data": null },
+                                            { "data": "Category" },
+                                            { "data": "Brand" },
+                                            { "data": "Vehicle" },
+                                            { "data": "FuelType" },
+
+                                        ],
+                                    "language": {
+                                        "emptyTable": "No data available"
+                                    },
+
+                                    scrollCollapse: true,
+                                    paging: false,
+                                    fixedHeader: {
+                                        header: true,
+
+                                    },
+
+                                    "columnDefs": [
+                                        { "orderable": false, "targets": [0, 1, 2, 3, 4] }
+
+
+                                    ],
+
+                                    "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+                                        $("td:first", nRow).html(iDisplayIndex + 1);
+
+                                        return nRow;
+
+
+                                    },
+
+
+
+                                });
+                            }
+                                }
+
+                            
+                            else {
+
+                            }
+                        },
+                        complete: function () {
+                        }
+                    });
+
+                    fn_showFilter();
+
+                }
+            }
+
+    }
+
+
+
+   
+    var tabley;
+
+    function generatePdf(ele) {
+        debugger
+        var cdata;
+       
+        const obj = {
+
+        };
+        const obj2 = {
+           
+            "AsonDate": $('input[name="AsonDate"]').val()
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+         var str2 = "";
+         var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str+="Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+
+        var upperhead = {
+
+
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 14, fillColor: false, } },
+            columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+
+            body: [
+
+                [
+
+                    '  '  + '   ' + str2
+
+
+                    //'\n' +
+
+
+                ],
+                [
+                    str
+                ]
+
+
+
+            ],
+            theme: 'plain',
+            styles: {
+                // fillColor: '#3366ff',
+                color: 'black'
+            },
+            didDrawCell: function (data) {
+                data.cell.styles.lineHeight = 0.8; // Adjust the line height value to your preference
+            }
+
+
+        };
+
+
+
+
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+
+
+                     var head = [];
+                     var ptableData = {};
+                     debugger;
+                     console.log(itemdata, '<<itemdata>>')
+
+                     //itemdata.forEach((i) => {
+
+                     //    var a = i.AssignedDate.split('T')[0];
+
+                     //    i['AssignedDate'] = changeDateFormat(a);
+                     //})
+                   
+                    // if ($('select[name="FK_Mode"] option:selected').val() == 1) {
+                     head = [['Sl No', 'Category', 'Brand', 'Vehicle','Fuel Type']];
+                         ptableData = {
+                             columns: [
+                                 //{ title: "SLNo", dataKey: "SLNo" },
+                                 { title: "Category", dataKey: "Category" },
+                                 { title: "Brand", dataKey: "Brand" },
+                                 { title: "Vehicle", dataKey: "Vehicle" },
+                                 { title: "Fuel Type", dataKey: "FuelType" },
+                             ],
+                             rows: itemdata
+
+                         };
+                 
+
+                     var footerdata = {
+
+                         columnStyles: { 0: { halign: 'left', textColor: "#black", fontSize: 11, fillColor: false, } },
+                         margin: { top: 0 },
+
+
+
+                     };
+                     console.log(ptableData, 'ptableData---0))0')
+                     //if (exportfile_toogle) {
+                     //    exportPdf('PAYROLL REPORTS', head, cdata, upperhead, footerdata, ptableData, grpvariable, filename, "a4");
+                     //}
+
+                    
+                         exportPdf('Vehicle With No Assignment', head, cdata, upperhead, footerdata, ptableData, "", "", "a4");
+                     
+                },
+             complete: function () {
+
+                 //LeadType = 'My Leads';
+
+
+
+
+                }
+         });
+    }
+
+
+
+
+
+    function onExell() {
+
+
+        var cdata;
+
+
+        const obj = {
+           // "Report Name": 'Vehicle With No Assignment',
+            "As on Date": changeDateFormat($('input[name="AsonDate"]').val())
+          
+
+        };
+        const obj2 = {
+          //  "AsonDate": changeDateFormat($('input[name="AsonDate"]').val()),
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                    str += "Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+                console.log(cdata, "---cdata----");
+
+
+               
+                head = [['Sl No', 'Category', 'Brand', 'Vehicle', 'Fuel Type']];
+                    ptableData = {
+                        columns: [
+                            //{ title: "SLNo", dataKey: "SLNo" },
+                            { title: "Category", dataKey: "Category" },
+                            { title: "Brand", dataKey: "Brand" },
+                            { title: "Vehicle", dataKey: "Vehicle" },
+                            { title: "Fuel Type", dataKey: "FuelType" },
+
+                        ],
+                        rows: itemdata
+
+                    };
+                
+
+
+
+                ReportName = `${cdata.Company} \n${cdata.Branch} \n "Vehicle With No Assignment" \n ${str2} \n ${str}`
+                generateExell(ReportName, head, ptableData, {}, "", 'str');
+
+              
+
+            }
+        });
+
+    }
+
+
+
+
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+        function changeDateFormat(date) {
+            /*var date = '2023-06-05';*/
+
+            // Split the date into year, month, and day components
+            var dateComponents = date.split('-');
+
+            // Rearrange the components to form the desired format
+            var formattedDate = dateComponents[2] + '/' + dateComponents[1] + '/' + dateComponents[0];
+
+            console.log(formattedDate); // Output: 05/06/23
+            return formattedDate;
+        }
+        function exportbuttonhide() {
+            document.querySelector('#exppdf').style.display = 'none';
+            console.log('Input value changed:');
+        }
+
+        var inputElements = document.getElementsByClassName('exptbttontoogle');
+        for (var i = 0; i < inputElements.length; i++) {
+            inputElements[i].addEventListener('change', function (event) {
+                // Handle the change event here
+                // var inputValue = event.target.value;
+                document.querySelector('#exppdf').style.display = 'none';
+                console.log('Input value changed:');
+            });
+        }
+        function getfunction() {
+            document.querySelector('#exppdf').style.display = 'none';
+        }
+
+
+    function edatecheck(ele) {
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let AsonDate = $thisForm.find('[name="AsonDate"]').val();
+        AsonDate = new Date(AsonDate);
+        AsonDate.setHours(0, 0, 0, 0)
+
+
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+
+        if (AsonDate < today) {
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('Todays Date And Future Date only Allowed')
+            return false;
+
+        }
+        else {
+
+            $thisForm.find('[name="AsonDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('');
+            return true;
+        }
+
+
+    }
+      
+
+
+</script>
+
+
+
+
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>

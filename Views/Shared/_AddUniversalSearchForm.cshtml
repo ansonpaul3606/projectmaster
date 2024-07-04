@@ -1,0 +1,322 @@
+﻿
+@model PerfectWebERP.Models.UniversalSearchModel.UniversalsearchView
+<div class="card ">
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">Universal Search</h4>
+
+        </div>
+    </div>
+        <div class="card-body">
+            <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+                <div class="">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-5 col-form-label">
+                                    <span perfect-class="formGroupLabel">Module</span>
+
+                                </label>
+                                <div class="col-sm-7">
+                                    <div class="input-group">
+
+                                        <select class="form-control perfectValidate_string" id="Mode" name="Mode" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                            <option value="1">All Module</option>
+                                            <option value="2">Customer</option>
+                                            <option value="3">Lead</option>
+                                            <option value="4">Service</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-5 col-form-label">
+                                    <span perfect-class="formGroupLabel">Name</span>
+
+                                </label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control perfectValidate_specialCharName_nm" placeholder="" name="Name" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-5 col-form-label">
+                                    <span perfect-class="formGroupLabel">Mobile</span>
+
+                                </label>
+                                <div class="col-sm-7">
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text fa fa-phone bg-primary text-white"></span>
+                                        </div>
+                                        <input type="text" id="Mobile" class="form-control perfectValidate_mobile_nm" maxlength="15" placeholder="" name="MobileNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-5 col-form-label">
+                                    <span perfect-class="formGroupLabel">Address</span>
+
+                                </label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control perfectValidate_textarea" maxlength="150" placeholder="" name="Address" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group row" perfect-class="formGroup">
+                                <label class="col-sm-5 col-form-label">
+                                    <span perfect-class="formGroupLabel">Reference No</span>
+
+                                </label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control perfectValidate_specialCharName_nm" placeholder="" name="ReferenceNo" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlengh="150" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-right" perfect-class="formFooter">
+
+
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="UniversalSearchout(this)"><i class="fa fa-refresh fa-spin loaderClass "></i>Search</button>
+
+                        <button type="button" class="btn btn-light" perfect-css="button" onclick="fn_resetSearch(this)" name="reset">Clear</button>
+
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="table-responsive col-md-12" name="home" id="home"></div>
+
+                    </div>
+
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+
+            jQuery('select').selectpicker();
+        })();
+
+        function UniversalSearchout(ele) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let $formDivContainer = $thisForm.find('[name=home]');;
+            var obj = {
+                Mode: $thisForm.find('[name="Mode"]').val(),
+              
+                Name: $thisForm.find('[name="Name"]').val(),
+                MobileNo: $thisForm.find('[name="MobileNo"]').val(),
+                Address: $thisForm.find('[name="Address"]').val(),
+                ReferenceNo: $thisForm.find('[name="ReferenceNo"]').val(),
+                PageSize: 10,
+                PageIndex: 0
+
+            }
+             let pageUrl = '@Url.Action("GetUniversalSearchList", "UniversalSearch")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: obj,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+                    console.log(ajaxOutput, "--ajaxOutput--")
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        console.log('place', ajaxOutput);
+
+
+                        $formDivContainer.empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $formDivContainer.find('table');
+
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({
+                                apiurl: pageUrl, pageSize: ajaxOutput.pageSize, // 'Status': $('[name=CurrentStatus]').val(),
+                                'Mode': $('[name=Mode]').val(),
+                                'TransMode': $('[name=TransMode]').val(),
+                              
+                                'ReferenceNo': $('[name=ReferenceNo]').val(),
+                                'ReferenceID': $('[name=ReferenceID]').val(),
+                                'Name': $('[name=Name]').val(),
+                                'MobileNo': $('[name=MobileNo]').val(),
+                                'EMail': $('[name=EMail]').val(),
+                                'Address': $('[name=Address]').val(),
+                                'Place': $('[name=Place]').val(),
+                                'Area': $('[name=Area]').val(),
+                                'pageSize': 15,
+                                'pageIndex': 0,
+
+                            }, tableOptions, $table)
+                        });
+
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+
+
+                            $formDivContainer.empty().append($('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+                            console.log('ajaxOutput.Data', ajaxOutput.Data);
+
+                            let $table = $formDivContainer.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+
+                                "ajax": returnajaxPagination({
+                                    apiurl: pageUrl, pageSize: ajaxOutput.pageSize,
+                                    // 'Status': $('[name=CurrentStatus]').val(),
+                                    'Mode': $('[name=Mode]').val(),
+                                    'TransMode': $('[name=TransMode]').val(),
+                                   
+                                    'ReferenceNo': $('[name=ReferenceNo]').val(),
+                                    'ReferenceID': $('[name=ReferenceID]').val(),
+
+                                    'Name': $('[name=Name]').val(),
+                                    'MobileNo': $('[name=MobileNo]').val(),
+                                    'EMail': $('[name=EMail]').val(),
+                                    'Address': $('[name=Address]').val(),
+                                    'Place': $('[name=Place]').val(),
+                                    'Area': $('[name=Area]').val(),
+                                    'pageSize': 15,
+                                    'pageIndex': 0,
+                                }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+
+                },
+                complete: function () {
+
+
+                }
+            });
+                 
+        }
+
+        var tableOptions = {
+
+           
+            onlyShowColumn: ['SlNo','Module','ReferenceNo', 'CusName','MobileNo','Email','Address','Place','Area'],
+            hideColumn: ["ReferenceID", "TransMode"],
+            rowClickAction: fn_LoadDetails,
+
+            renameHeader: { "CusName": "Name", },
+
+
+
+        };
+        function fn_LoadDetails(ele) {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+
+            window.open("@Url.Action("LoadCustomerDetails", "UniversalSearch")" + '?ReferenceID=' + Saveddata.ReferenceID + '&TransMode=' + Saveddata.TransMode, '_self');
+
+        }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = {
+                        pageSize: info.length, pageIndex: info.page,
+                        'Mode': ajaxInfo.Mode,
+                        'TransMode': ajaxInfo.TransMode,
+                        'ReferenceNo': ajaxInfo.ReferenceNo,
+                        'ReferenceID': ajaxInfo.ReferenceID,
+                        'Name': ajaxInfo.Name,
+                        'MobileNo': ajaxInfo.MobileNo,
+                        'EMail': ajaxInfo.EMail,
+                        'Address': ajaxInfo.Address,
+                        'Place': ajaxInfo.Place,
+                        'Area': ajaxInfo.Area,
+
+                      
+                    };
+
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function fn_resetSearch(ele) {
+
+            LoadUniversalSearch();
+        }
+    </script>
+    <script src="~/Scripts/jqDOM/tableDOMCreation.js"></script>

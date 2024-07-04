@@ -1,0 +1,583 @@
+﻿@model PerfectWebERP.Models.OtherChargeReportModel.OtherChargeListModel
+
+
+<style>
+
+    .tableFixHead {
+        overflow: auto;
+        height: 550px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refreshLeadMgt" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_otherchargereport_initialLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFilter()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>
+
+    </div>
+
+    <div class="card-body jq_leadgeneration_body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="leadformSesction">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6" style="display:none;">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control rptfilters" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ReportSelect(this)">
+                                  
+                                    <option value="1">Other Charge List</option>
+                                   
+                                </select>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="BranchID" perfect-elemet="Branch" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    @*<option value="0">Please Select </option>*@
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branch in Model.BranchList)
+                                        {
+                                            <option value="@branch.BranchID">@branch.Branch</option>
+                                        }
+                                    }
+
+
+                                </select>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> From Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="FromDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel"> To Date</span>
+
+
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="ToDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" max="2050-01-01" onchange="datenchecklogdate(this)" />
+                                <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Module</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <select class="form-control" name="Module" perfect-tempTable-WorkDetailsTable="Module" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                        <option value="">Please Select </option>
+
+                                        @if (!(Model.ModuleList is null))
+                                        {
+                                            foreach (var modulelist in Model.ModuleList)
+                                            {
+                                                <option value="@modulelist.ID_Mode">@modulelist.ModeName</option>
+                                            }
+
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-danger temptableError"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Other Charge Type</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="OtherChargeTypeID" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+                                    @if (!(Model.OtherChargeTypeList is null))
+                                    {
+                                        foreach (var cat in Model.OtherChargeTypeList)
+                                        {
+                                            <option value="@cat.OtherChargeTypeID">@cat.OtherChargeTypeName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Import From</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+
+                                    <select class="form-control" id="ImportID" name="ImportID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="displayname(this)">
+                                        <option value="">Please Select </option>
+                                        <option value="1">Customer</option>
+                                        <option value="2">Supplier</option>
+                                    </select>
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" data-toggle="tooltip" data-placement="top" data-html="true" title="Import from Customer,Supplier" class="btn btn-primary" type="button" perfect-css="button" onclick="fn_showimportlist(this)" Function="1" Criterea1="BranchID"><i class="las la-file-import la-lg"></i></button>
+
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-4" name="supplierdiv" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Supplier</span>
+                                @*<span class="text-danger">*</span>*@
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    @*<input type="text" class="form-control" name="Supplier" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />*@
+                                    <input type="text" class="form-control" name="SupplierName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="SupplierID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="QuotationID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" name="customerdiv" style="display:none">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Customer</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="ID_Customer" perfect-ctype="hidden" />
+                                <input type="hidden" name="FK_Lead" perfect-ctype="hidden" />
+                                <input type="hidden" name="FK_Salesorder" perfect-ctype="hidden" />
+                                <input type="hidden" name="FK_Customer" perfect-ctype="hidden" />
+                                <input type="hidden" name="FK_CustomerOthers" perfect-ctype="hidden" />
+                                <input type="hidden" name="ID_Branch" perfect-ctype="hidden" />
+                                <div class="input-group">
+
+                                    <input type="text" class="form-control" name="CustomeName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" maxlength="150" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 DivCriteriaProdLead">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label ">
+                                <span perfect-class="formGroupLabel">Group By</span>
+                                <span class="text-danger"></span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control " id="ProdRptCriteria" name="ProdRptCriteria" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please select</option>
+                                    <option value="1">Branch</option>
+                                    <option value="2">Module</option>
+                                    <option value="3">Date</option>
+                                    <option value="4">Supplier/Customer</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-right" perfect-class="formFooter">
+                        <button id="addcompany-jq-addnewuser" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="geteqReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                        <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+
+                    </div>
+                </div>
+
+                <div class="">
+                    <button type="button" class="btn btn-nt" id="exppdf" style="display:none;" float:left; onclick="generatePdf(this)" title="Download PDF"><i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:28px"></i></button>
+                </div>
+
+
+        </form>
+    </div>
+</div>
+
+<div id="divReportSection">
+
+
+</div>
+
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+
+
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+<script>
+    (function () {
+
+        jQuery('select').selectpicker();
+    })();
+
+
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+
+
+    });
+
+    function displayname(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name="ImportID"]').val() == 1)
+        {
+            $thisForm.find('[name="supplierdiv"]').hide();
+            $thisForm.find('[name="customerdiv"]').show();
+
+
+        }
+        else if ($thisForm.find('[name="ImportID"]').val() == 2)
+        {
+            $thisForm.find('[name="supplierdiv"]').show();
+            $thisForm.find('[name="customerdiv"]').hide();
+        }
+
+        $thisForm.find('[name="SupplierName"]').val("");
+        $thisForm.find('[name="SupplierID"]').val("");
+        $thisForm.find('[name="ID_Customer"]').val("");
+        $thisForm.find('[name="CustomeName"]').val("");
+
+
+    }
+    function fn_showimportlist(ele) {
+        debugger
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        if ($thisForm.find('[name="ImportID"]').val() == 1) {
+            GetCmnPopUpSearchValAssign(ele, 7, 'Customer List', [], ['ID_Customer', 'CustomeName', 'MobileNo','State']);
+        }
+        //else if ($thisForm.find('[name="Supplier"]').val() == 2) {
+        //    GetCmnPopUpSearchValAssign(ele, 42, 'Sales Order List', [], ['FK_Salesorder', 'FK_CustomerOthers', 'FK_Customer', 'CustomeName', 'MobileNo', 'AdvAmount', 'SoAddnAmount', 'SoDownPayment', 'SoStartDate', 'OtherCharge', 'SalDiscount'], SalesTransMode);
+        //}
+        else if ($thisForm.find('[name="ImportID"]').val() == 2) {
+            GetCmnPopUpSearchValAssign(ele, 169, 'Supplier Details', [], ['SupplierID', 'Supplier','SupplierName','CustomeName','Statecode']);
+
+        }
+        //else if ($thisForm.find('[name="Supplier"]').val() == 3) {
+        //    GetCmnPopUpSearchValAssign(ele, 33, 'Lead List', [], ['FK_Lead', 'FK_CustomerOthers', 'FK_Customer', 'CustomeName', 'MobileNo', 'FK_Employee'], SalesTransMode);
+        //} else if ($thisForm.find('[name="Supplier"]').val() == 5) {
+
+        //    $("#btnbranchSearch").click();
+
+
+        //}
+        else {
+            NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': 'Please Select Import From' });
+        }
+
+
+    }
+
+    function datenchecklogdate(ele) {
+
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        //invalid-feedback
+        let Fromdate = $thisForm.find('[name="FromDate"]').val();
+        let Todate = $thisForm.find('[name="ToDate"]').val();
+
+        Fromdate = new Date(Fromdate);
+        Fromdate.setHours(0, 0, 0, 0)
+
+        Todate = new Date(Todate);
+        Todate.setHours(0, 0, 0, 0)
+
+        if (Todate < Fromdate) {
+
+            //console.log('inside limit check if')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('To Date should be greater than  From Date');
+            return false;
+        }
+        else {
+
+            //console.log('inside limit check else')
+            $thisForm.find('[name="ToDate"]').closest('[perfect-class="formGroup"]').find('.limit-check').text('')
+            return true;
+        }
+
+    }
+
+
+    function ResetButton(ele) {
+        fn_otherchargereport_initialLoad();
+    }
+    var itemdata = 0;
+    var tableData;
+
+    function geteqReport(ele) {
+        debugger
+        //let $tbody;
+
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+        let ReportId = $thisForm.find('[name="ID_Report"]').val();
+        let Report_Id = ReportId;
+
+        if ($('[name="ImportID"]').val() == 1 && $('[name="ID_Customer"]').val() == "") {
+
+            $('[name="CustomeName"]').addClass("perfectValidate_string");
+            $('[name="SupplierName"]').removeClass('perfectValidate_string');
+        }
+        else if ($('[name="ImportID"]').val() == 2 && $('[name="SupplierID"]').val() == "") {
+
+            $('[name="SupplierName"]').addClass('perfectValidate_string');
+            $('[name="CustomeName"]').removeClass("perfectValidate_string");
+        
+        }
+        else {
+            $('[name="SupplierName"]').removeClass('perfectValidate_string');
+            $('[name=CustomeName]').removeClass("perfectValidate_string");
+            
+        }
+
+        if ($thisForm.valid()) {
+
+
+         var obj = {
+                TransMode: otherchargeTransMode,
+                FromDate: $thisForm.find('[name="FromDate"]').val(),
+                ToDate: $thisForm.find('[name="ToDate"]').val(),
+                FK_Branch: $thisForm.find('[name="BranchID"]').val(),
+                Module: $thisForm.find('[name="Module"]').val(),
+                OtherChargeType: $thisForm.find('[name="OtherChargeTypeID"]').val(),
+                ImportID: $thisForm.find('[name="ImportID"]').val(),
+                //Supplier: $thisForm.find('[name="Supplier"]').val(),
+                SupplierID: $thisForm.find('[name="SupplierID"]').val(),
+                ID_Customer: $thisForm.find('[name="ID_Customer"]').val(),
+                ProdRptCriteria: $thisForm.find('[name="ProdRptCriteria"]').val(),
+            }
+            $.ajax({
+                url: "@Url.Action("GetOtherChargeReportList", "Report")",
+                type: "POST",
+                data: JSON.stringify(obj),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+                    
+
+                        $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+
+
+                        });
+
+
+                },
+                complete: function () {
+                }
+            });
+           // fn_showFilter();
+        }
+
+
+    }
+
+
+
+
+ function generatePdf(ele) {
+
+        var cdata;
+        var head;
+        var body;
+        var collen;
+        var vfromdate;
+        var vtodate;
+
+        //test start
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+         $.ajax({
+              url: '@Url.Action("GetCompanyDetails", "Home")',
+              type: "GET",
+              dataType: "json",
+              contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                 success: function (ajaxOutput) {
+
+
+                     cdata = ajaxOutput;
+
+                },
+             complete: function () {
+
+                 head = [['Sl No', 'Category', 'Manufacturer', 'Brand', 'Vehicle Number', 'Model', 'Supplier', 'Registration Date','Purchase Date']];
+                     body = [];
+                     collen=":"
+                     vfromdate;
+                     vtodate;
+                     vfromdate = $thisForm.find('[name="FromDate"]').val();
+                    const dateObject = new Date(vfromdate);
+
+                    // Extract the month, day, and year from the date object
+                    const month = dateObject.getMonth() + 1;
+                    const day = dateObject.getDate();
+                    const year = dateObject.getFullYear();
+                    // Create a new date string with the 'MM-DD-YYYY' format
+                    vfromdate = `${day}/${month}/${year}`;
+                    // Use the newDateString variable to display the date in the desired format
+                    // Extract the month, day, and year from the date object
+
+                    vtodate = $thisForm.find('[name=ToDate]').val();
+
+                    const dateObjects = new Date(vtodate);
+                    const months = dateObjects.getMonth() + 1;
+                    const days = dateObjects.getDate();
+                    const years = dateObjects.getFullYear();
+
+                    vtodate = `${days}/${months}/${years}`;
+
+                    var upperhead = {
+
+                        columnStyles: { 0: { halign: 'left', textColor: "black", fontSize: 11, fillColor: false, } },
+                        //margin: { top: 10, bottom:0 },
+
+                        body: [
+                            [
+                                "From Date  :   " + vfromdate + "           To Date :   " + vtodate ]
+
+
+
+                        ],
+
+                    };
+
+
+                // var aralenth = itemdata.length;
+                 //var c = itemdata.slice(0, (aralenth - 1));
+                 var bod = itemdata;
+
+                 var ptableData = {
+                     columns: [
+                         { title: "Category", dataKey: "Category" },
+                         { title: "Manufacturer", dataKey: "Manufacturer" },
+                         { title: "Brand", dataKey: "Brand" },
+                         { title: "Vehicle Number", dataKey: "VehicleNo" },
+                         { title: "Model", dataKey: "Model" },
+                         { title: "Supplier", dataKey: "Supplier" },
+                         { title: "Registration Date", dataKey: "RegDate" },
+                         { title: "Purchase Date", dataKey: "PurchaseDate" },
+
+                     ],
+                     rows: bod
+
+                 };
+                 let Rptname;
+                 let Rptvalue = $thisForm.find('[name="FK_Mode"]').val();
+
+                 if (Rptvalue == 1) {
+                     Rptname = 'Vehicle'
+                 }
+                 else {
+                     Rptname = 'Vehicle Opening'
+                 }
+
+                 exportPdf(Rptname, head, cdata, upperhead, '', ptableData, '', 'Report', 'a4');
+
+
+
+                }
+         });
+
+    }
+
+    $("#exppdf").tooltip({ trigger: 'hover' });
+
+
+    function formatDate(date) {
+
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [day, month, year].join('-');
+    }
+
+    function getfunctionAssign()  {
+
+
+        debugger
+    }
+    function getfunction() {
+
+
+        debugger
+    }
+
+
+</script>

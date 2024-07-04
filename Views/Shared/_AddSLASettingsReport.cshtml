@@ -1,0 +1,293 @@
+﻿
+@model PerfectWebERP.Models.SLASettingsModel.SLAReportView
+
+
+<style>
+    .tableFixHead {
+        overflow: auto;
+        height: 700px;
+    }
+
+        .tableFixHead thead tr {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        padding: 8px 16px;
+    }
+    
+</style>
+
+
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="refresh" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="SLAReport_initLoad()" title="To Refresh"><i class="fa fa-refresh"></i></button>
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+        </div>
+
+    </div>
+    <div class="card-body ReportFilter">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control rptfilters" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ReportSelect(this)">
+
+                                    <option value="1">SLA Violated Report List</option>
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control perfectValidate_date" name="AsOnDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-6 filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Customer Type</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="CustomerType" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_CustomerCategory" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="Individual" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,60,'Customer Type List',[],['Individual'])" Form="form" Criterea1="0" Criterea2="0" BindName="CustomerType" BindVal="FK_CustomerCategory"></button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Complaint</span>
+
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control" name="FK_Complaint" id="id_complnt" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                                    <option value="">Please Select</option>
+                                    @if (!(Model.complaintLists is null))
+                                    {
+                                        foreach (var COML in Model.complaintLists)
+                                        {
+                                            <option value="@COML.ID_ComplaintList">@COML.CompntName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+
+                                <span perfect-class="formGroupLabel">Category</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" name="CategoryID" id="Categoryid" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true" onchange="clearproduct(this)">
+
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.CategoryList is null))
+                                    {
+                                        foreach (var categorylist in Model.CategoryList)
+                                        {
+                                            <option value="@categorylist.CategoryID">@categorylist.CategoryName</option>
+                                        }
+
+                                    }
+
+                                </select>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter" id="compprd">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Product</span>
+
+                            </label>
+                            <div class="col-sm-8 ">
+                                <div class="input-group">
+
+                                    <input type="text" class="form-control product" name="ProductName" id="ProductNameP" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                            @*<button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this, 29, 'Product List', [])" BindName="ProductName" BindVal="FK_Product" Criterea1="CategoryID" Criterea2=""></button>*@
+                                        <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this, 141, 'Product Details', ['HSNCode'], SLAReportTransMode)" Criterea1="CategoryID" Criterea2="0" BindName="ProductName" BindVal="FK_Product"></button>
+
+                                    </div>
+                                    <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+      
+
+                    <div class="col-sm-6 filter Group">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Group By</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control " name="Criteria" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.ModeList is null))
+                                    {
+                                        foreach (var modeList in Model.ModeList)
+                                        {
+                                            <option value="@modeList.ID_Mode">@modeList.ModeName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="card-footer text-right" perfect-class="formFooter">
+                <button id="ButtonShow" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="GetReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+    <div id="divReportSection" class="tableFixHead">
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+    (function () {
+        jQuery("select").selectpicker();
+
+    });
+    $(document).ready(function () {
+
+        initFunctions('form');
+
+        let $thisForm = $(this).closest('[perfect-class="form"]');
+
+
+    });
+
+
+    function ResetButton(ele) {
+        SLAReport_initLoad();
+    }
+
+
+     function GetReport(ele) {
+         let $thisForm = $('[perfect-class="form"]');
+
+         var Report_Id = $('#ID_Report').val();
+
+        if ($thisForm.valid()) {
+
+            $("#divReportSection").html("");
+
+            let InputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                "ReportMode": Report_Id,
+                "AsOnDate": $thisForm.find('[name="AsOnDate"]').val(),
+                "FK_CustomerType": $thisForm.find('[name="FK_CustomerCategory"]').val(),
+                "FK_ComplaintList": $thisForm.find('[name="FK_Complaint"]').val(),
+                "FK_Category": $thisForm.find('[name="CategoryID"]').val(),
+                "FK_Product": $thisForm.find('[name="FK_Product"]').val(),
+                "TransMode": SLAReportTransMode,
+                "FK_Criteria": $thisForm.find('[name="Criteria"]').val()
+
+            };
+            let pageUrl = '@Url.Action("GetSLAReport", "Report")';
+
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: InputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+                    debugger
+                    var rptmode = $('select[name="ID_Report"] option:selected').val();
+                    if (ajaxOutput.IsProcess) {
+                        $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+
+                            
+                        });
+                        
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': 'No Records Found' });
+                    } 
+                    
+                }, 
+               
+            }); //fn_showFiltersearchs();
+        }
+
+    }
+    function clearproduct(ele) {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.find('[name="ProductName"]').val('');
+        $thisform.find('[name="FK_Product"]').val(0);
+
+
+    }
+
+   
+
+    function ReportValidate() {}
+
+
+
+
+</script>

@@ -1,0 +1,478 @@
+﻿
+@{
+    ViewBag.Title = "Job Card Assign";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+
+
+        <div class="col-lg-12" id="jq_JobCardAssignIndex_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+    const $formContainer = $('#jq_JobCardAssignIndex_formContainer');
+        var JobCardAssignTransMode = '';
+        const LastIDSessionKey = 'ShortageMarkingLastID';
+        var LastID_JobCardAssign;
+        $(document).ready(function () {
+            fn_JobCardAssignIndex_initialLoad()
+
+
+
+        });
+        //function fn_showFilter() {
+        //    $formContainer.find('.jq_jobcardassign_body').toggleClass('.d-none');
+        //}
+
+        function fn_showFilter() {
+
+
+            $formContainer.find('.jq_jobcardassign_body').find('.leadformSesction').toggleClass('d-none');
+        }
+        function fn_JobCardAssignIndex_initialLoad() {
+
+            JobCardAssignTransMode = '@ViewBag.TransMode';
+
+            getSessionValue(LastIDSessionKey, function (result) {
+                LastID_JobCardAssign = result;
+            });
+           
+            fn_loadJobCardList(this, fn_jobcrdasgnIndexAddForm);
+        }
+        function fn_jobcrdasgnIndexAddForm() {
+            let ddlStages = $('select[name=FK_ProjectStages]');
+            let $ID_ProjectStages = $(ddlStages).val() == "" ? "0" : $(ddlStages).val();
+
+            $formContainer.load("@Url.Action("LoadJobCardAssign", "JobCardAssign")?ID_ProjectStages=" + $ID_ProjectStages, function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+            
+                $thisForm.attr('perfect-onFormSuccess', 'fn_JobCardAssignIndex_initialLoad');
+                $('select[name=FK_ProjectStages]').val($ID_ProjectStages == "0" ? "":$ID_ProjectStages);
+                $thisForm.closest('.jq_jobcardassign_body').find('.leadformSesction').addClass('d-none');
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_JobCardAssign = result;
+                });
+                let inputData = {            //
+
+                    FromDate: $thisForm.find('[name="FromDate"]').val(),
+                    ToDate: $thisForm.find('[name="ToDate"]').val(),
+                    TargetFrom: $thisForm.find('[name="TargetFrom"]').val(),
+                    TargetTo: $thisForm.find('[name="TargetTo"]').val(),
+                    FK_Product: $thisForm.find('[name="FK_Product"]').val(),
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+                };
+
+                $.ajax({
+                    url: "@Url.Action("GetJobCards", "JobCardAssign")",
+                    type: "POST",
+                    data: inputData,//<---- Input json : data passed to controller
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function (ajaxOutput) { 
+                        $('#todobadge').html("0");
+                        $('#overduebadge').html("0");
+                        $('#tasksbadge').html("0");
+                        $('#myleadsbadge').html("0");
+                        if (ajaxOutput.Process.IsProcess && ajaxOutput.Data[0].MasterId > 0) {
+                             
+                                $('#todobadge').html("" + ajaxOutput.Data[0].Value + "");
+                            
+                                $('#overduebadge').html("" + ajaxOutput.Data[1].Value + "");
+                            
+                                $('#tasksbadge').html("" + ajaxOutput.Data[2].Value + "");
+                            
+                                $('#myleadsbadge').html("" + ajaxOutput.Data[3].Value + "");
+                            
+                            $('#Todolist')[0].click();
+                            $('html,body').animate({ scrollTop: $($thisForm.closest('.jq_jobcardassign_body').find('.SearchLoadDiv')).offset().top }, 1000);
+
+                        }
+
+                    },
+                    complete: function () {
+
+                    }
+                });
+            });
+
+        };
+        var tableOptionList = {
+        dropdown: {
+            buttons: [
+                @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text> { displayName: "View", action: fn_editJobCardAssign },</text>
+                }
+                { type: "divider" },
+               @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteJobCardAssign },</text>
+                 }
+                ],
+            class: "btn btn-success light sharp"
+        },
+        onlyShowColumn: ["SlNo", "ProductName", "Stage", "JcaAssignDate","JcaTargetDate" ],
+        hideColumn: [],
+        rowClickAction: fn_editJobCardAssign,
+        renameHeader: {
+            "SlNo": "Sl No", "ProductName": "Product Name", "JcaAssignDate": "Assign Date", "JcaTargetDate":"Target Date"},
+        isDateType: ["JcaAssignDate","JcaTargetDate"],
+        serialNo: false,
+        };
+
+
+        function fn_loadJobCardList(ele,callback) {
+
+            let $sidemenu = $sideMenuOptions.body;
+            console.log($sidemenu);
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Job Card Assign List');
+            let pageUrl = '@Url.Action("GetJobCardAssignList", "JobCardAssign")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 10, pageIndex: 0, Name: SearchName, TransMode: JobCardAssignTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        console.log('Ajax list', ajaxOutput)
+                        setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                        $sidemenu.find('.jq_sidemenu_title').text("Job Card Assign List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadJobCardList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptionList)))
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+                            "ajax": returnajaxPaginations({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: JobCardAssignTransMode }, tableOptionList, $table)
+                        });
+                    }
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            setSessionValue(LastIDSessionKey, 0);
+                            $sidemenu.find('.jq_sidemenu_title').text("Job Card Assign List");
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadJobCardList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptionList)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,
+                                "processing": true,
+                                "lengthMenu": [0],
+                                "searching": false,
+                                "ordering": false,
+                                "deferLoading": ajaxOutput.totalrecord,
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                "pageLength": ajaxOutput.pageSize,
+                                "recordsFiltered": ajaxOutput.pageSize,
+                                "ajax": returnajaxPaginations({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: JobCardAssignTransMode }, tableOptionList, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        }
+
+    function returnajaxPaginations(ajaxInfo, tableOptionList, tableid) {
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page,TransMode: ajaxInfo.TransMode};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptionList);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPaginations(ajaxInfo, tableOptionList, tableid)
+                })
+
+            },
+
+        }
+    }
+
+    
+        function fn_editJobCardAssign(ele) {
+            console.log("kkkkkkkkkkkk");
+           
+            let row = $(this).closest('tr');
+            let saveddata = row.data('pData');
+            console.log(saveddata);
+            console.log(saveddata.ID_JobCardAssign + "kkkkkkkkkkkk");
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(ele).closest('tr').addClass('SelectForDelete');
+            var $jobAssignEmpContainer1 = $('#jobAssignEmp');
+            $jobAssignEmpContainer1.load('@Url.Action("JobCardAssignDetailsEdit", "JobCardAssign")?ID=' + saveddata.ID_JobCardAssign + "&&TransMode=" + JobCardAssignTransMode, function () {
+                //var AssgnStrtDt = $("#hdnmdlAssgnStrtDt").val();
+                //alert("......................",AssgnStrtDt);
+                $("#btnSave").text("Update");
+                //if (AssgnStrtDt == "") {
+                //}
+                //else {
+                //   // $("#AssignStartDate").prop("min", moment(AssgnStrtDt).format('YYYY-MM-DD'));
+
+                //    $("#AssignStartDate").val(moment(AssgnStrtDt).format('YYYY-MM-DD'));
+                //}
+                $('#modaljobAssignEmp').modal('show');
+            });
+        }
+        function SaveJobCardAssignEmp(ele) {
+
+            debugger 
+            var JobCardAssignEmp = []; var FK_Employee = 0, NewQty = 0; var EmpData = "";
+            var AssignStartDate =   $("#AssignStartDate").val() ; $(".AssignStartDateErr").text("");
+            var AssignStartTime = $("#AssignStartTime").val(); $(".AssignStartTimeErr").text("");
+            var _continue = true;
+            var ID_JobCardAssign = $("#hdnmdlID_JobCardAssign").val().trim(); 
+            var ReturnJob = $("#hdnmdlReturnJob").val().trim(); 
+            if (AssignStartDate == "" || AssignStartDate == null) {
+                $(".AssignStartDateErr").text("Enter Start Date"); _continue = false;
+            }
+            //var valid = moment(AssignStartTime, "HH:mm p", true).isValid();
+           
+            if (AssignStartTime == "" || AssignStartTime == null  ) {
+                $(".AssignStartTimeErr").text("Enter Valid Start Time"); _continue = false;
+            }
+           
+
+            //if (_continue) {      
+
+            //    var JobCardStrtDt = new Date($("#hdnmdlJobCardStartDate").val().trim()).toLocaleDateString();
+            //    var AssignStartDateCheck = new Date(AssignStartDate).toLocaleDateString();
+            //    var StrtDt = moment(JobCardStrtDt);
+            //    var AssignStartDate = moment(AssignStartDateCheck);
+            //    alert(moment(JobCardStrtDt));
+            //    alert(moment(AssignStartDate));
+            //    if (AssignStartDate < StrtDt) {
+            //        $(".AssignStartDateErr").text("Jobcard Start Date should not Exceeds Assigned Date");
+            //        _continue = false;
+            //    } else {
+            //        $(".AssignStartDateErr").text("");                }
+            //}
+            if (_continue) {
+
+
+                var totJobs = parseFloat($("#TotalJobs").text() == "" ? "0" : $("#TotalJobs").text());
+                var totnewqty = 0;
+
+                $('.empjobNewQty').prop("style", "border-color:#343434");
+                var _valid = false;
+
+                $('.empId').each(function () {
+                    debugger;
+                    if (_continue) {
+                        FK_Employee = $(this).val();
+                        NewQty = parseFloat($(this).parent().siblings().find('.empjobNewQty').val().trim() == "" ? "0" : $(this).parent().siblings().find('.empjobNewQty').val().trim());
+                        CurrentJobs = parseFloat($(this).parent().siblings().find('.empCurrentjobs').text().trim() == "" ? "0" : $(this).parent().siblings().find('.empCurrentjobs').text().trim());
+                        totnewqty = totnewqty + NewQty;
+
+                        if (totnewqty <= totJobs) {
+                            if (NewQty != 0) {
+                                EmpData = new EmployeeInformation(FK_Employee, NewQty, CurrentJobs);
+
+                                JobCardAssignEmp.push(EmpData); _valid = true;
+                            }
+                        }
+                        else {
+                            _continue = false;
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Total Quantity should not exceed Production Quantity" });
+                            return;
+
+                        }
+                    }
+
+                });
+                var JCStartDates = $("#hdnmdlJobCardStartDate").val();
+              
+                if (_continue) {
+                    if (JobCardAssignEmp.length > 0) {
+                        if (_valid && _continue) {
+                            var inputData = {//<---- Input Json : this is the variable we pass to controller
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                ID_JobCard: $("#hdnmdlID_JobCard").val().trim(),
+                                FK_Product: $("#hdnmdlFK_Product").val().trim(),
+                                FK_ProjectStages: $("#hdnmdlFK_ProjectStages").val().trim(),
+                                JcaStartDate: AssignStartDate,
+                                JcaStartTime: AssignStartTime,
+                                FK_Product: $("#hdnmdlFK_Product").val().trim(),
+                                FK_Product: $("#hdnmdlFK_Product").val().trim(),
+                                EmployeeAssign: JobCardAssignEmp,
+                                TransMode: JobCardAssignTransMode,
+                                ID_JobCardAssign: ID_JobCardAssign,
+                                JCStartDate: JCStartDates,
+                                ReturnJob: ReturnJob,
+                                LastID: LastID_JobCardAssign
+                            };
+                            clearSessionValue(LastIDSessionKey);
+                            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+
+                            $.ajax({
+                                url: "@Url.Action("SaveJobCardAssign", "JobCardAssign")",
+                                type: "POST",
+                                data: inputData,//<---- Input json : data passed to controller
+                                dataType: "json",
+                                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                                success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                                    if (ajaxOutput.Process.IsProcess) {
+
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': value });
+
+                                        });
+                                        JobCardAssignEmp = [];
+                                        $("#modaljobAssignEmp").modal('hide');
+                                        $('.modal-backdrop').remove();
+                                        fn_JobCardAssignIndex_initialLoad();
+                                    }
+                                    else {
+                                        $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+                                    }
+                                },
+                                complete: function () {
+                                    $(ele).prop('disabled', false);
+                                }
+
+                            });
+
+                        }
+                    }
+                    else {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': "Please enter New Quantity for at least one Employee" });
+                    }
+                }
+            }
+        
+        }
+        function fn_deleteJobCardAssign() {
+
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+            let TransMode = JobCardAssignTransMode;
+            console.log(Saveddata.ID_JobCardAssign+"hhh");
+            let inputReason = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(), //antiforgery token
+                FK_JobCardAssign: Saveddata.ID_JobCardAssign,
+            };
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            $.ajax({
+                url: "@Url.Action("GetJobCardReasonList", "JobCardAssign")",
+                type: "POST",
+                data: {},
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove this Job Card :Job Card No " + Saveddata.JobCardNo + "?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_Reason: selectedOption,
+                                        TransMode: TransMode,
+                                        FK_JobCardAssign: Saveddata.ID_JobCardAssign
+
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteJobCardAssign", "JobCardAssign")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                fn_JobCardAssignIndex_initialLoad();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+
+        } 
+    </script>
+}

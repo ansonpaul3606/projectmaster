@@ -1,0 +1,284 @@
+﻿@model System.Data.DataSet
+@{
+    string ColumnName = "", Allignment = ""; string[] Column; long slNo = 0;
+}
+<link href="~/assets/Tabulator/css/tabulator.min.css" rel="stylesheet" />
+
+<style>
+    tbody tr td:nth-child(1):before {
+        display: none;
+    }
+
+    .Customtable {
+        /*border: 1px solid black;*/
+        /*border-collapse: collapse;*/
+        padding: 0px;
+        width: 100%;
+    }
+
+        .Customtable th {
+            padding: 10px;
+            /*border: 1px solid black;*/
+        }
+
+        .Customtable td {
+            padding: 10px;
+            /*border: 1px solid black;*/
+            text-align: left;
+        }            
+
+        .Customtable tr:nth-child(even) {
+            background-color: white;
+        }
+
+        .Customtable tr:nth-child(odd) {
+            background-color: #eee;
+        }
+
+    .tabulator-header .rightAlgn {
+        text-align: right !important;
+    }
+
+    .tabulator-table {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .rightAlgn {
+        text-align: right !important;
+    }
+
+    .tabulator-tableHolder {
+        height: 100% !important;
+    }
+
+    .tabulator .tabulator-header .tabulator-col {
+        background-color: #2aa2ad !important;
+    }
+
+    .tabulator .tabulator-header {
+        color: #fff !important;
+    }
+
+    .tabulator-table {
+        max-height: 500px;
+        overflow: auto;
+    }
+
+    table tbody tr td:first-child::before {
+        content: counter(rowNumber);
+        min-width: 1em;
+        margin-right: 0.5em;
+    }
+
+    #zero_config {
+        /*width: 1500px;*/
+    }
+</style>
+
+
+@*<div class="card ">
+
+    <div class="card-header">
+
+
+    </div>
+
+    <div class="card-body">
+
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">*@
+
+@Html.AntiForgeryToken()
+
+@if (Model != null)
+{
+    if (Model.Tables.Count > 0)
+    {
+        <div class="row">
+            <div class="col-sm-9" style="display:flex">
+                <div class="col-sm-3" @*style="display:none"*@>
+                    <select class="form-control " id="rptPdfPageSetup" name="rptPdfPageSetup" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+
+
+                        <option value="A4">A4</option>
+
+                        <option value="Portrait">Portrait</option>
+                        <option value="Landscape">Landscape</option>
+                    </select>
+                </div> <div class="col-sm-6">
+                    <button type="button" id="download-pdf" @*style="display:none"*@>
+                        <i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:30px;color: #d92222;"></i>
+                    </button>
+                   
+                        <button type="button" id="download-xlsx">
+                            <i class="fa fa-file-excel-o" aria-hidden="true" style="font-size:30px;color: #1f8e26;"></i>
+                        </button>
+                   
+                    @*<button type="button" id="download-csv">
+                            <img src="~/assets/Tabulator/Image/csv.png" style="vertical-align: bottom;"/>
+
+                        </button>*@
+                </div>
+            </div>
+        </div>
+    }
+}
+<div id="customers" style="display:none">
+    @if (@Model != null)
+    {
+        if (@Model.Tables[0].Rows.Count > 0)
+        {
+            <input type="hidden" id="cmmnRpt_Type" value="@Model.Tables[0].Rows[0]["hdn_cmmnRpt_Type"].ToString()" />
+            if (@Model.Tables[0].Columns.Contains("hdn_Groupby"))
+            {
+                <input type="hidden" id="cmmnRpt_grp" value="@Model.Tables[0].Rows[0]["hdn_Groupby"].ToString()" />
+            }
+            else
+            {
+                <input type="hidden" id="cmmnRpt_grp" value="" />
+            }
+                <div class="col-sm-12 tables-container" style="height:500px;overflow-y:auto" id="tables-container">
+                    <table id="zero_config" class="Customtable">
+                        <thead>
+                            @*<tr style="background-color:#1a3960;color:white;">*@
+                            <tr>
+
+                                @for (int j = 0; j < Model.Tables[0].Columns.Count; j++)
+                                {
+                                    <th style="@Allignment">@Model.Tables[0].Columns[j].ColumnName</th>
+                                }
+
+                            </tr>
+                        </thead>
+
+                        <tbody id="myTableBody">
+                            @for (int i = 0; i < Model.Tables[0].Rows.Count; i++)
+                            {
+                                if (@Model.Tables[0].Rows[0]["hdn_cmmnRpt_Type"].ToString() == "13PRJC")
+                                {
+                                    if (Model.Tables[0].Rows[i]["hdn_Mode"].ToString() == "Income")
+                                    {
+                                        <tr class="tr-shadow" style="font-weight:bold">
+
+                                            @for (int k = 0; k < Model.Tables[0].Columns.Count; k++)
+                                            {
+
+
+
+
+                                                <td style="@Allignment">@Model.Tables[0].Rows[i][k].ToString()</td>
+
+
+                                            }
+
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr class="tr-shadow" style="font-weight:bold">
+
+                                        @for (int k = 0; k < Model.Tables[0].Columns.Count; k++)
+                                        {
+
+
+
+
+                                            <td style="@Allignment">@Model.Tables[0].Rows[i][k].ToString()</td>
+
+
+                                        }
+
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+
+                    </table>
+                   
+                    @*<table id="zero_config2" class="Customtable">
+                        <thead>
+                            <tr style="background-color:#1a3960;color:white;">
+
+                                @for (int j = 0; j < Model.Tables[1].Columns.Count; j++)
+                                {
+                                    <th style="@Allignment">@Model.Tables[1].Columns[j].ColumnName</th>
+                                }
+
+                            </tr>
+                        </thead>
+                        <tbody id="myTableBody">
+                            @for (int i = 0; i < Model.Tables[1].Rows.Count; i++)
+                            {
+                                
+                                    <tr class="tr-shadow" style="font-weight:bold">
+
+                                        @for (int k = 0; k < Model.Tables[1].Columns.Count; k++)
+                                        {
+
+                                            <td style="@Allignment">@Model.Tables[1].Rows[i][k].ToString()</td>
+
+
+                                        }
+
+                                    </tr>
+                                
+                            }
+                            
+
+
+
+                        </tbody>
+
+                    </table>*@
+
+                </div>
+        }
+
+    }
+</div>
+@if (@Model.Tables[0] != null)
+{
+    if (@Model.Tables[0].Rows.Count == 0)
+    {
+
+
+        <div class="row">
+
+            <div class="col-sm-12" style="text-align:center">
+                <span style="font-size:14px;">No Records....</span>
+            </div>
+        </div>
+
+    }
+}
+@*</form>
+
+
+        </div>
+
+    </div>*@
+
+@*<script src="~/Assets/js/jquery-2.1.4.min.js"></script>*@
+
+<script src="@Url.Content("~/Assets/js/jquery-2.1.4.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/tabulator.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.umd.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/jspdf.plugin.autotable.min.js")"></script>
+
+
+<script src="@Url.Content("~/Assets/Tabulator/js/CommontabReport.js")"></script>
+<script src="@Url.Content("~/Scripts/exportFile.js")"></script>
+<script src="@Url.Content("~/Scripts/xlsx.min.js")"></script>
+<script src="@Url.Content("~/Assets/Tabulator/js/html2canvas.js")"></script>
+
+
+
+<script>
+    CompanyName= '@ViewBag.CompanyName';
+</script>
+
+

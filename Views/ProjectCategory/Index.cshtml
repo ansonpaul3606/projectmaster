@@ -1,0 +1,327 @@
+﻿
+@{
+    ViewBag.Title = "Project Category";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="projectcategory-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#projectcategory-form');
+
+        $(document).ready(function () {
+            ProjectCategoryInitialLoad();
+
+        });
+
+
+
+        function ProjectCategoryInitialLoad() {
+
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>   loadProjectCategoryList(this); </text>
+              }
+        
+             loadProjectCategoryAddForm();
+        }
+
+
+           // Fucntion to load ProjectCategory ADD form
+        function loadProjectCategoryAddForm() {
+
+            $formContainer.load('@Url.Action("LoadProjectCategoryForm", "ProjectCategory")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                     // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'ProjectCategoryInitialLoad');
+
+                initFunctions($thisForm);
+
+            });
+
+        };
+
+
+        function loadProjectCategoryList() {
+
+            let $sidemenu = $sideMenuOptions.body;
+            $sideMenuOptions.title.find('h4').text('Project Category List');
+            $.ajax({
+                url: "@Url.Action("GetProjectCategoryList", "ProjectCategory")",
+                type: "Get",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {  
+                        
+                       // $sidemenu.find('.jq_sidemenu_title').text("Project Category List");
+                      
+                        $sideMenuOptions.body.html(pft_table_createtable(ajaxOutput.Data, tableOptions))
+                        $sideMenuOptions.body.find('table').dataTable({ paging: true });
+
+                        console.log('Load ProjectCategory List', ajaxOutput);
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                        });
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+
+                },
+                complete: function () {
+
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                   
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editProjectCategory },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteProjectCategory },</text>
+
+              }
+                   
+                 
+                ],
+                class: "btn btn-success light sharp"
+            },
+
+            onlyShowColumn: ["SlNo", "ProjectCategory", 'ShortName'],
+            hideColumn: [],
+
+            rowClickAction: editProjectCategory,
+            serialNo: false,
+            renameHeader: { "SlNo": "Sl No." }
+
+        };
+
+        var validationMessage = {
+
+            'ProjectCategory': {
+                'required': 'Please Enter Name',
+                'maxlength': jQuery.validator.format('Project Category name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+            },
+
+            'ShortName': {
+                'required': 'Please Enter  Short Name',
+                'stringonly': 'Invalid   Short Name',
+                'alphanumeric': 'Invalid  Short Name',
+            },
+
+        };
+
+
+
+
+
+        function editProjectCategory() {
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ProjectCategoryID: Saveddata.ProjectCategoryID
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetProjectCategoryInfoByID", "ProjectCategory")',
+                        type: "POST",
+
+                       // data: JSON.stringify(inputData),
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        //contentType: "application/json",
+                        success: function (ajaxOutput) {
+
+
+                            //console.log("Return", ajaxOutput.Data[0]);
+
+                            console.log(ajaxOutput.Data[0]);
+                            //if (ajaxOutput.Data[0].l)
+                            if (ajaxOutput.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetProjectCategoryInfo', ajaxOutput)
+
+                                $sideMenuOptions.close();
+
+                                $formContainer.load("@Url.Action("LoadProjectCategoryForm", "ProjectCategory")", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].ProjectCategory)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.Data[0] }); //setting the pdata value in form for update -id is taking
+
+                                    initFunctions($thisForm);
+                                    //if (ajaxOutput.Data[0] != null) {
+                                        $thisForm.attr('perfect-onFormSuccess', 'ProjectCategoryInitialLoad');
+                                    //}
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.find('[name="ProjectCategory"]').val(ajaxOutput.Data[0].ProjectCategory),
+                                        $thisForm.find('[name="ShortName"]').val(ajaxOutput.Data[0].ShortName),
+                                        $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0].SortOrder)
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetProjectCategoryInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+
+        }
+
+           // Function to delete ProjectCategory
+
+          //---
+         // Function to delete customer
+        function deleteProjectCategory() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetProjectCategoryDeleteReasonList", "ProjectCategory")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           //let confirmationDialogBoxOption = {  body: "Do you want to remove  ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           //var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.ProjectCategory + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                           var res = ConfirmDialog(confirmationDialogBoxOption);
+                            res.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+                                   
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ProjectCategoryID: Saveddata.ProjectCategoryID,
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteProjectCategoryInfo", "ProjectCategory")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+        //--
+
+          
+
+
+
+
+    </script>
+
+
+
+}
+
+
+

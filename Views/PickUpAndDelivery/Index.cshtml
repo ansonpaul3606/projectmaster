@@ -1,0 +1,227 @@
+﻿
+@model PerfectWebERP.Models.PickUpandDelivery.DeliveryPickupassignView
+@{
+    ViewBag.Title = "Delivery&Pick-up";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-sm-12" id="deliveryandpickup-form">
+
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/jqDOM/searchDOMCreation.js"></script>
+@section scripts{
+    <script type="text/javascript">
+
+        const $formContainer = $('#deliveryandpickup-form');
+        $(document).ready(function () {
+
+            fn_Initial_load();
+            $("#divpickupstatus").hide();
+            $("#divdeliverystatus").hide();
+
+        });
+        var PickUpTransMode = '';
+
+        function fn_Initial_load() {
+
+            //loadpickdelFollowuplist(this);
+            fn_LoadDeliveryPickup();
+        }
+
+           // Function to load DeliveryPickup form
+        function fn_LoadDeliveryPickup() {
+
+            $formContainer.load('@Url.Action("LoadDeliveryPickupForm", "PickUpAndDelivery")', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+              
+                    $("#divpickupstatus").hide();
+                    $("#divdeliverystatus").hide();
+              
+               
+                $thisForm.attr('perfect-onFormSuccess', 'fn_LoadDeliveryPickup');
+               // initFunctions($thisForm);
+                PickUpTransMode = '@ViewBag.TransMode';
+                //$thisForm.validate({ messages: validationMessage });
+            });
+
+        };
+
+        //var validationMessage = {
+        //    'BillType': {
+        //        'required': 'Please Select Bill Type',
+        //    },            
+        //};
+
+
+        //////sideview list////
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                    //{ displayName: "View", action: EditServicefollowup },
+
+                    { type: "divider" },
+
+                    {
+
+                        //displayName: "Delete", action: deleteServiceFollowUp
+                    }
+                ],
+                class: "btn btn-success light sharp"
+            },
+
+   
+            onlyShowColumn: ["Slno", "ReferenceNo", "CustomerName", "NxtActnName", "Mobile"],
+            hideColumn: [],
+            //  isDateType: [],
+            //rowClickAction: EditServicefollowup,
+            serialNo: false,
+            renameHeader: { "Slno": "Sl No", "ReferenceNo": "Ticket No", "CustomerName": "Customer", "Mobile": "Mobile", "Priority": "Priority", "PickUpTime": "Pickup DateTime", "AssignedOn": "Assigned Time", "EMPName": "Employee" },
+        };
+
+
+
+        function loadpickdelFollowuplist(ele) {
+            debugger;
+
+            let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName);
+
+            $sideMenuOptions.title.find('h4').text('Delivery and PickUp Follow Up List');
+            let pageUrl = '@Url.Action("GetDeliveryPickFollowupList", "PickUpAndDelivery")';
+            $.ajax({
+                url: pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        debugger;
+                        console.log('ajaxout', ajaxOutput);
+
+                        $sidemenu.find('.jq_sidemenu_title').text("Delivery and PickUp  Service Follow Up List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadservicefollowupList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //  "lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+
+
+                    }
+
+                    else {
+                        if (ajaxOutput.Process.Status = "NoData") {
+                            $sidemenu.find('.jq_sidemenu_title').text("Delivery and PickUp Follow Up List");
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadservicefollowupList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                            // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                //"lengthChange": false,
+                                "lengthMenu": [],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+
+
+                },
+
+                complete: function () {
+
+                }
+
+            });
+
+
+        }
+
+
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+                    //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+                    // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+                        //"lengthChange": false,
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+
+    </script>
+
+
+
+}
+

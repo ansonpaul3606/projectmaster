@@ -1,0 +1,439 @@
+﻿
+
+<style>
+    /*.thumbnail:hover {
+        height: 100%;
+        width: 100%;
+    }*/
+
+    .thumbnail {
+        height: 100px;
+        width: 100px;
+       
+    }
+    .thumbnailpdf {
+        height: 40px;
+        width: 40px;
+    }
+
+    input[type=file]::file-selector-button {
+        border: 2px solid #e94560;
+        padding: .2em .4em;
+        border-radius: .2em;
+        color: white;
+        background-color: #e94560;
+        transition: 1s;
+    }
+</style>
+@model PerfectWebERP.Models.CommonSearchPopupModel.Imagelist
+
+    <div  id="imagediv" name="imagediv" class="p_file">        
+            <div class="col-xl-6">
+
+                <div class="form-group row" perfect-class="formGroup">
+                    <label class="col-lg-4 col-form-label">
+                        <span perfect-class="formGroupLabel">Image Mode</span>
+
+                    </label>
+
+                    <div class="col-lg-8">
+
+                        <select class="form-control"  name="ID_ImgMode" perfect-tempTable-ProductType="ImgMode" id="ID_ImgMode" onchange="Getimgcntrl1(this,'','','')" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+
+                            <option value="">Please select</option>
+                            @if (!(Model.ImgModeList is null))
+                            {
+                                foreach (var img in Model.ImgModeList)
+                                {
+                                    <option value="@img.ID_Mode" Modeval="@img.ModeVal">@img.ModeName</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+
+        
+        </div>
+    <div class="modal-footer">
+        @*<button type="button" onclick="CreateProductCheckDescription(this);" class="btn btn-primary">Add</button>*@
+        <button type="button" class="btn btn-primary light" onclick="submitimg()">Apply</button>
+    </div>
+
+<script>
+    var uproductid;
+    var uStockId;
+    var imagemode=0;
+    var wartype;
+    var WarProductImagelst;
+    $(document).ready(function () {
+        let $thisForm = $('[perfect-class="form"]');
+        if (imagemode != 0) {
+           
+            $thisForm.find('[name=ID_ImgMode]').prop("disabled", true);
+            $thisForm.find('[name=ID_ImgMode]').val(imagemode).selectpicker('refresh');
+            Getimgcntrl1($thisForm, '', '', '')
+        }
+        else {
+            $thisForm.find('[name=ID_ImgMode]').prop("disabled", false);
+        }
+       
+        if (WarProductImagelst == null || WarProductImagelst == '') {
+            WarProductImagelst = JSON.parse(localStorage.getItem('WarProductImage'));
+            console.log("WarProductImagelst", WarProductImagelst)
+        }
+      
+        var warproduct = [];
+        var warprobject = [];
+      
+        //check the list with the stockid
+        if (WarProductImagelst!=null) {
+            warproduct = WarProductImagelst.filter(obj => obj.StockId.toString() === uStockId.toString());
+            console.log("warproduct", warproduct)
+            console.log("uStockId", uStockId)
+            warprobject = warproduct.filter(obj => obj.WarrantyType.toString() === wartype.toString());
+            console.log("warprobject", warprobject)
+            console.log("wartype", wartype)
+        }
+      
+       
+        if (warprobject.length==0) {
+
+        }
+        else {
+            var warprobjectimg = [];
+            var prdval = "";
+            $.each(warprobject, function (key, value) {
+
+                if (value.ProdImageMode != prdval)
+                {    //check the list with the imagemode
+                    warprobjectimg = warprobject.filter(obj => obj.ProdImageMode.toString() === value.ProdImageMode.toString());
+                    console.log("warprobjectimg", warprobjectimg)
+                    Getimgcntrl1(this, warprobjectimg, value.WarTypName, value.ProdImageMode)
+
+                    prdval = value.ProdImageMode;
+                }
+               
+            });
+        }
+
+    });
+  
+  
+    function Getimgcntrl1(ele, data, mod, modval) {          
+      
+        let $thisForm; 
+        if (imagemode != 0) {
+            $thisForm = $(ele).closest('[perfect-class="form"]');
+        }
+        else {
+            $thisForm = ele;
+        }
+             let sel = "";
+             let selval = "";
+        if (data == "") {
+           
+                sel = $thisForm.find('[name=ID_ImgMode] option:selected').text();
+                selval = $thisForm.find('[name=ID_ImgMode] option:selected').val();
+           
+        }
+        else {
+            sel = mod;
+            selval = modval;
+        }
+        if (document.getElementById("fileup"+selval) == null) {
+            
+            var div = document.createElement("div");
+            div.className = "col-xl-12 imagedivd";
+            div.id = "div" + selval;
+
+            var div1 = document.createElement("div");
+            div1.className = "form-group row"
+            var label = document.createElement("Label");
+            label.className = "col-lg-2 col-form-label";
+            var text = document.createTextNode(sel);
+            label.appendChild(text);
+            div1.appendChild(label);
+
+            var div2 = document.createElement("div");
+            div2.className = "col-lg-4";
+            var input = document.createElement('input');
+            input.type = "file";
+            input.id = "fileup" + selval;
+            input.multiple = true;
+            input.accept = ".xls,.xlsx,.jpg,.jpeg,.bmp,.gif,.jfif,.pdf,.docx"
+        
+            input.setAttribute("onchange",  "inputchange(this)" );
+            
+            input.setAttribute("name", sel);
+            input.setAttribute("nameval", selval);
+            input.className = "form-control";          
+            div2.appendChild(input);
+            var div3 = document.createElement("div");
+            div3.className = "row " + sel;
+            div3.id = sel;
+
+            div1.appendChild(div2);
+
+            div.appendChild(div1);
+            document.getElementById('imagediv').appendChild(div);
+            document.getElementById('imagediv').appendChild(div3);
+        }
+       
+        if (data != "")
+        {
+            getimage(data);
+        }
+      
+                        
+    }
+    function inputchange(ele) {
+               
+        imgupld(ele.id, ele.name, jQuery(ele).attr("nameval"))
+    }
+
+    //$(document).on("change", "input[type=file]", function () {
+       
+    //    alert(this.id);    
+    //    imgupld(this.id, this.name, jQuery(this).attr("nameval"))
+    //});
+
+    var cntrimg = [];
+    var imgnamu;
+    var imgcnt;
+    function imgupld(id, nameimg,nameimgvl) {
+
+        console.log('nameimg', nameimg)
+        console.log('nameimgvl', nameimgvl)
+        console.log('id', id)
+        let attachment_typ = null;
+        let attachment_ext = null;
+        let $input_element = document.getElementById(id);
+        console.log('input_element', $input_element)
+        var files = $input_element.files;
+        var cntimg = 1;
+      
+        for (var i = 0; i < files.length; i++) {
+            console.log('cntimgi', i)
+            console.log('files.length', files.length)
+                let attachfile = files[i];
+                let reader = new FileReader();
+                let name = attachfile.name;
+                attachment_typ = attachfile.type;
+                console.log('attachment_typ', attachment_typ)
+                attachment_ext = name.split('.').pop().toLowerCase();
+            console.log('attachment_ext', attachment_ext)
+                reader.readAsDataURL(attachfile);
+                reader.onload = function () {
+                    var byteData = reader.result;
+                    byteData = byteData.split(';')[1].replace("base64,", "");
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("GetImage", "CommonPopupSearch")",
+                        data: '{byteData: "' + byteData + '" }',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            //Only pics     
+
+                            if (cntrimg.some(code => code.imgnamu == nameimg)) {
+
+                                cntimg = cntrimg.find(code => code.imgnamu == nameimg).imgcnt;
+                                cntimg = parseInt(cntimg) + 1;
+                                cntrimg.find(v => v.imgnamu == nameimg).imgcnt = cntimg;
+
+                                cntrimg.push({ imgcnt: cntimg, imgnamu: nameimg });
+                                console.log('cntimg1', cntimg)
+                            }
+                            else {
+                                cntimg = 1;
+                                cntrimg.push({ imgcnt: cntimg, imgnamu: nameimg });
+                            }
+                            console.log('cntimg', cntimg)
+                            //var chk = document.createElement('input');  // CREATE CHECK BOX.
+                            //chk.setAttribute('type', 'checkbox');       // SPECIFY THE TYPE OF ELEMENT.
+                            //chk.setAttribute('id', "chk" + nameimg + cntimg);     // SET UNIQUE ID.
+                            //chk.setAttribute('class', 'col-sm-1');
+                            //chk.checked = true;
+                            var imgbyt = "";
+                                var divx = document.createElement("div");
+                                divx.className = "col-lg-2";
+                                var img = document.createElement('img');
+
+                                img.id = "img" + nameimg + cntimg;
+
+                                
+                                console.log('cntrimg', cntrimg)
+                            if (attachfile.type.match('image')) {
+                                img.className = "thumbnail";
+                                img.src = "data:image/;base64," + response;
+                                imgbyt = "data:image/;base64," + response;
+                                img.name = name;
+                              //  divx.appendChild(chk);
+                                divx.appendChild(img);
+                                
+                            }
+                            else {
+                                img.className = "thumbnailpdf";
+                              
+                                img.src = "../Assets/images/icondoc.png";
+                                imgbyt = "data:image/;base64," + response;
+                                var label = document.createElement("Label");
+                                label.className = "col-sm-12";
+                                var text = document.createTextNode(name);
+                                label.appendChild(text);
+                                img.name = name;
+                                //divx.appendChild(chk);
+                                divx.appendChild(img);
+                                divx.appendChild(label);
+                              
+                            }
+                          
+
+                                document.getElementById(nameimg).appendChild(divx);
+
+                                document.getElementById("img" + nameimg + cntimg).onload = function () {
+                                    Imagechng("img" + nameimg + cntimg, nameimgvl, imgbyt, nameimg);
+                                };
+                         
+
+                            // download(name,"data:image/;base64," + response)
+                        },
+                        error: function (response) { alert('Image Upload Failed'); }
+                    });
+                };
+            }
+       
+
+    }
+
+
+    function getimage(data)
+    {
+        cntrimg = [];
+        var cntimg = 1;
+        $.each(data, function (i, value) {
+
+
+            if (cntrimg.some(code => code.imgnamu == value.WarTypName)) {
+
+                cntimg = cntrimg.find(code => code.imgnamu == value.WarTypName).imgcnt;
+                console.log('cntimg0', cntimg)
+                cntimg = parseInt(cntimg) + 1;
+                cntrimg.find(v => v.imgnamu == value.WarTypName).imgcnt = cntimg;
+
+                cntrimg.push({ imgcnt: cntimg, imgnamu: value.WarTypName });
+                console.log('cntimg1', cntimg)
+            }
+            else {
+                cntimg = 1;
+                cntrimg.push({ imgcnt: cntimg, imgnamu: value.WarTypName });
+            }
+                //var chk = document.createElement('input');  // CREATE CHECK BOX.
+                //chk.setAttribute('type', 'checkbox');       // SPECIFY THE TYPE OF ELEMENT.
+                //chk.setAttribute('id', "chk" + value.WarTypName + cntimg);     // SET UNIQUE ID.
+                //chk.setAttribute('class', 'col-sm-1');
+                //chk.checked = true;
+                var imgbyt = "";
+                var divx = document.createElement("div");
+                divx.className = "col-lg-2";
+                var img = document.createElement('img');
+
+                  img.id = "img" + value.WarTypName + cntimg;
+
+                
+            if (value.ProdImageName.includes(".jpg") || value.ProdImageName.includes(".jpeg") || value.ProdImageName.includes(".bmp") || value.ProdImageName.includes(".gif") || value.ProdImageName.includes(".png") || value.ProdImageName.includes(".jfif")) {
+                    img.className = "thumbnail";
+                    img.src = value.ProdImage;
+                    imgbyt = value.ProdImage;
+                    img.name = value.ProdImageName;
+                   // divx.appendChild(chk);
+                    divx.appendChild(img);
+
+                }
+                else {
+                    img.className = "thumbnailpdf";
+
+                img.src = "../Assets/images/icondoc.png";
+                    imgbyt =  value.ProdImage;
+                    var label = document.createElement("Label");
+                    label.className = "col-sm-12";
+                    var text = document.createTextNode(value.ProdImageName);
+                    label.appendChild(text);
+                    img.name = value.ProdImageName;
+                   // divx.appendChild(chk);
+                    divx.appendChild(img);
+                    divx.appendChild(label);
+
+                }
+
+
+            document.getElementById(value.WarTypName).appendChild(divx);
+
+            //document.getElementById("img" + value.WarTypName + cntimg).onload = function () {
+            //    Imagechng("img" + value.WarTypName + cntimg, value.ProdImageMode , imgbyt, value.WarTypName);
+            //    };
+            
+         });
+
+    }
+
+
+    var WarProductImage = [];
+    function Imagechng(img, val, imgbyte, nameimg)
+    {
+        //let imgbyte = null;
+        let imgname;
+        //imgbyte = $("#" + img).attr('src');
+        imgname = $("#" + img).attr('name');
+       
+        if (imgbyte != null) {
+            //ID_ProductImage	TransMode	FK_Master	FK_Customer	FK_Product	FK_SubProduct	ProdImageName	ProdImage	Cancelled	CancelledBy	CancelledOn ProdImageMode
+            WarProductImage.push({ ID_ProductImage: 0, TransMode: '', StockId : uStockId,FK_Product: uproductid, ProdImageName: imgname, ProdImage: imgbyte, ProdImageMode: val, WarrantyType: wartype, WarTypName: nameimg});
+          
+            console.log('WarProductImage', WarProductImage)
+        }
+    }
+
+    function submitimg()
+    {
+        let $thisForm = $('[perfect-class="form"]');
+        let WarProductImagelstcmn = JSON.parse(localStorage.getItem('WarProductImage'));
+        if (WarProductImagelst == null || WarProductImagelst == '') {
+            WarProductImagelst = JSON.parse(localStorage.getItem('WarProductImage'));
+        }
+
+        if (WarProductImagelstcmn != null) {
+            WarProductImage.push.apply(WarProductImage, WarProductImagelstcmn);
+           
+        }
+        else if (WarProductImagelst != null || WarProductImagelst != '') {
+            WarProductImage.push.apply(WarProductImage, WarProductImagelst);
+          
+
+        }
+        localStorage.setItem('WarProductImage', JSON.stringify(WarProductImage));
+        $thisForm.data({ pImageselect: WarProductImage });
+        console.log('WarProductImage', WarProductImage)
+        $('#formGroupModalwarrantyimg').modal('hide');
+        @*var inputData = { 'WarProductImage': WarProductImage };
+         $.ajax({
+            type: "POST",
+            url: "@Url.Action("Imagesession", "CommonPopupSearch")",
+            data: inputData,
+            contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+            dataType: "json",
+             success: function (response) { 
+               //  document.getElementById("fileup1").value = null;
+                $('#formGroupModalwarrantyimg').modal('hide');
+            },
+            error: function (response) { }
+        });*@
+       
+    }
+
+  
+</script>

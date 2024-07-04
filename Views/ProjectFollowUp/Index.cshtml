@@ -1,0 +1,815 @@
+﻿
+@{
+    ViewBag.Title = "Project Follow Up";
+}
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="ProjectFollowUp-form">
+
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+        var ProjectFollowUpTransMode = "";
+
+
+        var LastIDSessionKey = 'ProjectFollowupLastID';
+        var LastID_ProjectFollowup;
+        const $formContainer = $('#ProjectFollowUp-form');
+
+        $(document).ready(function () {
+            ProjectFollowUpInitialLoad();
+
+        });
+
+
+
+        function ProjectFollowUpInitialLoad() {
+            ProjectFollowUpTransMode = '@ViewBag.TransMode';
+               @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text> loadProjectFollowUpList(this, loadProjectFollowUpAddForm); </text>
+              }
+
+             loadProjectFollowUpAddForm();
+        }
+
+
+           // Function to load ProjectFollowUp ADD form
+        function loadProjectFollowUpAddForm() {
+
+            $formContainer.load('@Url.Action("LoadProjectFollowUpForm", "ProjectFollowUp")?mtd=@ViewBag.mtd', function () {
+                
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="FollowupDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="StatusDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                // ... Custom validation message
+                $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+
+                $thisForm.attr('perfect-onFormSuccess', 'ProjectFollowUpInitialLoad');
+               // initFunctions($thisForm);
+                getSessionValue(LastIDSessionKey, function (result) {
+                    LastID_ProjectFollowup = result;
+                });
+				const urlValues = new URLSearchParams(window.location.search);
+				if(urlValues.get('ProjectID')>0)
+			{
+			$thisForm.find('button[name=btnclose]').removeClass('d-none')
+			$thisForm.find('[name="ProjectID"]').val(urlValues.get('ProjectID'));
+			}
+			if(urlValues.get('title')=='ProjectFollowup')
+			{
+			 $thisForm.find('button[name=btnclose]').removeClass('d-none')
+			}
+            });
+
+        };
+
+
+        var tableOptionsTempOut = {
+            iconButton: {
+                buttons: [
+                    {
+                        icon: "fa fa-trash",
+                        action: function () {
+                            let $thistbl = $(this).closest('table');
+                            let table = $thistbl.DataTable();
+                            table.destroy();
+                            if ($(this).closest('tbody').find('tr').length > 1) {
+                                $(this).closest('tr').remove();
+                                pft_table_slreset($thistbl);
+                                //$thistbl.dataTable({ paging: true, searchbtn: false });
+                            }
+                            else {
+                                $thistbl.remove();
+                            }
+
+                        }
+                    },
+                    {
+                        icon: "fa fa-pencil",
+                        action: function () {
+                            let savedData = $(this).closest('tr').data('pData')
+
+                            let $tablecontainer = $(this).closest('[perfect-tempTable]');
+                            let tableKey = $tablecontainer.attr('perfect-tempTable');
+                            let $thisForm = $tablecontainer.closest('[perfect-class="form"]');
+                            //index attribute name in table row
+                            let indexname = tableKey + 'index';
+                            //index number in table row
+                            let rindex = $(this).closest('tr').attr(indexname);
+                            $tablecontainer.attr('perfect-tempTable-action', rindex);
+
+                            console.log('Editclick', savedData);
+                            //filling data in available inputs
+                            $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                                let $thisNode = $(this);
+                                let pf_name = $thisNode.attr('name');
+                                if ($thisNode.is('select')) {
+
+                                    $thisNode.val(savedData[pf_name]).selectpicker('refresh');
+
+                                }
+                                else if ($thisNode.is('input')) {
+                                    let inputType = $thisNode.attr('type').toLocaleLowerCase();
+                                    if ($thisNode.attr('type').toLocaleLowerCase() == 'checkbox') {
+
+                                        $thisNode.prop('checked', savedData[pf_name]);
+                                    }
+                                    else if (inputType == 'date') {
+                                        console.log('datess', savedData)
+                                        console.log('datess', savedData[pf_name])
+                                        // $thisNode.val(moment(savedData[pf_name]).format('YYYY-DD-MM'));
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+                                    else {
+
+                                        $thisNode.val(savedData[pf_name]);
+                                    }
+
+                                }
+                                else {
+                                    $thisNode.val(savedData[pf_name]);
+                                }
+
+
+                            });
+
+
+
+                        }
+                    },
+                ]
+            },
+
+
+
+            onlyShowColumn: ["Department_d", "Employee", "EmployeeTypeID_d", "FK_NetAction_d", "FK_ActionType_d", "NextActionDate", "LgpPQuantity", "MeasurementTypeID_d", "MeasurementUnitID_d", "MDRemarks", "MeasurementValue","ProductID_d"],
+            hideColumn: ["EmployeeTypeID", "MeasurementTypeID", "MeasurementUnitID"],
+            serialNo: true,
+            renameHeader: {
+                "FK_NetAction": "Action", "FK_ActionType": "Action Type", "Department_d": "Department", "MeasurementTypeID_d": "Measurment Type", "MeasurementUnitID_d": "Unit", "MDRemarks": "Remarks", "MeasurementValue": "Value", "NextActionDate": "Follow up Dt", "FK_Category": "Category", "FK_Priority": "Priority", "EmployeeTypeName": "Employeee Type"
+            },
+
+            rowAttribute: [],
+            isCheckType: [],
+            isDateType: ["NextActionDate"],
+        };
+
+        function loadProjectFollowUpList(ele,callback) {
+             let $sidemenu = $sideMenuOptions.body;
+
+            // let $thisForm = $(ele).closest('.Search-Control');
+
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+            $sideMenuOptions.title.find('h4').text('Project Follow Up List');
+
+
+
+
+                let pageUrl = '@Url.Action("GetProjectFollowUpList", "ProjectFollowUp")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, TransMode: ProjectFollowUpTransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Project Follow Up List', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Project Follow Up List");
+
+                              setSessionValue(LastIDSessionKey, ajaxOutput.Data[0]["LastID"]);
+                              //$sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-1 z-index"> <div class="input-group-append testSearchBox"><button title="Export to PDF" onclick="exportpdf('+ ajaxOutput.totalrecord + ',this)" type="button" class="btn btn-primary" onclick=""><i class="fa fa-file-pdf-o" style="font-size:20px"></i></button></div></div></div>')
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadProjectFollowUpList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProjectFollowUpTransMode}, tableOptions, $table)
+                              });
+                          }
+                             else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Project Follow Up List");
+                                  setSessionValue(LastIDSessionKey, 0);
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadProjectFollowUpList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                             "lengthMenu": [0],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, TransMode: ProjectFollowUpTransMode}, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+                complete: function () {
+                    if (callback) {
+
+
+                        callback();
+                    }
+                }
+            });
+        };
+
+
+
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+
+
+                    @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: editProjectFollowUp },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: deleteProjectFollowUp },</text>
+
+              }
+
+
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "Project", "Stage", "CurrentStatus","StatusDate"],
+            hideColumn: [],
+            rowClickAction: editProjectFollowUp,
+            serialNo: false,
+            renameHeader: {"SlNo": "Sl No.", "VisitDate": "Prepare On", "CurrentStatus": "Status","StatusDate":"Status Date" },
+            isDateType: ["VisitDate","StatusDate"],
+        };
+
+        var validationMessage = {
+            'ProjectID': {
+                'required': 'Please Select Project ',
+            },
+            'Project': {
+                'required': 'Please Select Project ',
+            },
+            'TeamID': {
+                'required': 'Please Select Team ',
+            },
+            'StatusDate': {
+                'required': 'Please select Status Date',
+                'min': jQuery.validator.format('Status Date Should be greater than Project Creation date or equal to Todays Date')
+            },
+            'FollowupDate': {
+                'required': 'Please select Followup Date',
+                'min': jQuery.validator.format('Date Should be greater than Project Created date or equal to Todays Date')
+            },
+            'StatusID': {
+                'required': 'Please Select Current Status ',
+            },
+
+        };
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+            //{ apiurl, pageSize }
+            return {
+                url: ajaxInfo.apiurl,
+                type: "post",
+                data: function () {
+                    var info = tableid.DataTable().page.info();
+                    console.log('RETURN AJAX', info)
+
+                    let input = { pageSize: info.length, pageIndex: info.page };
+                    if (ajaxInfo.searchkey) {
+                        input["Name"] = ajaxInfo.searchkey;
+                    }
+                    return input
+                },
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (dtajaxOutput) {
+
+                    let table = tableid.DataTable();
+                    table.destroy();
+                    pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                    tableid.dataTable({
+                        "serverSide": true,
+                        "processing": true,
+
+                        "lengthMenu": [10, 15, 20, 25, 50, 100],
+                        "searching": false,
+                        "ordering": false,
+                        "deferLoading": dtajaxOutput.totalrecord,
+                        "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                        "pageLength": dtajaxOutput.pageSize,
+                        "recordsFiltered": dtajaxOutput.pageSize,
+                        "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                    })
+
+                },
+
+            }
+        }
+
+        function editProjectFollowUp() {
+            debugger
+            let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log("Saved data", Saveddata);
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ProjectFollowUpID: Saveddata.ProjectFollowUpID,
+                TransMode: ProjectFollowUpTransMode
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetProjectFollowUpInfoByID", "ProjectFollowUp")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+                             
+
+                            console.log("Return", ajaxOutput.ProjectFollowUpDetails);
+                            if (ajaxOutput.ProjectFollowUpDetails.Process.IsProcess)
+                            {
+
+                                console.log('>_ Inside GetProjectFollowUpInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadProjectFollowUpForm", "ProjectFollowUp")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.ProjectFollowUpDetails.Data[0].Project)
+                                    console.log('Inside load');
+                                    debugger
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+         
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+
+                                    $thisForm.data({ pData: ajaxOutput.ProjectFollowUpDetails.Data[0] }); //setting the pdata value in form for update -id is taking
+                                    //fn_LoadSubcategory(ajaxOutput.Data[0].Category, $thisForm, ajaxOutput.Data[0].SubCategory);
+                                    
+                                    fn_LoadStage(ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Project, $thisForm, ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Stage);
+                                    fn_LoadStatus(ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Project, ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Stage, $thisForm, ajaxOutput.ProjectFollowUpDetails.Data[0].PrevStatusID, ajaxOutput.ProjectFollowUpDetails.Data[0].CurrentStatusID);
+                                    $thisForm.find('[name="ProjectID"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Project);
+                                    $thisForm.find('[name="Project"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].Project);
+                                    $thisForm.find('[name="btnproduct"]').prop('disabled', true);
+
+                                      
+                                            $thisForm.find('[name="StageID"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Stage).selectpicker('refresh');
+
+                                       
+                                    $thisForm.find('[name="StatusID"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].CurrentStatusID).selectpicker('refresh');
+                                       
+                                        $thisForm.find('[name="CreateDate"]').val(moment(ajaxOutput.ProjectFollowUpDetails.Data[0].ProjectDate).format('YYYY-MM-DD'));
+                                        $thisForm.find('[name="StatusDate"]').val(moment(ajaxOutput.ProjectFollowUpDetails.Data[0].StatusDate).format('YYYY-MM-DD'));
+                                        $thisForm.find('[name="Remarks"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].Remarks).selectpicker('refresh'),
+                                        $thisForm.find('[name="FollowupDate"]').val(moment(ajaxOutput.ProjectFollowUpDetails.Data[0].Date).format('YYYY-MM-DD'));  
+                                    $thisForm.find('[name="Reason"]').val(ajaxOutput.ProjectFollowUpDetails.Data[0].Reason).selectpicker('refresh'),
+                                        //$thisForm.find('[name="DueDate"]').val(moment(ajaxOutput.ProjectFollowUpDetails.Data[0].DueDate).format('YYYY-MM-DD'));
+
+                                    console.log("FollowupDate", moment(ajaxOutput.ProjectFollowUpDetails.Data[0].EffectDate).format('YYYY-MM-DD'));
+                                    console.log("DueDate", moment(ajaxOutput.ProjectFollowUpDetails.Data[0].DueDate).format('YYYY-MM-DD'));
+                                    console.log("StatusDate", moment(ajaxOutput.ProjectFollowUpDetails.Data[0].StatusDate).format('YYYY-MM-DD'));
+                                        console.log("Project Date", moment(ajaxOutput.ProjectFollowUpDetails.Data[0].ProjectDate).format('YYYY-MM-DD'));
+                                        $sideMenuOptions.close();
+                                  
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'ProjectFollowUpInitialLoad');
+                                    let FK_Project = ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Project;
+                                    let Stage_ID = ajaxOutput.ProjectFollowUpDetails.Data[0].FK_Stage;
+                                    GetStatusList(this,1,FK_Project, Stage_ID);
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetProjectFollowUpInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+
+                            //loadProjectFollowUpList()
+                },
+
+            });
+
+        }
+        function fn_LoadStatus(ProjectID, StageID, htmlEl, PrevStatusID, CurrentStatusID) {
+
+            let $thisForm = htmlEl;
+
+            let $placeDropdown = $thisForm.find('[name=StatusID]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+            //let inputData = {
+            //    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            //    LeadGenerateID: $thisForm.find('[name=Lead]').val().trim()
+            //};
+            $.ajax({
+                url: "@Url.Action("GetStatusList", "ProjectFollowUp")",
+                type: "POST",
+
+                data: JSON.stringify({ FK_Project: ProjectID, FK_Stage: StageID, CurrentStatusID: CurrentStatusID  }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+
+
+
+                    if (ajaxOutput.StatusList.Process.IsProcess) {
+
+                        $.each(ajaxOutput.StatusList.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                        });
+                        
+                        $placeDropdown.val(CurrentStatusID).selectpicker('refresh');
+
+                    }
+                    else {
+                        $.each(ajaxOutput.StatusList.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                    }
+                    if (ajaxOutput.DueDate!=null) {
+
+
+                        $thisForm.find('[name=DueDate]').val(ajaxOutput.DueDate);
+                    }
+                }
+
+                 });
+
+
+        }
+        function fn_LoadStage(ProjectID, htmlEl, StageID) {
+
+            let $thisForm = htmlEl;
+
+            let $placeDropdown = $thisForm.find('[name=StageID]');//<--- Will give place select html element
+            $placeDropdown.empty();
+            $placeDropdown.append($('<option/>', { "value": '0' }).text('Please select')).selectpicker('refresh');
+            //let inputData = {
+            //    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            //    LeadGenerateID: $thisForm.find('[name=Lead]').val().trim()
+            //};
+            $.ajax({
+               url: "@Url.Action("GetProjectStages", "ProjectFollowUp")",
+                type: "POST",
+
+                data: JSON.stringify({ FK_Project: ProjectID }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (ajaxOutput) {
+
+
+
+
+                    if (ajaxOutput.Process.IsProcess) {
+
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $placeDropdown.append($('<option/>', { "value": value.ProjectStagesID }).text(value.StageName)).selectpicker('refresh')
+                        });
+                        $placeDropdown.val(StageID).selectpicker('refresh');
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //toastr.warning(value, "Error");
+                            //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                        });
+                     }
+                     }
+
+                 });
+
+
+    }
+        function fillTable(ele, tkey, data, tableOptionsTempOut) {
+
+
+
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+            let tableOptionsTemp = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+
+            let indexname = tkey + 'index';
+            tableOptionsTemp.rowAttribute.push(indexname);
+            tableOptionsTemp.hideColumn.push(indexname);
+
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+
+
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                     
+                   console.log('name', valOne[nameAttr])
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+
+
+                            tableOptionsTemp.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTemp.hideColumn.push(nameAttr);
+                            //displat text of select
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log(inputType)
+                            if (inputType == 'checkbox') {
+
+                                pData[nameAttr] = valOne[nameAttr];
+
+                                tableOptionsTemp.isCheckType.push(nameAttr);
+
+                                console.log('checkbox', nameAttr)
+
+
+                            }
+                            else if (inputType == 'hidden') {
+
+                                tableOptionsTemp.hideColumn.push(nameAttr);
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                            else if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+
+
+                //----
+
+            });
+
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTemp));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+
+        }
+
+        function fn_LoadSubcategory(CategoryId, htmlEl, subCatId) {
+
+            let $thisForm = htmlEl;
+             
+        let $placeDropdown = $thisForm.find('[name=SubCategotyID]');//<--- Will give place select html element
+        $placeDropdown.empty();
+        $placeDropdown.append($('<option/>', { value: '' }).text('Please select')).selectpicker('refresh');
+
+            let CategoryID = CategoryId;
+
+
+        // let ModeDropdown = $thisForm.find('[name=Mode]')
+         //if ($thisForm.find('[name=Mode]').val() == "") {
+         //    $thisForm.find('[name=Mode]').val(0);
+         //}
+         //alert($thisForm.find('[name=Mode]').val())
+         $.ajax({
+                 url: "@Url.Action("GetSubcategory", "ProjectFollowUp")",
+                type: "POST",
+
+             data: JSON.stringify({ CategoryID: CategoryID}),
+                dataType: "json",
+                contentType: "application/json",
+             success: function (ajaxOutput) {
+
+
+
+                 if (ajaxOutput.Process.IsProcess) {
+
+                             $.each(ajaxOutput.Data, function (key, value) {
+                                 $placeDropdown.append($('<option/>', { "value": value.ID_SubCategory }).text(value.SubCatName)).selectpicker('refresh')
+                                 });
+
+                     $placeDropdown.val(subCatId).selectpicker('refresh')
+                     }
+                     else {
+                     $.each(ajaxOutput.Process.Message, function (key, value) {
+                             //toastr.warning(value, "Error");
+                             //NotificationMessage({ 'type': 'info', 'heading': 'info', 'message': value });
+                         });
+                     }
+                     }
+
+                 });
+
+
+    }
+           // Function to delete ProjectFollowUp
+
+
+          //---
+         // Function to delete customer
+        function deleteProjectFollowUp() {
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetProjectFollowUpDeleteReasonList", "ProjectFollowUp")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove  Follow Up Data  of :  " + Saveddata.Project + " " + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        ProjectFollowUpID: Saveddata['ProjectFollowUpID'],
+                                        ReasonID: selectedOption
+                                    };
+                                    console.log(inputData);
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteProjectFollowUpInfo", "ProjectFollowUp")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                               
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                     NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+
+                                                @*$formContainer.load("@Url.Action("LoadProjectFollowUpForm", "ProjectFollowUp")", function () {
+                                                    let $thisForm = $(this).find('[perfect-class="form"]')
+                                                    $thisForm.find('[name="FollowupDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                    $thisForm.find('[name="StatusDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                                                });*@
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+
+
+
+
+
+
+
+    </script>
+
+
+
+}
+
+
+
+

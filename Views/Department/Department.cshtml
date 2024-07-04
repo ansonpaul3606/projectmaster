@@ -1,0 +1,394 @@
+﻿
+
+@{
+    ViewBag.Title = "Department";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Department-form">
+
+        </div>
+    </div>
+
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        //--- Form
+    const $formContainer = $('#Department-form');
+        //--- Common table settings for this page
+        var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                     
+               @if (ViewBag.PagedAccessRights.UsrrlMsView) {
+        <text> { displayName: "View", action: fn_departmentCategoryIndex_loadDepartmentUpdateForm },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+             {
+                 <text> { displayName: "Delete", action: fn_departmentIndex_deleteDepartment },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "DepartmentName", 'DepartmentShortName','ModeName'],
+            rowClickAction: fn_departmentCategoryIndex_loadDepartmentUpdateForm,
+           // serialNo: true,
+            renameHeader: { "SlNo": "SL NO", "DepartmentName": "Name", "DepartmentShortName": "Short Name","ModeName":"Category" }
+        };
+
+
+        $(document).ready(function () {
+            fn_departmentIndex_initialLoad()
+
+        });
+
+        var validationMessage = {
+            'DepartmentName': {
+                'required': 'Please Enter a Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'stringonly': 'Special characters are not allowed in  Name'
+
+            },
+            'DepartmentShortName': {
+                'required': 'Please Enter a Short Name',
+                'maxlength': jQuery.validator.format(' Name should be less than {0} characters'),
+                'alphanumeric': 'Special characters are not allowed in short name'
+            },
+            'FK_DeptMode': {
+                'required': 'Please select a category'
+            }
+            
+        };
+
+        function fn_departmentIndex_initialLoad() {
+
+              @if (ViewBag.PagedAccessRights.UsrrlMsView)
+              {
+                 <text>   fn_departmentIndex_loadDepartment(this); </text>
+              }
+            fn_departmentIndex_loadDepartmentAddForm();
+     
+
+        }
+
+    
+////////////////////////////////////////////////////////////
+
+
+        function fn_departmentIndex_loadDepartment(ele) {
+        let $sidemenu = $sideMenuOptions.body;
+       
+       // let $thisForm = $(ele).closest('.Search-Control');
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+            $sideMenuOptions.title.find('h4').text('Department List');
+          let pageUrl = '@Url.Action("GetDepartmentList", "Department")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('Department', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("Department");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_departmentIndex_loadDepartment(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                                  $sidemenu.find('.jq_sidemenu_title').text("Department");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_departmentIndex_loadDepartment(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+       
+
+
+// Fucntion to load Department ADD form
+        function fn_departmentIndex_loadDepartmentAddForm() {
+
+            $formContainer.load('@Url.Action("LoadDepartmentForm", "Department")', function () {
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                $thisForm.validate({ messages: validationMessage });
+
+                $thisForm.attr('perfect-onFormSuccess', 'fn_departmentIndex_initialLoad');
+
+                initFunctions($thisForm);
+            });
+
+    };
+
+
+  // Function to load Department Update from
+    function fn_departmentCategoryIndex_loadDepartmentUpdateForm() {
+
+            let $thisRow = $(this).closest('tr');
+        let saveddata = $thisRow.data('pData');
+
+
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                DepartmentID: saveddata.DepartmentID
+        };
+        console.log('view clicked',saveddata)
+
+            $.ajax({
+                url: "@Url.Action("GetDepartmentInfo", "Department")",
+                type: "POST",
+                // headers: { "token_key": "1234" },
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        //process is success
+                        $formContainer.load('@Url.Action("LoadDepartmentForm", "Department")', function () {
+
+                            let $thisForm = $(this).find('[perfect-class="form"]');
+                            $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.Data[0].DepartmentName)
+                            console.log('Inside load');
+
+                            $thisForm.validate({ messages: validationMessage });
+                            initFunctions($thisForm);
+                            //console.log('sss', $thisForm)
+                            //console.log('sss', ajaxOutput)
+                            $thisForm.data({ pData: ajaxOutput.Data[0] });
+
+                            // Fill fields
+
+                            $thisForm.find('[name="DepartmentName"]').val(ajaxOutput.Data[0]['DepartmentName']);
+                            $thisForm.find('[name="DepartmentShortName"]').val(ajaxOutput.Data[0]['DepartmentShortName']);
+                            $thisForm.find('[name="SortOrder"]').val(ajaxOutput.Data[0]['SortOrder']);
+                            $thisForm.find('[name="FK_DeptMode"]').val(ajaxOutput.Data[0]['FK_DeptMode']).selectpicker('refresh');
+                           
+                            // stuff to do after filling data
+                            $sideMenuOptions.close();//<---  Close side menu
+                            $thisForm.find('button[name=add]').addClass('d-none');//<--- hide add Department button
+                            $thisForm.find('button[name=update]').removeClass('d-none');//<--- show update Department button
+
+                            $thisForm.attr('perfect-onFormSuccess', 'fn_departmentIndex_initialLoad');
+
+                        });
+                    }
+                    else {
+                        //Error occured
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            });
+    };
+
+
+// Function to delete Deparment
+        function fn_departmentIndex_deleteDepartment() {
+             let $row = $(this).closest('tr');
+
+            let Saveddata = $row.data('pData');
+            console.log('Delete function', Saveddata)
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+              $.ajax({
+                   url: "@Url.Action("GetDepartmentReasonList", "Department")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove   " + Saveddata.DepartmentName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                           
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                   //  console.log('customerIndex> delete function:',selectedOption)
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                DepartmentID: Saveddata['DepartmentID'],
+                 ReasonID: selectedOption
+            };
+            //console.log('Delete function', Saveddata)
+
+           
+                    $.ajax({
+                        url: "@Url.Action("DeleteDepartment", "Department")",
+                                    type: "POST",
+                                    data: inputData,
+                                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                    success: function (ajaxOutput) {
+                                        if (ajaxOutput.Process.IsProcess) {
+
+                                            let table = $row.closest('table').DataTable()
+                                            table.row($row).remove().draw();
+
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                            });
+
+                                            //removing a data
+                                            $('.dataTable tr').removeClass("SelectForDelete");
+
+                                        }
+                                        else {
+                                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                NotificationMessage({ 'message': 'No option selected' });
+                            }
+
+                        });
+
+
+                    }
+                    else {
+
+
+
+                    }
+                }
+
+            });
+
+
+
+
+        };
+
+ 
+
+    </script>
+
+}
+

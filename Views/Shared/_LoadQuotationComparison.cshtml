@@ -1,0 +1,383 @@
+﻿
+
+<div class="card ">
+    <input type="hidden" name="selectedItems" id="selectedItems" />
+    <div class="card-header">
+        <h4 class="card-title col-12">Quotation Comparison</h4>
+    </div>
+    <div class="card-body">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="modal fade" perfect-class="formGroupModalproduct" id="formModalProductDetails" data-backdrop="static" data-keyboard="false">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">Products Details</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" perfect-class="formGroup" style="max-height: calc(100vh - 200px); overflow-y: auto;padding: 1rem;">
+                                    <div class="row HeaderFix" id="productContent" name="productContent">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label">
+                                <span perfect-class="formGroupLabel">Quotation No#</span>
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="col-sm-7">
+                                <div class="input-group">
+                                    <input type="text" class="form-control perfectValidate_string" name="QuotationGen" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="FK_QuotationGen" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" value="0" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" onclick="fn_searchQuotationGen(this)" BindName="QuotationGen" BindVal="FK_QuotationGen" perfect-css="button"></button>
+                                    </div>
+                                </div>
+                                <div class="text-danger temptableError"></div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-8 text-right">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-5 col-form-label" style="margin-top: -4px;">
+                                <span perfect-class="formGroupLabel">Sorted By</span>
+
+                            </label>
+                            <div class="col-sm-7">
+                                <div class="input-group">
+                                    <div class="form-check form-check-inline" perfect-class="formCheck">
+                                        <label class="form-check-label" perfect-class="formCheckLabel">
+                                            <input type="checkbox" class="form-check-input perfectValidate_checkbox" name="ckbNetAmount" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_loadQuotationListData(this);"><span perfect-class="formCheckInputText">Net Amount</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline" perfect-class="formCheck">
+                                        <label class="form-check-label" perfect-class="formCheckLabel">
+                                            <input type="checkbox" class="form-check-input perfectValidate_checkbox" name="ckbBillAmount" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_loadQuotationListData(this);"><span perfect-class="formCheckInputText">Bill Amount</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline" perfect-class="formCheck">
+                                        <label class="form-check-label" perfect-class="formCheckLabel">
+                                            <input type="checkbox" class="form-check-input perfectValidate_checkbox" name="ckbDiscountAmount" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_loadQuotationListData(this);"><span perfect-class="formCheckInputText">Discount Amount</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline" perfect-class="formCheck">
+                                        <label class="form-check-label" perfect-class="formCheckLabel">
+                                            <input type="checkbox" class="form-check-input perfectValidate_checkbox" name="ckbOtherCharges" perfect-class="formCheckInput" perfect-ctype="checkbox" perfect-css="checkbox" onchange="fn_loadQuotationListData(this);"><span perfect-class="formCheckInputText">Other Charges</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="contentPanel" name="contentPanel">
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    $('#jq-sidemenu').hide();
+    $("button[data-dismiss=modal]").click(function () {
+        $(".modal").modal('hide');
+    });
+    function fn_searchQuotationGen(ele) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+           $.ajax({
+               url: '@Url.Action("GetQuotationGenSearchForComparison", "Quotation")?TransModeData=' + QuotationComparisonTransMode,
+                    type: "Get",
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (successData) {
+                        if (successData.Process.IsProcess) {
+                            if (successData.Data.length> 0) {
+                                var sss = createSelectList({
+                                    data: successData.Data,
+                                    hideColumn: ['ID_QuotationGen'],
+                                    headingText: 'Quotation Master Details',
+                                    renameHeader: { "SlNo": "Sl No", "QuoNO": "Quotation No", "QuoDate": "Quotation Date", "QuoExpireDate": "Expired Date", "QuoTerms":"Terms and Conditions" },
+                                });
+
+                                sss.then(function (ret) {
+                                    if (ret) {
+                                        $thisForm.find('[name=FK_QuotationGen]').val(ret.ID_QuotationGen);
+                                        $thisForm.find('[name=QuotationGen]').focus().val(ret.QuoNO);
+                                        fn_loadQuotationListData(ele);
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            $.each(successData.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+
+                    },
+                    complete: function () {
+                    }
+                });
+    }
+     function fn_loadQuotationListData(ele)
+     {
+         let $thisForm = $(ele).closest('[perfect-class="form"]');
+         if (parseInt($thisForm.find('[name=FK_QuotationGen]').val()) > 0) {
+             $thisForm.find('[name=contentPanel]').empty();
+             let pageUrl = '@Url.Action("GetQuotationComparisonList", "Quotation")';
+             $.ajax({
+                 url: pageUrl,
+                 type: "POST",
+                 data: {
+                     QuotationGenID: $thisForm.find('[name=FK_QuotationGen]').val(),
+                     isNetAmount: $thisForm.find('[name=ckbNetAmount]').is(':checked'),
+                     isBillAmount: $thisForm.find('[name=ckbBillAmount]').is(':checked'),
+                     isOtherAmount: $thisForm.find('[name=ckbOtherCharges]').is(':checked'),
+                     isDiscountAmount: $thisForm.find('[name=ckbDiscountAmount]').is(':checked')
+                 },
+                 dataType: "json",
+                 contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                 success: function (ajaxOutput) {
+                     if (ajaxOutput.Process.IsProcess) {
+                         $.each(ajaxOutput.Data, function (key, value) {
+                             let bgColor = "bg-primary";
+                             let acceptBtnClass = "btn-success";
+                             let acceptBtnAction = "Accept"
+                             let rankDisplay = "none";
+                             if (value.Accepted) {
+                                 bgColor = "bg-success";
+                                 acceptBtnClass = "btn-danger";
+                                 acceptBtnAction = "Reject";
+                             }
+                             if (parseInt(value.RankData) > 0) {
+                                 rankDisplay = "content";
+                             }
+                             let myCol = $('<div class="col-sm-3 col-md-3 pb-2"></div>');
+                             let myPanel = $('<div class="card"><div class="card-header ' + bgColor + ' text-white text-center">' + value.Contact_Name + '<button type="button" class="close" data-target="#' + key + 'Panel" data-dismiss="alert" title="Hide Quotation"><span class="float-right"><i class="fa fa-remove"></i></span></button></div><div class="card-body" style="padding: 0rem"><table class="table table-bordered"><tbody><tr style="display:' + rankDisplay + '"><td>Rank</td><td style="text-align: center;">' + value.RankData + '</td></tr><tr><td>Submitted Date</td><td>' + moment(value.QuoDate).format('DD-MM-YYYY') + '</td></tr><tr><td>Reference No</td><td>' + value.QuoReferenceNo + '</td></tr><tr><td>Bill Amount</td><td style="text-align: right;">' + value.QuoBillTotal + '</td></tr><tr><td>Discount</td><td style="text-align: right;">' + value.QuoDiscount + '</td></tr><tr><td>Other Charges</td><td style="text-align: right;">' + value.QuoOthercharges + '</td></tr><tr><td>Net Amount</td><td style="text-align: right;"><b>' + value.QuoNetAmount + '</b></td></tr></tbody></table></div><div class="card-footer" style="padding: 0;"><button type="button" class="btn btn-outline-info float-left" data-id="' + value.ID_Quotation + '" onClick="SerachQuotationDtls(this);">Products Details</button><button  type="button" class="btn ' + acceptBtnClass + ' float-right" id="right" style="color:white" data-id="' + value.ID_Quotation + '"data-approved="' + value.Accepted + '"data-QuotationGen="' + value.FK_QuotationGen + '" onClick="updateQuotationDtls(this);">' + acceptBtnAction + '</button></div></div>');
+                             myPanel.appendTo(myCol);
+                             myCol.appendTo('#contentPanel');
+
+                             $('.close').on('click', function (e) {
+                                 e.stopPropagation();
+                                 var $target = $(this).parents('.col-sm-3');
+                                 $target.hide('slow', function () { $target.remove(); });
+                             });
+
+                         });
+                     }
+                 },
+                 complete: function () {
+
+                 }
+             });
+         }
+         else {
+             NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': 'Please Select Quotation' });
+         }
+
+    }
+    function SerachQuotationDtls(ele) {
+        let $itemdetails=[];
+        let $warrantydetails = [];
+        let _headerName = [
+            { Text: 'Sl No', Width: '10' },
+            { Text: 'Product', Width: '30' },
+            { Text: 'Qty', Width: '15' },
+            { Text: 'Rate', Width: '15' },
+            { Text: 'MRP', Width: '15' },
+            { Text: 'Discount', Width: '15' }
+        ];
+        let _headerNameW = [
+            { Text: 'Sl No', Width: '20' },
+            { Text: 'Sub Product', Width: '30' },
+            { Text: 'Warranty', Width: '25' },
+            { Text: 'Duration', Width: '25' }
+        ];
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        $thisForm.find('[name=productContent]').empty();
+        let inputData =
+        {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ID_Quotation: $(ele).attr('data-id'),
+            QuoMode: 0
+        };
+         $.ajax({
+                url: '@Url.Action("GetQuotationInfoComparison", "Quotation")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.quoItem.Process.IsProcess) {
+                                $itemdetails = ajaxOutput.quoItem.Data;
+                                if (ajaxOutput.quoWar.Process.IsProcess) {
+                                    $warrantydetails = ajaxOutput.quoWar.Data;
+                                }
+
+                                let $table = $('<table/>', { class: "table mb-0 table-hover  table-striped  text-black" });
+                                let $thead = $('<thead/>', { class: "thead-primary" });
+                                let $thtr = $('<tr/>', { class: "btn-reveal-trigger", role: "row" });
+                                $.each(_headerName, function (key, value) {
+                                    let $thtd = $('<th/>', { style: "width:" + value.Width + "%;" }).text(value.Text);
+                                    $thtr.append($thtd)
+                                });
+                                $table.append($thead.append($thtr));
+
+                                let $tbody = $('<tbody/>');
+                                $.each($itemdetails, function (key, value) {
+                                    let $tbtr = $('<tr/>', { class: "btn-reveal-trigger", role: "row" });
+                                    let $tbtdSlno = $('<td/>', { class: 'class="py-2 text-center' }).text(value.SlNo)
+                                    $tbtr.append($tbtdSlno)
+
+                                    let $tbtdProduct = $('<td/>', { class: 'class="py-2 text-left' }).text(value.ProdName)
+                                    $tbtr.append($tbtdProduct)
+
+                                    let $tbtdQty = $('<td/>', { class: 'class="py-2 text-left' }).text(value.QpdQuantity)
+                                    $tbtr.append($tbtdQty)
+
+                                    let $tbtdRate = $('<td/>', { class: 'class="py-2 text-left' }).text(value.QpdRate)
+                                    $tbtr.append($tbtdRate)
+
+                                    let $tbtdMRP = $('<td/>', { class: 'class="py-2 text-left' }).text(value.QpdMRP)
+                                    $tbtr.append($tbtdMRP)
+
+                                    let $tbtdDiscount = $('<td/>', { class: 'class="py-2 text-left' }).text(value.QpdDiscount)
+                                    $tbtr.append($tbtdDiscount)
+                                    $tbody.append($tbtr)
+                                    let $filteredwarranty = $($warrantydetails).filter(function (idx) {
+                                        return parseInt($warrantydetails[idx].prodtid) === value.FK_Product;
+                                    });
+
+
+                                    if ($filteredwarranty.length > 0) {
+                                        let $tbtrw = $('<tr/>', { class: "btn-reveal-trigger", role: "row" });
+                                        let $tbtrwempty = $('<td/>', { class: 'class="py-2', colspan: "2" });
+                                        $tbtrw.append($tbtrwempty)
+
+                                        let $tbtrwt = $('<td/>', { class: 'class="py-2', colspan: "4" });
+
+                                        let $tablew = $('<table/>', { class: "table mb-0 table-hover text-black" });
+                                        let $theadw = $('<thead/>', { class: "thead-primary" });
+                                        let $thtrw = $('<tr/>', { class: "btn-reveal-trigger", role: "row" });
+                                        $.each(_headerNameW, function (key, value) {
+                                            let $thtdw = $('<th/>', { style: "width:" + value.Width + "%;" }).text(value.Text);
+                                            $thtrw.append($thtdw)
+                                        });
+                                        $theadw.append($thtrw);
+
+                                        $tablew.append($theadw);
+
+
+                                        let $tbodyw = $('<tbody/>');
+                                        $.each($filteredwarranty, function (key, value) {
+                                            let durationType = '';
+                                            switch (value.WDDurationType) {
+                                                case 1:
+                                                    durationType = "Day";
+                                                    break;
+                                                case 2:
+                                                    durationType = "Week";
+                                                    break;
+                                                case 3:
+                                                    durationType = "Month";
+                                                    break;
+                                                case 4:
+                                                    durationType = "Year";
+                                                    break;
+                                            }
+                                            let $tbtrwd = $('<tr/>', { class: "btn-reveal-trigger", role: "row" });
+
+                                            let $tbtdSlno = $('<td/>', { class: 'class="py-2 text-center' }).text(value.SlNo)
+                                            $tbtrwd.append($tbtdSlno)
+
+                                            let $tbtdProduct = $('<td/>', { class: 'class="py-2 text-left' }).text(value.subProName)
+                                            $tbtrwd.append($tbtdProduct)
+
+                                            let $tbtdWarrantyType = $('<td/>', { class: 'class="py-2 text-left' }).text(value.WarrantyType_d)
+                                            $tbtrwd.append($tbtdWarrantyType)
+
+                                            let $tbtdWDDurationType = $('<td/>', { class: 'class="py-2 text-left' }).text(value.WDDuration + " " + durationType)
+                                            $tbtrwd.append($tbtdWDDurationType)
+
+                                            $tbodyw.append($tbtrwd)
+                                        });
+                                        $tablew.append($tbodyw);
+
+                                        $tbtrwt.append($tablew);
+
+                                        $tbtrw.append($tbtrwt)
+                                        $tbody.append($tbtrw)
+
+                                    }
+
+                                });
+                                $table.append($tbody);
+                                let $tfoot = $('<tfoot/>');
+
+                                $table.appendTo('#productContent');
+                                $('#formModalProductDetails').modal('show');
+                             }
+
+                            else {
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                });
+                            }
+                },
+
+            });
+    }
+
+    function updateQuotationDtls(ele) {
+
+        let msg = '';
+        if ($(ele).attr('data-approved')==='true') {
+            msg = 'Rejected Quotation'
+        }
+        else if ($(ele).attr('data-approved') === 'false'){
+            msg = 'Accepted Quotation'
+        }
+
+
+         let inputData =
+         {
+
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_Quotation: $(ele).attr('data-id'),
+             Approved: $(ele).attr('data-approved'),
+             TransMode: QuotationComparisonTransMode,
+            };
+         $.ajax({
+                url: '@Url.Action("UpdateQuotationApproved", "Quotation")',
+                        type: "POST",
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                        success: function (ajaxOutput)
+                        {
+                            if (ajaxOutput.Process.IsProcess) {
+                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': msg });
+                                });
+                                fn_loadQuotationListData(ele);
+
+                            }
+                        }
+         });
+        }
+</script>

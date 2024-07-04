@@ -1,0 +1,843 @@
+﻿@*----------------------------------------------------------------------
+    Created By	: Kavya K
+    Created On	: 30/01/2023
+    Purpose		: AMC Warranty Mapping
+    -------------------------------------------------------------------------
+
+    Modification On
+    By
+
+    -------------------------------------------------------------------------*@
+
+@{
+    ViewBag.Title = "AMCWarrantyMapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12" id="jq_AMCWarrantyMapping_formContainer">
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <script type="text/javascript">
+        var AMCWarrantyTransMode = '';
+        var TransMode = '';
+        var blnSelected = false;
+        //--- Form
+        const $formContainer = $('#jq_AMCWarrantyMapping_formContainer');
+
+        var validationMessage = {
+           
+            'TransDate': {
+                'required': 'Please Select Transaction Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'EffectDate': {
+                'required': 'Please Select Effect Date',
+                'max': jQuery.validator.format('Please Enter a Valid Date')
+
+            },
+            'TransType': {
+                'required': 'Please Select Transaction Type',
+                'stringonly': 'Special Characters are not Allowed in  Transaction Type'
+
+            }, 
+            'AMCMode': {
+                'required': 'Please Select Mode',
+                'stringonly': 'Special Characters are not Allowed in  Mode'
+
+            }, 
+            'CustomeName': {
+                'required': 'Please Enter Customer Name',
+                'stringonly': 'Special Characters are not Allowed in  Customer Name'
+
+            },
+            'FK_Customer': {
+                'required': 'Please Enter Customer Name',
+                'stringonly': 'Special Characters are not Allowed in  Transaction Type'
+
+            }
+      
+        }
+
+           $(document).ready(function () {
+            fn_AMCWarrantyIndex_load();
+
+        });
+        function fn_AMCWarrantyIndex_load() {
+            blnSelected = false;
+            AMCWarrantyTransMode = '@ViewBag.TransMode';           
+            fn_loadAMCWarrantyList(this);
+            fn_AMCWarrantyAddForm();                 
+        }
+
+        function fn_AMCWarrantyAddForm()
+        {
+                $formContainer.load('@Url.Action("LoadFormAMCWarranty", "AMCWarrantyMapping")?mtd=@ViewBag.mtd', function () {
+               
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                $thisForm.find('[name="TransDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="EffectDate"]').val(moment().format('YYYY-MM-DD')); 
+                $thisForm.validate({ messages: validationMessage });
+                    $thisForm.attr('perfect-onFormSuccess', 'fn_AMCWarrantyIndex_load');
+                initFunctions($thisForm);              
+
+            });
+
+        };
+
+        function fn_loadAMCWarrantyList(ele) {
+     
+        let $sidemenu = $sideMenuOptions.body;
+            let $thisForm = $(ele).closest('.testSearchBox');
+            let SearchName = $thisForm.find('input').val();
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+
+            let Type = "";
+            let checked = "";
+            let Details = 0;
+            let tableOptions = "";
+
+            if ($("#customSwitch12").is(':checked')) {
+                Details = 1;
+                checked = "checked";
+                Type = "Warranty";
+                TransMode = 'CUWR';
+                tableOptions = WarrantytableOptions;
+                $(".divAMCMode").hide();
+                $(".divWarranty").show();
+
+            }
+            else {
+                Details = 0;
+                checked = "";
+                Type = "AMC";
+                $(".divAMCMode").show();
+                $(".divWarranty").hide();
+                TransMode = 'CUAM';
+                tableOptions = AMCtableOptions;
+
+            }
+
+            $sideMenuOptions.title.find('h4').text('AMC & Warranty List');
+             let pageUrl = '@Url.Action("GetAMCWarrantyList", "AMCWarrantyMapping")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName, Details: Details, TransMode: TransMode },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+                    if (ajaxOutput.Process.IsProcess) {                   
+
+                                      
+                        $sidemenu.find('.jq_sidemenu_title').text("AMC & Warranty List");
+                        $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-7 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"> <div class="custom-control custom-switch toggle-switch text-right mr-5 mb-2"> <input type="checkbox" class="custom-control-input" id="customSwitch12" onclick="fn_loadAMCWarrantyList(this)"' + checked + '> <label class="custom-control-label" for="customSwitch12">' + Type + '</label> </div></div></div></div></div>')
+
+                        $sidemenu.append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control "id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadAMCWarrantyList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                            //"lengthChange": false,
+                            "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, Details: Details, TransMode: TransMode }, tableOptions, $table)
+                        });
+
+                    }
+                          else
+                          {
+                    
+                        if (ajaxOutput.Process.Status = "NoData") {
+
+                            $sidemenu.find('.jq_sidemenu_title').text("Sales List");
+
+                            $sidemenu.empty().append('<div class="d-flex justify-content-center mb-2 position-relative"><div class="col-md-8 position-absolute top-3 z-index"> <div class="input-group-append testSearchBox"> <div class="custom-control custom-switch toggle-switch text-right mr-5 mb-2"> <input type="checkbox" class="custom-control-input" id="customSwitch12" onclick="fn_loadAMCWarrantyList(this)"' + checked + '> <label class="custom-control-label" for="customSwitch12">' + Type + '</label> </div></div></div></div></div>')
+
+                            $sidemenu.append('<div class="d-flex justify-content-end mb-2"><div class="col-md-5 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " id="serchname" name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  value="' + SearchName + '"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="fn_loadAMCWarrantyList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+                            let $table = $sidemenu.find('table');
+                            $table.dataTable({
+                                "serverSide": true,//no change
+                                "processing": true,//-- process text when clicked
+                                // "lengthChange": false,
+                                "lengthMenu": [],//---drop down page size
+                                "searching": false,//--no change
+                                "ordering": false,//--sorting
+                                "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                "pageLength": ajaxOutput.pageSize,//<----page size
+                                "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName, Details: Details, TransMode: TransMode }, tableOptions, $table)
+                            });
+                        }
+                        else {
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+                        }
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+            if ($("#customSwitch12").is(':checked')) {
+                Details = 1;
+                checked = "checked";
+                Type = "Warranty";
+                TransMode = 'CUWR';
+                tableOptions = WarrantytableOptions;
+                $(".divWarranty").show();
+                $(".divAMCMode").hide();
+               
+
+            }
+            else {
+                Details = 0;
+                checked = "";
+                Type = "AMC";
+                $(".divAMCMode").show();
+                $(".divWarranty").hide();
+                TransMode = AMCWarrantyTransMode;
+                tableOptions = AMCtableOptions;
+
+            }
+        }
+
+        function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+         //   debugger;
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page,TransMode: ajaxInfo.TransMode,Details:ajaxInfo.Details};
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+    }
+
+     var AMCtableOptions = {
+        dropdown: {
+                buttons: [
+                      @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text>   { displayName: "View", action: fn_editAMCWarranty },</text>
+                }
+                { type: "divider" },
+               @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteAMCWarranty },</text>
+                 }
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "AMCTypeName","CustomerName", "Product", "AMCDueDate","AMCRenewDueDate","AMCAvailableServices"],
+            hideColumn: ['FK_Customer','FK_Product','AMCType'],
+            rowClickAction: fn_editAMCWarranty,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL No", "AMCTypeName": "AMC Type", "AMCDueDate": "Due Date", "AMCRenewDueDate": "Renew Due Date", "CustomerName": "Customer", "AMCAvailableServices": "No.Of Services" },
+            isDateType: ["AMCDueDate","AMCRenewDueDate"],
+
+        };
+
+        var WarrantytableOptions = {
+            dropdown: {
+                buttons: [
+                      @if (ViewBag.PagedAccessRights.UsrrlMsView)
+                {
+                    <text>   { displayName: "View", action: fn_editAMCWarranty },</text>
+                }
+                { type: "divider" },
+               @if (ViewBag.PagedAccessRights.UsrrlMsDel)
+                 {
+                     <text> { displayName: "Delete", action: fn_deleteAMCWarranty },</text>
+                 }
+                ],
+
+                class: "btn btn-success light sharp"
+            },
+            onlyShowColumn: ["SlNo", "AMCTypeName", "CustomerName", "Product", "ServiceWarrantyDate", "ReplaceWarrantyDate"],
+            hideColumn: ['FK_Customer', 'FK_Product', 'AMCType'],
+            rowClickAction: fn_editAMCWarranty,
+            serialNo: false,
+            renameHeader: { "SlNo": "SL No", "AMCTypeName": "Warranty Type", "ServiceWarrantyDate": "Service Warranty Date", "ReplaceWarrantyDate": "Replace Warranty Date", "CustomerName": "Customer", "AMCAvailableServices": "No.Of Services" },
+            isDateType: ["ServiceWarrantyDate", "ReplaceWarrantyDate"],
+
+        };
+
+        var AMCdata = [];
+        var warrantyData = [];
+        var Modes;
+        var Saveddata;
+        function fn_editAMCWarranty() {
+        
+            let row = $(this).closest('tr');
+             Saveddata = row.data('pData');
+           
+            if (TransMode == 'CUAM') {
+                FK_AMCDetails = Saveddata.ID_AMCDetails;
+            }
+            else {
+                FK_AMCDetails = Saveddata.ID_AMCDetails;
+            }
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_AMCDetails:  Saveddata.ID_AMCDetails,
+                TransMode: Saveddata.TransMode
+            };
+            $.ajax({
+                url: '@Url.Action("GetAMCWarrantyInfo", "AMCWarrantyMapping")',
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                success: function (ajaxOutput) {
+
+                    $formContainer.load('@Url.Action("LoadFormAMCWarranty", "AMCWarrantyMapping")?mtd=@ViewBag.mtd', function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+
+                        console.log('ajaxOutput',ajaxOutput);
+                      //  if (Saveddata.TransMode == 'CUAM') {
+                            if (ajaxOutput.amcInfo.Process.IsProcess) {
+                                $sideMenuOptions.close();
+                                $thisForm.data({ pData: ajaxOutput.amcInfo.Data[0] });
+
+                   
+                                $(this).find('[perfect-class=formTitle]').text('update');
+                                $thisForm.find('[name="TransType"]').val(ajaxOutput.amcInfo.Data[0].Mode);
+                                $thisForm.find('[name="TransType"]').trigger('change');
+
+                                $thisForm.find('[name="AMCMode"]').val(ajaxOutput.amcInfo.Data[0].AMCMode);      
+                                if (ajaxOutput.amcInfo.Data[0].AMCMode == 1) {
+                                    $(".divAMCMode").show();
+                                    $(".divCustomer").show();
+                                    $(".divWarranty").hide();
+                            
+                                  
+                                  
+                                    $thisForm.find('[name="ID_AMCDetails"]').val(ajaxOutput.amcInfo.Data[0].ID_AMCDetails);
+                                    $thisForm.find('[name="AMCAccountNo"]').val(ajaxOutput.amcInfo.Data[0].AMCAccountNo);
+                                    $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.amcInfo.Data[0].AMCEffectDate).format('YYYY-MM-DD'));
+                                    $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.amcInfo.Data[0].TransDate).format('YYYY-MM-DD'));
+                                   
+                                    $thisForm.find('[name="DueDate"]').val(ajaxOutput.amcInfo.Data[0].DueDate);
+                                    $thisForm.find('[name="RenewDueDate"]').val(ajaxOutput.amcInfo.Data[0].RenewalDate);
+                                    $thisForm.find('[name="FK_Product"]').val(ajaxOutput.amcInfo.Data[0].FK_Product);
+                                    $('#CusData').text(' / ' + ajaxOutput.amcInfo.Data[0].InvoiceNo + ' / ' + ajaxOutput.amcInfo.Data[0].Product);
+                                 
+                                    $thisForm.find('[name="FK_Master"]').val(ajaxOutput.amcInfo.Data[0].FK_Master);
+                                    $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.amcInfo.Data[0].FK_Customer);
+                                    $thisForm.find('[name="CustomeName"]').val(ajaxOutput.amcInfo.Data[0].Customer);
+                                    $thisForm.find('[name="Remarks"]').val(ajaxOutput.amcInfo.Data[0].AmcTransRemarks);
+                                    $thisForm.find('[name="AMCNetAmount"]').val(ajaxOutput.amcInfo.Data[0].AmcNetAmount);
+                                    fn_FillCusDetails(Saveddata);
+                                    blnSelected = false;
+                                }
+                               
+                                $('.divPayment').show();
+                                BindBilldetail(Saveddata);
+                                AMCdata = ajaxOutput.amcInfo.Data[0];
+
+
+                                $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+
+                                $thisForm.data({ pEOthrChgData: ajaxOutput.OtherCharge.Data });
+                                $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+                              //  $thisForm.data({ Warranty: ajaxOutput.paydetail.Data });
+
+                                if (Saveddata.ID_AMCDetails != 0) {
+                                    fillTablepaymentmethod($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                                }
+
+                                // GetWarrantylists(this, 1)
+                                if (ajaxOutput.OtherCharge.Process.IsProcess) {
+
+                                    let othechg = ajaxOutput.OtherCharge.Data;
+                                  
+                                    othrchargelst = [];
+                                    othrchargelst = othrchargelst.concat(othechg);
+                                   
+                                    $thisForm.data({ prtothchgData: othrchargelst });
+                                }
+
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+
+
+                                TransMode = 'CUAM';
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.attr('perfect-onFormSuccess', 'fn_loadAMCWarrantyList');
+                                $sideMenuOptions.close();
+                                $('.divCustomerdetails').hide();
+                                $('.divRenewaldetails').hide();
+                            }
+
+                    //    }
+                      
+
+                            if (ajaxOutput.warrantyInfo.Process.IsProcess) {
+                                $sideMenuOptions.close();
+                                $thisForm.data({ pData: ajaxOutput.warrantyInfo.Data[0] });
+
+                                $(this).find('[perfect-class=formTitle]').text('update ');
+
+                                $(".divAMCMode").hide();
+                                $(".divWarranty").show();
+                                $(".divCustomer").show();
+                                $thisForm.find('[name="ID_WarrantyDetails"]').val(ajaxOutput.warrantyInfo.Data[0].ID_AMCDetails);
+                                $thisForm.find('[name="EffectDate"]').val(moment(ajaxOutput.warrantyInfo.Data[0].EffectDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="TransDate"]').val(moment(ajaxOutput.warrantyInfo.Data[0].TransDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="TransType"]').val(ajaxOutput.warrantyInfo.Data[0].Mode);
+                                $thisForm.find('[name="Serwardt"]').val(moment(ajaxOutput.warrantyInfo.Data[0].ServiceWarrantyDate).format('YYYY-MM-DD'));
+                                $thisForm.find('[name="Replcwardt"]').val(moment(ajaxOutput.warrantyInfo.Data[0].ReplaceWarrantyDate).format('YYYY-MM-DD'));
+                               
+                                $thisForm.find('[name="FK_Product"]').val(ajaxOutput.warrantyInfo.Data[0].FK_Product);
+                                $('#WarrantyData').text(' / ' + ajaxOutput.warrantyInfo.Data[0].InvoiceNo + ' / ' + ajaxOutput.warrantyInfo.Data[0].Product);
+                                $thisForm.find('[name="FK_Master"]').val(ajaxOutput.warrantyInfo.Data[0].FK_Master);
+                                if (ajaxOutput.warrantyInfo.Data[0].AMCMode == 0) {
+
+                                    $thisForm.find('[name="FK_Customer"]').val(ajaxOutput.warrantyInfo.Data[0].FK_Customer);
+                                    $thisForm.find('[name="CustomeName"]').val(ajaxOutput.warrantyInfo.Data[0].Customer);
+                                    fn_FillCusDetails(Saveddata);
+                                }
+
+
+                                $('.divPayment').show();
+                                BindBilldetail(Saveddata);
+                                console.log('Saveddata', Saveddata);
+                                warrantyData = ajaxOutput.warrantyInfo.Data[0];
+                                $thisForm.data({ pOthrChgData: ajaxOutput.OtherCharge.Data });
+                                $thisForm.data({ pEOthrChgData: ajaxOutput.OtherCharge.Data });
+                                $thisForm.data({ pPayment: ajaxOutput.paymentdetail.Data });
+                                $thisForm.data({ pEPayment: ajaxOutput.paymentdetail.Data });
+                                if (Saveddata.ID_AMCDetails != 0) {
+                                    fillTableamc($thisForm, 'Payment', ajaxOutput.paymentdetail.Data, paytableOptionsTempOut)
+                                }
+
+                                $thisForm.find('button[name=add]').addClass('d-none');
+                                $thisForm.find('button[name=update]').removeClass('d-none');
+                                $thisForm.find('button[name=viewinv]').removeClass('d-none');
+                                TransMode = 'CUWR';
+                                $thisForm.validate({ messages: validationMessage });
+                                $thisForm.attr('perfect-onFormSuccess', 'fn_loadAMCWarrantyList');
+                                $sideMenuOptions.close();
+                                $('.divCustomerdetails').hide();
+                                $('.divRenewaldetails').hide();
+
+                            }
+                      //  }
+                        //else {
+                        //    console.log('>_ Inside GetAMCWarrantyInfo :false');                        
+                        //    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        //        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        //    });
+                        //}
+                    });
+
+                }
+        });
+        }
+
+
+        function fn_FillCusDetails(ele) {
+          //  debugger;
+            let FK_Customer = ele.FK_Customer;
+            let Mode = ele.Mode;
+      
+        let InputData = {
+            FK_Customer: FK_Customer,
+            Mode:Mode,
+            TransMode: TransMode
+        };
+           $.ajax({              
+                    url: "@Url.Action("AMCWarrantyFillInvoiceCustomer", "AMCWarrantyMapping")",
+                    type: "Get",
+                    data:InputData,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (ajaxOutput) {
+
+                  
+                        if (ajaxOutput.Process.IsProcess) {
+                            if (AMCMode == 1) {
+                                $('.divCustomerdetails').show();
+                                $('.divAMCdetails').hide(); 
+                                $('.divWarranty').show(); 
+                            }
+                            else {                               
+                                $('.divCustomerdetails').show();   
+                                $('.divAMCdetails').show(); 
+                                $('.divWarranty').hide(); 
+                            }
+                          
+                            let table = JSON.parse(ajaxOutput.Data).dtable;
+                            var arrayhidecolumn = ['ID_Sales', 'FK_Customer', 'FK_Product','CustomerName','Address','MobileNo']
+                            var tableCommonOptions = {
+                                onlyShowColumn: [],
+                                hideColumn: arrayhidecolumn,
+                          // rowClickAction: fn_ShowAMCDetails,
+                                serialNo: false,
+                            };
+                            $(".divCustomerdetails").html(CreateTableCommonGrid(table, tableCommonOptions, 'Customerdetailsid'));
+                            FK_Product = ajaxOutput.Data.FK_Product;
+
+                        
+                                fn_showfillAMCDetails(ele)
+                          
+                            
+                        }
+
+                        else {
+
+                            $.each(ajaxOutput.Process.Message, function (key, value) {
+                                NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                            });
+
+                        }
+
+                    },
+                    complete: function () {
+                    }
+                });
+        }
+
+      
+
+        function fn_deleteAMCWarranty() {
+            debugger;
+            let row = $(this).closest('tr');
+            let Saveddata = row.data('pData');
+            let TransMode = Saveddata.TransMode;
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            if (TransMode == 'CUAM') {
+                FK_AMCDetails = Saveddata.ID_AMCDetails;
+            }
+            else {
+                FK_AMCDetails = Saveddata.ID_AMCDetails;
+            }
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+            $.ajax({
+                   url: "@Url.Action("GetAMCWarrantyReasonList", "AMCWarrantyMapping")",
+                   type: "GET",
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+                           console.log('Saveddata.SupplierID', Saveddata.SupplierID)
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.AMCTypeName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+
+                            confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        FK_AMCDetails: FK_AMCDetails,
+                                        TransMode: TransMode,
+                                        Mode: Saveddata.Mode,
+                                        FK_Reason: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteAMCWarranty", "AMCWarrantyMapping")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                                let table = row.closest('table').DataTable()
+                                                table.row(row).remove().draw();
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': 'Deleted Successfully' });
+                                                });
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+                            });
+                        }
+                        else {
+                        }
+                   }
+
+               });
+        }
+
+
+        function fn_showfillAMCDetails(ele) {
+         //   debugger;
+            let $thisForm = $(ele).find('[perfect-class="form"]');
+            let warrantytyp;
+
+            let wdata = warrantyData;
+            console.log(AMCdata);
+            console.log(warrantyData);
+
+            if (wdata != "" || wdata != null || wdata != undefined) {
+                if (warrantytyp != undefined) {
+                    warrantytyp = warrantyData.AMCType;
+                }
+
+            }
+            //if (warrantyData.Mode == 1) {
+            //    $('.divAMCdetails').hide();
+            //    $('.divWarranty').show();
+            //    $("#TransType").val(warrantyData.Mode).selectpicker('refresh');
+            //    $("#WarrantyType").val(warrantyData.AMCType).selectpicker('refresh');
+            //  //  $("#WarrantyType").trigger('change');
+            //    $("#Serwardt").val(moment(warrantyData.DueDate).format('YYYY-MM-DD'));
+            //    $("#Replcwardt").val(moment(warrantyData.RenewalDate).format('YYYY-MM-DD'));
+            //    $("#WarrantyAmount").val(warrantyData.AmcAmount);
+            //    $("#WarrantyTaxAmount").val(warrantyData.AmcTaxAmount);
+            //    $("#WarrantyNetAmount").val(warrantyData.AmcNetAmount);
+
+            //}
+            if (warrantyData.Mode == 1) {
+                $('.divAMCdetails').hide();
+                $('.divWarranty').show();
+                $("#TransType").val(warrantyData.Mode).selectpicker('refresh');
+                $("#WarrantyType").val(warrantyData.AMCType).selectpicker('refresh');
+                //  $("#WarrantyType").trigger('change');
+                $("#Serwardt").val(moment(warrantyData.ServiceWarrantyDate).format('YYYY-MM-DD'));
+                $("#Replcwardt").val(moment(warrantyData.ReplaceWarrantyDate).format('YYYY-MM-DD'));
+                $("#WarrantyAmount").val(warrantyData.AmcAmount);
+                $("#WarrantyTaxAmount").val(warrantyData.AmcTaxAmount);
+                $("#WarrantyNetAmount").val(warrantyData.AmcNetAmount);
+
+            }
+            else {
+                $('.divWarranty').hide();
+                $("#TransType").val(AMCdata.Mode).selectpicker('refresh');
+                $('.divAMCdetails').show();
+                $("#AMCTypeName").val(AMCdata.AMCType).selectpicker('refresh');
+               // $("#AMCTypeName").trigger('change');
+                $("#NoofServices").val(AMCdata.AMCAvailableServices);
+                $("#DueDate").val(moment(AMCdata.DueDate).format('YYYY-MM-DD'));
+                $("#RenewDueDate").val(moment(AMCdata.RenewalDate).format('YYYY-MM-DD'));
+                $("#AMCAmount").val(AMCdata.AmcAmount);
+                $("#AMCTaxAmount").val(AMCdata.AmcTaxAmount);
+                $("#AMCNetAmount").val(AMCdata.AmcNetAmount);
+               
+            }
+
+
+        }
+
+
+        function BindBilldetail(data) {
+
+          //  debugger;
+          let $thisForm = $(this).closest('[perfect-class="form"]');
+
+            let netamt = 0;
+            let netwarrantyamount = 0;
+
+            if (data.Mode == 2) {
+                netamt = data.AmcNetAmount;
+            }
+            else {
+                $('#Warrantydetailhd').find('tbody tr').each(function (index, ele) {
+                    netwarrantyamount = netwarrantyamount + parseFloat($(ele).find('.WarrantyNetAmount').text());
+
+                });
+
+                netamt = netwarrantyamount;
+            }
+
+            $thisForm.find('[name=BalAmt]').text(netamt);
+
+        }
+        @*function fn_fillAMCData(ele) {
+            debugger;
+        let $thisForm = $(ele).closest('[perfect-class="form"]');       
+        let Amount = ProductAmount;
+        let Qty = Quantity;
+        let Mode = $thisForm.find('[name="TransType"]').val();
+        AMCType = $thisForm.find('[name="AMCTypeName"]').val();
+        let EffectDate = $thisForm.find('[name="EffectDate"]').val();
+
+        let InputData = {
+            Mode: Mode,
+            FK_AMCType: AMCType,
+            EffectDate: EffectDate,
+            AmcAmount: Amount,
+            Quantity: Qty
+
+        };
+
+        $.ajax({
+            url: "@Url.Action("AMCWarrantyFillingAMCData", "AMCWarrantyMapping")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+                if (ajaxOutput.Process.IsProcess) {
+                    $thisForm.find('[name="AMCAmount"]').val(parseFloat(ajaxOutput.Data[0].AmcAmount).toFixed(2));
+                    $thisForm.find('[name="AMCTaxAmount"]').val(parseFloat(ajaxOutput.Data[0].AMCTaxAmount).toFixed(2));
+                    $thisForm.find('[name="AMCNetAmount"]').val(parseFloat(ajaxOutput.Data[0].AMCNetAmount).toFixed(2));
+                    $thisForm.find('[name="NoofServices"]').val(ajaxOutput.Data[0].NoOfServices);
+                    $thisForm.find('[name="DueDate"]').val(moment(ajaxOutput.Data[0].AMCDuedate).format('YYYY-MM-DD'));   
+                    $thisForm.find('[name="RenewDueDate"]').val(moment(ajaxOutput.Data[0].AMCRenewduedate).format('YYYY-MM-DD')); 
+                    AmcAmount = ajaxOutput.Data[0].AmcAmount;
+                    //AMCNetAmount = ajaxOutput.Data[0].AMCNetAmount;
+                }
+                if (ajaxOutput.Data[0].AMCNetAmount > 0) {
+                    $('.divPayment').show();
+                }
+                else {
+                    $('.divPayment').hide();
+                }
+            },
+            complete: function () {
+            }
+
+        });
+
+    }*@
+
+
+        function fillTableamc(ele, tkey, data, tableOptionsTempOut) {
+
+            let $thisForm = $(ele).closest('[perfect-class="form"]');
+            let tableOptionsTempfill = tableOptionsTempOut;
+            let insertData = []
+            let tableKey = tkey;
+            let indexname = tkey + 'index';
+            tableOptionsTempfill.rowAttribute.push(indexname);
+            tableOptionsTempfill.hideColumn.push(indexname);
+            let $tblcontainer = $thisForm.find('[perfect-tempTable="' + tableKey + '"]');
+            $.each(data, function (keyOne, valOne) {
+
+                let pData = {};
+
+                pData[indexname] = keyOne + 1;
+                $tblcontainer.attr('perfect-tempTable-lastindex', pData[indexname])
+                //---
+
+                $thisForm.find('[perfect-tempTable-' + tableKey + ']').each(function () {
+                    let $this = $(this);
+                    let headerName = $this.attr('perfect-tempTable-' + tableKey);
+                    let nameAttr = $this.attr('name');
+                    //console.log('tfhyrtname', nameAttr)
+                    if (typeof valOne[nameAttr] !== undefined) {
+
+                        if ($this.is('select')) {
+                            // tableOptionsTempfill.renameHeader[nameAttr + '_d'] = headerName;
+                            tableOptionsTempfill.hideColumn.push(nameAttr);
+                            //displat text of select
+                            pData[nameAttr + '_d'] = $this.find('[value="' + valOne[nameAttr] + '"]').text();
+                            pData[nameAttr] = valOne[nameAttr];
+                            console.log('select', $this.find('options[value="' + valOne[nameAttr] + '"]').text());
+
+                        }
+                        else if ($this.is('input')) {
+
+                            let inputType = $this.attr('type').toLocaleLowerCase();
+                            console.log(inputType)
+
+
+                            if (inputType == 'date') {
+
+                                if (valOne[nameAttr] == null) {
+                                    pData[nameAttr] = valOne[nameAttr];
+                                }
+                                else {
+                                    pData[nameAttr] = moment(valOne[nameAttr]).format('YYYY-MM-DD');
+                                }
+
+
+                            }
+                            else {
+                                pData[nameAttr] = valOne[nameAttr];
+
+
+                            }
+                        }
+                        else {
+                            pData[nameAttr] = valOne[nameAttr];
+
+
+                        }
+                    }
+
+
+
+                });
+
+                insertData.push(pData);
+
+
+                //----
+
+            });
+            $tblcontainer.empty();
+            $tblcontainer.append(pft_table_createtable(insertData, tableOptionsTempfill));
+            // $tblcontainer.find('table').dataTable({ paging: true });
+           
+        }
+        </script>
+}

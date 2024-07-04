@@ -1,0 +1,1381 @@
+﻿@model PerfectWebERP.Models.CustomerReportModel.CustomerReportList
+<style>
+    .Custominvalid {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #FF6746;
+    }
+
+    .btn-export {
+        /*//height:10px;*/
+        background-color: #2aa2ad;
+        color: white;
+    }
+
+    .div-export {
+        float: right;
+        margin-left: 3px;
+        /*background-color:red;*/
+        height: 41px;
+        /*// width:90px;*/
+    }
+
+        .div-export:hover {
+            color: white !important;
+        }
+
+    .btn-export :hover {
+        color: white !important;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+
+    #Accountdetails {
+        background-color: #CFD8DC;
+    }
+
+    #Gridtransactiondetailsid > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    #R_DTable > thead {
+        position: sticky;
+        top: 0;
+    }
+
+    .tb1 {
+        display: none;
+    }
+
+    #Accountdetailsids {
+        margin-bottom: 0px;
+    }
+</style>
+<div class="card ">
+
+    <div class="card-header">
+        <div class="col-xl-4">
+            <h4 class="card-title col-12">@ViewBag.PageTitle</h4>
+        </div>
+        <div class="col-xl-4 text-right">
+            <button id="addcompany-jq-addnewuser" type="button" class="btn  btn-primary btn-sm" name="Search" perfect-css="button" onclick="fn_showFiltersearchs()" title="To Filter"><i class="fa fa-filter"></i></button>
+            <div class="dropdown div-export" id="exppdfi" style="display:none">
+
+                <button class="btn  dropdown-toggle btn-sm btn-export" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span><i class="fa fa-file-o" style="font-size:16px"></i> </span>
+
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" onclick="generatePdfProfile(this)">PDF</a>
+                    <a class="dropdown-item" href="#" onclick="onExell()">EXCEL </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="card-body ReportFilter">
+        <form id="" class="form-valide" perfect-class="form" action="#" method="post" perfect-onFormSuccess="">
+            <div class="">
+                @Html.AntiForgeryToken()
+                <div class="row">
+
+                    <div class="col-sm-6 filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Report Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8 ">
+
+                                <select class="form-control  perfectValidate_string rptfilters" id="ID_Report" name="ID_Report" data-id="ID_Report-error" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" onchange="ReportSelect(this)">
+                                    <option value="">Please select</option>
+                                    <option value="1">Customer Wise Product List</option>
+                                    <option value="2">Customer Priority List</option>
+                                    <option value="3">Area Wise Customer List</option>
+                                    <option value="4">Customer EMI List</option>
+                                    <option value="5">EMI Due List</option>
+                                    <option value="6"> EMI Detailed List</option>
+                                    <option value="7"> Customer Due list</option>
+                                    <option value="8"> Customer Ledger</option>
+                                </select>
+                                <div id="ID_Report-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Report Name</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 Divbranch filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Branch</span>
+                                <input type="hidden" name="FK_BranchMode" class="form-control" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                            </label>
+                            <div class="col-sm-8">
+
+                                <select class="form-control perfectValidate_string_nm" id="BranchID" name="BranchID" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select" data-live-search="true">
+
+                                    <option value="0">All</option>
+
+
+                                    @if (!(Model.BranchList is null))
+                                    {
+                                        foreach (var branchList in Model.BranchList)
+                                        {
+                                            if (branchList.BranchID == ViewBag.FK_Branch)
+                                            {
+                                                <option value="@branchList.BranchID" selected>@branchList.Branch</option> }
+                                            else
+                                            {
+                                                <option value="@branchList.BranchID">@branchList.Branch</option>
+                                            }
+
+                                        }
+
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 DivDate filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Date Range</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div id="reportrange" name="datefilter" class="pull-left form-control" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                                    <span></span> <b class="caret"></b>
+                                </div>
+
+                                <div id="ToDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 DivAsOnDate filter">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">As On Date</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control ActionDate" id="AsonDate" data-id="AsonDate-error" name="AsonDate" perfect-class="formGroupControl" perfect-ctype="date" perfect-css="date" onchange="CheckAsOnDate()">
+
+                                <div id="AsOnDate-error" class="text-danger temptableError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter CustomerSector">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Customer Sector</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="CustomerSector" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="CustomerSectorID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,133,'Customer Sector List',['',''],[''])" Form="form" Criterea1="0" Criterea2="0" BindName="CustomerSector" BindVal="CustomerSectorID"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter CustomerType">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Customer Type</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="CustomerType" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" readonly />
+                                    <input type="hidden" name="CustomerTypeID" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <input type="hidden" name="Individual" class="" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addcountry-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,60,'Customer Type List',['','','ID_Customer','CustomeName'],['Individual'])" Form="form" Criterea1="0" Criterea2="0" BindName="CustomerType" BindVal="CustomerTypeID"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter Customer">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label rptfilterfields">
+                                <span perfect-class="formGroupLabel">Customer</span>
+                                <span class="text-danger" id="ID_Danger" style="display: none;">*</span>
+                            </label>
+                            <div class="input-group col-sm-8">
+                                <input type="text" class="form-control" name="CustomeName" perfect-class="formGroupControl" data-id="ID_Customer-error" perfect-ctype="input" perfect-css="input" disabled />
+                                <input type="hidden" name="ID_Customer" class="form-control   ActionCust" perfect-class="formGroupControl" perfect-ctype="hidden" data-id="ID_Customer-error" />
+                                <div class="input-group-append">
+                                    <button id="addEmployee-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchValAssign(this,132, 'Customer List',[], ['ID_Customer', 'CustomeName', 'MobileNo'])" Criterea1="CustomerTypeID" Criterea2="0" BindName="CustomeName" BindVal="ID_Customer"></button>
+                                </div>
+                                <div id="ID_Customer-error" class="Custominvalid animated fadeInUp producterror" style="display: none;">Please Select Customer</div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 filter Category">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Category</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control " name="CategoryID" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" onchange="clearproduct(this)" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.CategoryList is null))
+                                    {
+                                        foreach (var cat in Model.CategoryList)
+                                        {
+                                            <option value="@cat.ID_Category">@cat.CategoryName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter Product">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Product</span>
+                            </label>
+                            <div class="col-sm-8 ">
+                                <div class="input-group">
+                                    <input type="text" class="form-control product" name="ProductName" id="ProductName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="FK_Product" perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+                                        <button id="addproduct-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="GetCmnPopUpSearchVal(this, 29, 'Product List', [])" BindName="ProductName" BindVal="FK_Product" Criterea1="CategoryID" Criterea2=""></button>
+
+                                    </div>
+                                    <div class="invalid-feedback animated fadeInUp limit-check" style="display: block;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-6 filter State">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">State</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="States" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="StatesID" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="addstates-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchValAssign(this,10,'State List',['','','DistrictID','District','AreaID','Area'],[])" Criterea1="CountryID" Criterea2="0" BindName="States" BindVal="StatesID" onchange="clearDistrictArea(this)"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter District">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">District</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="District" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="DistrictID" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="adddistrict-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchValAssign(this,11,'District List',['','','AreaID','Area'],[])" Criterea1="StatesID" Criterea2="0" BindName="District" BindVal="DistrictID" onchange="clearDistrict(this)"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter Area">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Area</span>
+
+                            </label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control " name="Area" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" disabled />
+                                    <input type="hidden" name="AreaID" class="form-control " perfect-class="formGroupControl" perfect-ctype="hidden" perfect-css="input" />
+                                    <div class="input-group-append">
+
+                                        <button id="addarea-jq-searchButton3" class="btn btn-primary fa fa-search" type="button" perfect-css="button" Form="form" onclick="GetCmnPopUpSearchValAssign(this,14,'Area List',[''])" Criterea1="DistrictID" Criterea2="0" BindName="Area" BindVal="AreaID"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 filter Group">
+                        <div class="form-group row" perfect-class="formGroup">
+                            <label class="col-sm-4 col-form-label">
+                                <span perfect-class="formGroupLabel">Group By</span>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control " name="Criteria" perfect-selectButtonAction="testing" perfect-class="formGroupControl" perfect-ctype="select" perfect-css="select">
+                                    <option value="">Please Select </option>
+
+                                    @if (!(Model.ModeList is null))
+                                    {
+                                        foreach (var modeList in Model.ModeList)
+                                        {
+                                            <option value="@modeList.ID_Mode">@modeList.ModeName</option>
+                                        }
+
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right filter" perfect-class="formFooter">
+                <button id="ButtonShow" type="button" class="btn btn-primary mr-3 " name="add" perfect-css="button" onclick="GetReport(this) "><i class="fa fa-refresh fa-spin loaderClass "></i>Show</button>
+                <button type="button" class="btn btn-light" perfect-css="button" onclick="ResetButton(this);" name="reset">Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <button type="button" id="exppdf" style="display:none">
+                <i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size:30px;color: #d92222;" onclick="generatePdfProfile(this)"></i>
+            </button>
+            <button type="button" id="expxlsx" style="display:none">
+                <i class="fa fa-file-excel-o" aria-hidden="true" style="font-size:30px;color: #1f8e26;"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="tb1" id="divLedgerHead">
+        <table class="table table-responsive-md" id="Accountdetailsids">
+            <thead class="thead btn-primary" id="ReturnHead">
+                <tr>
+                    <th scope="col" style="text-align:left" colspan="2">Customer Details</th>
+                    <th scope="col" style="text-align:left" colspan="2"></th>
+                </tr>
+            <tbody id="Accountdetails">
+                <tr id="0">
+                    <td style="text-align:center;" colspan="9">No Records..</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="tableFixHead igf" style="display:none">
+        <div class="table-responsive-lg" perfect-tempTable="GridtransactionDetails" id="Gridtransactiontableid">
+
+
+
+            <table class="table table-responsive-lg" id="Gridtransactiondetailsid">
+                <thead class="thead btn-primary" style="width:50px" id="ReturnHead">
+
+
+                    <tr>
+                        <th scope="col" style="text-align:center">Sl No</th>
+                        <th scope="col" style="text-align:left">Project/Sales No</th>
+                        <th scope="col" style="text-align:left">Installation/Sales Date</th>
+                        <th scope="col" style="text-align:left">Narration</th>
+                        <th scope="col" style="text-align:right">Debit</th>
+                        <th scope="col" style="text-align:right">Credit</th>
+                        <th scope="col" style="text-align:right">Balance</th>
+
+
+
+
+
+                    </tr>
+
+
+
+                <tbody id="Gridtransactiondetailsbody">
+
+                    <tr id="0">
+                        <td style="text-align:center;" colspan="9">No Records..</td>
+                    </tr>
+
+                </tbody>
+
+
+
+            </table>
+        </div>
+    </div>
+    <div id="divReportSection">
+
+
+    </div>
+
+</div>
+<script>
+    function ValidateAddRepdetails(Rptval) {
+        var Error = 0;
+        let $inp;
+        if (Rptval == 1 || Rptval == 2 || Rptval == 3 || Rptval == 4 || Rptval == 5 || Rptval == 6 || Rptval == 7) { $inp = $(".Action"); }
+
+        else if (Rptval == 8) { $inp = $(".ActionCust"); }
+        else if (Rptval == 0) { $inp = $(".Action"); }
+        let is_empty;
+        $inp.each((i, el) => {
+
+
+            if (!$('[name=' + $(el).attr('name') + ']').val() == undefined) {
+                is_empty = false;
+
+            }
+            else {
+                if ($('[name=' + $(el).attr('name') + ']').val() == 0 || $('[name=' + $(el).attr('name') + ']').val() == "") {
+                    is_empty = true;
+                }
+                else {
+
+
+                    is_empty = !$('[name=' + $(el).attr('name') + ']').val();
+                }
+
+            }
+            let ErrorID = $(el).attr('data-id');
+
+            if (ErrorID != undefined) {
+                if (is_empty) {
+
+                    $('#' + ErrorID).css('display', 'block');
+                    Error++;
+
+                }
+                else if (!is_empty) {
+                    $('#' + ErrorID).css('display', 'none');
+
+                }
+                el.classList.toggle("is-empty", is_empty);
+            }
+        });
+
+        return Error;
+    }
+    function ResetButton(ele) {
+        fn_CustomerReport_initialload();
+    }
+    function ReportSelect(ele) {
+        let $thisform = $('[perfect-class="form"]');
+
+        GetModeDetails(ele);
+        let ReportId = $thisform.find('[name="ID_Report"]').val();
+
+        $thisform.find('[name="CustomerSector"]').val('');
+        $thisform.find('[name="CustomerSectorID"]').val(0);
+        $thisform.find('[name="CustomeName"]').val('');
+        $thisform.find('[name="ID_Customer"]').val(0);
+        $thisform.find('[name="ProductName"]').val('');
+        $thisform.find('[name="FK_Product"]').val(0);
+        $thisform.find('[name="District"]').val('');
+        $thisform.find('[name="DistrictID"]').val(0);
+        $thisform.find('[name="Area"]').val('');
+        $thisform.find('[name="AreaID"]').val(0);
+        $thisform.find('[name="Criteria"]').val('');
+        $thisform.find('[name="CategoryID"]').val('');
+
+        let htmldata = "";
+        $('.divBranch').show();
+        $('#divLedgerHead').hide();
+        htmldata = "<tr id='0'>" +
+            "<td style='text-align:center;' colspan='0'>No Records..</td>" +
+            "</tr>";
+        $("#divReportSection").html("");
+        $("#Accountdetails").html(htmldata);
+
+        let x = document.getElementById("exppdf");
+        x.style.display = "none";
+        x = document.getElementById("expxlsx");
+        x.style.display = "none";
+        x = document.getElementById("exppdfi");
+        x.style.display = "none";
+
+        document.querySelector('.igf').style.display = "none";
+        document.querySelector('.tb1').style.display = 'none';
+        $("#Gridtransactiondetailsbody").empty();
+
+        if (ReportId == 2) {
+            $(".Product").hide();
+            $(".Group").hide();
+            $(".Area").show();
+            $(".District").show();
+            $(".State").show();
+            $(".Category").hide();
+            $(".Customer").show();
+            $(".CustomerType").show();
+            $(".CustomerSector").show();
+            $(".Customer").removeClass('Actionbill');
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".DivDate ").show();
+            $(".DivAsOnDate ").hide();
+
+
+
+        }
+        else if (ReportId == 3) {
+            $(".Product").hide();
+            $(".Group").hide();
+            $(".Area").show();
+            $(".District").show();
+            $(".State").show();
+            $(".Category").hide();
+            $(".Customer").show();
+            $(".CustomerType").show();
+            $(".CustomerSector").show();
+            $(".Customer").removeClass('Actionbill');
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".DivDate ").show();
+            $(".DivAsOnDate ").hide();
+
+
+
+        }
+        else if (ReportId == 4) {
+            $(".Product").show();
+            $(".Group").hide();
+            $(".Area").hide();
+            $(".District").hide();
+            $(".State").hide();
+            $(".Category").hide();
+            $(".Customer").show();
+            $(".CustomerType").hide();
+            $(".CustomerSector").hide();
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".Customer").removeClass('Actionbill');
+            $(".DivDate ").show();
+            $(".DivAsOnDate ").hide();
+
+
+        }
+        else if (ReportId == 5) {
+            $(".Product").show();
+            $(".Group").hide();
+            $(".Area").show();
+            $(".District").show();
+            $(".State").hide();
+            $(".Category").show();
+            $(".Customer").hide();
+            $(".CustomerType").hide();
+            $(".CustomerSector").hide();
+            $(".Customer").removeClass('Actionbill');
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".DivAsOnDate ").show();
+            $(".DivDate ").hide();
+
+        }
+        else if (ReportId == 6) {
+            $(".Product").show();
+            $(".Group").hide();
+            $(".Area").hide();
+            $(".District").hide();
+            $(".State").hide();
+            $(".Category").show();
+            $(".Customer").hide();
+            $(".CustomerType").hide();
+            $(".CustomerSector").hide();
+            $(".Customer").removeClass('Actionbill');
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".DivDate ").show();
+            $(".DivAsOnDate ").hide();
+
+
+
+        }
+        else if (ReportId == 7) {
+            $(".Product").hide();
+            $(".Group").hide();
+            $(".Area").hide();
+            $(".District").hide();
+            $(".State").hide();
+            $(".Category").hide();
+            $(".Customer").hide();
+            $(".CustomerType").hide();
+            $(".CustomerSector").hide();
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".Customer").removeClass('Actionbill');
+            $(".DivDate ").show();
+            $(".DivAsOnDate ").hide();
+
+
+        }
+        else if (ReportId == 8) {
+            $(".Product").hide();
+            $(".Group").hide();
+            $(".Area").hide();
+            $(".District").hide();
+            $(".State").hide();
+            $(".Category").hide();
+            $(".Customer").show();
+            $(".CustomerType").hide();
+            $(".CustomerSector").hide();
+            $("#ID_Danger").show();
+            $("#ID_Customer-error").hide();
+            $(".Customer").addClass('Actionbill');
+            $(".DivDate ").hide();
+            $(".DivAsOnDate ").hide();
+
+
+        }
+        else {
+            $(".Product").show();
+            $(".Group").show();
+            $(".Area").show();
+            $(".District").show();
+            $(".State").show();
+            $(".Category").show();
+            $(".Customer").show();
+            $(".CustomerType").show();
+            $(".CustomerSector").show();
+            $(".Customer").removeClass('Actionbill');
+            $("#ID_Danger").hide();
+            $("#ID_Customer-error").hide();
+            $(".DivAsOnDate ").hide();
+            $(".DivDate ").show();
+
+        }
+    }
+
+    function clearproduct(ele) {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.find('[name="ProductName"]').val('');
+        $thisform.find('[name="FK_Product"]').val(0);
+    }
+
+    function clearCustomer(ele) {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.find('[name="CustomeName"]').val('');
+        $thisform.find('[name="ID_Customer"]').val(0);
+    }
+
+    function clearDistrictArea(ele) {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.find('[name="District"]').val('');
+        $thisform.find('[name="DistrictID"]').val(0);
+        $thisform.find('[name="Area"]').val('');
+        $thisform.find('[name="AreaID"]').val(0);
+    }
+
+    function clearDistrict(ele) {
+        let $thisform = $('[perfect-class="form"]');
+        $thisform.find('[name="Area"]').val('');
+        $thisform.find('[name="AreaID"]').val(0);
+    }
+
+    var CustReportstartdate;
+    var CustReportenddate;
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange span').html(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+            CustReportstartdate = start.format('DD/MM/YYYY');
+            CustReportenddate = end.format('DD/MM/YYYY');
+        }
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+
+        //For As on date
+        var now = new Date();
+
+        var day = ("0" + now.getDate()).slice(-2);
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+        var today = now.getFullYear() + "-" + (month) + "-" + (day);
+
+        $('#AsonDate').val(today);
+
+    });
+
+    function CheckAsOnDate() {
+       document.getElementById("divReportSection").style.display = "none";
+
+        var _DateValid = true;
+        let AsonDate = $("#AsonDate").val();
+        if (AsonDate == null || AsonDate == "") {
+            $("#AsOnDate-error").css('display', 'block');
+
+            $('#AsOnDate-error').text("Please Select As On Date"); _DateValid = false;
+        } else {
+            $('#AsOnDate-error').text("");
+        }
+        return _DateValid;
+    }
+
+    function GetReport(ele) {
+        debugger;
+
+       // let $thisForm = $(els).closest('[perfect-class="form"]');
+        var _html = " <div id='divCusLedgerReportList'>" +
+            " <table id = 'CusLedgerReportList' class='table table-striped dt-responsive nowrap' style = 'width:100%'>" +
+            " <thead class='thead-primary' id='trhd'></thead></table></div>";
+
+        if ($('select[name="ID_Report"] option:selected').val() == "8") {
+            
+            _html = `
+    <div id='divCusLedgerReportList'>
+        <table id='CusLedgerReportList' class='table table-striped dt-responsive nowrap' style='width:100%'>
+            <thead class='thead-primary' id='trhd'></thead>
+            <tfoot>
+                <tr>
+                    <th style='text-align:right'></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+`;
+
+        }
+        else {
+            _html = '';
+        }
+        $("#divReportSection").html(_html);
+        groupBy = $('thi[name="ProdRptCriteria"] option:selected').text();
+
+
+        if (ValidateAddRepdetails($('#ID_Report').val()) <= 0) {
+            let $thisForm = $('[perfect-class="form"]');
+
+            var Report_Id = $('#ID_Report').val();
+            var BranchID = $('#BranchID').val();
+            var FK_CustomerSector = $thisForm.find('[name="CustomerSectorID"]').val();
+            var FK_CustomerType = $thisForm.find('[name="CustomerTypeID"]').val();
+            var ID_Customer = $thisForm.find('[name="ID_Customer"]').val();
+            var CategoryID = $thisForm.find('[name="CategoryID"]').val();
+            var FK_Product = $thisForm.find('[name="FK_Product"]').val();
+            var StatesID = $thisForm.find('[name="StatesID"]').val();
+            var DistrictID = $thisForm.find('[name="DistrictID"]').val();
+            var AreaID = $thisForm.find('[name="AreaID"]').val();
+            var Criteria = $thisForm.find('[name="Criteria"]').val();
+            var AsOndate = $thisForm.find('[name="AsonDate"]').val();
+                AsOndate = moment(AsOndate).format('DD/MM/YYYY');
+            if ($thisForm.valid()) {
+
+
+                let InputData = {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                    "ReportMode": Report_Id,
+                    "FromDate": CustReportstartdate == null ? "01/01/2023" : CustReportstartdate,
+                    "ToDate": CustReportenddate == null ? "01/01/2023" : CustReportenddate,
+                    "FK_Branch": BranchID,
+                    "FK_CustomerSector": FK_CustomerSector,
+                    "FK_CustomerType": FK_CustomerType,
+                    "FK_Customer": ID_Customer,
+                    "FK_Category": CategoryID,
+                    "FK_Product": FK_Product,
+                    "FK_State": StatesID,
+                    "FK_District": DistrictID,
+                    "FK_Area": AreaID,
+                    "TransMode": CustomerRptTransMode,
+                    "Criteria": Criteria,
+                    "AsOndate": AsOndate,
+
+                };
+                let pageUrl = '@Url.Action("GetCustomerReport", "Report")';
+
+                $.ajax({
+                    url: pageUrl,
+                    type: "POST",
+                    data: InputData,
+                    dataType: "json",
+                    contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                    success: function (ajaxOutput) {
+                        var rptmode = $('select[name="ID_Report"] option:selected').val();
+                        debugger;
+                        if ($("#ID_Report").val() !== "8" ? ajaxOutput.IsProcess : JSON.parse(ajaxOutput.Data).Process.IsProcess) {
+                            if ($("#ID_Report").val() != "8") {
+                                $("#divReportSection").load('@Url.Action("ShowReport", "Report")?rptMode=' + Report_Id, function () {
+                                });
+                            }
+                            else {
+                                let A = document.getElementById("divReportSection");
+                                A.style.display = "block";
+                                debugger
+                                $('#divCusLedgerReportList').show();
+                                $("#CusLedgerReportList").removeClass("dataTable");
+
+                                Data = JSON.parse( ajaxOutput.Data);
+                                var CheckListHTML1 = '';
+
+                                if (ajaxOutput.Data.length > 0) {
+
+                                    $('#divLedgerHead').show();
+                                    debugger
+
+
+                                    reportdetaildata = JSON.parse( ajaxOutput.detailsData);
+                                    ajaxOutput = "";
+                                    reportdetaildata.Data.forEach(item => {
+                                        // Parse string values to numbers for "Debit", "Credit", and "Balance" columns
+                                        //item["Sl No"] = 1;
+                                        ["Debit", "Credit", "Balance"].forEach(key => {
+                                            if (item[key] != null) {
+                                                item[key] = item[key].toFixed(2);
+                                            }
+                                        });
+                                    });
+
+                                    $.each(Data.Data, function (i, value) {
+
+
+
+                                        
+
+
+                                        CheckListHTML1 += "<tr>";
+
+                                        CheckListHTML1 += "<td Class='Supplier-column' style='text-align:left;padding-right:20px;font-weight:bold'>" + "Cust No:" + "</td>";
+                                        CheckListHTML1 += "<td Class='jq_supplier_td' style='text-align:left;font-weight:bold'>" + value.CusNumber + "</td>";
+                                        CheckListHTML1 += "<td Class='address-column' style='text-align:left;padding-right:20px;font-weight:bold' rowspan='2'>" + "Address" + "</td>";
+                                        CheckListHTML1 += "<td rowspan='2' Class='jq_address_td' style='text-align:left;font-weight:bold;line-break: auto;max-width: 70px;'>" + value.CusAddress1 + "</td>";
+                                        CheckListHTML1 += "</tr>";
+
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<td style='text-align:left;font-weight:bold'>Customer Name:</td>";
+                                        CheckListHTML1 += "<td Class='jq_gstin_td' style='text-align:left;font-weight:bold'>" + value.CusName + "</td>";
+
+
+                                        CheckListHTML1 += "</tr>";
+
+                                        CheckListHTML1 += "<tr>";
+                                        CheckListHTML1 += "<td style='text-align:left;font-weight:bold;'>Mobile:</td>";
+                                        CheckListHTML1 += "<td Class='jq_opening_td' style='text-align:left;font-weight:bold'>" + value.Mobile + "</td>";
+                                        CheckListHTML1 += "<td style='text-align:left;'></td>";
+                                        CheckListHTML1 += "<td Class='jq_openingdate_td' style='text-align:left;font-weight:bold'>  </td>";
+
+
+                                        CheckListHTML1 += "</tr>";
+                                       
+
+                                    });
+                                    $("#Accountdetails").html(CheckListHTML1)
+                                    debugger
+                                    
+                                }
+
+                            }
+                            if ($("#ID_Report").val() == "8") {
+                                //Table html section
+                                debugger;
+                                var CheckListHTML = '';
+
+                                $("#CusLedgerReportList").empty();
+                                if (reportdetaildata.Data.length > 1) {
+                                    $('#CusLedgerReportList').show();
+                                    $("#Gridtransactiondetailsbody").empty();
+                                    document.querySelector('.igf').style.display = "block";
+                                    document.querySelector('.tb1').style.display = 'block';
+                                    document.querySelector('#exppdfi').style.display = "block";
+
+                                    // Data = ajaxOutput.Data;
+                                    $.each(reportdetaildata.Data, function (i, value) {
+                                        let rowCount = (i + 1);
+
+                                        
+
+
+                                        CheckListHTML += "<tr>";
+                                        if (rowCount != reportdetaildata.Data.length) {
+
+                                            CheckListHTML += "<td  Class='jq_slno_td' style='text-align:center'>" + value["Sl No"] + "</td>";
+                                            CheckListHTML += "<td Class='jq_date_td' style='text-align:center width:20px'>" + value["Project/Sales No"] + "</td>";
+                                            CheckListHTML += "<td  Class='jq_transactiontype_td' style='text-align:center width:20px'>" + value["Installation/Sales Date"] + "</td>";
+
+
+                                            CheckListHTML += "<td class='jq_transactionno_td' style='text-align:center width:20px'>" + value.Narration + "</td>";
+                                            CheckListHTML += "<td class='jq_remarks_td' style='text-align:right;'>" + value.Debit + "</td>";
+
+
+                                            CheckListHTML += "<td class='jq_credit_td' style='text-align:right;'>" + value.Credit + "</td>";
+
+                                            CheckListHTML += "<td class='jq_paid_td' style='text-align:right;'>" + value.Balance + "</td>";
+                                        }
+                                        else
+                                        {
+                                            CheckListHTML += "<td  Class='jq_slno_td' style='text-align:center'>" + value["Sl No"] + "</td>";
+                                            CheckListHTML += "<td Class='jq_date_td' style='text-align:center width:20px'>" + value["Project/Sales No"] + "</td>";
+                                            CheckListHTML += "<td  Class='jq_transactiontype_td' style='text-align:center width:20px'>" + value["Installation/Sales Date"] + "</td>";
+
+
+                                            CheckListHTML += "<td class='jq_transactionno_td' style='text-align:center width:20px; font-weight:bold;'>" + value.Narration + "</td>";
+                                            CheckListHTML += "<td class='jq_remarks_td' style='text-align:right;font-weight:bold;'>" + value.Debit + "</td>";
+
+
+                                            CheckListHTML += "<td class='jq_credit_td' style='text-align:right;font-weight:bold;'>" + value.Credit + "</td>";
+
+                                            CheckListHTML += "<td class='jq_paid_td' style='text-align:right;font-weight:bold;'>" + value.Balance + "</td>";
+                                        }
+
+
+
+
+                                        CheckListHTML += "</tr>";
+
+
+
+
+
+                                    });
+
+
+
+
+                                }
+                                else {
+                                    document.querySelector('#exppdfi').style.display = "none";
+                                    document.querySelector('.igf').style.display = "block";
+                                    $('#CusLedgerReportList').show();
+                                    $('#Gridtransactiondetailsbody').show();
+                                    $("#CusLedgerReportList").empty();
+                                    $('#CusLedgerReportList').hide();
+                                    
+                                    CheckListHTML +=`<tr id="0">
+                                                    <td style="text-align:center;" colspan="9">No Records..</td>
+                                                    </tr>`
+
+                                }
+                                $("#Gridtransactiondetailsbody").html(CheckListHTML);
+                                CheckListHTML = "";
+                            }
+
+                          
+                        }
+                        else {
+                            NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': 'No Records Found' });
+                        }
+
+                    }
+                });
+            }
+        }
+    }
+
+        function GetModeDetails(ele,EditModeValue) {
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+        let ModeValue = EditModeValue;
+        let inputData = {
+            __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+            ReportMode: $('#ID_Report').val(),
+        };
+
+            //if ($('#ID_Report').val() != "" || $('#ID_Report').val() != 0) {
+            $.ajax({
+                url: "@Url.Action("GetModeDetails", "CustomerReport")",
+                type: "POST",
+                data: inputData,
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded;charset=utf-8",
+                success: function (ajaxOutput) {
+
+                    let $menuDropdown = $thisForm.find('[name=Criteria]');//<--- Will give place select html element
+                    $menuDropdown.empty().selectpicker('refresh');
+                    $menuDropdown.append($('<option/>', { "value": "" }).text("Please Select")).selectpicker('refresh')
+                    debugger
+
+                    if (ajaxOutput.Process.IsProcess) {
+                        $.each(ajaxOutput.Data, function (key, value) {
+                            $menuDropdown.append($('<option/>', { "value": value.ID_Mode }).text(value.ModeName)).selectpicker('refresh')
+                        });
+                        if ($menuDropdown.attr('perfect-onloadSelect')) {
+                            $menuDropdown.val($menuDropdown.attr('perfect-onloadSelect')).selectpicker('refresh')
+                        }
+
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            //NotificationMessage({ 'type': 'warning', 'heading': 'warning', 'message': value });
+                        });
+                    }
+                }
+
+            });
+        //}
+    }
+      $(document).ready(function () {
+
+        Getdepartmentdefault(this);
+        //fn_showFiltersearch()  //new line
+    });
+       function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+                        let user = '@ViewBag.Admin';
+
+                        console.log('user', user);
+                        if (parseFloat(Mode) == 1 && user == 'True') {
+                            $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+    function ReportValidate() { }
+
+    function generatePdfProfile(ele) {
+
+        var cdata;
+        var type = $("#ID_Report").val().trim();
+        let $thisForm = $(ele).closest('[perfect-class="form"]');
+
+       
+        const obj = {
+            //ReportMode: $('select[name="ID_Report"] option:selected').val(),
+            FromDate: CustReportstartdate == null ? "01/01/2023" : CustReportstartdate,
+            ToDate: CustReportenddate == null ? "01/01/2023" : CustReportenddate,
+            Branch: $('select[name="BranchID"] option:selected').text(),
+            Employee: $("#Employee").val(),
+            Area: $thisForm.find('select[name="Area_ID"]  option:selected').text(),
+            Status: $('#Status option:selected').text(),
+            //Grouping: critria_
+        };
+
+
+
+        const obj2 = {
+
+            //Report: $('select[id="ID_Report"] option:selected').text(),
+
+            //"Target Date": $('#reportrange span').html(),
+        }
+
+
+
+
+        var str = "";
+        var str2 = "";
+        var num = 0
+        for (var i in obj) {
+            debugger
+            if (obj[i] != "" && obj[i] != "Please Select" && obj[i] != 0 && obj[i] != undefined && obj[i] != "Please select") {
+
+                if (typeof (obj[i]) == "string") {
+                    if (obj[i].trim() != "Please Select" && obj[i].trim() != "") {
+                        debugger
+                        if (num == 0) {
+                            str = "Filter By : ";
+                        }
+
+                        str = str + i + ' : ' + obj[i] + ' , ';
+                    }
+
+                } else {
+                    if (num == 0) {
+                        str = "Filter By : ";
+                    }
+
+                    str = str + i + ' : ' + obj[i] + ' , ';
+                }
+
+                num++;
+            }
+
+        };
+
+        for (var i in obj2) {
+            // debugger
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+
+                str2 = str2 + i + ' : ' + obj2[i] + ' , ';
+            }
+
+        };
+
+
+        ////Test code end
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+
+
+                var body = [];
+                var collen = ":";
+                var reportName = "";
+                var upperhead;
+
+
+
+                reportName = $('select[name="ID_Report"] option:selected').text();
+
+
+
+
+
+                if (type == 8) {
+                        head = ["Sl No", "Project/Sales No", "Installation/Sales Date", "Narration", "Debit", "Credit", "Balance"]
+
+
+
+
+                        ptableData = {
+                            columns: [
+
+                               
+                                { title: "Project/Sales No", dataKey: "Project/Sales No" },
+                                { title: "Installation/Sales Date", dataKey: "Installation/Sales Date" },
+                                { title: "Narration", dataKey: "Narration" },
+                                { title: "Debit", dataKey: "Debit", className: "text-right" },
+                                { title: "Credit", dataKey: "Credit", className: "text-right" },
+                                { title: "Balance", dataKey: "Balance", className: "text-right" },
+
+
+
+                            ],
+                            rows: reportdetaildata.Data
+
+                        };
+                   
+
+
+
+                    debugger
+                    const obj = {
+
+                        startY: 5,
+                        head: [/*['Account Details', '', 'Address Details', '']*/],
+                        body: [
+                            ['Cust No', Data.Data[0].CusNumber, 'Name', Data.Data[0].CusName],
+                            ['Mobile', Data.Data[0].Mobile,'Address', Data.Data[0].CusAddress1],
+
+
+                        ],
+                        theme: 'striped',
+                        styles: {
+                            //lineWidth: 0.2,
+                            //lineColor: 0,
+                            fontSize: 8
+                        },
+                        headerStyles: {
+                            fillColor: '#2aa2ad', // Set the fill color of the header
+                            textColor: '#FFFFFF' // Set the text color of the header
+                        },
+                        showHead: 'everyPage',
+                        rowPageBreak: 'avoid',
+                        pageBreak: 'auto',
+                        margin: { top: 30, bottom: 40 }
+                    }
+
+                    const inputdata = {
+                        ptitle: reportName,
+                        phead: [head],
+                        cdata,
+                        upperhead,
+                        ptableData,
+                        filename: reportName,
+                        pageSize: "a4",
+                        PageOrientation: "l",
+                        uppertable: obj
+
+                    }
+                    debugger
+                    exportPdf2(inputdata);
+                }
+
+                grpby = "Branch";
+
+            }
+        });
+    }
+    //generatePdfProfile end
+
+
+    function onExell() {
+
+
+        var cdata;
+        var _ReportName = "Customer Ledger";
+
+
+
+        const obj = {
+
+            //FromDate: CustReportstartdate == null ? "01/01/2023" : CustReportstartdate,
+            //ToDate: CustReportenddate == null ? "01/01/2023" : CustReportenddate,
+            Branch: $('select[name="BranchID"] option:selected').text(),
+
+
+        };
+        const obj2 = {
+           
+        }
+
+
+
+        console.log(obj, '--obj--');
+        console.log(obj2, '--obj2--');
+
+
+        var str = "";
+        var str2 = "";
+        var num = 1;
+
+        for (var i in obj) {
+            if (obj[i] != "" && obj[i].toUpperCase() != "PLEASE SELECT" && obj[i] != 0) {
+
+                if (num == 1) {
+                   // str += "Filter By : "
+                }
+                str = str + i + ' : ' + obj[i] + ' , ';
+                num++;
+            }
+
+        };
+        for (var i in obj2) {
+            if (obj2[i] != "" && obj2[i] != undefined) {
+
+                str2 = str2 + i + ' : ' + changeDateFormat(obj2[i]) + ' , ';
+            }
+
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetCompanyDetails", "Home")',
+            type: "GET",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded;charset=utf-8",
+            success: function (ajaxOutput) {
+
+
+                cdata = ajaxOutput;
+
+            },
+            complete: function () {
+
+
+                
+                    head = ["Sl No", "Project/Sales No", "Installation/Sales Date", "Narration", "Debit", "Credit", "Balance"]
+
+                    ptableData =
+                   
+                        {
+                            columns: [
+
+
+                                { title: "Project/Sales No", dataKey: "Project/Sales No" },
+                                { title: "Installation/Sales Date", dataKey: "Installation/Sales Date" },
+                                { title: "Narration", dataKey: "Narration" },
+                                { title: "Debit", dataKey: "Debit", className: "text-right" },
+                                { title: "Credit", dataKey: "Credit", className: "text-right" },
+                                { title: "Balance", dataKey: "Balance", className: "text-right" },
+
+
+
+                            ],
+                            rows: reportdetaildata.Data
+
+                        };
+              
+
+
+
+                ReportName = `${cdata.Company} \n${cdata.Branch} \n ${$('select[name="FK_Report"] option:selected').text()} \n ${str2} \n ${str} `
+                const inputobj = {
+                    ptitle: ReportName,
+                    phead: [head],
+                    ptableData,
+                    filename: `${_ReportName}`,
+                    headertable: {
+                        bhead: [['', '', '', '', '', '', '', '', ''], ['Customer Ledger ', '', '', '', '', '', '', '', '']],
+                        bbody: [
+                            ['Cust No', Data.Data[0].CusNumber, 'Name', Data.Data[0].CusName],
+                            ['Mobile', Data.Data[0].Mobile,'Address', Data.Data[0].CusAddress1],
+
+                        ]
+
+                    },
+
+                }
+                generateExell2(inputobj);
+
+              
+
+            }
+        });
+
+    }
+</script>
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/jspdf.plugin.autotable.min.js"></script>
+<script src="~/Scripts/exportFile.js"></script>
+<script src="~/Scripts/xlsx.min.js"></script>
+
+
+<script src="//cdn.rawgit.com/ashl1/datatables-rowsgroup/v1.0.0/dataTables.rowsGroup.js"></script>

@@ -1,0 +1,551 @@
+﻿
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="Incentiveprocess-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+
+        const $formContainer = $('#Incentiveprocess-form');
+        var IncentiveProcessTransMode = '';
+        $(document).ready(function () {
+           IncentiveprocessInitialLoad();
+
+        });
+
+
+        function IncentiveprocessInitialLoad() {
+               @if (ViewBag.PagedAccessRights.UsrrlTyView)
+              {
+                 <text>   loadIncentiveprocessList(this); </text>
+              }
+            IncentiveprocessTransMode = '@ViewBag.TransMode';
+             loadIncentiveprocessAddForm();
+        }
+
+
+           // Function to load TaxType ADD form
+        function loadIncentiveprocessAddForm() {
+
+            $formContainer.load('@Url.Action("LoadIncentiveProcessForm", "IncentiveProcess")?mtd=@ViewBag.mtd', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+
+                // ... Custom validation message
+               $thisForm.validate({ messages: validationMessage });
+                // ... Custom validation message
+                $thisForm.find('[name="ProcessDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="FromDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment(new Date()).format('YYYY-MM-DD'));
+
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("ProcessDate")[0].setAttribute('max', today);
+                document.getElementsByName("FromDate")[0].setAttribute('max', today);
+                document.getElementsByName("ToDate")[0].setAttribute('max', today);
+
+                $thisForm.attr('perfect-onFormSuccess', 'IncentiveprocessInitialLoad');
+                initFunctions($thisForm);
+
+            });
+
+        };
+        var validationMessage = {
+
+          
+            'FK_IncentiveType': {
+                'required': 'Please Select Incentive Type',
+                'digits': 'Invalid  Incentive Type selected'
+            },
+            'ProcessDate': {
+                'required': 'Please Enter Process Date',
+                'max': jQuery.validator.format('Future Date Not Allowed')
+
+            },
+            'FromDate': {
+                'required': 'Please Enter From Date',
+                'max': jQuery.validator.format('Future Date Not Allowed')
+
+            },
+            'ToDate': {
+                'required': 'Please Enter To Date',
+                'max': jQuery.validator.format('Future Date Not Allowed')
+
+            },
+
+        };
+
+          var tableOptions = {
+            dropdown: {
+                buttons: [
+
+                  @if (ViewBag.PagedAccessRights.UsrrlTyView) {
+        <text> { displayName: "View", action: editIncentiveprocess },</text>
+    }
+
+                    { type: "divider" },
+     @if (ViewBag.PagedAccessRights.UsrrlTyDel)
+             {
+                 <text> { displayName: "Delete", action: deleteIncentiveprocess },</text>
+
+              }
+                   
+                ],
+                class: "btn btn-success light sharp"
+            },
+              onlyShowColumn: ["SlNo", "FromDate", "ToDate","IncentiveType","ProcessDate" ],
+            hideColumn: [],
+
+            rowClickAction: editIncentiveprocess,
+            serialNo: false,
+              renameHeader: { "SlNo": "Sl No.", "IncentiveType": "Incentive Type" },
+              isDateType: ["FromDate","ProcessDate","ToDate"],
+        };
+
+
+
+        function loadIncentiveprocessList(ele) {
+
+
+        let $sidemenu = $sideMenuOptions.body;
+
+       
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+            console.log("GH", SearchName)
+            if (SearchName == undefined) {
+                SearchName = "";
+            }
+           $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+          let pageUrl = '@Url.Action("GetIncentiveProcessList", "IncentiveProcess")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('IncentiveType', ajaxOutput);
+                              $sidemenu.find('.jq_sidemenu_title').text("IncentiveType");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentiveprocessList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                             // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,//no change
+                                  "processing": true,//-- process text when clicked
+                                  //"lengthChange": false,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],//---drop down page size
+                                  "searching": false,//--no change
+                                  "ordering": false,//--sorting
+                                  "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                                  "pageLength": ajaxOutput.pageSize,//<----page size
+                                  "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                else {
+                              if (ajaxOutput.Process.Status = "NoData") {
+
+                                  $sidemenu.find('.jq_sidemenu_title').text("Product");
+
+                                  $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input" value="' + SearchName +'"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadIncentiveprocessList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                        // $sidemenu.find('table').dataTable({ paging: true });
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,//no change
+                            "processing": true,//-- process text when clicked
+                           // "lengthChange": false,
+                           "lengthMenu": [],//---drop down page size
+                            "searching": false,//--no change
+                            "ordering": false,//--sorting
+                            "deferLoading": ajaxOutput.totalrecord,//<----to total number of record from db
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,//<----starting record
+                            "pageLength": ajaxOutput.pageSize,//<----page size
+                            "recordsFiltered": ajaxOutput.pageSize,//<---page size
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+
+
+
+
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+        //{ apiurl, pageSize }
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                console.log('RETURN AJAX', info)
+                //return { <antiforgery>:<antiforgery>, length: ajaxInfo.pageSize, page: info.page }
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+                // $sideMenuOptions.body.html(pft_table_createtable(dtajaxOutput.Data, tableOptions));
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    //"lengthChange": false,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+
+            },
+
+        }
+        }
+        function editIncentiveprocess() {
+
+               let row = $(this).closest('tr');
+
+            let Saveddata = row.data('pData');
+            console.log("Saved data", Saveddata);
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            let inputData = {
+                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                ID_IncentiveProcess: Saveddata.ID_IncentiveProcess
+
+            };
+
+            $.ajax({
+                        url: '@Url.Action("GetIncentiveProcessInfoID", "IncentiveProcess")',
+                        type: "POST",
+
+                        data: inputData,
+                        dataType: "json",
+                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                        success: function (ajaxOutput) {
+
+                                $sideMenuOptions.title.find('h4').text('@ViewBag.PageTitles'+' '+'List');
+                        console.log("Return", ajaxOutput);
+                            if (ajaxOutput)
+                            {
+                                debugger
+                                console.log('>_ Inside GetTaxTypeInfo', ajaxOutput)
+
+
+
+                                $formContainer.load("@Url.Action("LoadIncentiveProcessForm", "IncentiveProcess")?mtd=@ViewBag.mtd", function () {
+
+                                    $(this).find('[perfect-class=formTitle]').text('update : ' + ajaxOutput.mptableInfo.Data.IncentiveType)
+                                    console.log('Inside load');
+
+                                    let $thisForm = $(this).find('[perfect-class="form"]');
+                                    // initFunctions($thisForm);
+                                    $thisForm.validate({ messages: validationMessage });
+                                   
+                                    debugger
+                                    $thisForm.data({ pData: ajaxOutput }); //setting the pdata value in form for update -id is taking
+                                    $thisForm.find('[name="FK_IncentiveType"]').val(ajaxOutput.mptableInfo.Data[0]['FK_IncentiveType']).selectpicker('refresh');
+                                        $thisForm.find('[name="ProcessDate"]').val(moment(ajaxOutput.mptableInfo.Data[0]['ProcessDate']).format('YYYY-MM-DD'));
+                                        $thisForm.find('[name="FromDate"]').val(moment(ajaxOutput.mptableInfo.Data[0]['FromDate']).format('YYYY-MM-DD'));
+                                        $thisForm.find('[name="ToDate"]').val(moment(ajaxOutput.mptableInfo.Data[0]['ToDate']).format('YYYY-MM-DD'));
+                                        $thisForm.find('[name="FK_Branch"]').val(ajaxOutput.mptableInfo.Data[0]['FK_Branch']).selectpicker('refresh');
+                                    $thisForm.find('[name="DepartmentID"]').val(ajaxOutput.mptableInfo.Data[0]['FK_Department']);
+                                    $thisForm.find('[name="DepartmentName"]').val(ajaxOutput.mptableInfo.Data[0]['Department']);
+                                    $thisForm.find('[name="EmployeeID"]').val(ajaxOutput.mptableInfo.Data[0]['FK_Employee']);
+                                    $thisForm.find('[name="EmployeeName"]').val(ajaxOutput.mptableInfo.Data[0]['Employee']);
+
+                                   
+                                    console.log('ajaxOutput.subtable.Data[0]:', ajaxOutput.subtable.Data);
+                                   
+                                    if (ajaxOutput.subtable.Data != null) {
+                                        debugger
+                                        var $ProcessHtml = '';
+                                        $('#IncentiveprocessDetails').show();
+                                        $('#IncentiveprocessDetailsTbody').empty();
+                                      //  if (ajaxOutput.subtable.Data > 0) {
+
+                                            $('#idfooter').show();
+                                         
+                                           
+                                            $.each(ajaxOutput.subtable.Data, function (i, value) {
+                                                debugger
+                                              
+
+                                                let rowCount = (i + 1);
+                                                $ProcessHtml += "<tr id=" + rowCount + ">";
+                                                $ProcessHtml += "<td class='jq_incentivecheckbox'><input id='chekvalue" + i + "' class='chkbtn' type='checkbox' checked='true'/></td>";
+                                                $ProcessHtml += "<td  Style='text-align:center'>" + value.SlNo + "</td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocess_branch'id='editbranchid " + i + "'name=BranchID" + i + "' Style='Display:none'>" + value.BranchID + "</td>";
+                                                $ProcessHtml += "<td style='width: 150px;' >" + value.Branch+ "</td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocess_department'id='editdepartmentid" + i + "' name=DepartmentID" + i + "' Style='Display:none'>" + value.DepartmentID + "</td>";
+                                                $ProcessHtml += "<td style='width: 150px;' >" + value.Department + "</td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocess_employeeid'id='editemployeeid" + i + "' name=EmployeeID" + i + "' Style='Display:none'>" + value.EmployeeID + "</td>";
+                                                $ProcessHtml += "<td style='width: 150px;' >" + value.Employee + "</td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocess_lastincentive'style='width: 150px;name=LastInstDate" + i + "'>" +value.LastIncentiveDate + "</td>";
+                                                $ProcessHtml += "<td  class='jq_incentiveprocess_actualincentive'style='width: 150px;name=ActIncentive" + i + "'>" + value.ActualIncentive + "</td>";
+                                                $ProcessHtml += "<td class='jq_Payableamt' style='width: 150px; id='firstpayable' name=Payable" + i + "'>" + value.Payable+ "</td>";
+                                                $ProcessHtml += "<td class='jq_incentivedirect_td' style='width: 150px;name=Direct" + i + "'><input  id='chk1' type='checkbox' " + (value.Direct ? "checked" : "") + "/></td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocess_groupid'id='editgroupid" + i + "' name=GroupID" + i + "' Style='Display:none'>" +value.GroupID + "</td>";
+                                                $ProcessHtml += "<td class='jq_incentiveprocessdetailsid_groupid'id='editIncentivedetailsid" + i + "' name=ID_IncentiveProcessDetails" + i + "' Style='Display:none'>" + value.ID_IncentiveProcessDetails + "</td>";
+                                                //$ProductHtml += "<td class='EditStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditdata(this, " + value.BranchID + ", " + value.DepartmentID + ", " + value.EmployeeID + ", " + value.GroupID + "," + value.Branch + ")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                                $ProcessHtml += "<td class='viewStatus' style='text-align'><span id='close'></span><button  data-value='0' onclick='Popupeditviewdata(this," + value.ID_IncentiveProcessDetails +  ",\"" + value.Branch + "\", \"" + value.Department + "\", \"" + value.Employee + "\")' style='outline:none;box-shadow:none;' class='btn' perfect-css='button' type='button' name='loanname' data-target='buttonlabel' ><i id='tickicon" + i + "' class='fa fa-ellipsis-h' style='color:grey'></i></button></td>";
+                                                $ProcessHtml += "</tr>";
+                                                // Increment uniqueRowId for each row
+                                            });
+
+                                       // }
+                                    }
+                                    // fn_Incentiveprocess(this);
+                                    $('#IncentiveprocessDetailsTbody').append($ProcessHtml);
+                                    $('#idpopreset').hide();
+                                    $('#idpopupupdate').hide();
+                                    
+                                    $sideMenuOptions.close();
+
+                                    $thisForm.find('button[name=add]').addClass('d-none');
+                                    $thisForm.find('button[name=update]').removeClass('d-none');
+
+                                    $thisForm.attr('perfect-onFormSuccess', 'IncentrivetypeInitialLoad');
+
+                                });
+                            }
+                            else {
+                                console.log('>_ Inside GetincentiveTypeInfo :false')
+
+                                $.each(ajaxOutput.Process.Message, function (key, value)
+                                {
+                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                });
+                            }
+
+                            loadIncentiveprocessList()
+                },
+
+            });
+
+
+
+        }
+
+         var EditGroupid = 0;
+        function Popupeditviewdata(button,incentiveprocessdetailsID,branch,department,employee) {
+        debugger
+       
+
+        var $thisForm = $(this).closest('[perfect-class="form"]');
+
+        $('#IncentiveprocesseditDetails').show();
+        $('#formGroupEditPopupIncentiveDetails').modal('show');
+
+
+
+       
+        $('[name="EmpName"]').val(employee);
+        $('[name="EmpBranchName"]').val(branch);
+        $('[name="EmpDepartmentName"]').val(department);
+        debugger
+      
+        var InputData = {
+
+            'ID_IncentiveProcess': incentiveprocessdetailsID,
+           
+        }
+            
+        $.ajax({
+            url: "@Url.Action("GetEditIncentiveprocessviewDetails", "IncentiveProcess")",
+            type: "Get",
+            data: InputData,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                $('#IncentiveprocesseditDetails').show();
+                if (ajaxOutput != null) {
+                    bindajaxout = ajaxOutput;
+                    var $EditProductHtmls = '';
+
+                  
+                    console.log('ajaxoutviewpopup', ajaxOutput);
+
+                    if (ajaxOutput.Data != null) {
+                        $('#IncentiveprocesseditDetailsTbody').empty();
+                        //if (ajaxOutput.Lits.Data.length > 0) {
+
+                            $('#idfooter').show();
+
+                        $.each(ajaxOutput.Data, function (i, value) {
+                                var amtTotal = 0;
+                                amtTotal = value.WorkSheetPayable;
+                                let rowCount = (i + 1);
+                                $EditProductHtmls += "<tr id=" + rowCount + ">";
+                              
+
+                                $EditProductHtmls += "<td  Style='text-align:center'>" + value.SlNo + "</td>";
+                             
+                                $EditProductHtmls += "<td style='width: 150px;' >" + value.Module + "</td>";
+                             
+                                $EditProductHtmls += "<td style='width: 150px;' >" + value.AccountNo + "</td>";
+                              
+                                $EditProductHtmls += "<td style='width: 150px;'  >" + value.Value + "</td>";
+                                $EditProductHtmls += "<td style='width: 150px;'>" + value.Activity + "</td>";
+                                $EditProductHtmls += "<td style='width: 150px;'>" + value.CalculationMethod + "</td>";
+                                $EditProductHtmls += "<td style='width: 150px;'><input type='textbox'onkeypress='return /[0-9.]/i.test(event.key)' maxlength ='10' type='number' style='width:200px'   class='form-control' value='" + value.ActualIncentive + "'disabled/></td>";
+                               // $EditProductHtml += "<td style='width: 150px;'><input type='textbox'onkeypress='return /[0-9.]/i.test(event.key)' maxlength ='10' type='number' style='width:200px'   class='form-control'value='" + value.WorkSheetPayable + "'/></td>";
+                                $EditProductHtmls += "<td class='jq_editincentivepayable'id='editincentivepayableid " + i + "'name=WorkSheetPayable" + i + "'><input type = 'textbox'onkeypress = 'return /[0-9.]/i.test(event.key)' maxlength = '10' type = 'number'style = 'width:200px'class='form-control'value ='" + value.Payable + "'disabled/></td>";
+                            
+                               
+                                $EditProductHtmls += "</tr>";
+
+                               
+                               // $('[name="UId"]').val(iddd);
+                            });
+
+                       // }
+                    }
+                 
+                    $('#IncentiveprocesseditDetailsTbody').append($EditProductHtmls);
+                    $('#IncentiveprocesseditDetails').show();
+
+                }
+            }
+        });
+    }
+
+        function deleteIncentiveprocess() {
+
+             let $row = $(this).closest('tr');
+            let Saveddata = $row.data('pData');
+
+
+            $('.dataTable tr').removeClass("SelectForDelete");
+            $(this).closest('tr').addClass('SelectForDelete');
+
+            console.log('Delete function', Saveddata)
+            let prodate =(moment(Saveddata.ProcessDate).format('DD-MM-YYYY'));
+            //get reason list-
+
+               $.ajax({
+                   url: "@Url.Action("GetIncentiveprocessDeleteReasonList", "IncentiveProcess")",
+                   type: "GET",
+                  // data: inputReason,
+                   contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                   success: function (ajaxReasonOutput) {
+
+                       // console.log('Inside res ajax', ajaxReasonOutput.Data)
+
+                       if (ajaxReasonOutput.Process.IsProcess) {
+
+                           console.log('Inside res ajax', ajaxReasonOutput.Data)
+                           let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove :" + Saveddata.IncentiveType + " Processed On " + prodate + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                           var confirmBoxObj = ConfirmDialog(confirmationDialogBoxOption);
+                          
+                           
+                           confirmBoxObj.then(function (selectedOption) {
+                                if (selectedOption) {
+                                     console.log('customerIndex> delete function:',selectedOption)
+
+                                    let inputData = {
+                                        __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                        IncentiveProcessID: Saveddata.ID_IncentiveProcess,
+                                        TransMode: IncentiveprocessTransMode,
+                                        ReasonID: selectedOption
+                                    };
+                                    $.ajax({
+                                        url: "@Url.Action("DeleteIncentiveProcessInfo", "IncentiveProcess")",
+                                        type: "POST",
+                                        data: inputData,
+                                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                                        success: function (ajaxOutput) {
+                                            if (ajaxOutput.Process.IsProcess) {
+
+                                               
+
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message':'Deleted Successfully' });
+                                                });
+                                                let table = $row.closest('table').DataTable()
+                                                table.row($row).remove().draw();
+                                                $('.dataTable tr').removeClass("SelectForDelete");
+                                              
+                                                loadIncentivetypeAddForm();
+
+                                                $('.dz-demo-panelshow').removeAttr(show);
+                                                //removing a data
+
+
+                                            }
+                                            else {
+                                                $.each(ajaxOutput.Process.Message, function (key, value) {
+                                                    NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                                    $('.dataTable tr').removeClass("SelectForDelete");
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    NotificationMessage({ 'message': 'No option selected' });
+                                }
+
+                            });
+
+
+                        }
+                        else {
+
+
+
+                        }
+                   }
+
+               });
+
+
+
+
+        };
+        </script>
+    }

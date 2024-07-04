@@ -1,0 +1,127 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="supplierreport-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+
+    <script type="text/javascript">
+           RPTusername = '@ViewBag.Username';
+        const $formContainer = $('#supplierreport-form');
+        var SupplierreportTransMode = '';
+        $(document).ready(function () {
+
+           SupplierreportInitialLoad();
+            $('#jq-sidemenu').hide();
+        });
+
+        function fn_showFiltersearch() {
+            let $thisForm = $('[perfect-class="form"]');
+            $thisForm.closest('.Supplierreport').find('.supplierreportsearch-body').toggleClass('d-none');
+    }
+
+        function SupplierreportInitialLoad() {
+            $formContainer.load('@Url.Action("LoadSupplierreportLoadForm", "SupplierReport")?mtd=@ViewBag.mtd' + '&mgrp=@ViewBag.TransMode', function () {
+
+                let $thisForm = $(this).find('[perfect-class="form"]');
+                SupplierreportTransMode = '@ViewBag.TransMode';
+
+                Getdepartmentdefault();
+
+                $('.DivAsOndate').hide();
+                $thisForm.validate({ messages: validationMessage });
+                $thisForm.find('[name="FromDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="ToDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.find('[name="AsonDate"]').val(moment().format('YYYY-MM-DD'));
+                $thisForm.attr('perfect-onFormSuccess', 'SupplierreportInitialLoad');
+            });
+
+        };
+
+        debugger
+
+        var validationMessage = {
+
+
+            'BranchID': {
+                'required': 'Please Select Branch',
+                'digits': 'Please Enter valid Branch'
+
+            },
+         
+            'FromDate': {
+                'required': 'Please select From Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+            },
+            'ToDate': {
+                'required': 'Please select To Date',
+                'min': jQuery.validator.format('Please Enter a Valid Date'),
+            },
+            'FK_Mode': {
+                'required': 'Please Select Report Name' ,
+                'digits': 'Please Enter valid Report Name'
+
+            },
+
+            
+
+        };
+
+           function Getdepartmentdefault() {
+        let $thisForm = $('[perfect-class="form"]');
+        $.ajax({
+            url: '@Url.Action("GetEmployeeLeadDefault", "ServiceReport")',
+            type: "Get",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {//<----- if ajax method executed succesfully,  we get the data passed from controller in this variable  => success: function (variable) {
+
+                if (ajaxOutput.Process.IsProcess) {
+                    //var stateModel = createSelectList({ data: ajaxOutput.Data, hideColumn: ['EmpID'] });
+                    $.each(ajaxOutput.Data, function (key, value) {
+
+                        console.log('>_ Search button > list click', value);
+
+                        $thisForm.find('[name=BranchID]').val(value.ID_Branch).selectpicker('refresh');
+                        $thisForm.find('[name=DepartmentID]').val(value.FK_Department).selectpicker('refresh');
+                        $thisForm.find('[name=FK_BranchMode]').val(value.FK_BranchMode);
+
+                        let Mode = $thisForm.find('[name=FK_BranchMode]').val();
+
+                        if (parseFloat(Mode) == 1) {
+
+                            $('#BranchID').prop('disabled', false);
+                        }
+                        else {
+                            $('#BranchID').prop('disabled', true);
+                        }
+
+
+                    });
+
+
+
+
+                }
+                else {
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+
+            },
+
+
+        });
+    }
+
+    </script>
+
+}

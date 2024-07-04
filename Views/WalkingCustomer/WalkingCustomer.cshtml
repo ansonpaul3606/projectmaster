@@ -1,0 +1,328 @@
+﻿
+@{
+    ViewBag.Title = "WalkingCustomer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12" id="WalkingCustomer-form">
+
+        </div>
+    </div>
+</div>
+@section scripts{
+<script type="text/javascript">
+    const $formContainer = $('#WalkingCustomer-form');
+    const LastIDSessionKeyWalkin = 'WalkinLastID';
+    var LastID_WalkinCustomer;
+
+    $(document).ready(function () {
+        WalkingCustomerInitialLoad();
+    });
+
+
+    function WalkingCustomerInitialLoad() {
+
+        //loadWalkingCustomerAddForm();
+        //loadWalkingCustomerList(this);
+        loadWalkingCustomerList(this, loadWalkingCustomerAddForm);
+    }
+    function loadWalkingCustomerAddForm() {
+        $formContainer.load('@Url.Action("LoadWalkingCustomer", "WalkingCustomer")?mtd=@ViewBag.mtd', function () {
+            let $thisForm = $(this).find('[perfect-class="form"]');
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementsByName("AssignedDate")[0].setAttribute('max', today);
+            document.getElementsByName("AssignedDate")[0].setAttribute('min', '1900-01-01');
+            $thisForm.find('[name="AssignedDate"]').val(moment().format('YYYY-MM-DD'));
+
+            $thisForm.find('[name="FK_AssignedToBranch"]').val(@ViewBag.FK_AssignedToBranch);    
+            $thisForm.validate({ messages: validationMessage });
+            $thisForm.attr('perfect-onFormSuccess', 'WalkingCustomerInitialLoad');
+            getSessionValue(LastIDSessionKeyWalkin, function (result) {
+                LastID_WalkinCustomer = result;
+            });
+            initFunctions($thisForm);
+        });
+    };
+    var validationMessage = {
+        'CustomerName': {
+            'required': 'Please Enter Customer Name',
+            'stringonly': 'Enter Valid Name',
+        },
+        'AssignedTo': {
+            'required': 'Please Select Assigned To',
+        }, 
+        'AssignedDate': {
+            'required': 'Please Enter Assigned Date',
+            'max': jQuery.validator.format('Please Enter a Valid Date'),
+            'min': jQuery.validator.format('Please Enter a Valid Date')
+        },
+        'CustomerPhone': {
+            'stringonly': 'Enter Valid Phone Number',
+            'minlength': jQuery.validator.format('Phone No Should be More than {0} Digits'),
+            'maxlength': jQuery.validator.format('Phone No Should be Less than {0} Digits')
+        }
+    }
+
+    var tableOptions = {
+
+        dropdown: {
+
+            buttons: [
+
+                { displayName: "View", action: EditWalkingCustomer},
+
+                { type: "divider" },
+
+                { displayName: "Delete", action: DeleteWalkingCustomer },
+
+            ],
+                class: "btn btn-success light sharp"
+            },
+        onlyShowColumn: ["SlNo", "CusName", "CusMobile", "Employee","CaAssignedDate"],
+        hideColumn: ["ID_CustomerAssignment","FK_Employee"],
+        rowClickAction: EditWalkingCustomer,
+        renameHeader: { "CusName": "Name", "CusMobile": "Phone", "Employee": "Assigned To", "CaAssignedDate": "Assigned Date" },
+        isDateType: ["CaAssignedDate"]
+    };
+
+    function EditWalkingCustomer() {
+
+        let $thisUser = $(this).closest('tr');
+        let savedData = $thisUser.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        let inputData = {
+            ID_WalkingCustomer: savedData.ID_CustomerAssignment
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetWalkingCustomerInfo", "WalkingCustomer")',
+            type: "POST",
+            data: JSON.stringify(inputData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (ajaxOutput) {
+
+                if (ajaxOutput.Process.IsProcess) {
+
+                   
+                    $formContainer.load("@Url.Action("LoadWalkingCustomer", "WalkingCustomer")?mtd=@ViewBag.mtd", function () {
+                        let $thisForm = $(this).find('[perfect-class="form"]');
+    
+                        $thisForm.validate({ messages: validationMessage });
+                        $thisForm.data({ 'pData': ajaxOutput.Data[0] });
+
+                        var today = new Date().toISOString().split('T')[0];
+                        document.getElementsByName("AssignedDate")[0].setAttribute('max', today);
+                        document.getElementsByName("AssignedDate")[0].setAttribute('min', '1900-01-01');
+
+                        $thisForm.find('[name=FK_AssignedToBranch]').val(@ViewBag.FK_AssignedToBranch);
+                        $thisForm.find('[name=ID_WalkingCustomer]').val(ajaxOutput.Data[0].ID_CustomerAssignment);
+                        $thisForm.find('[name=LastID]').val(ajaxOutput.Data[0].LastID);
+                        $thisForm.find('[name=CustomerName]').val(ajaxOutput.Data[0].CusName);
+                        $thisForm.find('[name=CustomerPhone]').val(ajaxOutput.Data[0].CusMobile);
+                        $thisForm.find('[name=FK_AssignedTo]').val(ajaxOutput.Data[0].FK_Employee);
+                        $thisForm.find('[name=AssignedTo]').val(ajaxOutput.Data[0].Employee);
+                        $thisForm.find('[name=Description]').val(ajaxOutput.Data[0].CaDescription);
+                        $thisForm.find('[name="AssignedDate"]').val(moment(ajaxOutput.Data[0].CaAssignedDate).format('YYYY-MM-DD'));
+                        $thisForm.find('button[name=add]').addClass('d-none');
+                        $thisForm.find('button[name=update]').removeClass('d-none');
+
+                        $thisForm.attr('perfect-onFormSuccess', 'WalkingCustomerInitialLoad');
+
+                        $sideMenuOptions.close();
+
+                    });
+
+                }
+
+                else {
+
+                    $.each(ajaxOutput.Process.Message, function (key, value) {
+                        NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                    });
+                }
+            },
+        });
+    }
+
+    function DeleteWalkingCustomer() {
+
+        let $row = $(this).closest('tr');
+        let Saveddata = $row.data('pData');
+
+        $('.dataTable tr').removeClass("SelectForDelete");
+        $(this).closest('tr').addClass('SelectForDelete');
+
+        $.ajax({
+            url: "@Url.Action("GetWalkingCustomerDeleteReasonList", "WalkingCustomer")",
+            type: "GET",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (ajaxReasonOutput) {
+
+                if (ajaxReasonOutput.Process.IsProcess) {
+                    let confirmationDialogBoxOption = { heading: "Are you Sure?", body: "Do you want to remove " + Saveddata.CusName + " ?", cancel: "No", confirm: "Yes", reason: ajaxReasonOutput.Data };
+                    var res = ConfirmDialog(confirmationDialogBoxOption);
+                    res.then(function (ret) {
+                        if (ret) {
+                            let inputData = {
+                                __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val(),
+                                ID_WalkingCustomer: Saveddata.ID_CustomerAssignment,
+                                ReasonID: ret
+                            };
+
+                            $.ajax({
+                                url: "@Url.Action("DeleteWalkingCustomer", "WalkingCustomer")",
+                                type: "POST",
+                                data: inputData,
+                                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                                success: function (data) {
+                                    if (data.Process.IsProcess) {
+                                        let $thisForm = $(this).find('[perfect-class="form"]');
+                                        let table = $row.closest('table').DataTable()
+                                        table.row($row).remove().draw();
+
+                                        $.each(data.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'success', 'heading': 'Success', 'message': "Deleted Successfully" });
+                                        });
+                                        WalkingCustomerInitialLoad();
+                                        $sideMenuOptions.close();
+                                    }
+                                    else {
+                                        $.each(data.Process.Message, function (key, value) {
+                                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            NotificationMessage({ 'message': 'No option selected' });
+                        }
+
+                    });
+                }
+            }
+        });
+    };
+
+
+    function loadWalkingCustomerList(ele,callback) {
+        let $sidemenu = $sideMenuOptions.body;
+
+        let $thisForm = $(ele).closest('.testSearchBox');
+        let SearchName = $thisForm.find('input').val();
+        console.log("GH",SearchName)
+        $sideMenuOptions.title.find('h4').text('Walking Customer List');
+          let pageUrl = '@Url.Action("GetWalkingCustomerList", "WalkingCustomer")';
+            $.ajax({
+                url:pageUrl,
+                type: "POST",
+                data: { pageSize: 15, pageIndex: 0, Name: SearchName },
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (ajaxOutput) {
+
+                          if (ajaxOutput.Process.IsProcess) {
+                              console.log('District', ajaxOutput);
+                              setSessionValue(LastIDSessionKeyWalkin, ajaxOutput.Data[0]["LastID"]);
+                              $sidemenu.find('.jq_sidemenu_title').text("WalkingCustomer");
+
+                              $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2 position-relative"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadWalkingCustomerList(this)"></button></div></div></div></div>', $('<div/>', {class:"col-md-12 table_temp_class"}).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+                              let $table = $sidemenu.find('table');
+                              $table.dataTable({
+                                  "serverSide": true,
+                                  "processing": true,
+                                  "lengthMenu": [10, 15, 20, 25, 50, 100],
+                                  "searching": false,
+                                  "ordering": false,
+                                  "deferLoading": ajaxOutput.totalrecord,
+                                  "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                                  "pageLength": ajaxOutput.pageSize,
+                                  "recordsFiltered": ajaxOutput.pageSize,
+                                  "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                              });
+
+                          }
+                          else {
+                              //setSessionValue(LastIDSessionKeyWalkin, 0);
+                              if (ajaxOutput.Process.Status = "NoData") {
+                                 
+                        $sidemenu.find('.jq_sidemenu_title').text("WalkingCustomer");
+
+                        $sidemenu.empty().append('<div class="d-flex justify-content-end mb-2"><div class="col-md-6 position-absolute top-1 z-index"> <div class="input-group testSearchBox"><input type="text" class="form-control " name="SearchName" perfect-class="formGroupControl" perfect-ctype="input" perfect-css="input"  /><div class="input-group-append"><button id="addcountry-jq-searchButton6" class="btn btn-primary fa fa-search" type="button" perfect-css="button" onclick="loadWalkingCustomerList(this)"></button></div></div></div></div>', $('<div/>', { class: "col-md-12 table_temp_class" }).html(pft_table_createtable(ajaxOutput.Data, tableOptions)))
+
+
+
+                        let $table = $sidemenu.find('table');
+                        $table.dataTable({
+                            "serverSide": true,
+                            "processing": true,
+                            "lengthMenu": [],
+                            "searching": false,
+                            "ordering": false,
+                            "deferLoading": ajaxOutput.totalrecord,
+                            "displayStart": ajaxOutput.pageIndex * ajaxOutput.pageSize,
+                            "pageLength": ajaxOutput.pageSize,
+                            "recordsFiltered": ajaxOutput.pageSize,
+
+                            "ajax": returnajaxPagination({ apiurl: pageUrl, pageSize: ajaxOutput.pageSize, searchkey: SearchName }, tableOptions, $table)
+                        });
+                    }
+                    else {
+                        $.each(ajaxOutput.Process.Message, function (key, value) {
+                            NotificationMessage({ 'type': 'error', 'heading': 'Error', 'message': value });
+                        });
+                    }
+                }
+            },
+                complete: function () {
+                    if (callback) {
+                        callback();
+                    }
+                }
+            });
+    }
+    function returnajaxPagination(ajaxInfo, tableOptions, tableid) {
+
+        return {
+            url: ajaxInfo.apiurl,
+            type: "post",
+            data: function () {
+                var info = tableid.DataTable().page.info();
+                let input = { pageSize: info.length, pageIndex: info.page };
+                if (ajaxInfo.searchkey) {
+                    input["Name"] = ajaxInfo.searchkey;
+                }
+                return input
+            },
+            dataType: "json",
+            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            success: function (dtajaxOutput) {
+
+                let table = tableid.DataTable();
+                table.destroy();
+                pft_table_newTableBody(tableid, dtajaxOutput.Data, tableOptions);
+
+                tableid.dataTable({
+                    "serverSide": true,
+                    "processing": true,
+                    "lengthMenu": [10, 15, 20, 25, 50, 100],
+                    "searching": false,
+                    "ordering": false,
+                    "deferLoading": dtajaxOutput.totalrecord,
+                    "displayStart": dtajaxOutput.pageIndex * dtajaxOutput.pageSize,
+                    "pageLength": dtajaxOutput.pageSize,
+                    "recordsFiltered": dtajaxOutput.pageSize,
+                    "ajax": returnajaxPagination(ajaxInfo, tableOptions, tableid)
+                })
+            },
+        }
+    }
+</script>
+}
